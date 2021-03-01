@@ -5938,7 +5938,7 @@ namespace mse {
 			}
 
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-			class fixed_nii_basic_string_base : private mse::impl::TOpaqueWrapper<std::basic_string<_Ty, _Traits, _A> >, private array_adjusted_default_state_mutex<_Ty>, public us::impl::ContiguousSequenceStaticStructureContainerTagBase {
+			class fixed_nii_basic_string_base : private mse::impl::TOpaqueWrapper<std::basic_string<_Ty, _Traits, _A> >, private container_adjusted_default_state_mutex<_Ty>, public us::impl::ContiguousSequenceStaticStructureContainerTagBase {
 			public:
 #ifdef MSE_HAS_CXX17
 				template<class _StringViewIsh>
@@ -5952,7 +5952,7 @@ namespace mse {
 				using _Is_string_view_or_section_ish = typename mse::nii_basic_string<_Ty>::template _Is_string_view_or_section_ish<_StringViewIsh>;
 #endif /* MSE_HAS_CXX17 */
 
-				typedef array_adjusted_default_state_mutex<_Ty> state_mutex_t;
+				typedef container_adjusted_default_state_mutex<_Ty> state_mutex_t;
 				typedef state_mutex_t _TStateMutex;
 
 				/* We (privately) inherit the underlying data type rather than make it a data member to ensure it's the "first" component in the structure.*/
@@ -6891,9 +6891,6 @@ namespace mse {
 	template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
 	class fixed_nii_basic_string : public mse::us::impl::fixed_nii_basic_string_base<_Ty, _Traits, _A> {
 	public:
-		typedef array_adjusted_default_state_mutex<_Ty> state_mutex_t;
-		typedef state_mutex_t _TStateMutex;
-
 		typedef mse::us::impl::fixed_nii_basic_string_base<_Ty, _Traits, _A> base_class;
 		typedef std::basic_string<_Ty, _Traits, _A> std_basic_string;
 		typedef std_basic_string _MBS;
@@ -7100,9 +7097,6 @@ namespace mse {
 		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, xscope_fixed_nii_basic_string<_Ty, _Traits, _A> >
 	{
 	public:
-		typedef array_adjusted_default_state_mutex<_Ty> state_mutex_t;
-		typedef state_mutex_t _TStateMutex;
-
 		typedef mse::us::impl::fixed_nii_basic_string_base<_Ty, _Traits, _A> base_class;
 		typedef std::basic_string<_Ty, _Traits, _A> std_basic_string;
 		typedef std_basic_string _MBS;

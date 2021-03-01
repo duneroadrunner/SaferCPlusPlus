@@ -205,7 +205,7 @@ void msetl_example2() {
 		/*   stnii_vector<>   */
 		/**********************/
 
-		/* Deprecated? Prefer nii_vector<> and xscope_borrowing_fixed_nii_vector<> instead. */
+		/* Prefer nii_vector<> and xscope_borrowing_fixed_nii_vector<> instead. */
 
 		/* stnii_vector<> is just a version of mtnii_vector<> that is not eligible to be shared between threads (and has
 		a little less overhead as a result). */
@@ -337,7 +337,9 @@ void msetl_example2() {
 				auto xs_cptr1 = mse::xscope_const_pointer(xs_citer1);
 				auto val1 = *xs_cptr1;
 			}
-			mse::make_xscope_access_controlled_pointer(xs_ew_niivec1)->push_back(4);
+			/* Once the "access controlled const pointer" no longer exists, we can modify the vector again (via "access controlled 
+			(non-const) pointer") */
+			mse::push_back(mse::make_xscope_access_controlled_pointer(xs_ew_niivec1), 4);
 		}
 	}
 
@@ -439,8 +441,8 @@ void msetl_example2() {
 		mse::insert(&xs_nii_vector1_xscpobj, 0/*position index*/, { 6, 7, 8 }/*value*/);
 		mse::emplace(&xs_nii_vector1_xscpobj, 2/*position index*/, 9/*value*/);
 
-		const auto nii_vector1_expected = mse::nii_vector<int>{ 6, 7, 9, 8, 1, 5, 2, 4 };
-		assert(nii_vector1_expected == xs_nii_vector1_xscpobj);
+		const auto fnii_vector1_expected = mse::fixed_nii_vector<int>{ 6, 7, 9, 8, 1, 5, 2, 4 };
+		assert(fnii_vector1_expected == mse::make_xscope_borrowing_fixed_nii_vector(&xs_nii_vector1_xscpobj));
 
 		/* Constructing a xscope_borrowing_fixed_nii_vector<> requires a (non-const) scope pointer to an eligible vector. */
 		auto xs_bf_nii_vector1_xscpobj = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xs_nii_vector1_xscpobj));
@@ -1639,15 +1641,12 @@ void msetl_example2() {
 		/* algorithms */
 
 		mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
-		mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na2 = mse::nii_array<int, 3>{ 1, 2, 3 };
 		auto xscope_na1_begin_citer = mse::make_xscope_begin_const_iterator(&xscope_na1);
 		auto xscope_na1_end_citer = mse::make_xscope_end_const_iterator(&xscope_na1);
-		auto xscope_na2_begin_iter = mse::make_xscope_begin_iterator(&xscope_na2);
-		auto xscope_na2_end_iter = mse::make_xscope_end_iterator(&xscope_na2);
 
 		mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
 
-		mse::TXScopeObj<mse::nii_vector<int> > xscope_nv1 = mse::nii_vector<int>{ 1, 2, 3 };
+		auto xscope_nv1 = mse::make_xscope(mse::nii_vector<int>{ 1, 2, 3 });
 
 		/* Here we declare a vector protected by an "excluse writer" access control wrapper. */
 		auto xscope_ewnv1 = mse::make_xscope(mse::make_xscope_exclusive_writer(mse::nii_vector<int>{ 1, 2, 3 }));
@@ -1669,8 +1668,8 @@ void msetl_example2() {
 			mse::xscope_range_for_each_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 
 			{
-				auto xscope_fbnv1 = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xscope_nv1));
-				mse::xscope_range_for_each_ptr(&xscope_fbnv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+				auto xscope_bfnv1 = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xscope_nv1));
+				mse::xscope_range_for_each_ptr(&xscope_bfnv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
 			}
 			{
 				/* Note that for performance (and safety) reasons, vectors may be "structure locked" for the duration of the loop.
@@ -1681,7 +1680,7 @@ void msetl_example2() {
 				mse::xscope_range_for_each_ptr(&xscope_nv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
 			}
 			{
-				/* The vector protected by an "excluse writer" access control wrapper is ensured to remain unmodified while a
+				/* A vector protected by an "excluse writer" access control wrapper is ensured to remain unmodified while a
 				corresponding "access controlled const pointer" exists. */
 				auto xscope_ewnv1_cptr = mse::make_xscope_access_controlled_const_pointer(&xscope_ewnv1);
 				/* So looping over its elements is safe and efficient. */

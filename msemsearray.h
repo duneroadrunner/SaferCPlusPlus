@@ -442,23 +442,6 @@ namespace mse {
 		}
 	}
 
-	typedef
-#if (!defined(NDEBUG)) || (!defined(MSE_DISABLE_REENTRANCY_CHECKS_BY_DEFAULT))
-		non_thread_safe_mutex
-#else // (!defined(NDEBUG)) || (!defined(MSE_DISABLE_REENTRANCY_CHECKS_BY_DEFAULT))
-		dummy_recursive_shared_timed_mutex
-#endif // (!defined(NDEBUG)) || (!defined(MSE_DISABLE_REENTRANCY_CHECKS_BY_DEFAULT))
-		default_state_mutex;
-
-	/* To protect against potentially misbehaving/malicious user defined element constructors/destructors, some of the containers'
-	member functions/operations are protected by a (non-thread-safe) mutex. If the element type's constructors/destructors are
-	"trivial", then such protection is unnecessary, and so a "dummy"/no-op mutex is be used. */
-	template<class _Ty>
-	using array_adjusted_default_state_mutex = typename std::conditional<
-		std::is_trivially_constructible<_Ty>::value && std::is_trivially_destructible<_Ty>::value
-		&& ((!std::is_assignable<_Ty, _Ty>::value) || std::is_trivially_assignable<_Ty, _Ty>::value)
-		, dummy_recursive_shared_timed_mutex, default_state_mutex>::type;
-
 	namespace impl {
 		template <typename _TRAIterator>
 		class random_access_const_iterator_base_from_ra_iterator {
@@ -518,7 +501,7 @@ namespace mse {
 	class xscope_nii_array;
 
 	namespace us {
-		template<class _Ty, size_t _Size, class _TStateMutex = array_adjusted_default_state_mutex<_Ty> >
+		template<class _Ty, size_t _Size, class _TStateMutex = container_adjusted_default_state_mutex<_Ty> >
 		class msearray;
 	}
 }
@@ -1934,7 +1917,7 @@ namespace mse {
 			iter_t m_end;
 		};
 
-		/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
 		when it's safe to do so. In this case TXScopeCSSSStrongRA(Const)Iterator<>s. */
 		template <typename _TRAContainerPointer>
 		class TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> >
@@ -1962,6 +1945,7 @@ namespace mse {
 			return TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> >(_First, _Last);
 		}
 
+		/* Provides raw pointer iterators for the given "random access" container while holding on to one of the iterators (or a copy of it). */
 		template <typename iter_t>
 		class TXScopeStrongRawPointerRAFirstAndLast : public TXScopeRawPointerRAFirstAndLast<iter_t> {
 		public:
@@ -1973,14 +1957,29 @@ namespace mse {
 			iter_t m_first;
 		};
 
+		/* Overloads that replace certain iterators with fast (raw pointer) iterators when it's safe to do so. In this case
+		lvalue (but not rvalue) mse::TXScopeRA(Const)Iterator<mse::TXScopeAccessControlledConstPointer<> >s of "exclusive writer" objects. */
 		template <typename _TRAContainer, class _TAccessMutex, typename = typename std::enable_if<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value>::type>
 		auto make_xscope_specialized_first_and_last_overloaded(const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
 			return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
 		}
 		template <typename _TRAContainer, class _TAccessMutex, typename = typename std::enable_if<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value>::type>
+		auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
+			return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
+		}
+		template <typename _TRAContainer, class _TAccessMutex, typename = typename std::enable_if<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value>::type>
+		auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& _First, const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) = delete;
+
+		template <typename _TRAContainer, class _TAccessMutex, typename = typename std::enable_if<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value>::type>
 		auto make_xscope_specialized_first_and_last_overloaded(const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
 			return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
 		}
+		template <typename _TRAContainer, class _TAccessMutex, typename = typename std::enable_if<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value>::type>
+		auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
+			return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
+		}
+		template <typename _TRAContainer, class _TAccessMutex, typename = typename std::enable_if<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value>::type>
+		auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& _First, const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) = delete;
 	}
 }
 
@@ -2686,25 +2685,6 @@ namespace mse {
 
 
 	namespace impl {
-		template <typename _Ty>
-		class TOpaqueWrapper {
-		public:
-			TOpaqueWrapper(const _Ty& value_param) : m_value(value_param) {}
-			TOpaqueWrapper(_Ty&& value_param) : m_value(std::forward<decltype(value_param)>(value_param)) {}
-
-			template<typename ...Args, typename = typename std::enable_if<std::is_constructible<_Ty, Args...>::value
-				&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<TOpaqueWrapper, Args...>::value>::type>
-			TOpaqueWrapper(Args&&...args) : m_value(std::forward<Args>(args)...) {}
-
-			_Ty& value() & { return m_value; }
-			_Ty&& value() && { return std::forward<decltype(m_value)>(m_value); }
-			const _Ty& value() const & { return m_value; }
-			//const _Ty& value() const && { return m_value; }
-
-		private:
-			_Ty m_value;
-		};
-
 		namespace ns_nii_array {
 			/* Following are a bunch of template (iterator) classes that, organizationally, should be members of nii_array<>. (And they
 			used to be.) However, being a member of nii_array<> makes them "dependent types", and dependent types do not participate
@@ -2902,11 +2882,11 @@ namespace mse {
 
 	template<class _Ty, class _TStateMutex>
 	using adjusted_state_mutex = typename std::conditional<std::is_same<_TStateMutex, default_state_mutex>::value
-		, array_adjusted_default_state_mutex<_Ty>, _TStateMutex>::type;
+		, container_adjusted_default_state_mutex<_Ty>, _TStateMutex>::type;
 
 	namespace us {
 		namespace impl {
-			template<class _Ty, size_t _Size, class _TStateMutex/* = array_adjusted_default_state_mutex<_Ty>*/>
+			template<class _Ty, size_t _Size, class _TStateMutex/* = container_adjusted_default_state_mutex<_Ty>*/>
 			class nii_array_base : private mse::impl::TOpaqueWrapper<std::array<_Ty, _Size> >, private adjusted_state_mutex<_Ty, _TStateMutex>, public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
 			public:
 				/* A (non-thread safe) mutex is used to enforce safety against potentially mischievous element constructors/destructors.
@@ -3226,10 +3206,10 @@ namespace mse {
 	inherits the safety of the given pointer. nii_array<> also supports "scope" iterators which are safe without any
 	run-time overhead. nii_array<> is a data type that is eligible to be shared between asynchronous threads. */
 	template<class _Ty, size_t _Size>
-	class nii_array : public mse::us::impl::nii_array_base<_Ty, _Size, array_adjusted_default_state_mutex<_Ty> > {
+	class nii_array : public mse::us::impl::nii_array_base<_Ty, _Size, container_adjusted_default_state_mutex<_Ty> > {
 	public:
-		typedef mse::us::impl::nii_array_base<_Ty, _Size, array_adjusted_default_state_mutex<_Ty> > base_class;
-		typedef array_adjusted_default_state_mutex<_Ty> _TStateMutex;
+		typedef mse::us::impl::nii_array_base<_Ty, _Size, container_adjusted_default_state_mutex<_Ty> > base_class;
+		typedef container_adjusted_default_state_mutex<_Ty> _TStateMutex;
 		typedef std::array<_Ty, _Size> std_array;
 		typedef std_array _MA;
 		typedef nii_array _Myt;
@@ -3611,13 +3591,13 @@ namespace mse {
 
 	/* xscope_nii_array<> is the scope version of nii_array<> (which unlike nii_array<>, can hold scope objects). */
 	template<class _Ty, size_t _Size>
-	class xscope_nii_array : public mse::us::impl::nii_array_base<_Ty, _Size, array_adjusted_default_state_mutex<_Ty> >, public mse::us::impl::XScopeTagBase
+	class xscope_nii_array : public mse::us::impl::nii_array_base<_Ty, _Size, container_adjusted_default_state_mutex<_Ty> >, public mse::us::impl::XScopeTagBase
 		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty, xscope_nii_array<_Ty, _Size> >
 		, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, xscope_nii_array<_Ty, _Size> >
 	{
 	public:
-		typedef mse::us::impl::nii_array_base<_Ty, _Size, array_adjusted_default_state_mutex<_Ty> > base_class;
-		typedef array_adjusted_default_state_mutex<_Ty> _TStateMutex;
+		typedef mse::us::impl::nii_array_base<_Ty, _Size, container_adjusted_default_state_mutex<_Ty> > base_class;
+		typedef container_adjusted_default_state_mutex<_Ty> _TStateMutex;
 		typedef std::array<_Ty, _Size> std_array;
 		typedef std_array _MA;
 		typedef xscope_nii_array _Myt;
@@ -3961,7 +3941,7 @@ namespace mse {
 		/* msearray<> is an unsafe array that provides the traditional begin() and end() (non-static)
 		member functions that return unsafe iterators. It also provides ss_begin() and ss_end() (non-static) member
 		functions which return bounds-checked, but still technically unsafe iterators. */
-		template<class _Ty, size_t _Size, class _TStateMutex/* = array_adjusted_default_state_mutex<_Ty> */>
+		template<class _Ty, size_t _Size, class _TStateMutex/* = container_adjusted_default_state_mutex<_Ty> */>
 		class msearray : public mse::us::impl::nii_array_base<_Ty, _Size, _TStateMutex>, public mse::us::impl::AsyncNotShareableTagBase {
 		public:
 			typedef mse::us::impl::nii_array_base<_Ty, _Size, _TStateMutex> base_class;

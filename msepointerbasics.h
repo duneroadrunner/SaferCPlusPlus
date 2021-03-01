@@ -1433,6 +1433,8 @@ namespace mse {
 	namespace impl {
 		template<class _Ty, class _Ty2, class = typename std::enable_if<std::is_same<_Ty, _Ty2>::value>::type>
 		static void T_valid_if_same_msepointerbasics() {}
+		template<class _Ty, class _Ty2 = _Ty, class = typename std::enable_if<std::is_same<_Ty, std::true_type>::value>::type>
+		static void T_valid_if_true_type_msepointerbasics() {}
 		template<class _TLeasePointer, class _TMemberObjectPointer>
 		static void make_pointer_to_member_v2_checks_msepointerbasics(const _TLeasePointer &/*lease_pointer*/, const _TMemberObjectPointer& member_object_ptr) {
 			/* Check for possible problematic parameters. */

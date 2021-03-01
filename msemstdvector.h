@@ -331,8 +331,8 @@ namespace mse {
 			void swap(_MV& _X) { m_shptr->swap(_X); }
 			void swap(_Myt& _X) { m_shptr->swap(_X.msevector()); }
 			void swap(std::vector<_Ty, _A>& _X) { m_shptr->swap(_X); }
-			template<typename _TStateMutex2, template<typename> class _TTXScopeConstIterator2>
-			void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2, _TTXScopeConstIterator2>& _X) { m_shptr->swap(_X); }
+			template<typename _TStateMutex2, template<typename> class _TTXScopeConstIterator, class TConstLockableIndicator2>
+			void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex2, _TTXScopeConstIterator, TConstLockableIndicator2>& _X) { m_shptr->swap(_X); }
 
 			vector(_XSTD initializer_list<typename _MV::value_type> _Ilist, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_Ilist, _Al)) {}
 			_Myt& operator=(_XSTD initializer_list<typename _MV::value_type> _Ilist) { msevector() = (_Ilist); return (*this); }
@@ -773,8 +773,8 @@ namespace std {
 	{	// swap vectors
 		return (_Left.swap(_Right));
 	}
-	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
-	void swap(mse::mstd::vector<_Ty, _A>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator, class TConstLockableIndicator/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::mstd::vector<_Ty, _A>& _Left, mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator, TConstLockableIndicator>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap vectors
 		return (_Left.swap(_Right));
 	}
@@ -789,8 +789,8 @@ namespace std {
 		return (_Left.swap(_Right));
 	}
 
-	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
-	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator>& _Left, mse::mstd::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	template<class _Ty, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator, class TConstLockableIndicator/*, class = enable_if_t<_Is_swappable<_Ty>::value>*/>
+	void swap(mse::us::impl::gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator, TConstLockableIndicator>& _Left, mse::mstd::vector<_Ty, _A>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap vectors
 		return (_Right.swap(_Left));
 	}

@@ -332,6 +332,23 @@ namespace mse {
 		dummy_recursive_shared_timed_mutex& operator=(const dummy_recursive_shared_timed_mutex&) = delete;
 	};
 
+	typedef
+#if (!defined(NDEBUG)) || (!defined(MSE_DISABLE_REENTRANCY_CHECKS_BY_DEFAULT))
+		non_thread_safe_mutex
+#else // (!defined(NDEBUG)) || (!defined(MSE_DISABLE_REENTRANCY_CHECKS_BY_DEFAULT))
+		dummy_recursive_shared_timed_mutex
+#endif // (!defined(NDEBUG)) || (!defined(MSE_DISABLE_REENTRANCY_CHECKS_BY_DEFAULT))
+		default_state_mutex;
+
+	/* To protect against potentially misbehaving/malicious user defined element constructors/destructors, some of the containers'
+	member functions/operations are protected by a (non-thread-safe) mutex. If the element type's constructors/destructors are
+	"trivial", then such protection is unnecessary, and so a "dummy"/no-op mutex is be used. */
+	template<class _Ty>
+	using container_adjusted_default_state_mutex = typename std::conditional<
+		std::is_trivially_constructible<_Ty>::value&& std::is_trivially_destructible<_Ty>::value
+		&& ((!std::is_assignable<_Ty, _Ty>::value) || std::is_trivially_assignable<_Ty, _Ty>::value)
+		, dummy_recursive_shared_timed_mutex, default_state_mutex>::type;
+
 	namespace us {
 		namespace impl {
 
@@ -632,6 +649,27 @@ namespace mse {
 					_STD make_error_code(std::errc::resource_deadlock_would_occur));
 		}
 	};
+
+	namespace impl {
+		template <typename _Ty>
+		class TOpaqueWrapper {
+		public:
+			TOpaqueWrapper(const _Ty& value_param) : m_value(value_param) {}
+			TOpaqueWrapper(_Ty&& value_param) : m_value(std::forward<decltype(value_param)>(value_param)) {}
+
+			template<typename ...Args, typename = typename std::enable_if<std::is_constructible<_Ty, Args...>::value
+				&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<TOpaqueWrapper, Args...>::value>::type>
+				TOpaqueWrapper(Args&&...args) : m_value(std::forward<Args>(args)...) {}
+
+			_Ty& value()& { return m_value; }
+			_Ty&& value()&& { return std::forward<decltype(m_value)>(m_value); }
+			const _Ty& value() const& { return m_value; }
+			//const _Ty& value() const && { return m_value; }
+
+		private:
+			_Ty m_value;
+		};
+	}
 }
 
 # define TR2_OPTIONAL_REQUIRES(...) typename std::enable_if<__VA_ARGS__::value, bool>::type = false
@@ -1110,17 +1148,19 @@ namespace mse {
 
 
 				template <class... Args>
-				void emplace(Args&&... args)
+				T& emplace(Args&&... args)
 				{
 					clear();
 					initialize(std::forward<Args>(args)...);
+					return *(*this);
 				}
 
 				template <class U, class... Args>
-				void emplace(std::initializer_list<U> il, Args&&... args)
+				T& emplace(std::initializer_list<U> il, Args&&... args)
 				{
 					clear();
 					initialize<U, Args...>(il, std::forward<Args>(args)...);
+					return *(*this);
 				}
 
 				// 20.5.4.4, Swap
@@ -1701,26 +1741,25 @@ namespace mse {
 				constexpr in_place_t in_place{};
 
 				template <class T, class _TStateMutex = mse::non_thread_safe_shared_mutex>
-				class optional_base2 : public optional_base1<T> {
+				class optional_base2
+#ifdef MSE_HAS_CXX17
+					: private mse::impl::TOpaqueWrapper<optional_base1<T> > {
 				public:
-					typedef optional_base1<T> base_class;
-					typedef base_class _MO;
-					typedef optional_base2 _Myt;
-					typedef typename base_class::value_type value_type;
+					typedef mse::impl::TOpaqueWrapper<optional_base1<T> > base_class;
+					typedef optional_base1<T> _MO;
 
 				private:
-					const _MO& contained_optional() const& { return (*this); }
-					const _MO& contained_optional() const&& { return (*this); }
-					_MO& contained_optional()& { return (*this); }
-					auto contained_optional()&& {
+					const _MO& contained_optional() const& { return base_class::value(); }
+					const _MO&& contained_optional() const&& { return base_class::value(); }
+					_MO& contained_optional()& { return base_class::value(); }
+					_MO&& contained_optional()&& {
 						/* We're making sure that the optional is not "structure locked", because in that case it might not be
 						safe to to allow the contained optional to be moved from (when made movable with std::move()). */
 						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-						return mse::us::impl::as_ref<base_class>(std::move(*this));
+						return std::move(base_class::value());
 					}
 
 				public:
-#ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
 
 					MSE_OPTIONAL_USING(optional_base2, base_class);
@@ -1748,21 +1787,69 @@ namespace mse {
 					explicit optional_base2(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_OPTIONAL_IMPLEMENTATION1
 
-					optional_base2(const base_class& src) : base_class(src) {}
-					optional_base2(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+					optional_base2(const _MO& src) : base_class(src) {}
+					optional_base2(_MO&& src) : base_class(std::forward<decltype(src)>(src)) {}
 
 #else // MSE_HAS_CXX17
+					: public optional_base1<T> {
+				public:
+					typedef optional_base1<T> base_class;
+					typedef base_class _MO;
+
+				private:
+					const _MO& contained_optional() const& { return (*this); }
+					const _MO& contained_optional() const&& { return (*this); }
+					_MO& contained_optional()& { return (*this); }
+					auto contained_optional()&& {
+						/* We're making sure that the optional is not "structure locked", because in that case it might not be
+						safe to to allow the contained optional to be moved from (when made movable with std::move()). */
+						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+						return mse::us::impl::as_ref<base_class>(std::move(*this));
+					}
+
+				public:
 					using base_class::base_class;
 					MSE_OPTIONAL_USING(optional_base2, base_class);
 					template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<optional_base2, T2> >
 					explicit optional_base2(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
 #endif // MSE_HAS_CXX17
+					typedef optional_base2 _Myt;
+					typedef typename _MO::value_type value_type;
 
 					optional_base2(const optional_base2& src_ref) : base_class((src_ref).contained_optional()) {}
 					optional_base2(optional_base2&& src_ref) : base_class(std::forward<decltype(src_ref)>(src_ref).contained_optional()) {}
 
 					~optional_base2() {
 						mse::impl::destructor_lock_guard1<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+					}
+
+					constexpr explicit operator bool() const noexcept {
+						return bool(contained_optional());
+					}
+					_NODISCARD constexpr bool has_value() const noexcept {
+						return contained_optional().has_value();
+					}
+
+					_NODISCARD constexpr const T& value() const& {
+						return contained_optional().value();
+					}
+					_NODISCARD constexpr T& value()& {
+						return contained_optional().value();
+					}
+					_NODISCARD constexpr T&& value()&& {
+						return std::move(MSE_FWD(contained_optional()).value());
+					}
+					_NODISCARD constexpr const T&& value() const&& {
+						return std::move(MSE_FWD(contained_optional()).value());
+					}
+
+					template <class _Ty2>
+					_NODISCARD constexpr T value_or(_Ty2&& _Right) const& {
+						return contained_optional().value_or(std::forward<_Ty2>(_Right));
+					}
+					template <class _Ty2>
+					_NODISCARD constexpr T value_or(_Ty2&& _Right)&& {
+						return contained_optional().value_or(std::forward<_Ty2>(_Right));
 					}
 
 					_NODISCARD constexpr const T * operator->() const & {
@@ -1789,31 +1876,39 @@ namespace mse {
 					optional_base2& operator=(const optional_base2& rhs) {
 						if (std::addressof(rhs) == this) { return (*this); }
 						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-						//base_class::operator=(static_cast<const base_class&>(rhs));
-						mse::us::impl::as_ref<base_class>(*this).operator=(mse::us::impl::as_ref<base_class>(rhs));
+						contained_optional().operator=(rhs.contained_optional());
 						return (*this);
 					}
 					optional_base2& operator=(optional_base2&& rhs) {
 						if (std::addressof(rhs) == this) { return (*this); }
 						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-						//base_class::operator=(base_class(std::forward<decltype(rhs)>(rhs)));
-						mse::us::impl::as_ref<base_class>(*this).operator=(mse::us::impl::as_ref<base_class>(std::forward<decltype(rhs)>(rhs)));
+						contained_optional().operator=(MSE_FWD(rhs).contained_optional());
 						return (*this);
 					}
 					template<typename ...Args>
 					optional_base2& operator=(Args&&...args) {
 						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-						base_class::operator=(std::forward<Args>(args)...);
+						contained_optional().operator=(std::forward<Args>(args)...);
 						return (*this);
+					}
+					template <class... Args>
+					T& emplace(Args&&... args) {
+						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+						return contained_optional().emplace(std::forward<Args>(args)...);
+					}
+					template <class U, class... Args>
+					T& emplace(std::initializer_list<U> il, Args&&... args) {
+						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
+						return contained_optional().emplace(il, std::forward<Args>(args)...);
 					}
 					template<class T2>
 					void swap(T2& rhs) {
 						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-						base_class::swap(rhs);
+						contained_optional().swap(rhs.contained_optional());
 					}
 					void reset() {
 						structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
-						base_class::reset();
+						contained_optional().reset();
 					}
 
 					MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
@@ -2454,7 +2549,606 @@ namespace mse {
 	}
 
 
+	template<class T>
+	class fixed_optional;
+	template<class T>
+	class xscope_fixed_optional;
+
+	namespace us {
+		namespace impl {
+			namespace ns_optional {
+
+				template <class T>
+				class fixed_optional_base2
+#ifdef MSE_HAS_CXX17
+					: private mse::impl::TOpaqueWrapper<optional_base1<T> >, private container_adjusted_default_state_mutex<T> {
+				public:
+					typedef mse::impl::TOpaqueWrapper<optional_base1<T> > base_class;
+					typedef optional_base1<T> _MO;
+
+				private:
+					const _MO& contained_optional() const& { return base_class::value(); }
+					const _MO&& contained_optional() const&& { return base_class::value(); }
+					_MO& contained_optional()& { return base_class::value(); }
+					_MO&& contained_optional()&& {
+						return std::move(base_class::value());
+					}
+
+				public:
+#ifdef MSE_OPTIONAL_IMPLEMENTATION1
+
+					MSE_OPTIONAL_USING(fixed_optional_base2, base_class);
+
+					template<class... _Types, class = std::enable_if_t<std::is_constructible_v<T, _Types...> > >
+					constexpr explicit fixed_optional_base2(in_place_t, _Types&&... _Args) : base_class(in_place, std::forward<_Types>(_Args)...) {}
+					template<class _Elem, class... _Types, class = std::enable_if_t<std::is_constructible_v<T, std::initializer_list<_Elem>&, _Types...> > >
+					constexpr explicit fixed_optional_base2(in_place_t, std::initializer_list<_Elem> _Ilist, _Types&&... _Args)
+						: base_class(in_place, _Ilist, std::forward<_Types>(_Args)...) {}
+
+					template<class T2>
+					using _AllowDirectConversion = std::integral_constant<bool, std::conjunction_v<
+						//std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, fixed_optional_base2>>,
+						std::negation<std::is_base_of<base_class, std::remove_cv_t<std::remove_reference_t<T2>>>>,
+						std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, in_place_t>>,
+						std::is_constructible<T, T2> > >;
+					template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::is_convertible<T2, T>>, int> = 0>
+					constexpr fixed_optional_base2(T2&& _Right) : base_class(in_place, std::forward<T2>(_Right)) {}
+					template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::negation<std::is_convertible<T2, T> > >, int> = 0>
+					constexpr explicit fixed_optional_base2(T2&& _Right) : base_class(in_place, std::forward<T2>(_Right)) {}
+
+#else // MSE_OPTIONAL_IMPLEMENTATION1
+					using base_class::base_class;
+					template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<fixed_optional_base2, T2> >
+					explicit fixed_optional_base2(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+#endif // MSE_OPTIONAL_IMPLEMENTATION1
+
+					fixed_optional_base2(const _MO& src) : base_class(src) {}
+					//fixed_optional_base2(_MO&& src) : base_class(src) {}
+
+#else // MSE_HAS_CXX17
+					: public optional_base1<T>, private container_adjusted_default_state_mutex<T> {
+				public:
+					typedef optional_base1<T> base_class;
+					typedef base_class _MO;
+
+				private:
+					const _MO& contained_optional() const& { return (*this); }
+					const _MO& contained_optional() const&& { return (*this); }
+					_MO& contained_optional()& { return (*this); }
+					auto contained_optional()&& {
+						return mse::us::impl::as_ref<base_class>(std::move(*this));
+					}
+
+				public:
+					using base_class::base_class;
+					MSE_OPTIONAL_USING(fixed_optional_base2, base_class);
+					template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<fixed_optional_base2, T2> >
+					explicit fixed_optional_base2(T2&& _X) : base_class(_X) {}
+#endif // MSE_HAS_CXX17
+
+					typedef container_adjusted_default_state_mutex<T> state_mutex_t;
+					typedef state_mutex_t _TStateMutex;
+
+					typedef fixed_optional_base2 _Myt;
+					typedef typename _MO::value_type value_type;
+
+					fixed_optional_base2(const fixed_optional_base2& src_ref) : base_class((src_ref).contained_optional()) {}
+					//fixed_optional_base2(fixed_optional_base2&& src_ref) : base_class((src_ref).contained_optional()) {}
+
+					~fixed_optional_base2() {
+						mse::impl::destructor_lock_guard1<state_mutex_t> lock1(state_mutex1());
+					}
+
+					constexpr explicit operator bool() const noexcept {
+						return bool(contained_optional());
+					}
+					_NODISCARD constexpr bool has_value() const noexcept {
+						return contained_optional().has_value();
+					}
+
+					_NODISCARD constexpr const T& value() const& {
+						return contained_optional().value();
+					}
+					_NODISCARD constexpr T& value()& {
+						return contained_optional().value();
+					}
+					_NODISCARD constexpr T&& value()&& {
+						return std::move(MSE_FWD(contained_optional()).value());
+					}
+					_NODISCARD constexpr const T&& value() const&& {
+						return std::move(MSE_FWD(contained_optional()).value());
+					}
+
+					template <class _Ty2>
+					_NODISCARD constexpr T value_or(_Ty2&& _Right) const& {
+						return contained_optional().value_or(std::forward<_Ty2>(_Right));
+					}
+					template <class _Ty2>
+					_NODISCARD constexpr T value_or(_Ty2&& _Right)&& {
+						return contained_optional().value_or(std::forward<_Ty2>(_Right));
+					}
+
+					_NODISCARD constexpr const T* operator->() const& {
+						return std::addressof((*this).value());
+					}
+					_NODISCARD constexpr const T* operator->() const&& = delete;
+					_NODISCARD constexpr T* operator->()& {
+						return std::addressof((*this).value());
+					}
+					_NODISCARD constexpr const T* operator->() && = delete;
+					_NODISCARD constexpr const T& operator*() const& {
+						return (*this).value();
+					}
+					_NODISCARD constexpr T& operator*()& {
+						return (*this).value();
+					}
+					_NODISCARD constexpr T&& operator*()&& {
+						return std::move((*this).value());
+					}
+					_NODISCARD constexpr const T&& operator*() const&& {
+						return std::move((*this).value());
+					}
+
+					MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+
+				private:
+
+					state_mutex_t& state_mutex1()& { return (*this); }
+
+					MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+					friend class fixed_optional<T>;
+					friend class xscope_fixed_optional<T>;
+				};
+
+				// 20.5.8, Relational operators
+				template <class T> constexpr bool operator==(const fixed_optional_base2<T>& x, const fixed_optional_base2<T>& y)
+				{
+					return bool(x) != bool(y) ? false : bool(x) == false ? true : *x == *y;
+				}
+
+				template <class T> constexpr bool operator!=(const fixed_optional_base2<T>& x, const fixed_optional_base2<T>& y)
+				{
+					return !(x == y);
+				}
+
+				template <class T> constexpr bool operator<(const fixed_optional_base2<T>& x, const fixed_optional_base2<T>& y)
+				{
+					return (!y) ? false : (!x) ? true : *x < *y;
+				}
+
+				template <class T> constexpr bool operator>(const fixed_optional_base2<T>& x, const fixed_optional_base2<T>& y)
+				{
+					return (y < x);
+				}
+
+				template <class T> constexpr bool operator<=(const fixed_optional_base2<T>& x, const fixed_optional_base2<T>& y)
+				{
+					return !(y < x);
+				}
+
+				template <class T> constexpr bool operator>=(const fixed_optional_base2<T>& x, const fixed_optional_base2<T>& y)
+				{
+					return !(x < y);
+				}
+
+
+				// 20.5.9, Comparison with nullopt
+				template <class T> constexpr bool operator==(const fixed_optional_base2<T>& x, nullopt_t_base) noexcept
+				{
+					return (!x);
+				}
+
+				template <class T> constexpr bool operator==(nullopt_t_base, const fixed_optional_base2<T>& x) noexcept
+				{
+					return (!x);
+				}
+
+				template <class T> constexpr bool operator!=(const fixed_optional_base2<T>& x, nullopt_t_base) noexcept
+				{
+					return bool(x);
+				}
+
+				template <class T> constexpr bool operator!=(nullopt_t_base, const fixed_optional_base2<T>& x) noexcept
+				{
+					return bool(x);
+				}
+
+				template <class T> constexpr bool operator<(const fixed_optional_base2<T>&, nullopt_t_base) noexcept
+				{
+					return false;
+				}
+
+				template <class T> constexpr bool operator<(nullopt_t_base, const fixed_optional_base2<T>& x) noexcept
+				{
+					return bool(x);
+				}
+
+				template <class T> constexpr bool operator<=(const fixed_optional_base2<T>& x, nullopt_t_base) noexcept
+				{
+					return (!x);
+				}
+
+				template <class T> constexpr bool operator<=(nullopt_t_base, const fixed_optional_base2<T>&) noexcept
+				{
+					return true;
+				}
+
+				template <class T> constexpr bool operator>(const fixed_optional_base2<T>& x, nullopt_t_base) noexcept
+				{
+					return bool(x);
+				}
+
+				template <class T> constexpr bool operator>(nullopt_t_base, const fixed_optional_base2<T>&) noexcept
+				{
+					return false;
+				}
+
+				template <class T> constexpr bool operator>=(const fixed_optional_base2<T>&, nullopt_t_base) noexcept
+				{
+					return true;
+				}
+
+				template <class T> constexpr bool operator>=(nullopt_t_base, const fixed_optional_base2<T>& x) noexcept
+				{
+					return (!x);
+				}
+
+
+				// 20.5.10, Comparison with T
+				template <class T> constexpr bool operator==(const fixed_optional_base2<T>& x, const T& v)
+				{
+					return bool(x) ? *x == v : false;
+				}
+
+				template <class T> constexpr bool operator==(const T& v, const fixed_optional_base2<T>& x)
+				{
+					return bool(x) ? v == *x : false;
+				}
+
+				template <class T> constexpr bool operator!=(const fixed_optional_base2<T>& x, const T& v)
+				{
+					return bool(x) ? *x != v : true;
+				}
+
+				template <class T> constexpr bool operator!=(const T& v, const fixed_optional_base2<T>& x)
+				{
+					return bool(x) ? v != *x : true;
+				}
+
+				template <class T> constexpr bool operator<(const fixed_optional_base2<T>& x, const T& v)
+				{
+					return bool(x) ? *x < v : true;
+				}
+
+				template <class T> constexpr bool operator>(const T& v, const fixed_optional_base2<T>& x)
+				{
+					return bool(x) ? v > * x : true;
+				}
+
+				template <class T> constexpr bool operator>(const fixed_optional_base2<T>& x, const T& v)
+				{
+					return bool(x) ? *x > v : false;
+				}
+
+				template <class T> constexpr bool operator<(const T& v, const fixed_optional_base2<T>& x)
+				{
+					return bool(x) ? v < *x : false;
+				}
+
+				template <class T> constexpr bool operator>=(const fixed_optional_base2<T>& x, const T& v)
+				{
+					return bool(x) ? *x >= v : false;
+				}
+
+				template <class T> constexpr bool operator<=(const T& v, const fixed_optional_base2<T>& x)
+				{
+					return bool(x) ? v <= *x : false;
+				}
+
+				template <class T> constexpr bool operator<=(const fixed_optional_base2<T>& x, const T& v)
+				{
+					return bool(x) ? *x <= v : true;
+				}
+
+				template <class T> constexpr bool operator>=(const T& v, const fixed_optional_base2<T>& x)
+				{
+					return bool(x) ? v >= *x : true;
+				}
+
+
+				// Comparison of optional<T&> with T
+				template <class T> constexpr bool operator==(const fixed_optional_base2<T&>& x, const T& v)
+				{
+					return bool(x) ? *x == v : false;
+				}
+
+				template <class T> constexpr bool operator==(const T& v, const fixed_optional_base2<T&>& x)
+				{
+					return bool(x) ? v == *x : false;
+				}
+
+				template <class T> constexpr bool operator!=(const fixed_optional_base2<T&>& x, const T& v)
+				{
+					return bool(x) ? *x != v : true;
+				}
+
+				template <class T> constexpr bool operator!=(const T& v, const fixed_optional_base2<T&>& x)
+				{
+					return bool(x) ? v != *x : true;
+				}
+
+				template <class T> constexpr bool operator<(const fixed_optional_base2<T&>& x, const T& v)
+				{
+					return bool(x) ? *x < v : true;
+				}
+
+				template <class T> constexpr bool operator>(const T& v, const fixed_optional_base2<T&>& x)
+				{
+					return bool(x) ? v > * x : true;
+				}
+
+				template <class T> constexpr bool operator>(const fixed_optional_base2<T&>& x, const T& v)
+				{
+					return bool(x) ? *x > v : false;
+				}
+
+				template <class T> constexpr bool operator<(const T& v, const fixed_optional_base2<T&>& x)
+				{
+					return bool(x) ? v < *x : false;
+				}
+
+				template <class T> constexpr bool operator>=(const fixed_optional_base2<T&>& x, const T& v)
+				{
+					return bool(x) ? *x >= v : false;
+				}
+
+				template <class T> constexpr bool operator<=(const T& v, const fixed_optional_base2<T&>& x)
+				{
+					return bool(x) ? v <= *x : false;
+				}
+
+				template <class T> constexpr bool operator<=(const fixed_optional_base2<T&>& x, const T& v)
+				{
+					return bool(x) ? *x <= v : true;
+				}
+
+				template <class T> constexpr bool operator>=(const T& v, const fixed_optional_base2<T&>& x)
+				{
+					return bool(x) ? v >= *x : true;
+				}
+
+				// Comparison of optional<T const&> with T
+				template <class T> constexpr bool operator==(const fixed_optional_base2<const T&>& x, const T& v)
+				{
+					return bool(x) ? *x == v : false;
+				}
+
+				template <class T> constexpr bool operator==(const T& v, const fixed_optional_base2<const T&>& x)
+				{
+					return bool(x) ? v == *x : false;
+				}
+
+				template <class T> constexpr bool operator!=(const fixed_optional_base2<const T&>& x, const T& v)
+				{
+					return bool(x) ? *x != v : true;
+				}
+
+				template <class T> constexpr bool operator!=(const T& v, const fixed_optional_base2<const T&>& x)
+				{
+					return bool(x) ? v != *x : true;
+				}
+
+				template <class T> constexpr bool operator<(const fixed_optional_base2<const T&>& x, const T& v)
+				{
+					return bool(x) ? *x < v : true;
+				}
+
+				template <class T> constexpr bool operator>(const T& v, const fixed_optional_base2<const T&>& x)
+				{
+					return bool(x) ? v > * x : true;
+				}
+
+				template <class T> constexpr bool operator>(const fixed_optional_base2<const T&>& x, const T& v)
+				{
+					return bool(x) ? *x > v : false;
+				}
+
+				template <class T> constexpr bool operator<(const T& v, const fixed_optional_base2<const T&>& x)
+				{
+					return bool(x) ? v < *x : false;
+				}
+
+				template <class T> constexpr bool operator>=(const fixed_optional_base2<const T&>& x, const T& v)
+				{
+					return bool(x) ? *x >= v : false;
+				}
+
+				template <class T> constexpr bool operator<=(const T& v, const fixed_optional_base2<const T&>& x)
+				{
+					return bool(x) ? v <= *x : false;
+				}
+
+				template <class T> constexpr bool operator<=(const fixed_optional_base2<const T&>& x, const T& v)
+				{
+					return bool(x) ? *x <= v : true;
+				}
+
+				template <class T> constexpr bool operator>=(const T& v, const fixed_optional_base2<const T&>& x)
+				{
+					return bool(x) ? v >= *x : true;
+				}
+			}
+		}
+	}
+
+	template<class T>
+	class fixed_optional : public mse::us::impl::ns_optional::fixed_optional_base2<T> {
+	public:
+		typedef mse::us::impl::ns_optional::fixed_optional_base2<T> base_class;
+		typedef mse::us::impl::ns_optional::optional_base1<T> std_optional;
+		typedef std_optional _MO;
+		typedef fixed_optional _Myt;
+		typedef typename base_class::value_type value_type;
+
+	private:
+		const _MO& contained_optional() const& { return base_class::contained_optional(); }
+		//const _MO& contained_optional() const&& { return base_class::contained_optional(); }
+		_MO& contained_optional()& { return base_class::contained_optional(); }
+		_MO&& contained_optional()&& { return std::forward<_MO>(base_class::contained_optional()); }
+
+	public:
+#ifdef MSE_HAS_CXX17
+#ifdef MSE_OPTIONAL_IMPLEMENTATION1
+
+		MSE_OPTIONAL_USING(fixed_optional, base_class);
+
+		template<class... _Types, class = std::enable_if_t<std::is_constructible_v<T, _Types...> > >
+		constexpr explicit fixed_optional(in_place_t, _Types&&... _Args) : base_class(in_place, std::forward<_Types>(_Args)...) {}
+		template<class _Elem, class... _Types, class = std::enable_if_t<std::is_constructible_v<T, std::initializer_list<_Elem>&, _Types...> > >
+		constexpr explicit fixed_optional(in_place_t, std::initializer_list<_Elem> _Ilist, _Types&&... _Args)
+			: base_class(in_place, _Ilist, std::forward<_Types>(_Args)...) {}
+
+		template<class T2>
+		using _AllowDirectConversion = std::integral_constant<bool, std::conjunction_v<
+			//std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, fixed_optional>>,
+			std::negation<std::is_base_of<base_class, std::remove_cv_t<std::remove_reference_t<T2>>>>,
+			std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, in_place_t>>,
+			std::is_constructible<T, T2> > >;
+		template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::is_convertible<T2, T>>, int> = 0>
+		constexpr fixed_optional(T2&& _Right) : base_class(in_place, std::forward<T2>(_Right)) {}
+		template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::negation<std::is_convertible<T2, T> > >, int> = 0>
+		constexpr explicit fixed_optional(T2&& _Right) : base_class(in_place, std::forward<T2>(_Right)) {}
+
+#else // MSE_OPTIONAL_IMPLEMENTATION1
+		using base_class::base_class;
+		template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<fixed_optional, T2> >
+		explicit fixed_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+#endif // MSE_OPTIONAL_IMPLEMENTATION1
+
+		fixed_optional(const base_class& src) : base_class(src) {}
+		fixed_optional(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+#else // MSE_HAS_CXX17
+		using base_class::base_class;
+		MSE_OPTIONAL_USING(fixed_optional, base_class);
+		template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<fixed_optional, T2> >
+		explicit fixed_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+#endif // MSE_HAS_CXX17
+
+		fixed_optional(const fixed_optional& src) : base_class(mse::us::impl::as_ref<base_class>(src)) {}
+		//fixed_optional(fixed_optional&& src) : base_class(mse::us::impl::as_ref<base_class>(std::forward<decltype(src)>(src))) {}
+
+		~fixed_optional() {
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+			mse::impl::T_valid_if_not_an_xscope_type<T>();
+#endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+		}
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+	};
+
+#ifdef MSE_HAS_CXX17
+	template<class _Ty>
+	fixed_optional(_Ty)->fixed_optional<_Ty>;
+#endif /* MSE_HAS_CXX17 */
+
+	template <class T>
+	constexpr fixed_optional<typename std::decay<T>::type> make_fixed_optional(T&& v) {
+		return fixed_optional<typename std::decay<T>::type>(constexpr_forward<T>(v));
+	}
+	template <class X>
+	constexpr fixed_optional<X&> make_fixed_optional(std::reference_wrapper<X> v) {
+		return fixed_optional<X&>(v.get());
+	}
+
+#ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
+
+	template<class _TLender, class _Ty>
+	class xscope_borrowing_fixed_optional;
+
+	template<class T>
+	class xscope_fixed_optional : public mse::us::impl::ns_optional::fixed_optional_base2<T>, public mse::us::impl::XScopeTagBase
+		, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(T, xscope_fixed_optional<T>)
+	{
+	public:
+		typedef mse::us::impl::ns_optional::fixed_optional_base2<T> base_class;
+		typedef mse::us::impl::ns_optional::optional_base1<T> std_optional;
+		typedef std_optional _MO;
+		typedef xscope_fixed_optional _Myt;
+		typedef typename base_class::value_type value_type;
+
+	private:
+		const _MO& contained_optional() const& { return base_class::contained_optional(); }
+		//const _MO& contained_optional() const&& { return base_class::contained_optional(); }
+		_MO& contained_optional()& { return base_class::contained_optional(); }
+		_MO&& contained_optional()&& { return std::forward<_MO>(base_class::contained_optional()); }
+
+	public:
+#ifdef MSE_HAS_CXX17
+#ifdef MSE_OPTIONAL_IMPLEMENTATION1
+
+		MSE_OPTIONAL_USING(xscope_fixed_optional, base_class);
+
+		template<class... _Types, class = std::enable_if_t<std::is_constructible_v<T, _Types...> > >
+		constexpr explicit xscope_fixed_optional(in_place_t, _Types&&... _Args) : base_class(in_place, std::forward<_Types>(_Args)...) {}
+		template<class _Elem, class... _Types, class = std::enable_if_t<std::is_constructible_v<T, std::initializer_list<_Elem>&, _Types...> > >
+		constexpr explicit xscope_fixed_optional(in_place_t, std::initializer_list<_Elem> _Ilist, _Types&&... _Args)
+			: base_class(in_place, _Ilist, std::forward<_Types>(_Args)...) {}
+
+		template<class T2>
+		using _AllowDirectConversion = std::integral_constant<bool, std::conjunction_v<
+			//std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, xscope_fixed_optional>>,
+			std::negation<std::is_base_of<base_class, std::remove_cv_t<std::remove_reference_t<T2>>>>,
+			std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, in_place_t>>,
+			std::is_constructible<T, T2> > >;
+		template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::is_convertible<T2, T>>, int> = 0>
+		constexpr xscope_fixed_optional(T2&& _Right) : base_class(in_place, std::forward<T2>(_Right)) {}
+		template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::negation<std::is_convertible<T2, T> > >, int> = 0>
+		constexpr explicit xscope_fixed_optional(T2&& _Right) : base_class(in_place, std::forward<T2>(_Right)) {}
+
+#else // MSE_OPTIONAL_IMPLEMENTATION1
+		using base_class::base_class;
+		template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_fixed_optional, T2> >
+		explicit xscope_fixed_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+#endif // MSE_OPTIONAL_IMPLEMENTATION1
+
+		xscope_fixed_optional(const base_class& src) : base_class(src) {}
+		xscope_fixed_optional(base_class&& src) : base_class(std::forward<decltype(src)>(src)) {}
+
+#else // MSE_HAS_CXX17
+		using base_class::base_class;
+		MSE_OPTIONAL_USING(xscope_fixed_optional, base_class);
+		template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_msepointerbasics<xscope_fixed_optional, T2> >
+		explicit xscope_fixed_optional(T2&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+#endif // MSE_HAS_CXX17
+
+		xscope_fixed_optional(const xscope_fixed_optional& src) : base_class(mse::us::impl::as_ref<base_class>(src)) {}
+		//xscope_fixed_optional(xscope_fixed_optional&& src) : base_class(mse::us::impl::as_ref<base_class>(std::forward<decltype(src)>(src))) {}
+
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+	};
+
+#ifdef MSE_HAS_CXX17
+	template<class _Ty>
+	xscope_fixed_optional(_Ty)->xscope_fixed_optional<_Ty>;
+#endif /* MSE_HAS_CXX17 */
+
+	template <class T>
+	constexpr xscope_fixed_optional<typename std::decay<T>::type> make_xscope_fixed_optional(T&& v) {
+		return xscope_fixed_optional<typename std::decay<T>::type>(constexpr_forward<T>(v));
+	}
+	template <class X>
+	constexpr xscope_fixed_optional<X&> make_xscope_fixed_optional(std::reference_wrapper<X> v) {
+		return xscope_fixed_optional<X&>(v.get());
+	}
+
 
 	template <class T>
 	class xscope_optional : public mse::us::impl::ns_optional::optional_base2<T>, public mse::us::impl::XScopeTagBase
