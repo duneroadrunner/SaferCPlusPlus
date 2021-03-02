@@ -117,7 +117,9 @@ void msetl_example2() {
 		/*   mtnii_vector<>   */
 		/**********************/
 
-		/* mtnii_vector<> is a safe vector that is eligible to be (safely) shared between asynchronous threads. */
+		/* mtnii_vector<> is a safe vector that is eligible to be (safely) shared between asynchronous threads. Note that
+		fixed-size vectors (like xscope_borrowing_fixed_nii_vector<>) are also eligible to be shared between asynchronous
+		threads and are generally preferred when suitable. */
 
 		typedef mse::mtnii_vector<mse::nii_string> mtnii_vector1_t;
 
@@ -205,10 +207,9 @@ void msetl_example2() {
 		/*   stnii_vector<>   */
 		/**********************/
 
-		/* Prefer nii_vector<> and xscope_borrowing_fixed_nii_vector<> instead. */
-
-		/* stnii_vector<> is just a version of mtnii_vector<> that is not eligible to be shared between threads (and has
-		a little less overhead as a result). */
+		/* stnii_vector<> is just a version of mtnii_vector<> that is not eligible to be shared between threads (and has a
+		little less overhead as a result). Though when suitable, using nii_vector<> and xscope_borrowing_fixed_nii_vector<>
+		is generally preferred. */
 
 		mse::TXScopeObj<mse::stnii_vector<int> > vector1_xscpobj = mse::stnii_vector<int>{ 1, 2, 3 };
 
@@ -457,6 +458,7 @@ void msetl_example2() {
 			/* Here we're obtaining a scope pointer from a scope iterator. */
 			auto xscp_ptr1 = mse::xscope_pointer(xscp_iter1);
 			auto res3 = *xscp_ptr1;
+			*xscp_ptr1 = 7;
 
 			auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&xs_bf_nii_vector1_xscpobj);
 			xscp_citer3 = xscp_iter1;
@@ -857,48 +859,58 @@ void msetl_example2() {
 		/****************/
 
 		{
-			/* mstd::optional<> is essentially just a safe implementation of std::optional<>. But you may, on occasion, also
-			need a (safe) pointer that directly targets the contained element. You could make the element type a "registered"
-			or "norad" object. Alternatively, you can obtain a safe pointer to the contained element from a pointer to the
-			optional<> object like so: */
-			auto opt1_refcptr = mse::make_refcounting<mse::mstd::optional<mse::mstd::string> >("abc");
-			auto elem_ptr1 = mse::make_optional_element_pointer(opt1_refcptr);
-			auto val1 = *elem_ptr1;
+			/* mstd::optional<> is essentially just a safe implementation of std::optional<>. */
+			auto opt1 = mse::mstd::optional<int>{ 7 };
+			assert(opt1.has_value());
+			auto val1 = opt1.value();
 		}
 #ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
-			/* More commonly, the optional<> object might be declared as a scope object. */
-			auto xs_opt1 = mse::make_xscope(mse::mstd::make_optional(mse::mstd::string("abc")));
+			/* You might think of optional<> as a dynamic container like a vector<> that supports a maximum of one element.
+			So like vectors, directly accessing or referencing the contents of an optional<> is discouraged. Instead
+			prefer to access the contents via an xscope_borrowing_fixed_optional<>, which is a "non-dynamic" type (i.e. its
+			element, if present, can be modified, but elements cannot be added or removed), that will "borrow" the contents
+			of the "dynamic" optional<>. */
+
+			auto xs_opt1 = mse::make_xscope(mse::make_optional(mse::mstd::string("abc")));
 			// which can also be written as
-			// auto xs_opt1 = mse::TXScopeObj<mse::mstd::optional<mse::mstd::string> >("abc");
+			// auto xs_opt1 = mse::TXScopeObj<mse::optional<mse::mstd::string> >("abc");
 
-			auto xs_elem_ptr1 = mse::make_xscope_optional_element_pointer(&xs_opt1);
+			xs_opt1 = {};
+			xs_opt1 = mse::mstd::string("def");
 
-			/* Note that the scope version of the "optional element pointer", like scope vector iterators, has the side-effect,
-			while it exists, of "locking" the optional<> (scope) object so as to prevent any operation that might destroy the
-			contained element. This property allows us to obtain a "regular" scope pointer to the element from the scope
-			"optional element pointer". */
+			{
+				/* Here we obtain an xscope_borrowing_fixed_optional<> that "borrows" the contents of xs_opt1. */
+				auto xs_bfopt1 = mse::make_xscope_borrowing_fixed_optional(&xs_opt1);
 
-			auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
-			auto val1 = *xs_ptr1;
+				/* Note that accessing xs_opt1 is prohibited while xs_bfopt1 exists. This restriction is enforced.*/
+
+				/* Here we obtain a (safe) pointer to the contained element. */
+				auto xs_elem_ptr1 = mse::make_xscope_fixed_optional_element_pointer(&xs_bfopt1);
+
+				/* We can also then obtain a scope pointer to the contained element. */
+				auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
+				auto val1 = *xs_ptr1;
+				*xs_ptr1 = mse::mstd::string("ghi");
+			}
+			/* After the xscope_borrowing_fixed_optional<> is gone, we can again access our optional<>. */
+			xs_opt1.reset();
 		}
 #endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
-			/* The reason is subtle, but the implementation mstd::optional<> uses to support the ability to obtain a scope
-			(const) pointer to its contained element from a const reference to the mstd::optional<> makes it ineligible to be
-			shared among threads. Analogous to mtnii_vector<>, mt_optional<> is a version that is eligible to be shared among
-			threads, at a cost of slightly higher run-time overhead. */
+			/* Analogous to mtnii_vector<>, mt_optional<> is a version that is eligible to be shared among threads, at a
+			cost of slightly higher run-time overhead. When suitable, using optional<> and xscope_borrowing_optional<> is
+			generally preferred. */
 			auto opt1_access_requester = mse::make_asyncsharedv2readwrite<mse::mt_optional<mse::nii_string> >("abc");
 			auto elem_ptr1 = mse::make_optional_element_pointer(opt1_access_requester.writelock_ptr());
 			auto val1 = *elem_ptr1;
 		}
 #ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
-			/* mstd::optional<> and mt_optional<> can, like any other type, be declared as a scope type (using
-			mse::make_xscope() / mse::TXScopeObj<>). But they do not support using scope types as their contained element
-			type. It is (intended to be) uncommon to need such capability. But the library does provide a couple of
-			versions that support it. xscope_mt_optional<> is eligible to be shared among (scope) threads, while
-			xscope_st_optional<> is not. */
+			/* optional<>s can, like any other type, be declared as a scope type (using mse::make_xscope() / mse::TXScopeObj<>).
+			But they do not support using scope types as their contained element type. It is (intended to be) uncommon to need
+			such capability. But the library does provide a couple of versions that support it. xscope_mt_optional<> is eligible
+			to be shared among (scope) threads, while xscope_st_optional<> is not. */
 
 			/* Here we're creating a (string) object of scope type. */
 			auto xs_str1 = mse::make_xscope(mse::mstd::string("abc"));
