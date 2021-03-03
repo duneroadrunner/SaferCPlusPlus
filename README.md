@@ -2804,7 +2804,7 @@ usage example:
 
 ### nii_vector
 
-Like its array counterpart, [`nii_array<>`](#nii_array), `nii_vector<>` is a vector that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. You can obtain "explicit" iterators using the (generic) `make_begin_iterator(...)` free function that takes as an argument a (safe) pointer to the vector, but directly accessing the elements of an `nii_vector<>` is discouraged. Prefer instead to access (or hold references to) vector elements by using an [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector).
+Like its array counterpart, [`nii_array<>`](#nii_array), `nii_vector<>` is a vector that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. You can obtain "explicit" iterators using the (generic) `make_begin_iterator(...)` free function that takes as an argument a (safe) pointer to the vector, but directly accessing the elements of an `nii_vector<>` is discouraged. Prefer instead to access (or hold references to) vector elements by using an [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector). (Indeed, if the elements are going to be accessed or referenced directly, consider using [`stnii_array<>`](#stnii_array) instead.)
 
 Note that the standard vector `insert()`, `erase()` and `emplace()` member functions return "implicit" iterators which, again, `nii_vector<>` does not support. Instead there are free function counterparts that take a (safe) pointer to the container as their first argument which is used to generate and return an "explicit" iterator (as demonstrated in the usage example).
 
