@@ -131,7 +131,7 @@ Tested with msvc2019(v16.5.4), g++9.3.0 and clang++10.0.0. Versions of g++ prior
     5. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
     6. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
 22. [Optionals](#optionals)
-    1. [mstd::optional](#optional)
+    1. [mstd::optional](#mstdoptional)
     2. [mt_optional](#mt_optional)
     3. [xscope_mt_optional, xscope_st_optional](#xscope_mt_optional-xscope_st_optional)
 23. [Tuples](#tuples)
@@ -3690,7 +3690,7 @@ usage example:
 
 ### mt_optional
 
-The reason is subtle, but the implementation [`mstd::optional<>`](#optional) uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` is a version that is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at cost of slightly higher run-time overhead.
+The reason is subtle, but the implementation [`mstd::optional<>`](#mstdoptional) uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` is a version that is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at cost of slightly higher run-time overhead.
 
 usage example:
 
@@ -3708,7 +3708,7 @@ usage example:
 
 ### xscope_mt_optional, xscope_st_optional
 
-[`mstd::optional<>`](#optional) and [`mt_optional<>`](#mt_optional) can, like any other type, be declared as a [scope type](#scope-pointers) (using `mse::make_xscope()` / `mse::TXScopeObj<>`). But they do not support using scope types as their contained element type. It is (intended to be) uncommon to need such capability. But the library does provide a couple of versions that support it. `xscope_mt_optional<>` is eligible to be shared among (scope) threads, while `xscope_st_optional<>` is not. `xscope_mt_optional<>` and `xscope_st_optional<>` are of course themselves scope types and subject to the corresponding usage restrictions.
+[`mstd::optional<>`](#mstdoptional) and [`mt_optional<>`](#mt_optional) can, like any other type, be declared as a [scope type](#scope-pointers) (using `mse::make_xscope()` / `mse::TXScopeObj<>`). But they do not support using scope types as their contained element type. It is (intended to be) uncommon to need such capability. But the library does provide a couple of versions that support it. `xscope_mt_optional<>` is eligible to be shared among (scope) threads, while `xscope_st_optional<>` is not. `xscope_mt_optional<>` and `xscope_st_optional<>` are of course themselves scope types and subject to the corresponding usage restrictions.
 
 usage example:
 
