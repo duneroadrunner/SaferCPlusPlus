@@ -132,8 +132,9 @@ Tested with msvc2019(v16.5.4), g++9.3.0 and clang++10.0.0. Versions of g++ prior
     6. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
 22. [Optionals](#optionals)
     1. [mstd::optional](#mstdoptional)
-    2. [mt_optional](#mt_optional)
-    3. [xscope_mt_optional, xscope_st_optional](#xscope_mt_optional-xscope_st_optional)
+    2. [optional](#optional)
+    3. [fixed_optional](#fixed_optional)
+    4. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
 23. [Tuples](#tuples)
     1. [mstd::tuple](#tuple)
     2. [xscope_tuple](#xscope_tuple)
@@ -3646,7 +3647,7 @@ usage example:
 
 ### Optionals
 
-Conceptually, you might think of an `optional<>` as a dynamic container, like a `vector<>`, that supports a maximum of one element. So the library provides a few versions of `optional<>` that roughly correspond to their [`vector<>` counterparts](#vectors). The library introduces "optional element" pointers, which would loosely correspond to iterators. Like their iterator counterparts, scope optional element pointers, while they exist, hold a ["structure lock"](#structure-locking) on their target `optional<>` object which prevents the contained element from being destroyed.
+Conceptually, you might think of an `optional<>` as a dynamic container, like a `vector<>`, that supports a maximum of one element. So the library provides a few versions of `optional<>` that roughly correspond to their [`vector<>` counterparts](#vectors). The library introduces "optional element" pointers, which would loosely correspond to iterators.
 
 ### mstd::optional
 
@@ -3656,41 +3657,69 @@ usage example:
 
 ```cpp
     #include "mseoptional.h"
-    #include "msemstdstring.h"
-    #include "mserefcounting.h"
     
     void main(int argc, char* argv[]) {
+        auto opt1 = mse::mstd::optional<int>{ 7 };
+        assert(opt1.has_value());
+        auto val1 = opt1.value();
+    }
+```
+
+### optional
+
+Analogous to its vector counterpart, [`nii_vector<>`](#nii_vector), `optional<>` is eligible to be shared among asynchronous threads. And like `nii_vector<>`, the preferred way of accessing or referencing the contained element is via [`xscope_borrowing_fixed_optional<>`](#xscope_borrowing_fixed_optional).
+
+usage example: (see the example for [`xscope_borrowing_fixed_optional<>`](#xscope_borrowing_fixed_optional))
+
+### fixed_optional
+
+Analogous to its vector counterpart, [`fixed_nii_vector<>`](#fixed_nii_vector), `fixed_optional<>` is just a version of `optional<>` whose number of contained elements (zero or one) is fixed at construction.
+
+### xscope_fixed_optional
+
+Analogous to its vector counterpart, [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector), `xscope_fixed_optional<>` is just a version of [`fixed_optional<>`](#fixed_optional) that supports scope types as its element type, and as a scope type itself, is subject to the restrictions of scope objects.
+
+### xscope_borrowing_fixed_optional
+
+Analogous to its vector counterpart, [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector), `xscope_borrowing_fixed_optional<>` is like [`xscope_fixed_optional<>`](#xscope_fixed_optional), except that, at construction, "borrows" the contents of a specified (via scope pointer) existing `optional<>`, then, upon destruction "releases" the (possibly modified) contents back to the original owner. Unlike `xscope_borrowing_fixed_nii_vector<>` though, the contained element, if any, is not (necessarily) moved when "borrowed", but equivalently, the "borrowing" object is granted "exclusive access" to the "lending" object for the duration of the borrow.
+
+usage example:
+
+```cpp
+    #include "mseoptional.h"
+    #include "msemstdstring.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        auto xs_opt1 = mse::make_xscope(mse::make_optional(mse::mstd::string("abc")));
+        // which can also be written as
+        // auto xs_opt1 = mse::TXScopeObj<mse::optional<mse::mstd::string> >("abc");
+
+        xs_opt1 = {};
+        xs_opt1 = mse::mstd::string("def");
+
         {
-            /* mstd::optional<> is essentially just a safe implementation of std::optional<>. But you may, on occasion, also
-            need a (safe) pointer that directly targets the contained element. You could make the element type a "registered"
-            or "norad" object. Alternatively, you can obtain a safe pointer to the contained element from a pointer to the
-            optional<> object like so: */
-            auto opt1_refcptr = mse::make_refcounting<mse::mstd::optional<mse::mstd::string> >("abc");
-            auto elem_ptr1 = mse::make_optional_element_pointer(opt1_refcptr);
-            auto val1 = *elem_ptr1;
-        }
-        {
-            /* More commonly, the optional<> object might be declared as a scope object. */
-            auto xs_opt1 = mse::make_xscope(mse::mstd::make_optional(mse::mstd::string("abc")));
-            // which can also be written as
-            // auto xs_opt1 = mse::TXScopeObj<mse::mstd::optional<mse::mstd::string> >("abc");
+            /* Here we obtain an xscope_borrowing_fixed_optional<> that "borrows" the contents of xs_opt1. */
+            auto xs_bfopt1 = mse::make_xscope_borrowing_fixed_optional(&xs_opt1);
 
-            auto xs_elem_ptr1 = mse::make_xscope_optional_element_pointer(&xs_opt1);
+            /* Note that accessing xs_opt1 is prohibited while xs_bfopt1 exists. This restriction is enforced.*/
 
-            /* Note that the scope version of the "optional element pointer", like scope vector iterators, has the side-effect,
-            while it exists, of "locking" the optional<> (scope) object so as to prevent any operation that might destroy the
-            contained element. This property allows us to obtain a "regular" scope pointer to the element from the scope
-            "optional element pointer". */
+            /* Here we obtain a (safe) pointer to the contained element. */
+            auto xs_elem_ptr1 = mse::make_xscope_fixed_optional_element_pointer(&xs_bfopt1);
 
+            /* We can also then obtain a scope pointer to the contained element. */
             auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
             auto val1 = *xs_ptr1;
+            *xs_ptr1 = mse::mstd::string("ghi");
         }
+        /* After the xscope_borrowing_fixed_optional<> is gone, we can again access our optional<>. */
+        xs_opt1.reset();
     }
 ```
 
 ### mt_optional
 
-The reason is subtle, but the implementation [`mstd::optional<>`](#mstdoptional) uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` is a version that is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at cost of slightly higher run-time overhead.
+Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` supports direct access and references to its contained element and is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at a cost of slightly higher run-time overhead. Like their iterator counterparts, scope optional element pointers, while they exist, hold a ["structure lock"](#structure-locking) on their target `optional<>` object which prevents the contained element from being destroyed. As with the vectors, [`xscope_borrowing_fixed_optional<>`](#xscope_borrowing_fixed_optional) (like all the "fixed-size" optionals) can also be shared among threads and are generally preferred when suitable.
 
 usage example:
 
