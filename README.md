@@ -3648,7 +3648,7 @@ usage example:
 
 Conceptually, you might think of an `optional<>` as a dynamic container, like a `vector<>`, that supports a maximum of one element. So the library provides a few versions of `optional<>` that roughly correspond to their [`vector<>` counterparts](#vectors). The library introduces "optional element" pointers, which would loosely correspond to iterators. Like their iterator counterparts, scope optional element pointers, while they exist, hold a ["structure lock"](#structure-locking) on their target `optional<>` object which prevents the contained element from being destroyed.
 
-### optional
+### mstd::optional
 
 `mstd::optional<>` is essentially just a safe implementation of std::optional<>. 
 
