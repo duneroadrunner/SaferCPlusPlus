@@ -6,7 +6,7 @@ Feb 2021
 
 The library's elements are designed, as much as possible, to seamlessly integrate with all manner of existing and future C++ code. It includes things like:
 
-- Drop-in replacements for [`std::vector<>`](#vector), [`std::array<>`](#array) and [`std::string`](#string).
+- Drop-in replacements for [`std::vector<>`](#mstdvector), [`std::array<>`](#mstdarray) and [`std::string`](#mstdstring).
 
 - Replacements for [`std::string_view`](#nrp_string_view) and [`std::span`](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection).
 
@@ -104,19 +104,19 @@ Tested with msvc2019(v16.5.4), g++9.3.0 and clang++10.0.0. Versions of g++ prior
     2. [CNDInt, CNDSize_t and CNDBool](#cndint-cndsize_t-and-cndbool)
     3. [Quarantined types](#quarantined-types)
 17. [Arrays](#arrays)
-    1. [mstd::array](#array)
+    1. [mstd::array](#mstdarray)
     2. [nii_array](#nii_array)
     3. [xscope_nii_array](#xscope_nii_array)
     4. [xscope_iterator](#xscope_iterator)
 18. [Vectors](#vectors)
-    1. [mstd::vector](#vector)
+    1. [mstd::vector](#mstdvector)
     2. [nii_vector](#nii_vector)
     3. [fixed_nii_vector](#fixed_nii_vector)
     4. [xscope_borrowing_fixed_nii_vector](#xscope_borrowing_fixed_nii_vector)
     5. [ivector](#ivector)
 19. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
 20. [Strings](#strings)
-    1. [mstd::string](#string)
+    1. [mstd::string](#mstdstring)
     2. [nii_string](#nii_string)
     3. [xscope_borrowing_fixed_nii_basic_string](#xscope_borrowing_fixed_nii_basic_string)
     4. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
@@ -215,7 +215,7 @@ Checked C and SaferCPlusPlus are more complementary than competitive. Checked C 
 
 ### Getting started on safening existing code
 
-The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#vector) and [`mse::mstd::array<>`](#array). You can substitute `std::string_view` with [`mse::nrp_string_view`](#nrp_string_view), and your `std::string`s with [`mse::mstd::string`](#string).
+The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#mstdvector) and [`mse::mstd::array<>`](#mstdarray). You can substitute `std::string_view` with [`mse::nrp_string_view`](#nrp_string_view), and your `std::string`s with [`mse::mstd::string`](#mstdstring).
 
 Statistically speaking, doing this should already catch a significant chunk of potential memory bugs. By default, an exception will be thrown upon any attempt to access invalid memory (or the program will terminate if compiled with support for exceptions disabled). This behavior can be customized (for example, to notify a custom logger of any invalid memory access attempts) by defining the `MSE_CUSTOM_THROW_DEFINITION()` preprocessor function macro.
 
@@ -2630,11 +2630,11 @@ Integer types with more comprehensive range checking can be found here: https://
 
 ### Arrays
 
-The library provides a few array types - [`mstd::array<>`](#array), [`nii_array<>`](#nii_array) and [`xscope_nii_array<>`](#xscope_nii_array). `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. Due to their iterators, arrays are not, in general, safe to share among threads.  `nii_array<>` is designed to be safely shared between asynchronous threads. Note that these two arrays do not support using [scope](#scope-pointers) types as the element type, while `xscope_nii_array<>` does. 
+The library provides a few array types - [`mstd::array<>`](#mstdarray), [`nii_array<>`](#nii_array) and [`xscope_nii_array<>`](#xscope_nii_array). `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. Due to their iterators, arrays are not, in general, safe to share among threads.  `nii_array<>` is designed to be safely shared between asynchronous threads. Note that these two arrays do not support using [scope](#scope-pointers) types as the element type, while `xscope_nii_array<>` does. 
 
 And remember that you can use ["random access sections"](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
-### array
+### mstd::array
 
 `mstd::array<>` is a memory-safe drop-in replacement for `std::array<>`. Note that the current implementation requires "`mseregistered.h`".  
 
@@ -2752,7 +2752,7 @@ usage example:
 
 ### Vectors
 
-The library provides a number of vector types. Like their [array](#arrays) counterparts, [`mstd::vector<>`](#vector) is a memory-safe drop-in replacement for `std::vector<>` and [`nii_vector<>`](#nii_vector) is a vector that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads.
+The library provides a number of vector types. Like their [array](#arrays) counterparts, [`mstd::vector<>`](#mstdvector) is a memory-safe drop-in replacement for `std::vector<>` and [`nii_vector<>`](#nii_vector) is a vector that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads.
 
 But unlike (fixed-size) arrays, dynamic containers like (resizable) vectors present an extra memory safety challenge in that the container may be modified/resized so that an element in the container might be eliminated, or moved to a different location, while there are still references (iterators) targeting the element. This results in dynamic containers having additional overhead (for safety mechanisms) and/or usage restrictions. For this reason, directly referencing elements in these (resizable) vectors is discouraged. You may instead move the vector contents to a (more efficient) "non-resizable" vector and access the elements from that container. A [`fixed_nii_vector<>`](#fixed_nii_vector) is provided, but generally you'll want to use [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector). Upon construction it "borrows" the contents of a specified vector and returns the (possibly modified) contents upon destruction. The premise here is that the moving of a vector's contents is an inexpensive operation that might be expected to be completely optimized away in cases where the contents are returned to their original location. Like arrays, fixed-size vectors support (efficient) [scope iterators](#xscope_iterator).
 
@@ -2762,7 +2762,7 @@ But if there are occasions when you want to perform a dynamic/resizing operation
 
 And remember that you can use ["random access sections"](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
-### vector
+### mstd::vector
 
 `mstd::vector<>` is a memory-safe drop-in replacement for `std::vector<>`.
 
@@ -2981,7 +2981,7 @@ usage example:
 
 ### ivector
 
-`mse::ivector<>` is a safe vector like [`mse::mstd::vector<>`](#vector), but its (implicit) iterators behave more like list iterators than standard vector iterators. That is, upon insert or delete, the iterators continue to point to the same item, not (necessarily) the same position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted.
+`mse::ivector<>` is a safe vector like [`mse::mstd::vector<>`](#mstdvector), but its (implicit) iterators behave more like list iterators than standard vector iterators. That is, upon insert or delete, the iterators continue to point to the same item, not (necessarily) the same position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted.
 
 usage example:
 ```cpp
@@ -3259,9 +3259,9 @@ See also [TXScopeCSSSXSTERandomAccessSection](https://github.com/duneroadrunner/
 
 ### Strings
 
-From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A few string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#string) is a memory-safe drop-in replacement for `std::string` and [`nii_string`](#nii_string) is a string that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads. [`xscope_borrowing_fixed_nii_basic_string<>`](#xscope_borrowing_fixed_nii_basic_string) is a non-resizable string that facilitates more efficient and less restricted direct access to characters in the string.
+From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A few string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#mstdstring) is a memory-safe drop-in replacement for `std::string` and [`nii_string`](#nii_string) is a string that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads. [`xscope_borrowing_fixed_nii_basic_string<>`](#xscope_borrowing_fixed_nii_basic_string) is a non-resizable string that facilitates more efficient and less restricted direct access to characters in the string.
 
-### string
+### mstd::string
 
 `mstd::string` is a memory-safe drop-in replacement for `std::string`. As with the standard library, `mstd::string` is defined as an alias for `mstd::basic_string<char>`. The `mstd::wstring`, `mstd::u16string` and `mstd::u32string` aliases are also present.
 
