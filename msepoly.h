@@ -317,10 +317,10 @@ namespace mse {
 		typedef us::impl::TAnyPointerBase<_Ty> base_class;
 		TXScopeAnyPointer(const us::impl::TAnyPointerBase<_Ty>& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = typename std::enable_if<
+		template <typename _TPointer1, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
 			&& (!std::is_base_of<us::impl::TAnyConstPointerBase<_Ty>, _TPointer1>::value)
-			, void>::type>
+			> >
 			TXScopeAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
@@ -338,13 +338,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_any_pointer(const _Ty& x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TXScopeAnyPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_pointer(_Ty&& x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TXScopeAnyPointer<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TXScopeAnyPointer<_Tx2>(MSE_FWD(x));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_pointer)
@@ -357,10 +357,10 @@ namespace mse {
 		typedef us::impl::TAnyPointerBase<_Ty> base_class;
 		TAnyPointer(const TAnyPointer& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = typename std::enable_if<
+		template <typename _TPointer1, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TAnyPointer>::value)
 			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
-			, void>::type>
+			> >
 		TAnyPointer(const _TPointer1& pointer) : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
@@ -380,13 +380,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_any_pointer(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_any_pointer(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TAnyPointer<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TAnyPointer<_Tx2>(MSE_FWD(x));
 	}
 
 	template <typename _Ty>
@@ -396,10 +396,10 @@ namespace mse {
 		TXScopeAnyConstPointer(const us::impl::TAnyConstPointerBase<_Ty>& src) : base_class(src) {}
 		TXScopeAnyConstPointer(const us::impl::TAnyPointerBase<_Ty>& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = typename std::enable_if<
+		template <typename _TPointer1, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, us::impl::TAnyConstPointerBase<_Ty>>::value)
 			&& (!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
-			, void>::type>
+			> >
 			TXScopeAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
@@ -418,13 +418,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_any_const_pointer(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TXScopeAnyConstPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_const_pointer(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TXScopeAnyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TXScopeAnyConstPointer<_Tx2>(MSE_FWD(x));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_const_pointer)
@@ -436,10 +436,10 @@ namespace mse {
 		TAnyConstPointer(const TAnyConstPointer& src) : base_class(src) {}
 		TAnyConstPointer(const TAnyPointer<_Ty>& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = typename std::enable_if<
+		template <typename _TPointer1, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TAnyConstPointer>::value)
 			&& (!std::is_convertible<_TPointer1, TAnyPointer<_Ty>>::value)
-			, void>::type>
+			> >
 		TAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
@@ -459,13 +459,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_any_const_pointer(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyConstPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_any_const_pointer(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TAnyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TAnyConstPointer<_Tx2>(MSE_FWD(x));
 	}
 
 	namespace us {
@@ -503,7 +503,7 @@ namespace mse {
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
-				return TXScopeFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+				return TXScopeFixedConstPointerFParam<_Ty2>(MSE_FWD(param));
 			}
 			template<typename _TRALoneParam>
 			auto constructor_helper1(std::false_type, _TRALoneParam&& param) { return std::forward<_TRALoneParam>(param); }
@@ -619,31 +619,31 @@ namespace mse {
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 				TPolyPointerBase(const mse::TXScopeObjFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeObjFixedPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyPointerBase(const mse::TXScopeObjFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeObjFixedPointer<_Ty>>(p); }
 				TPolyPointerBase(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyPointerBase(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 				TPolyPointerBase(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<
+				template<class _Ty2, class = mse::impl::enable_if_t<
 					std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value || std::is_same<const _Ty2, _Ty>::value
-					, void>::type>
+					> >
 					TPolyPointerBase(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
 
 				TPolyPointerBase(const mse::TCRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TCRegisteredPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyPointerBase(const mse::TCRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_NORADPOINTER_DISABLED)
 				TPolyPointerBase(const mse::TNoradPointer<_Ty>& p) { m_pointer.template set<mse::TNoradPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyPointerBase(const mse::TNoradPointer<_Ty2>& p) { m_pointer.template set<mse::TNoradPointer<_Ty>>(p); }
 #endif // !defined(MSE_NORADPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 				TPolyPointerBase(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyPointerBase(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
@@ -653,7 +653,7 @@ namespace mse {
 				TPolyPointerBase(const typename mse::us::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ipointer>(p); }
 				TPolyPointerBase(const typename mse::us::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ss_iterator_type>(p); }
 				TPolyPointerBase(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyPointerBase(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
 				TPolyPointerBase(const mse::TXScopeAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyPointer<_Ty>>(p); }
 				TPolyPointerBase(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyPointer<_Ty>>(p); }
@@ -706,10 +706,10 @@ namespace mse {
 		//MSE_USING(TXScopePolyPointer, us::impl::TPolyPointerBase<_Ty>);
 		//TXScopePolyPointer(const us::impl::TPolyPointerBase<_Ty>& p) : base_class(p) {}
 
-		template <typename _TPointer1, class = typename std::enable_if<
+		template <typename _TPointer1, class = mse::impl::enable_if_t<
 			/*(!std::is_convertible<_TPointer1, us::impl::TPolyPointerBase<_Ty>>::value)
 			&& */(!std::is_base_of<us::impl::TPolyConstPointerBase<_Ty>, _TPointer1>::value)
-			, void>::type>
+			> >
 			TXScopePolyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
@@ -726,13 +726,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_poly_pointer(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TXScopePolyPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_poly_pointer(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TXScopePolyPointer<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TXScopePolyPointer<_Tx2>(MSE_FWD(x));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_poly_pointer)
@@ -767,13 +767,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_poly_pointer(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TPolyPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_poly_pointer(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TPolyPointer<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TPolyPointer<_Tx2>(MSE_FWD(x));
 	}
 
 	namespace us {
@@ -821,54 +821,54 @@ namespace mse {
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 				TPolyConstPointerBase(const mse::TXScopeObjFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const mse::TXScopeObjFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TXScopeObjFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const mse::TXScopeObjFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TXScopeFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const mse::TXScopeFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 				TPolyConstPointerBase(const mse::TRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value> >
 				TPolyConstPointerBase(const mse::TRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value> >
 				TPolyConstPointerBase(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TCRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const mse::TCRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TCRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const mse::TCRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_NORADPOINTER_DISABLED)
 				TPolyConstPointerBase(const mse::TNoradConstPointer<_Ty>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const mse::TNoradConstPointer<_Ty2>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TNoradPointer<_Ty>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const mse::TNoradPointer<_Ty2>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_NORADPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 				TPolyConstPointerBase(const mse::TRefCountingConstPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const mse::TRefCountingConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
@@ -879,7 +879,7 @@ namespace mse {
 				TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::cipointer& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::cipointer>(p); }
 				TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::ss_const_iterator_type& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ss_const_iterator_type>(p); }
 				TPolyConstPointerBase(const std::shared_ptr<const _Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const std::shared_ptr<const _Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 				TPolyConstPointerBase(const mse::TXScopeAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(p); }
 				TPolyConstPointerBase(const mse::TAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(p); }
@@ -888,7 +888,7 @@ namespace mse {
 				TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::cipointer>(p); }
 				TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ss_const_iterator_type>(p); }
 				TPolyConstPointerBase(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
-				template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 				TPolyConstPointerBase(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 				TPolyConstPointerBase(const mse::TXScopeAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(mse::TXScopeAnyConstPointer<_Ty>(p)); }
 				TPolyConstPointerBase(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(mse::TXScopeAnyConstPointer<_Ty>(p)); }
@@ -940,10 +940,10 @@ namespace mse {
 		//TXScopePolyConstPointer(const us::impl::TPolyConstPointerBase<_Ty>& src) : base_class(src) {}
 		//TXScopePolyConstPointer(const us::impl::TPolyPointerBase<_Ty>& src) : base_class(src) {}
 
-		template <typename _TPointer1/*, class = typename std::enable_if<
+		template <typename _TPointer1/*, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, us::impl::TPolyConstPointerBase<_Ty>>::value)
 			&& (!std::is_convertible<_TPointer1, us::impl::TPolyPointerBase<_Ty>>::value)
-			, void>::type*/>
+			>*/>
 			TXScopePolyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
@@ -960,13 +960,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_poly_const_pointer(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TXScopePolyConstPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_poly_const_pointer(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TXScopePolyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TXScopePolyConstPointer<_Tx2>(MSE_FWD(x));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_poly_const_pointer)
@@ -998,13 +998,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_poly_const_pointer(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TPolyConstPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_poly_const_pointer(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TPolyConstPointer<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TPolyConstPointer<_Tx2>(MSE_FWD(x));
 	}
 
 	namespace rsv {
@@ -1031,7 +1031,7 @@ namespace mse {
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
-				return TXScopeFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+				return TXScopeFixedConstPointerFParam<_Ty2>(MSE_FWD(param));
 			}
 			template<typename _TRALoneParam>
 			auto constructor_helper1(std::false_type, _TRALoneParam&& param) { return std::forward<_TRALoneParam>(param); }
@@ -1168,7 +1168,7 @@ namespace mse {
 				TAnyRandomAccessIteratorBase(const TAnyRandomAccessIteratorBase& src) : m_any_random_access_iterator(src.m_any_random_access_iterator) {}
 				TAnyRandomAccessIteratorBase(_Ty arr[]) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _Ty*>(arr)) {}
 
-				template <typename _TRandomAccessIterator1, class = typename std::enable_if<!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIteratorBase>::value, void>::type>
+				template <typename _TRandomAccessIterator1, class = mse::impl::enable_if_t<!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIteratorBase>::value> >
 				TAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _TRandomAccessIterator1>(random_access_iterator)) {}
 
 				friend void swap(TAnyRandomAccessIteratorBase& first, TAnyRandomAccessIteratorBase& second) {
@@ -1290,7 +1290,7 @@ namespace mse {
 				TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessConstIteratorBase& src) : m_any_random_access_const_iterator(src.m_any_random_access_const_iterator) {}
 				TAnyRandomAccessConstIteratorBase(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
 
-				template <typename _TRandomAccessConstIterator1, class = typename std::enable_if<!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIteratorBase>::value, void>::type>
+				template <typename _TRandomAccessConstIterator1, class = mse::impl::enable_if_t<!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIteratorBase>::value> >
 				TAnyRandomAccessConstIteratorBase(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, _TRandomAccessConstIterator1>(random_access_const_iterator)) {}
 
 				friend void swap(TAnyRandomAccessConstIteratorBase& first, TAnyRandomAccessConstIteratorBase& second) {
@@ -1373,13 +1373,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_any_random_access_iterator(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TXScopeAnyRandomAccessIterator<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_random_access_iterator(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TXScopeAnyRandomAccessIterator<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TXScopeAnyRandomAccessIterator<_Tx2>(MSE_FWD(x));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_random_access_iterator)
@@ -1409,13 +1409,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_any_random_access_const_iterator(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TXScopeAnyRandomAccessConstIterator<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_random_access_const_iterator(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TXScopeAnyRandomAccessConstIterator<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TXScopeAnyRandomAccessConstIterator<_Tx2>(MSE_FWD(x));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_random_access_const_iterator)
@@ -1428,10 +1428,10 @@ namespace mse {
 
 		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : base_class(src) {}
 		TAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
-		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
+		template <typename _TRandomAccessIterator1, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<TAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)
-			, void>::type>
+			> >
 		TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
 		}
@@ -1448,13 +1448,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_any_random_access_iterator(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyRandomAccessIterator<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_any_random_access_iterator(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TAnyRandomAccessIterator<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TAnyRandomAccessIterator<_Tx2>(MSE_FWD(x));
 	}
 
 	template <typename _Ty>
@@ -1467,10 +1467,10 @@ namespace mse {
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessIterator<_Ty>& src) : base_class(src) {}
 		TAnyRandomAccessConstIterator(const _Ty arr[]) : base_class(arr) {}
 
-		template <typename _TRandomAccessConstIterator1, class = typename std::enable_if<
+		template <typename _TRandomAccessConstIterator1, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator<_Ty>>::value)
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
-			, void>::type>
+			> >
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : base_class(random_access_const_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessConstIterator1>();
 #if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED))
@@ -1490,13 +1490,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_any_random_access_const_iterator(const _Ty & x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyRandomAccessConstIterator<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_any_random_access_const_iterator(_Ty && x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TAnyRandomAccessConstIterator<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TAnyRandomAccessConstIterator<_Tx2>(MSE_FWD(x));
 	}
 
 
@@ -1519,8 +1519,8 @@ namespace mse {
 	}
 	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_random_access_section(_Ty&& arg1, _Args&& ... _Ax) {
-		typedef decltype(make_xscope_random_access_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
-		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_random_access_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
+		typedef decltype(make_xscope_random_access_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_random_access_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_random_access_section)
@@ -1556,8 +1556,8 @@ namespace mse {
 	}
 	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_random_access_const_section(_Ty&& arg1, _Args&& ... _Ax) {
-		typedef decltype(make_xscope_random_access_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
-		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_random_access_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
+		typedef decltype(make_xscope_random_access_const_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_random_access_const_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_random_access_const_section)
@@ -1587,10 +1587,10 @@ namespace mse {
 			template<typename _TRALoneParam>
 			TFParam(_TRALoneParam&& src) : base_class(constructor_helper1(
 #ifndef MSE_SCOPEPOINTER_DISABLED
-				typename std::conditional<
+				mse::impl::conditional_t<
 				mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
 				|| mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedRandomAccessConstSectionToRValue>::value
-				, std::true_type, std::false_type>::type()
+				, std::true_type, std::false_type>()
 #else //!MSE_SCOPEPOINTER_DISABLED
 				std::false_type()
 #endif //!MSE_SCOPEPOINTER_DISABLED
@@ -1604,11 +1604,11 @@ namespace mse {
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
-				return TXScopeFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+				return TXScopeFixedConstPointerFParam<_Ty2>(MSE_FWD(param));
 			}
 			template<typename _TRAIterator>
 			auto constructor_helper1(std::true_type, TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>&& param) {
-				return TXScopeRandomAccessConstSectionFParam<_TRAIterator>(std::forward<decltype(param)>(param));
+				return TXScopeRandomAccessConstSectionFParam<_TRAIterator>(MSE_FWD(param));
 			}
 			template<typename _TRALoneParam>
 			auto constructor_helper1(std::false_type, _TRALoneParam&& param) { return std::forward<_TRALoneParam>(param); }
@@ -1628,8 +1628,8 @@ namespace mse {
 	}
 	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_string_section(_Ty&& arg1, _Args&& ... _Ax) {
-		typedef decltype(make_xscope_string_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
-		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_string_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
+		typedef decltype(make_xscope_string_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_string_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_string_section)
@@ -1665,8 +1665,8 @@ namespace mse {
 	}
 	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_string_const_section(_Ty&& arg1, _Args&& ... _Ax) {
-		typedef decltype(make_xscope_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
-		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
+		typedef decltype(make_xscope_string_const_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_string_const_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_string_const_section)
@@ -1702,11 +1702,11 @@ namespace mse {
 			template<typename _TRALoneParam>
 			TFParam(_TRALoneParam&& src) : base_class(constructor_helper1(
 #ifndef MSE_SCOPEPOINTER_DISABLED
-				typename std::conditional<
+				mse::impl::conditional_t<
 				mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
 				|| std::is_base_of<mse::us::impl::CagedStringSectionTagBase, _TRALoneParam>::value
 				//|| mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedStringConstSectionToRValue>::value
-				, std::true_type, std::false_type>::type()
+				, std::true_type, std::false_type>()
 #else //!MSE_SCOPEPOINTER_DISABLED
 				std::false_type()
 #endif //!MSE_SCOPEPOINTER_DISABLED
@@ -1720,11 +1720,11 @@ namespace mse {
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
-				return TXScopeFixedConstPointerFParam<_Ty2>(std::forward<decltype(param)>(param));
+				return TXScopeFixedConstPointerFParam<_Ty2>(MSE_FWD(param));
 			}
 			template<typename _TRAIterator>
 			auto constructor_helper1(std::true_type, TXScopeCagedStringConstSectionToRValue<_TRAIterator>&& param) {
-				return TXScopeStringConstSectionFParam<_TRAIterator>(std::forward<decltype(param)>(param));
+				return TXScopeStringConstSectionFParam<_TRAIterator>(MSE_FWD(param));
 			}
 			template<typename _TRALoneParam>
 			auto constructor_helper1(std::false_type, _TRALoneParam&& param) { return std::forward<_TRALoneParam>(param); }
@@ -1735,15 +1735,15 @@ namespace mse {
 
 
 	namespace impl {
-		template<typename _Ty, typename _TRALoneParam, class = typename std::enable_if<
-			(!std::is_same<std::basic_string<_Ty>, typename std::remove_const<_TRALoneParam>::type>::value)
-			&& (!std::is_same<mse::TXScopeObj<std::basic_string<_Ty> >, typename std::remove_const<_TRALoneParam>::type>::value)
-			, void>::type>
+		template<typename _Ty, typename _TRALoneParam, class = mse::impl::enable_if_t<
+			(!std::is_same<std::basic_string<_Ty>, mse::impl::remove_const_t<_TRALoneParam> >::value)
+			&& (!std::is_same<mse::TXScopeObj<std::basic_string<_Ty> >, mse::impl::remove_const_t<_TRALoneParam> >::value)
+			> >
 		void T_valid_if_not_an_std_basic_string_msepoly() {}
 
 		template<typename _Ty, typename _TPtr>
 		void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper(std::true_type) {
-			T_valid_if_not_an_std_basic_string_msepoly<_Ty, typename std::remove_reference<decltype(*std::declval<_TPtr>())>::type>();
+			T_valid_if_not_an_std_basic_string_msepoly<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPtr>())> >();
 		}
 		template<typename _Ty, typename _TRALoneParam>
 		void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper(std::false_type) {}
@@ -1800,8 +1800,8 @@ namespace mse {
 	}
 	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_nrp_string_section(_Ty&& arg1, _Args&& ... _Ax) {
-		typedef decltype(make_xscope_nrp_string_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
-		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_nrp_string_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
+		typedef decltype(make_xscope_nrp_string_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessSection<typename ra_section_t::value_type>(make_xscope_nrp_string_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_nrp_string_section)
@@ -1870,7 +1870,7 @@ namespace mse {
 		/* Construction from a const native array is publicly supported (only) because string literals are const
 		native arrays. We do not want construction from a non-const native array to be publicly supported. */
 		template<size_t Tn>
-		explicit TXScopeAnyNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array) {}
+		explicit TXScopeAnyNRPStringConstSection(mse::impl::remove_const_t<value_type>(&native_array)[Tn]) : base_class(native_array) {}
 
 		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
@@ -1882,8 +1882,8 @@ namespace mse {
 	}
 	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_any_nrp_string_const_section(_Ty&& arg1, _Args&& ... _Ax) {
-		typedef decltype(make_xscope_nrp_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
-		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_nrp_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
+		typedef decltype(make_xscope_nrp_string_const_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...)) ra_section_t;
+		return TXScopeAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_xscope_nrp_string_const_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_any_nrp_string_const_section)
@@ -1917,7 +1917,7 @@ namespace mse {
 		/* Construction from a const native array is publicly supported (only) because string literals are const
 		native arrays. We do not want construction from a non-const native array to be publicly supported. */
 		template<size_t Tn>
-		explicit TAnyNRPStringConstSection(typename std::remove_const<value_type>::type(&native_array)[Tn]) : base_class(native_array) {}
+		explicit TAnyNRPStringConstSection(mse::impl::remove_const_t<value_type>(&native_array)[Tn]) : base_class(native_array) {}
 
 		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
@@ -1998,7 +1998,7 @@ namespace mse {
 		}
 		template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 		auto make_xscope_string_view(_Ty&& arg1, _Args&& ... _Ax) {
-			return xscope_string_view(make_xscope_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
+			return xscope_string_view(make_xscope_string_const_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...));
 		}
 		/* Overloads for rsv::TReturnableFParam<>. */
 		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_string_view)
@@ -2025,7 +2025,7 @@ namespace mse {
 	}
 	template <typename _Ty, class... _Args, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_Ty)>
 	auto make_xscope_nrp_string_view(_Ty&& arg1, _Args&& ... _Ax) {
-		return xscope_nrp_string_view(make_xscope_nrp_string_const_section(std::forward<decltype(arg1)>(arg1), std::forward<_Args>(_Ax)...));
+		return xscope_nrp_string_view(make_xscope_nrp_string_const_section(MSE_FWD(arg1), std::forward<_Args>(_Ax)...));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_nrp_string_view)
@@ -2036,18 +2036,18 @@ namespace mse {
 	public:
 		typedef TAnyRandomAccessIterator<_Ty> base_class;
 		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class)
-		TNullableAnyRandomAccessIterator() : base_class(typename mse::mstd::vector<typename std::remove_const<_Ty>::type>::iterator()), m_is_null(true) {}
+		TNullableAnyRandomAccessIterator() : base_class(typename mse::mstd::vector<mse::impl::remove_const_t<_Ty> >::iterator()), m_is_null(true) {}
 		TNullableAnyRandomAccessIterator(const std::nullptr_t& src) : TNullableAnyRandomAccessIterator() {}
 		TNullableAnyRandomAccessIterator(const TNullableAnyRandomAccessIterator& src) : base_class(src) {}
 		TNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
 		explicit TNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
 
-		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
+		template <typename _TRandomAccessIterator1, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessIterator1, TNullableAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
-			, void>::type>
+			> >
 		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
 		}
@@ -2082,13 +2082,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_nullable_any_random_access_iterator(const _Ty& x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TNullableAnyRandomAccessIterator<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_nullable_any_random_access_iterator(_Ty&& x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TNullableAnyRandomAccessIterator<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TNullableAnyRandomAccessIterator<_Tx2>(MSE_FWD(x));
 	}
 
 	template <typename _Ty>
@@ -2096,18 +2096,18 @@ namespace mse {
 	public:
 		typedef TXScopeAnyRandomAccessIterator<_Ty> base_class;
 		MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class)
-		TXScopeNullableAnyRandomAccessIterator() : base_class(typename mse::mstd::vector<typename std::remove_const<_Ty>::type>::iterator()), m_is_null(true) {}
+		TXScopeNullableAnyRandomAccessIterator() : base_class(typename mse::mstd::vector<mse::impl::remove_const_t<_Ty> >::iterator()), m_is_null(true) {}
 		TXScopeNullableAnyRandomAccessIterator(const std::nullptr_t& src) : TXScopeNullableAnyRandomAccessIterator() {}
 		TXScopeNullableAnyRandomAccessIterator(const TXScopeNullableAnyRandomAccessIterator& src) : base_class(src) {}
 		TXScopeNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
 		explicit TXScopeNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
 
-		template <typename _TRandomAccessIterator1, class = typename std::enable_if<
+		template <typename _TRandomAccessIterator1, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
-			, void>::type>
+			> >
 		TXScopeNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {}
 
 		friend void swap(TXScopeNullableAnyRandomAccessIterator& first, TXScopeNullableAnyRandomAccessIterator& second) {
@@ -2133,13 +2133,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_nullable_any_random_access_iterator(const _Ty& x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TXScopeNullableAnyRandomAccessIterator<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_nullable_any_random_access_iterator(_Ty&& x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TXScopeNullableAnyRandomAccessIterator<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TXScopeNullableAnyRandomAccessIterator<_Tx2>(MSE_FWD(x));
 	}
 
 	/* The intended semantics of TNullableAnyPointer<> is that it always contains either an std::nullptr_t or a
@@ -2154,12 +2154,12 @@ namespace mse {
 		TNullableAnyPointer(const TNullableAnyPointer& src) : base_class(src) {}
 		TNullableAnyPointer(const base_class& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = typename std::enable_if<
+		template <typename _TPointer1, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TNullableAnyPointer>::value)
 			&& (!std::is_base_of<base_class, _TPointer1>::value)
 			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TPointer1, int>::value)
-			, void>::type>
+			> >
 		TNullableAnyPointer(const _TPointer1& random_access_iterator) : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
@@ -2192,13 +2192,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_nullable_any_pointer(const _Ty& x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TNullableAnyPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_nullable_any_pointer(_Ty&& x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TNullableAnyPointer<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TNullableAnyPointer<_Tx2>(MSE_FWD(x));
 	}
 
 	template <typename _Ty>
@@ -2210,12 +2210,12 @@ namespace mse {
 		TXScopeNullableAnyPointer(const TXScopeNullableAnyPointer& src) : base_class(src) {}
 		TXScopeNullableAnyPointer(const base_class& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = typename std::enable_if<
+		template <typename _TPointer1, class = mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TXScopeNullableAnyPointer>::value)
 			&& (!std::is_base_of<base_class, _TPointer1>::value)
 			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TPointer1, int>::value)
-			, void>::type>
+			> >
 		TXScopeNullableAnyPointer(const _TPointer1& random_access_iterator) : base_class(random_access_iterator) {}
 
 		friend void swap(TXScopeNullableAnyPointer& first, TXScopeNullableAnyPointer& second) {
@@ -2239,13 +2239,13 @@ namespace mse {
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_nullable_any_pointer(const _Ty& x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TXScopeNullableAnyPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_nullable_any_pointer(_Ty&& x) {
-		typedef typename std::conditional<std::is_same<_Tx, void>::value, typename std::remove_reference<decltype(*x)>::type, _Tx>::type _Tx2;
-		return TXScopeNullableAnyPointer<_Tx2>(std::forward<decltype(x)>(x));
+		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
+		return TXScopeNullableAnyPointer<_Tx2>(MSE_FWD(x));
 	}
 }
 

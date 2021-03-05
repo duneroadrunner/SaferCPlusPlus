@@ -180,11 +180,11 @@ namespace mse {
 		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
 		*/
 		template <class Y> friend class TRefCountingPointer;
-		template <class Y, class = typename std::enable_if<std::is_base_of<X, Y>::value, void>::type>
+		template <class Y, class = mse::impl::enable_if_t<std::is_base_of<X, Y>::value> >
 		TRefCountingPointer(const TRefCountingPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
 		}
-		template <class Y, class = typename std::enable_if<std::is_base_of<X, Y>::value, void>::type>
+		template <class Y, class = mse::impl::enable_if_t<std::is_base_of<X, Y>::value> >
 		TRefCountingPointer& operator=(const TRefCountingPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
@@ -275,7 +275,7 @@ namespace mse {
 #ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class X2 = X, class = typename std::enable_if<(std::is_same<X2, X>::value) && (mse::impl::is_potentially_not_xscope<X2>::value), void>::type>
+		template<class X2 = X, class = mse::impl::enable_if_t<(std::is_same<X2, X>::value) && (mse::impl::is_potentially_not_xscope<X2>::value)> >
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		void valid_if_X_is_not_an_xscope_type() const {}
 
@@ -338,8 +338,8 @@ namespace mse {
 	public:
 		TRefCountingFixedPointer(const TRefCountingFixedPointer& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
 		TRefCountingFixedPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingNotNullPointer<_Ty>(src_cref) {}
-		TRefCountingFixedPointer(TRefCountingFixedPointer<_Ty>&& src_ref) : TRefCountingNotNullPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
-		TRefCountingFixedPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingNotNullPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TRefCountingFixedPointer(TRefCountingFixedPointer<_Ty>&& src_ref) : TRefCountingNotNullPointer<_Ty>(MSE_FWD(src_ref)) {}
+		TRefCountingFixedPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingNotNullPointer<_Ty>(MSE_FWD(src_ref)) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingFixedPointer() {}
 
 		template <class... Args>
@@ -428,11 +428,11 @@ namespace mse {
 		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
 		*/
 		template <class Y> friend class TRefCountingConstPointer;
-		template <class Y, class = typename std::enable_if<std::is_base_of<X, Y>::value, void>::type>
+		template <class Y, class = mse::impl::enable_if_t<std::is_base_of<X, Y>::value> >
 		TRefCountingConstPointer(const TRefCountingConstPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
 		}
-		template <class Y, class = typename std::enable_if<std::is_base_of<X, Y>::value, void>::type>
+		template <class Y, class = mse::impl::enable_if_t<std::is_base_of<X, Y>::value> >
 		TRefCountingConstPointer& operator=(const TRefCountingConstPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
@@ -517,7 +517,7 @@ namespace mse {
 #ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class X2 = X, class = typename std::enable_if<(std::is_same<X2, X>::value) && (mse::impl::is_potentially_not_xscope<X2>::value), void>::type>
+		template<class X2 = X, class = mse::impl::enable_if_t<(std::is_same<X2, X>::value) && (mse::impl::is_potentially_not_xscope<X2>::value)> >
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		void valid_if_X_is_not_an_xscope_type() const {}
 
@@ -578,10 +578,10 @@ namespace mse {
 		TRefCountingFixedConstPointer(const TRefCountingNotNullConstPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
 		TRefCountingFixedConstPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingNotNullConstPointer<_Ty>(src_cref) {}
 
-		TRefCountingFixedConstPointer(TRefCountingFixedConstPointer&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
-		TRefCountingFixedConstPointer(TRefCountingFixedPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
-		TRefCountingFixedConstPointer(TRefCountingNotNullConstPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
-		TRefCountingFixedConstPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(std::forward<decltype(src_ref)>(src_ref)) {}
+		TRefCountingFixedConstPointer(TRefCountingFixedConstPointer&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(MSE_FWD(src_ref)) {}
+		TRefCountingFixedConstPointer(TRefCountingFixedPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(MSE_FWD(src_ref)) {}
+		TRefCountingFixedConstPointer(TRefCountingNotNullConstPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(MSE_FWD(src_ref)) {}
+		TRefCountingFixedConstPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingNotNullConstPointer<_Ty>(MSE_FWD(src_ref)) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingFixedConstPointer() {}
 
@@ -741,75 +741,75 @@ namespace mse {
 
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_pointer_to_member_v2(const TRefCountingPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedPointer<_TTarget, TRefCountingPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_pointer_to_member_v2(const TRefCountingConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_const_pointer_to_member_v2(const TRefCountingPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_const_pointer_to_member_v2(const TRefCountingConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_pointer_to_member_v2(const TRefCountingNotNullPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedPointer<_TTarget, TRefCountingNotNullPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_pointer_to_member_v2(const TRefCountingNotNullConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingNotNullConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_const_pointer_to_member_v2(const TRefCountingNotNullPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingNotNullPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_const_pointer_to_member_v2(const TRefCountingNotNullConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingNotNullConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_pointer_to_member_v2(const TRefCountingFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedPointer<_TTarget, TRefCountingFixedPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_pointer_to_member_v2(const TRefCountingFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingFixedConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_const_pointer_to_member_v2(const TRefCountingFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingFixedPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_const_pointer_to_member_v2(const TRefCountingFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingFixedConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
@@ -826,13 +826,13 @@ namespace mse {
 
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_pointer_to_member_v2(const std::shared_ptr<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedPointer<_TTarget, std::shared_ptr<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_const_pointer_to_member_v2(const std::shared_ptr<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
-		typedef typename std::remove_reference<decltype((*lease_pointer).*member_object_ptr)>::type _TTarget;
+		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, std::shared_ptr<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
@@ -874,7 +874,7 @@ namespace mse {
 	}
 	template <typename _TLoneParam>
 	auto mkrclp(_TLoneParam&& lone_param) {
-		return make_refcounting<typename std::remove_reference<_TLoneParam>::type>(std::forward<decltype(lone_param)>(lone_param));
+		return make_refcounting<mse::impl::remove_reference_t<_TLoneParam> >(MSE_FWD(lone_param));
 	}
 
 	/* deprecated aliases */
@@ -1027,9 +1027,9 @@ namespace mse {
 			public:
 				A() {}
 				A(const A& _X) : b(_X.b) {}
-				A(A&& _X) : b(std::forward<decltype(_X)>(_X).b) {}
+				A(A&& _X) : b(MSE_FWD(_X).b) {}
 				virtual ~A() {}
-				A& operator=(A&& _X) { b = std::forward<decltype(_X)>(_X).b; return (*this); }
+				A& operator=(A&& _X) { b = MSE_FWD(_X).b; return (*this); }
 				A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 				int b = 3;

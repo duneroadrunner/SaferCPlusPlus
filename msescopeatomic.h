@@ -142,12 +142,12 @@ namespace mse {
 				typedef std::atomic<_TROz> base_class;
 				MSE_SCOPE_ATOMIC_USING(TXScopeAtomicObjBase, base_class);
 				TXScopeAtomicObjBase(const TXScopeAtomicObjBase& _X) : base_class(_X) {}
-				TXScopeAtomicObjBase(TXScopeAtomicObjBase&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+				TXScopeAtomicObjBase(TXScopeAtomicObjBase&& _X) : base_class(MSE_FWD(_X)) {}
 
-				TXScopeAtomicObjBase& operator=(TXScopeAtomicObjBase&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				TXScopeAtomicObjBase& operator=(TXScopeAtomicObjBase&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 				TXScopeAtomicObjBase& operator=(const TXScopeAtomicObjBase& _X) { base_class::operator=(_X); return (*this); }
 				template<class _Ty2>
-				TXScopeAtomicObjBase& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+				TXScopeAtomicObjBase& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 				template<class _Ty2>
 				TXScopeAtomicObjBase& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
@@ -235,7 +235,7 @@ namespace mse {
 		TXScopeAtomicPointer(TXScopeAtomicObj<_Ty>& scpobj_ref) : mse::us::impl::TXScopeAtomicPointerBase<_Ty>(scpobj_ref) {}
 		TXScopeAtomicPointer(const TXScopeAtomicPointer& src_cref) : mse::us::impl::TXScopeAtomicPointerBase<_Ty>(
 			static_cast<const mse::us::impl::TXScopeAtomicPointerBase<_Ty>&>(src_cref)) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		//TXScopeAtomicPointer(const TXScopeAtomicPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeAtomicPointerBase<_Ty>(mse::us::impl::TXScopeAtomicPointerBase<_Ty2>(src_cref)) {}
 		TXScopeAtomicPointer<_Ty>& operator=(TXScopeAtomicObj<_Ty>* ptr) {
 			return mse::us::impl::TXScopeAtomicPointerBase<_Ty>::operator=(ptr);
@@ -276,10 +276,10 @@ namespace mse {
 		TXScopeAtomicConstPointer(const TXScopeAtomicObj<_Ty>& scpobj_cref) : mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>(scpobj_cref) {}
 		TXScopeAtomicConstPointer(const TXScopeAtomicConstPointer& src_cref) : mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>(
 			static_cast<const mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>&>(src_cref)) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		//TXScopeAtomicConstPointer(const TXScopeAtomicConstPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>(src_cref) {}
 		TXScopeAtomicConstPointer(const TXScopeAtomicPointer<_Ty>& src_cref) : mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>(src_cref) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		//TXScopeAtomicConstPointer(const TXScopeAtomicPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>(mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty2>(src_cref)) {}
 		TXScopeAtomicConstPointer<_Ty>& operator=(const TXScopeAtomicObj<_Ty>* ptr) {
 			return mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>::operator=(ptr);
@@ -315,7 +315,7 @@ namespace mse {
 	private:
 		TXScopeAtomicNotNullPointer(TXScopeAtomicObj<_Ty>& scpobj_ref) : TXScopeAtomicPointer<_Ty>(scpobj_ref) {}
 		TXScopeAtomicNotNullPointer(TXScopeAtomicObj<_Ty>* ptr) : TXScopeAtomicPointer<_Ty>(ptr) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		//TXScopeAtomicNotNullPointer(const TXScopeAtomicNotNullPointer<_Ty2>& src_cref) : TXScopeAtomicPointer<_Ty>(src_cref) {}
 		TXScopeAtomicNotNullPointer<_Ty>& operator=(const TXScopeAtomicPointer<_Ty>& _Right_cref) {
 			TXScopeAtomicPointer<_Ty>::operator=(_Right_cref);
@@ -338,10 +338,10 @@ namespace mse {
 		~TXScopeAtomicNotNullConstPointer() {}
 	private:
 		TXScopeAtomicNotNullConstPointer(const TXScopeAtomicNotNullConstPointer<_Ty>& src_cref) : TXScopeAtomicConstPointer<_Ty>(src_cref) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		//TXScopeAtomicNotNullConstPointer(const TXScopeAtomicNotNullConstPointer<_Ty2>& src_cref) : TXScopeAtomicConstPointer<_Ty>(src_cref) {}
 		TXScopeAtomicNotNullConstPointer(const TXScopeAtomicNotNullPointer<_Ty>& src_cref) : TXScopeAtomicConstPointer<_Ty>(src_cref) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		//TXScopeAtomicNotNullConstPointer(const TXScopeAtomicNotNullPointer<_Ty2>& src_cref) : TXScopeAtomicConstPointer<_Ty>(src_cref) {}
 		TXScopeAtomicNotNullConstPointer(const TXScopeAtomicObj<_Ty>& scpobj_cref) : TXScopeAtomicConstPointer<_Ty>(scpobj_cref) {}
 		operator bool() const { return (*static_cast<const TXScopeAtomicConstPointer<_Ty>*>(this)); }
@@ -360,7 +360,7 @@ namespace mse {
 	class TXScopeAtomicFixedPointer : public TXScopeAtomicNotNullPointer<_Ty> {
 	public:
 		TXScopeAtomicFixedPointer(const TXScopeAtomicFixedPointer& src_cref) : TXScopeAtomicNotNullPointer<_Ty>(src_cref) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		//TXScopeAtomicFixedPointer(const TXScopeAtomicFixedPointer<_Ty2>& src_cref) : TXScopeAtomicNotNullPointer<_Ty>(src_cref) {}
 		~TXScopeAtomicFixedPointer() {}
 		operator bool() const { return (*static_cast<const TXScopeAtomicNotNullPointer<_Ty>*>(this)); }
@@ -393,10 +393,10 @@ namespace mse {
 	class TXScopeAtomicFixedConstPointer : public TXScopeAtomicNotNullConstPointer<_Ty> {
 	public:
 		TXScopeAtomicFixedConstPointer(const TXScopeAtomicFixedConstPointer<_Ty>& src_cref) : TXScopeAtomicNotNullConstPointer<_Ty>(src_cref) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		//TXScopeAtomicFixedConstPointer(const TXScopeAtomicFixedConstPointer<_Ty2>& src_cref) : TXScopeAtomicNotNullConstPointer<_Ty>(src_cref) {}
 		TXScopeAtomicFixedConstPointer(const TXScopeAtomicFixedPointer<_Ty>& src_cref) : TXScopeAtomicNotNullConstPointer<_Ty>(src_cref) {}
-		//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		//TXScopeAtomicFixedConstPointer(const TXScopeAtomicFixedPointer<_Ty2>& src_cref) : TXScopeAtomicNotNullConstPointer<_Ty>(src_cref) {}
 		~TXScopeAtomicFixedConstPointer() {}
 		operator bool() const { return (*static_cast<const TXScopeAtomicNotNullConstPointer<_Ty>*>(this)); }
@@ -429,7 +429,7 @@ namespace mse {
 		TXScopeAtomicObj(const TXScopeAtomicObj& _X) = default;
 
 #ifdef MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
-		explicit TXScopeAtomicObj(TXScopeAtomicObj&& _X) : mse::us::impl::TXScopeAtomicObjBase<_TROy>(std::forward<decltype(_X)>(_X)) {}
+		explicit TXScopeAtomicObj(TXScopeAtomicObj&& _X) : mse::us::impl::TXScopeAtomicObjBase<_TROy>(MSE_FWD(_X)) {}
 #endif // !MSE_SCOPE_DISABLE_MOVE_RESTRICTIONS
 
 		MSE_SCOPE_ATOMIC_USING(TXScopeAtomicObj, mse::us::impl::TXScopeAtomicObjBase<_TROy>);
@@ -439,13 +439,13 @@ namespace mse {
 
 		TXScopeAtomicObj& operator=(TXScopeAtomicObj&& _X) {
 			mse::impl::valid_if_not_rvalue_reference_of_given_type<TXScopeAtomicObj, decltype(_X)>(_X);
-			mse::us::impl::TXScopeAtomicObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
+			mse::us::impl::TXScopeAtomicObjBase<_TROy>::operator=(MSE_FWD(_X));
 			return (*this);
 		}
 		TXScopeAtomicObj& operator=(const TXScopeAtomicObj& _X) { mse::us::impl::TXScopeAtomicObjBase<_TROy>::operator=(_X); return (*this); }
 		template<class _Ty2>
 		TXScopeAtomicObj& operator=(_Ty2&& _X) {
-			mse::us::impl::TXScopeAtomicObjBase<_TROy>::operator=(std::forward<decltype(_X)>(_X));
+			mse::us::impl::TXScopeAtomicObjBase<_TROy>::operator=(MSE_FWD(_X));
 			return (*this);
 		}
 		template<class _Ty2>
@@ -474,9 +474,9 @@ namespace mse {
 		void xscope_tag() const {}
 		//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
 		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
-		template<class _Ty2 = std::atomic<_TROy>, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value) && (
+		template<class _Ty2 = std::atomic<_TROy>, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
-			), void>::type>
+			)> >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
@@ -506,7 +506,7 @@ namespace mse {
 	namespace impl {
 		/* This template type alias is only used because msvc2017(v15.9.0) crashes if the type expression is used directly. */
 		template<class _Ty2, class _TMemberObjectPointer>
-		using make_xscope_atomic_pointer_to_member_v2_return_type1 = TXScopeAtomicItemFixedPointer<typename std::remove_reference<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())>::type>;
+		using make_xscope_atomic_pointer_to_member_v2_return_type1 = TXScopeAtomicItemFixedPointer<mse::impl::remove_reference_t<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())> >;
 	}
 
 	/* While TXScopeAtomicFixedPointer<> points to a TXScopeAtomicObj<>, TXScopeAtomicItemFixedPointer<> is intended to be able to point to a
@@ -516,15 +516,15 @@ namespace mse {
 	class TXScopeAtomicItemFixedPointer : public mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TXScopeAtomicItemFixedPointer(const TXScopeAtomicItemFixedPointer& src_cref) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TXScopeAtomicItemFixedPointer(const TXScopeAtomicItemFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeAtomicItemPointerBase<_Ty2>&>(src_cref)) {}
 
 		TXScopeAtomicItemFixedPointer(const TXScopeAtomicFixedPointer<_Ty>& src_cref) : mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>&>(src_cref)) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TXScopeAtomicItemFixedPointer(const TXScopeAtomicFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeAtomicItemPointerBase<_Ty2>&>(src_cref)) {}
 
 		//TXScopeAtomicItemFixedPointer(const TXScopeAtomicOwnerPointer<_Ty>& src_cref) : TXScopeAtomicItemFixedPointer(&(*src_cref)) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TXScopeAtomicItemFixedPointer(const TXScopeAtomicOwnerPointer<_Ty2>& src_cref) : TXScopeAtomicItemFixedPointer(&(*src_cref)) {}
 
 		~TXScopeAtomicItemFixedPointer() {}
@@ -547,23 +547,23 @@ namespace mse {
 	class TXScopeAtomicItemFixedConstPointer : public mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicItemFixedConstPointer<_Ty>& src_cref) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicItemFixedConstPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty2>&>(src_cref)) {}
 
 		TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicItemFixedPointer<_Ty>& src_cref) : mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>&>(src_cref)) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicItemFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeAtomicItemPointerBase<_Ty2>&>(src_cref)) {}
 
 		TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicFixedConstPointer<_Ty>& src_cref) : mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>&>(src_cref)) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicFixedConstPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty2>&>(src_cref)) {}
 
 		TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicFixedPointer<_Ty>& src_cref) : mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>&>(src_cref)) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicFixedPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>(static_cast<const mse::us::impl::TXScopeAtomicItemPointerBase<_Ty2>&>(src_cref)) {}
 
 		//TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicOwnerPointer<_Ty>& src_cref) : TXScopeAtomicItemFixedConstPointer(&(*src_cref)) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TXScopeAtomicItemFixedConstPointer(const TXScopeAtomicOwnerPointer<_Ty2>& src_cref) : TXScopeAtomicItemFixedConstPointer(&(*src_cref)) {}
 
 		~TXScopeAtomicItemFixedConstPointer() {}
@@ -705,18 +705,18 @@ namespace mse {
 	}
 	template <class X, class... Args>
 	auto make_xscope_atomic(Args&&... args) {
-		typedef typename std::remove_reference<X>::type nrX;
+		typedef mse::impl::remove_reference_t<X> nrX;
 		return impl::make_xscope_atomic_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TXScopeAtomicObj>::type(), std::forward<Args>(args)...);
 	}
 	template <class X>
 	auto make_xscope_atomic(const X& arg) {
-		typedef typename std::remove_reference<X>::type nrX;
+		typedef mse::impl::remove_reference_t<X> nrX;
 		return impl::make_xscope_atomic_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TXScopeAtomicObj>::type(), arg);
 	}
 	template <class X, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(X)>
 	auto make_xscope_atomic(X&& arg) {
-		typedef typename std::remove_reference<X>::type nrX;
-		return impl::make_xscope_atomic_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TXScopeAtomicObj>::type(), std::forward<decltype(arg)>(arg));
+		typedef mse::impl::remove_reference_t<X> nrX;
+		return impl::make_xscope_atomic_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TXScopeAtomicObj>::type(), MSE_FWD(arg));
 	}
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_atomic)
@@ -747,7 +747,7 @@ namespace mse {
 			TXScopeAtomicItemFixedPointerFParam(const TXScopeAtomicItemFixedPointerFParam& src_cref) = default;
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TXScopeAtomicItemFixedPointerFParam(const TXScopeAtomicCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
@@ -771,9 +771,9 @@ namespace mse {
 			TXScopeAtomicItemFixedConstPointerFParam(const TXScopeAtomicItemFixedPointerFParam<_Ty>& src_cref) : base_class(src_cref) {}
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TXScopeAtomicItemFixedConstPointerFParam(const TXScopeAtomicCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TXScopeAtomicItemFixedConstPointerFParam(const TXScopeAtomicCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 #endif //!MSE_SCOPEPOINTER_DISABLED
 
@@ -870,9 +870,9 @@ namespace mse {
 
 		void xscope_tag() const {}
 		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
-		template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value) && (
+		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
-			), void>::type>
+			)> >
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
@@ -888,13 +888,13 @@ namespace mse {
 		void constructor_helper2(std::true_type, _TSoleArg&& sole_arg) {
 			/* The sole parameter is derived from, or of this type, so we're going to consider the constructor
 			a move constructor. */
-			m_ptr = std::forward<decltype(sole_arg.m_ptr)>(sole_arg.m_ptr);
+			m_ptr = MSE_FWD(sole_arg.m_ptr);
 		}
 		template <class _TSoleArg>
 		void constructor_helper2(std::false_type, _TSoleArg&& sole_arg) {
 			/* The sole parameter is not derived from, or of this type, so the constructor is not a move
 			constructor. */
-			initialize(std::forward<decltype(sole_arg)>(sole_arg));
+			initialize(MSE_FWD(sole_arg));
 		}
 		template <class... Args>
 		void constructor_helper1(Args&&... args) {
@@ -904,7 +904,7 @@ namespace mse {
 		void constructor_helper1(_TSoleArg&& sole_arg) {
 			/* The constructor was given exactly one parameter. If the parameter is derived from, or of this type,
 			then we're going to consider the constructor a move constructor. */
-			constructor_helper2(typename std::is_base_of<TXScopeAtomicOwnerPointer, _TSoleArg>::type(), std::forward<decltype(sole_arg)>(sole_arg));
+			constructor_helper2(typename std::is_base_of<TXScopeAtomicOwnerPointer, _TSoleArg>::type(), MSE_FWD(sole_arg));
 		}
 
 		TXScopeAtomicOwnerPointer(const TXScopeAtomicOwnerPointer<_Ty>& src_cref) = delete;

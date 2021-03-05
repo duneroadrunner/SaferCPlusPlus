@@ -169,7 +169,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tarray_xscope_const_iterator, base_class);
 
 			MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-			auto& operator=(Tarray_xscope_const_iterator&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			auto& operator=(Tarray_xscope_const_iterator&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 			auto& operator=(const Tarray_xscope_const_iterator& _X) { base_class::operator=(_X); return (*this); }
 
 			Tarray_xscope_const_iterator& operator ++() { base_class::operator ++(); return (*this); }
@@ -205,7 +205,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tarray_xscope_iterator, base_class);
 
 			MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-			auto& operator=(Tarray_xscope_iterator&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			auto& operator=(Tarray_xscope_iterator&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 			auto& operator=(const Tarray_xscope_iterator& _X) { base_class::operator=(_X); return (*this); }
 
 			Tarray_xscope_iterator& operator ++() { base_class::operator ++(); return (*this); }
@@ -255,11 +255,11 @@ namespace mse {
 			operator std::array<_Ty, _Size>()&& { return std::forward<std::array<_Ty, _Size> >(as_nii_array()); }
 
 			array() {}
-			array(_MA&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+			array(_MA&& _X) : base_class(MSE_FWD(_X)) {}
 			array(const _MA& _X) : base_class(_X) {}
-			array(_Myt&& _X) : base_class(std::forward<decltype(_X)>(_X).as_nii_array()) {}
+			array(_Myt&& _X) : base_class(MSE_FWD(_X).as_nii_array()) {}
 			array(const _Myt& _X) : base_class(_X.as_nii_array()) {}
-			array(std::array<_Ty, _Size>&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+			array(std::array<_Ty, _Size>&& _X) : base_class(MSE_FWD(_X)) {}
 			array(const std::array<_Ty, _Size>& _X) : base_class(_X) {}
 			//array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : base_class(_Ilist) {}
 			static constexpr std::array<_Ty, _Size> std_array_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
@@ -282,9 +282,9 @@ namespace mse {
 				to emulate it. */
 			}
 
-			//_Myt& operator=(_MA&& _X) { contained_array().operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			//_Myt& operator=(_MA&& _X) { contained_array().operator=(MSE_FWD(_X)); return (*this); }
 			//_Myt& operator=(const _MA& _X) { contained_array().operator=(_X); return (*this); }
-			_Myt& operator=(_Myt&& _X) { contained_array().operator=(std::forward<decltype(_X)>(_X).as_nii_array()); return (*this); }
+			_Myt& operator=(_Myt&& _X) { contained_array().operator=(MSE_FWD(_X).as_nii_array()); return (*this); }
 			_Myt& operator=(const _Myt& _X) { contained_array().operator=(_X.as_nii_array()); return (*this); }
 			typename _MA::const_reference operator[](size_type _P) const { return contained_array().operator[](_P); }
 			typename _MA::reference operator[](size_type _P) { return contained_array().operator[](_P); }
@@ -547,8 +547,8 @@ namespace mse {
 
 			void async_not_shareable_tag() const {}
 			/* this array should be safely passable iff the element type is safely passable */
-			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value), void>::type>
+			template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value)> >
 			void async_passable_tag() const {}
 
 		private:

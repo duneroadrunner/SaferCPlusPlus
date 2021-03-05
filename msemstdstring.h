@@ -206,7 +206,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tbasic_string_xscope_const_iterator, base_class);
 
 			MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-			auto& operator=(Tbasic_string_xscope_const_iterator&& _X) & { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			auto& operator=(Tbasic_string_xscope_const_iterator&& _X) & { base_class::operator=(MSE_FWD(_X)); return (*this); }
 			auto& operator=(const Tbasic_string_xscope_const_iterator& _X) & { base_class::operator=(_X); return (*this); }
 
 			Tbasic_string_xscope_const_iterator& operator ++() & { base_class::operator ++(); return (*this); }
@@ -221,7 +221,7 @@ namespace mse {
 			difference_type operator-(const Tbasic_string_xscope_const_iterator& _Right_cref) const { return base_class::operator-(_Right_cref); }
 			const_reference operator*() const { return base_class::operator*(); }
 
-			Tbasic_string_xscope_const_iterator operator=(Tbasic_string_xscope_const_iterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::move(*this); }
+			Tbasic_string_xscope_const_iterator operator=(Tbasic_string_xscope_const_iterator&& _X) && { base_class::operator=(MSE_FWD(_X)); return std::move(*this); }
 			Tbasic_string_xscope_const_iterator operator=(const Tbasic_string_xscope_const_iterator& _X) && { base_class::operator=(_X); return std::move(*this); }
 			Tbasic_string_xscope_const_iterator operator ++() && { base_class::operator ++(); return std::move(*this); }
 			Tbasic_string_xscope_const_iterator operator --() && { base_class::operator --(); return std::move(*this); }
@@ -251,7 +251,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tbasic_string_xscope_iterator, base_class);
 
 			MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-			auto& operator=(Tbasic_string_xscope_iterator&& _X) & { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+			auto& operator=(Tbasic_string_xscope_iterator&& _X) & { base_class::operator=(MSE_FWD(_X)); return (*this); }
 			auto& operator=(const Tbasic_string_xscope_iterator& _X) & { base_class::operator=(_X); return (*this); }
 
 			Tbasic_string_xscope_iterator& operator ++() & { base_class::operator ++(); return (*this); }
@@ -265,7 +265,7 @@ namespace mse {
 			Tbasic_string_xscope_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
 			difference_type operator-(const Tbasic_string_xscope_iterator& _Right_cref) const { return base_class::operator-(_Right_cref); }
 
-			Tbasic_string_xscope_iterator operator=(Tbasic_string_xscope_iterator&& _X) && { base_class::operator=(std::forward<decltype(_X)>(_X)); return std::move(*this); }
+			Tbasic_string_xscope_iterator operator=(Tbasic_string_xscope_iterator&& _X) && { base_class::operator=(MSE_FWD(_X)); return std::move(*this); }
 			Tbasic_string_xscope_iterator operator=(const Tbasic_string_xscope_iterator _X) && { base_class::operator=(_X); return std::move(*this); }
 			Tbasic_string_xscope_iterator operator ++() && { base_class::operator ++(); return std::move(*this); }
 			Tbasic_string_xscope_iterator operator --() && { base_class::operator --(); return std::move(*this); }
@@ -304,20 +304,20 @@ namespace mse {
 			template<class _Alloc2 = _A, std::enable_if_t<mse::impl::_mse_Is_allocator<_Alloc2>::value, int> = 0>
 #endif /* MSE_HAS_CXX17 */
 			explicit basic_string(size_type _N, const _Ty& _V, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_N, _V, _Al)) {}
-			basic_string(_Myt&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X)>(_X).msebasic_string())) {}
+			basic_string(_Myt&& _X) : m_shptr(std::make_shared<_MBS>(MSE_FWD(_X).msebasic_string())) {}
 			basic_string(const _Myt& _X) : basic_string(mse::us::unsafe_make_xscope_const_pointer_to(_X)) {}
-			basic_string(_MBS&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X)>(_X))) {}
+			basic_string(_MBS&& _X) : m_shptr(std::make_shared<_MBS>(MSE_FWD(_X))) {}
 			basic_string(const _MBS& _X) : basic_string(mse::us::unsafe_make_xscope_const_pointer_to(_X)) {}
-			basic_string(mse::nii_basic_string<_Ty, _Traits>&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X)>(_X))) {}
+			basic_string(mse::nii_basic_string<_Ty, _Traits>&& _X) : m_shptr(std::make_shared<_MBS>(MSE_FWD(_X))) {}
 			basic_string(const mse::nii_basic_string<_Ty, _Traits>& _X) : basic_string(mse::us::unsafe_make_xscope_const_pointer_to(_X)) {}
-			basic_string(std::basic_string<_Ty, _Traits>&& _X) : m_shptr(std::make_shared<_MBS>(std::forward<decltype(_X)>(_X))) {}
+			basic_string(std::basic_string<_Ty, _Traits>&& _X) : m_shptr(std::make_shared<_MBS>(MSE_FWD(_X))) {}
 			basic_string(const std::basic_string<_Ty, _Traits>& _X) : basic_string(mse::us::unsafe_make_xscope_const_pointer_to(_X)) {}
 			typedef typename _MBS::const_iterator _It;
 			basic_string(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_F, _L, _Al)) {}
 			basic_string(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_F, _L, _Al)) {}
-			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
+			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
 			basic_string(_Iter _First, _Iter _Last) : m_shptr(std::make_shared<_MBS>(_First, _Last)) {}
-			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, void>::type>
+			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
 			basic_string(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MBS>(_First, _Last, _Al)) {}
 			basic_string(const _Ty* const _Ptr) : m_shptr(std::make_shared<_MBS>(_Ptr)) {}
 			basic_string(const _Ty* const _Ptr, const size_t _Count) : m_shptr(std::make_shared<_MBS>(_Ptr, _Count)) {}
@@ -342,7 +342,7 @@ namespace mse {
 			}
 #else /* MSE_HAS_CXX17 */
 			/* construct from mse::string_view and "string sections". */
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			explicit basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
 #endif /* MSE_HAS_CXX17 */
 
@@ -363,7 +363,7 @@ namespace mse {
 			void resize(size_type _N, const _Ty& _X = _Ty()) { m_shptr->resize(_N, _X); }
 			typename _MBS::const_reference operator[](size_type _P) const { return m_shptr->operator[](_P); }
 			typename _MBS::reference operator[](size_type _P) { return m_shptr->operator[](_P); }
-			void push_back(_Ty&& _X) { m_shptr->push_back(std::forward<decltype(_X)>(_X)); }
+			void push_back(_Ty&& _X) { m_shptr->push_back(MSE_FWD(_X)); }
 			void push_back(const _Ty& _X) { m_shptr->push_back(_X); }
 			void pop_back() { m_shptr->pop_back(); }
 
@@ -396,7 +396,7 @@ namespace mse {
 				m_shptr->assign(_Count, _Ch);
 				return (*this);
 			}
-			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator_v<_Iter> >::type>
+			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > >
 			basic_string& assign(const _Iter _First, const _Iter _Last) {
 				m_shptr->assign(_First, _Last);
 				return (*this);
@@ -435,7 +435,7 @@ namespace mse {
 				return assign_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			basic_string& assign(const _TStringSection& _X) {
 				m_shptr->assign(_X);
 				return (*this);
@@ -691,13 +691,13 @@ namespace mse {
 				return retval;
 			}
 			iterator insert_before(const const_iterator &pos, _Ty&& _X) {
-				auto res = m_shptr->insert_before(pos.msebasic_string_ss_const_iterator_type(), std::forward<decltype(_X)>(_X));
+				auto res = m_shptr->insert_before(pos.msebasic_string_ss_const_iterator_type(), MSE_FWD(_X));
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
 				return retval;
 			}
 			iterator insert_before(const const_iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, 1, _X); }
 			template<class _Iter
-				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
+				//>mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>
 				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 			iterator insert_before(const const_iterator &pos, const _Iter &start, const _Iter &end) {
 				auto res = m_shptr->insert_before(pos.msebasic_string_ss_const_iterator_type(), start, end);
@@ -705,7 +705,7 @@ namespace mse {
 				return retval;
 			}
 			template<class _Iter
-				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
+				//>mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>
 				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 			iterator insert_before_inclusive(const const_iterator &pos, const _Iter &first, const _Iter &last) {
 				auto end = last; end++;
@@ -716,7 +716,7 @@ namespace mse {
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
 				return retval;
 			}
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			iterator insert_before(const const_iterator &pos, const _TStringSection& _X) {	// insert initializer_list
 				auto res = m_shptr->insert_before(pos.msebasic_string_ss_const_iterator_type(), _X);
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
@@ -734,22 +734,22 @@ namespace mse {
 				m_shptr->insert_before(pos, _Ilist);
 				return *this;
 			}
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			basic_string& insert_before(msev_size_t pos, const _TStringSection& _X) {
 				m_shptr->insert_before(pos, _X);
 				return *this;
 			}
 			/* These insert() functions are just aliases for their corresponding insert_before() functions. */
 			iterator insert(const const_iterator &pos, size_type _M, const _Ty& _X) { return insert_before(pos, _M, _X); }
-			iterator insert(const const_iterator &pos, _Ty&& _X) { return insert_before(pos, std::forward<decltype(_X)>(_X)); }
+			iterator insert(const const_iterator &pos, _Ty&& _X) { return insert_before(pos, MSE_FWD(_X)); }
 			iterator insert(const const_iterator &pos, const _Ty& _X = _Ty()) { return insert_before(pos, _X); }
 			template<class _Iter
-				//>typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>::type
+				//>mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value, typename base_class::iterator>
 				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				iterator insert(const const_iterator &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, const _Ty* start, const _Ty* end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, _XSTD initializer_list<typename _MBS::value_type> _Ilist) { return insert_before(pos, _Ilist); }
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			iterator insert(const const_iterator &pos, const _TStringSection& _X) { return insert_before(pos, _X); }
 			template<class ..._Valty>
 			iterator emplace(const const_iterator &pos, _Valty&& ..._Val) {
@@ -808,7 +808,7 @@ namespace mse {
 				msebasic_string().append(mse::as_a_size_t(_Count), _Ch);
 				return (*this);
 			}
-			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator_v<_Iter> >::type>
+			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > >
 			basic_string& append(const _Iter _First, const _Iter _Last) {
 				msebasic_string().append(_First, _Last);
 				return (*this);
@@ -849,7 +849,7 @@ namespace mse {
 				return append_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			basic_string& append(const _TStringSection& _X) {
 				m_shptr->append(_X);
 				return (*this);
@@ -879,7 +879,7 @@ namespace mse {
 				return (append(_Right));
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			basic_string& operator+=(const _TStringSection& _X) {
 				return (append(_X));
 			}
@@ -935,7 +935,7 @@ namespace mse {
 				return replace_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			basic_string& replace(const size_type _Off, const size_type _N0, const _TStringSection& _X) {
 				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _X.cbegin(), _X.cend());
 				return (*this);
@@ -983,14 +983,14 @@ namespace mse {
 				return (replace(_First - begin(), _Last - _First, _Count, _Ch));
 			}
 
-			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value>::type>
+			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
 			basic_string& replace(const const_iterator _First, const const_iterator _Last,
 				const _Iter _First2, const _Iter _Last2) {
 				replace(_First, _Last, _First2, _Last2);
 				return (*this);
 			}
 
-			template<class _Iter, class = typename std::enable_if<mse::impl::_mse_Is_iterator<_Iter>::value>::type>
+			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
 			basic_string& replace(const size_type _Off, const size_type _N0, const _Iter _First2, const _Iter _Last2) {
 				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _First2, _Last2);
 				return (*this);
@@ -1073,7 +1073,7 @@ namespace mse {
 				return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			int compare(const size_type _Off, const size_type _N0, const _TStringSection& _X) const {
 				msebasic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), basic_string(_X.cbegin(), _X.cend()));
 				return (*this);
@@ -1095,7 +1095,7 @@ namespace mse {
 				return find_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Off);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			size_type find(const _TStringSection& _X, const size_type _Off = npos) const {
 				return m_shptr->find(basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 			}
@@ -1132,7 +1132,7 @@ namespace mse {
 				return rfind_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Off);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = typename std::enable_if<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value), void>::type>
+			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
 			size_type rfind(const _TStringSection& _X, const size_type _Off = npos) const {
 				return m_shptr->rfind(basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 			}
@@ -1288,11 +1288,11 @@ namespace mse {
 
 			template<typename _TThisPointer>
 			static std::basic_istream<_Ty, _Traits>& getline(std::basic_istream<_Ty, _Traits>&& _Istr, _TThisPointer this_ptr, const _Ty _Delim) {
-				return std::getline(std::forward<decltype(_Istr)>(_Istr), _Myt_ref(*this_ptr).msebasic_string(), _Delim);
+				return std::getline(MSE_FWD(_Istr), _Myt_ref(*this_ptr).msebasic_string(), _Delim);
 			}
 			template<typename _TThisPointer>
 			static std::basic_istream<_Ty, _Traits>& getline(std::basic_istream<_Ty, _Traits>&& _Istr, _TThisPointer this_ptr) {
-				return std::getline(std::forward<decltype(_Istr)>(_Istr), _Myt_ref(*this_ptr).msebasic_string());
+				return std::getline(MSE_FWD(_Istr), _Myt_ref(*this_ptr).msebasic_string());
 			}
 			template<typename _TThisPointer>
 			static std::basic_istream<_Ty, _Traits>& getline(std::basic_istream<_Ty, _Traits>& _Istr, _TThisPointer this_ptr, const _Ty _Delim) {
@@ -1305,13 +1305,13 @@ namespace mse {
 
 			void async_not_shareable_tag() const {}
 			/* this array should be safely passable iff the element type is safely passable */
-			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value), void>::type>
+			template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value)> >
 			void async_passable_tag() const {}
 
 		private:
 			static std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>&& _Istr, basic_string& _Str) {
-				return std::forward<decltype(_Istr)>(_Istr) >> _Str.msebasic_string();
+				return MSE_FWD(_Istr) >> _Str.msebasic_string();
 			}
 			static std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>& _Istr, basic_string& _Str) {
 				return _Istr >> _Str.msebasic_string();
@@ -1392,7 +1392,7 @@ namespace mse {
 			namespace bs {
 				template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty> */>
 				std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>&& _Istr, basic_string<_Ty, _Traits, _A>& _Str) {
-					return _Str.in_from_stream(std::forward<decltype(_Istr)>(_Istr), _Str);
+					return _Str.in_from_stream(MSE_FWD(_Istr), _Str);
 				}
 				template<class _Ty, class _Traits/* = std::char_traits<_Ty>*/, class _A/* = std::allocator<_Ty> */>
 				std::basic_istream<_Ty, _Traits>& in_from_stream(std::basic_istream<_Ty, _Traits>& _Istr, basic_string<_Ty, _Traits, _A>& _Str) {
@@ -1407,7 +1407,7 @@ namespace mse {
 
 		template<class _Ty, class _Traits>
 		std::basic_istream<_Ty, _Traits>& operator>>(std::basic_istream<_Ty, _Traits>&& _Istr, basic_string<_Ty, _Traits>& _Str) {
-			return impl::bs::in_from_stream(std::forward<decltype(_Istr)>(_Istr), _Str);
+			return impl::bs::in_from_stream(MSE_FWD(_Istr), _Str);
 		}
 		template<class _Ty, class _Traits>
 		std::basic_istream<_Ty, _Traits>& operator>>(std::basic_istream<_Ty, _Traits>& _Istr, basic_string<_Ty, _Traits>& _Str) {
@@ -1612,12 +1612,12 @@ namespace std {
 	template<class _Elem, class _Traits, class _Alloc>
 	inline basic_istream<_Elem, _Traits>& getline(basic_istream<_Elem, _Traits>&& _Istr,
 		mse::mstd::basic_string<_Elem, _Traits, _Alloc>& _Str, const _Elem _Delim) {	// get characters into string, discard delimiter
-		return _Str.getline(std::forward<decltype(_Istr)>(_Istr), &_Str, _Delim);
+		return _Str.getline(MSE_FWD(_Istr), &_Str, _Delim);
 	}
 	template<class _Elem, class _Traits, class _Alloc>
 	inline basic_istream<_Elem, _Traits>& getline(basic_istream<_Elem, _Traits>&& _Istr,
 		mse::mstd::basic_string<_Elem, _Traits, _Alloc>& _Str) {	// get characters into string, discard newline
-		return _Str.getline(std::forward<decltype(_Istr)>(_Istr), &_Str);
+		return _Str.getline(MSE_FWD(_Istr), &_Str);
 	}
 	template<class _Elem, class _Traits, class _Alloc>
 	inline basic_istream<_Elem, _Traits>& getline(basic_istream<_Elem, _Traits>& _Istr,

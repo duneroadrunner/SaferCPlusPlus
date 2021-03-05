@@ -71,7 +71,7 @@ namespace mse {
 		};
 		template<class T, class EqualTo = T>
 		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded : IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded_impl<
-			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 
 		template<class _InIt>
 		auto make_xscope_specialized_first_and_last_helper1(std::true_type, const _InIt& _First, const _InIt& _Last) {
@@ -89,9 +89,9 @@ namespace mse {
 		}
 
 		template<class _InIt>
-		using item_pointer_type_from_iterator = typename std::add_const<typename std::remove_reference<
+		using item_pointer_type_from_iterator = typename std::add_const<mse::impl::remove_reference_t<
 				decltype(make_xscope_specialized_first_and_last(std::declval<_InIt>(), std::declval<_InIt>()).first())
-			>::type>::type;
+			> >::type;
 
 
 		template<class _ContainerPointer>
@@ -115,9 +115,9 @@ namespace mse {
 
 		template<class _ContainerPointer>
 		using item_pointer_type_from_container_pointer = item_pointer_type_from_iterator<
-			typename std::remove_const<typename std::remove_reference<
+			mse::impl::remove_const_t<mse::impl::remove_reference_t<
 				decltype(make_xscope_range_iter_provider(std::declval<_ContainerPointer>()).begin())
-			>::type>::type>;
+			> > >;
 
 		template<class T, class EqualTo>
 		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded_impl
@@ -131,7 +131,7 @@ namespace mse {
 		};
 		template<class T, class EqualTo = T>
 		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded : IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded_impl<
-			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 
 		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider_helper1(std::true_type, const _ContainerPointer& ptr) {
@@ -182,7 +182,7 @@ namespace mse {
 		class c_find_if_ptr {
 		public:
 			typedef item_pointer_type_from_iterator<_InIt> item_pointer_type;
-			typedef typename std::remove_reference<_InIt>::type result_type;
+			typedef mse::impl::remove_reference_t<_InIt> result_type;
 			result_type result;
 			c_find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) : result(eval(_First, _Last, _Pred, args...)) {}
 		private:

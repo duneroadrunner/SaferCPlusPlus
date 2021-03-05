@@ -99,16 +99,16 @@ namespace mse {
 				>::type;
 
 				template<typename _TROz>
-				using TThreadLocalObjBaseBase = typename std::conditional<use_unchecked_base_type<_TROz>::value
-					, /*typename std::remove_const<_TROz>::type*/_TROz, mse::TNDNoradObj<_TROz>>::type;
+				using TThreadLocalObjBaseBase = mse::impl::conditional_t<use_unchecked_base_type<_TROz>::value
+					, /*mse::impl::remove_const_t<_TROz>*/_TROz, mse::TNDNoradObj<_TROz>>;
 
 				template<typename _Ty>
-				using TThreadLocalConstPointerBaseBase = typename std::conditional<use_unchecked_base_type<_Ty>::value
-					, mse::us::impl::TPointerForLegacy<const _Ty, TThreadLocalID<const _Ty>>, mse::TNDNoradConstPointer<_Ty>>::type;
+				using TThreadLocalConstPointerBaseBase = mse::impl::conditional_t<use_unchecked_base_type<_Ty>::value
+					, mse::us::impl::TPointerForLegacy<const _Ty, TThreadLocalID<const _Ty>>, mse::TNDNoradConstPointer<_Ty>>;
 
 				template<typename _Ty>
-				using TThreadLocalPointerBaseBase = typename std::conditional<use_unchecked_base_type<_Ty>::value
-					, mse::us::impl::TPointerForLegacy<_Ty, TThreadLocalID<_Ty>>, mse::TNDNoradPointer<_Ty>>::type;
+				using TThreadLocalPointerBaseBase = mse::impl::conditional_t<use_unchecked_base_type<_Ty>::value
+					, mse::us::impl::TPointerForLegacy<_Ty, TThreadLocalID<_Ty>>, mse::TNDNoradPointer<_Ty>>;
 
 				template<typename _TROz>
 				class TThreadLocalObjBase : public TThreadLocalObjBaseBase<_TROz> {
@@ -116,12 +116,12 @@ namespace mse {
 					typedef TThreadLocalObjBaseBase<_TROz> base_class;
 					MSE_THREADLOCAL_USING(TThreadLocalObjBase, base_class);
 					TThreadLocalObjBase(const TThreadLocalObjBase& _X) : base_class(_X) {}
-					TThreadLocalObjBase(TThreadLocalObjBase&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+					TThreadLocalObjBase(TThreadLocalObjBase&& _X) : base_class(MSE_FWD(_X)) {}
 
-					TThreadLocalObjBase& operator=(TThreadLocalObjBase&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+					TThreadLocalObjBase& operator=(TThreadLocalObjBase&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 					TThreadLocalObjBase& operator=(const TThreadLocalObjBase& _X) { base_class::operator=(_X); return (*this); }
 					template<class _Ty2>
-					TThreadLocalObjBase& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+					TThreadLocalObjBase& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 					template<class _Ty2>
 					TThreadLocalObjBase& operator=(_Ty2& _X) { base_class::operator=(_X); return (*this); }
 
@@ -153,9 +153,9 @@ namespace mse {
 	}
 	namespace rsv {
 
-		template <class _Ty, class _Ty2, class = typename std::enable_if<
+		template <class _Ty, class _Ty2, class = mse::impl::enable_if_t<
 			(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
-			, void>::type>
+			> >
 			static void valid_if_not_rvalue_reference_of_given_type_msethreadlocal(_Ty2 src) {}
 
 		template<typename _Ty> class TThreadLocalObj;
@@ -185,7 +185,7 @@ namespace mse {
 			TThreadLocalPointer(const base_class& ptr) : base_class(ptr) {}
 			TThreadLocalPointer(const TThreadLocalPointer& src_cref) : base_class(
 				static_cast<const base_class&>(src_cref)) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TThreadLocalPointer(const TThreadLocalPointer<_Ty2>& src_cref) : base_class(mse::us::impl::ns_thread_local::TThreadLocalPointerBase<_Ty2>(src_cref)) {}
 			/*
 			TThreadLocalPointer<_Ty>& operator=(TThreadLocalObj<_Ty>* ptr) {
@@ -237,10 +237,10 @@ namespace mse {
 			TThreadLocalConstPointer() : base_class() {}
 			TThreadLocalConstPointer(const base_class& ptr) : base_class(ptr) {}
 			TThreadLocalConstPointer(const TThreadLocalConstPointer& src_cref) : base_class(static_cast<const base_class&>(src_cref)) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TThreadLocalConstPointer(const TThreadLocalConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			TThreadLocalConstPointer(const TThreadLocalPointer<_Ty>& src_cref) : base_class(static_cast<const typename TThreadLocalPointer<_Ty>::base_class&>(src_cref)) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TThreadLocalConstPointer(const TThreadLocalPointer<_Ty2>& src_cref) : base_class(mse::us::impl::ns_thread_local::TThreadLocalConstPointerBase<_Ty2>(src_cref)) {}
 			/*
 			TThreadLocalConstPointer<_Ty>& operator=(const TThreadLocalObj<_Ty>* ptr) {
@@ -320,7 +320,7 @@ namespace mse {
 			//TThreadLocalNotNullPointer(typename base_class::scope_obj_base_ptr_t src_cref) : base_class(src_cref) {}
 			TThreadLocalNotNullPointer(const typename base_class::base_class& ptr) : base_class(ptr) {}
 			TThreadLocalNotNullPointer(TThreadLocalObj<_Ty>* ptr) : base_class(ptr) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
 			TThreadLocalNotNullPointer(const TThreadLocalNotNullPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 
 			TThreadLocalNotNullPointer<_Ty>& operator=(const TThreadLocalNotNullPointer<_Ty>& _Right_cref) {
@@ -355,10 +355,10 @@ namespace mse {
 
 		private:
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 
 			TThreadLocalNotNullConstPointer<_Ty>& operator=(const TThreadLocalNotNullConstPointer<_Ty>& _Right_cref) {
@@ -384,7 +384,7 @@ namespace mse {
 		public:
 			typedef TThreadLocalNotNullPointer<_Ty> base_class;
 			TThreadLocalFixedPointer(const TThreadLocalFixedPointer& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TThreadLocalFixedPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedPointer() {}
 			operator bool() const { return (*static_cast<const base_class*>(this)); }
@@ -414,10 +414,10 @@ namespace mse {
 		public:
 			typedef TThreadLocalNotNullConstPointer<_Ty> base_class;
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const base_class*>(this)); }
@@ -444,7 +444,7 @@ namespace mse {
 			TThreadLocalObj(const TThreadLocalObj& _X) : base_class(_X) {}
 
 #ifdef MSE_THREADLOCAL_DISABLE_MOVE_RESTRICTIONS
-			explicit TThreadLocalObj(TThreadLocalObj&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+			explicit TThreadLocalObj(TThreadLocalObj&& _X) : base_class(MSE_FWD(_X)) {}
 #endif // !MSE_THREADLOCAL_DISABLE_MOVE_RESTRICTIONS
 
 			MSE_THREADLOCAL_USING(TThreadLocalObj, base_class);
@@ -454,13 +454,13 @@ namespace mse {
 
 			TThreadLocalObj& operator=(TThreadLocalObj&& _X) {
 				valid_if_not_rvalue_reference_of_given_type_msethreadlocal<TThreadLocalObj, decltype(_X)>(_X);
-				base_class::operator=(std::forward<decltype(_X)>(_X));
+				base_class::operator=(MSE_FWD(_X));
 				return (*this);
 			}
 			TThreadLocalObj& operator=(const TThreadLocalObj& _X) { base_class::operator=(_X); return (*this); }
 			template<class _Ty2>
 			TThreadLocalObj& operator=(_Ty2&& _X) {
-				base_class::operator=(std::forward<decltype(_X)>(_X));
+				base_class::operator=(MSE_FWD(_X));
 				return (*this);
 			}
 			template<class _Ty2>
@@ -485,8 +485,8 @@ namespace mse {
 		private:
 			void* operator new(size_t size) { return ::operator new(size); }
 
-			template<class _Ty2 = _TROy, class = typename std::enable_if<(std::is_same<_Ty2, _TROy>::value)
-				&& ((!std::is_const<_TROy>::value) || (!std::is_trivially_destructible<_TROy>::value)), void>::type>
+			template<class _Ty2 = _TROy, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value)
+				&& ((!std::is_const<_TROy>::value) || (!std::is_trivially_destructible<_TROy>::value))> >
 			void valid_if_TROy_is_not_const_qualified() const {}
 		};
 
@@ -569,9 +569,9 @@ namespace mse {
 		void operator&() const&& = delete;
 
 #define MSE_THREADLOCAL_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name) \
-		/*auto& operator=(class_name&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }*/ \
+		/*auto& operator=(class_name&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }*/ \
 		/*auto& operator=(const class_name& _X) { base_class::operator=(_X); return (*this); }*/ \
-		template<class _Ty2> auto& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); } \
+		template<class _Ty2> auto& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); } \
 		template<class _Ty2> auto& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
 #define MSE_THREADLOCAL_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(class_name) \
@@ -687,12 +687,12 @@ namespace mse {
 			template <typename _Ty>
 			struct UnderlyingTemplateParam<mse::rsv::TThreadLocalFixedConstPointer<_Ty> > {
 				typedef typename UnderlyingTemplateParam<typename mse::rsv::TThreadLocalFixedConstPointer<_Ty>::base_class>::type helper_type1;
-				typedef typename std::conditional<std::is_same<void, helper_type1>::value, _Ty, helper_type1>::type type;
+				typedef mse::impl::conditional_t<std::is_same<void, helper_type1>::value, _Ty, helper_type1> type;
 			};
 			template <typename _Ty>
 			struct UnderlyingTemplateParam<mse::rsv::TThreadLocalFixedPointer<_Ty> > {
 				typedef typename UnderlyingTemplateParam<typename mse::rsv::TThreadLocalFixedPointer<_Ty>::base_class>::type helper_type1;
-				typedef typename std::conditional<std::is_same<void, helper_type1>::value, _Ty, helper_type1>::type type;
+				typedef mse::impl::conditional_t<std::is_same<void, helper_type1>::value, _Ty, helper_type1> type;
 			};
 		}
 	}
@@ -732,9 +732,9 @@ namespace mse {
 				public:
 					A(int x) : b(x) {}
 					A(const A& _X) : b(_X.b) {}
-					A(A&& _X) : b(std::forward<decltype(_X)>(_X).b) {}
+					A(A&& _X) : b(MSE_FWD(_X).b) {}
 					virtual ~A() {}
-					A& operator=(A&& _X) { b = std::forward<decltype(_X)>(_X).b; return (*this); }
+					A& operator=(A&& _X) { b = MSE_FWD(_X).b; return (*this); }
 					A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 					int b = 3;

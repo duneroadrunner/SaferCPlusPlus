@@ -102,11 +102,11 @@ namespace mse {
 					TCheckedThreadSafePointer(const TCheckedThreadSafePointer& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+					template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
 					TCheckedThreadSafePointer(const TCheckedThreadSafePointer<_Ty2>& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					TCheckedThreadSafePointer(TCheckedThreadSafePointer&& src_ref) : base_class(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
+					TCheckedThreadSafePointer(TCheckedThreadSafePointer&& src_ref) : base_class(MSE_FWD(src_ref).m_ptr) {
 						src_ref.m_ptr = nullptr;
 					}
 					MSE_IMPL_DESTRUCTOR_PREFIX1 ~TCheckedThreadSafePointer() {
@@ -118,7 +118,7 @@ namespace mse {
 						if (*this) { (*(*this)).increment_refcount(); }
 						return (*this);
 					}
-					template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+					template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
 					TCheckedThreadSafePointer<_Ty>& operator=(const TCheckedThreadSafePointer<_Ty2>& _Right_cref) {
 						return (*this).operator=(TCheckedThreadSafePointer(_Right_cref));
 					}
@@ -156,11 +156,11 @@ namespace mse {
 					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeConstPointer& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+					template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
 					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeConstPointer<_Ty2>& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					TCheckedThreadSafeConstPointer(TCheckedThreadSafeConstPointer&& src_ref) : base_class(std::forward<decltype(src_ref)>(src_ref).m_ptr) {
+					TCheckedThreadSafeConstPointer(TCheckedThreadSafeConstPointer&& src_ref) : base_class(MSE_FWD(src_ref).m_ptr) {
 						src_ref.m_ptr = nullptr;
 					}
 					TCheckedThreadSafeConstPointer(const TCheckedThreadSafePointer<_Ty>& src_cref) : base_class(src_cref) {
@@ -175,7 +175,7 @@ namespace mse {
 						if (*this) { (*(*this)).increment_refcount(); }
 						return (*this);
 					}
-					template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+					template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
 					TCheckedThreadSafeConstPointer<_Ty>& operator=(const TCheckedThreadSafeConstPointer<_Ty2>& _Right_cref) {
 						return (*this).operator=(TCheckedThreadSafeConstPointer(_Right_cref));
 					}
@@ -212,7 +212,7 @@ namespace mse {
 				public:
 					MSE_USING(TCheckedThreadSafeObj, _TROFLy);
 					TCheckedThreadSafeObj(const TCheckedThreadSafeObj& _X) : _TROFLy(_X) {}
-					TCheckedThreadSafeObj(TCheckedThreadSafeObj&& _X) : _TROFLy(std::forward<decltype(_X)>(_X)) {}
+					TCheckedThreadSafeObj(TCheckedThreadSafeObj&& _X) : _TROFLy(MSE_FWD(_X)) {}
 					MSE_IMPL_DESTRUCTOR_PREFIX1 ~TCheckedThreadSafeObj() {
 						if (0 != m_atomic_counter.load()) {
 							/* It would be unsafe to allow this object to be destroyed as there are outstanding references to this object. */
@@ -223,10 +223,10 @@ namespace mse {
 						}
 					}
 
-					TCheckedThreadSafeObj& operator=(TCheckedThreadSafeObj&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+					TCheckedThreadSafeObj& operator=(TCheckedThreadSafeObj&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
 					TCheckedThreadSafeObj& operator=(const TCheckedThreadSafeObj& _X) { _TROFLy::operator=(_X); return (*this); }
 					template<class _Ty2>
-					TCheckedThreadSafeObj& operator=(_Ty2&& _X) { _TROFLy::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+					TCheckedThreadSafeObj& operator=(_Ty2&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
 					template<class _Ty2>
 					TCheckedThreadSafeObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
 
@@ -316,12 +316,12 @@ namespace mse {
 				>::type;
 
 				template<typename _TROz>
-				using TStaticImmutableObjBaseBase = typename std::conditional<use_unchecked_base_type<_TROz>::value
-					, typename std::remove_const<_TROz>::type, mse::rsv::impl::cts::TCheckedThreadSafeObj<const _TROz>>::type;
+				using TStaticImmutableObjBaseBase = mse::impl::conditional_t<use_unchecked_base_type<_TROz>::value
+					, mse::impl::remove_const_t<_TROz>, mse::rsv::impl::cts::TCheckedThreadSafeObj<const _TROz>>;
 
 				template<typename _Ty>
-				using TStaticImmutableConstPointerBaseBase = typename std::conditional<use_unchecked_base_type<_Ty>::value
-					, mse::us::impl::TPointerForLegacy<const _Ty, TStaticImmutableID<const _Ty>>, mse::rsv::impl::cts::TCheckedThreadSafeConstPointer<const _Ty>>::type;
+				using TStaticImmutableConstPointerBaseBase = mse::impl::conditional_t<use_unchecked_base_type<_Ty>::value
+					, mse::us::impl::TPointerForLegacy<const _Ty, TStaticImmutableID<const _Ty>>, mse::rsv::impl::cts::TCheckedThreadSafeConstPointer<const _Ty>>;
 
 				template<typename _TROz>
 				class TStaticImmutableObjBase : public TStaticImmutableObjBaseBase<_TROz> {
@@ -329,12 +329,12 @@ namespace mse {
 					typedef TStaticImmutableObjBaseBase<_TROz> base_class;
 					MSE_STATIC_USING(TStaticImmutableObjBase, base_class);
 					TStaticImmutableObjBase(const TStaticImmutableObjBase& _X) : base_class(_X) {}
-					TStaticImmutableObjBase(TStaticImmutableObjBase&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+					TStaticImmutableObjBase(TStaticImmutableObjBase&& _X) : base_class(MSE_FWD(_X)) {}
 
-					TStaticImmutableObjBase& operator=(TStaticImmutableObjBase&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+					TStaticImmutableObjBase& operator=(TStaticImmutableObjBase&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 					TStaticImmutableObjBase& operator=(const TStaticImmutableObjBase& _X) { base_class::operator=(_X); return (*this); }
 					template<class _Ty2>
-					TStaticImmutableObjBase& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+					TStaticImmutableObjBase& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 					template<class _Ty2>
 					TStaticImmutableObjBase& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
@@ -359,9 +359,9 @@ namespace mse {
 	}
 	namespace rsv {
 
-		template <class _Ty, class _Ty2, class = typename std::enable_if<
+		template <class _Ty, class _Ty2, class = mse::impl::enable_if_t<
 			(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
-			, void>::type>
+			> >
 			static void valid_if_not_rvalue_reference_of_given_type_msestatic(_Ty2 src) {}
 
 		template<typename _Ty> class TStaticImmutableObj;
@@ -392,10 +392,10 @@ namespace mse {
 			TStaticImmutableConstPointer() : base_class() {}
 			TStaticImmutableConstPointer(const base_class& ptr) : base_class(ptr) {}
 			TStaticImmutableConstPointer(const TStaticImmutableConstPointer& src_cref) : base_class(static_cast<const base_class&>(src_cref)) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TStaticImmutableConstPointer(const TStaticImmutableConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			//TStaticImmutableConstPointer(const TStaticImmutablePointer<_Ty>& src_cref) : base_class(src_cref) {}
-			//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			//TStaticImmutableConstPointer(const TStaticImmutablePointer<_Ty2>& src_cref) : base_class(impl::TStaticImmutableConstPointerBase<_Ty2>(src_cref)) {}
 			TStaticImmutableConstPointer<_Ty>& operator=(const TStaticImmutableObj<_Ty>* ptr) {
 				base_class::operator=(ptr);
@@ -451,10 +451,10 @@ namespace mse {
 
 		private:
 			TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2*, _Ty*>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
 			TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			//TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			//TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 
 			TStaticImmutableNotNullConstPointer<_Ty>& operator=(const TStaticImmutableNotNullConstPointer<_Ty>& _Right_cref) {
@@ -479,10 +479,10 @@ namespace mse {
 		public:
 			typedef TStaticImmutableNotNullConstPointer<_Ty> base_class;
 			TStaticImmutableFixedConstPointer(const TStaticImmutableFixedConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			TStaticImmutableFixedConstPointer(const TStaticImmutableFixedConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			//template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+			//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const base_class*>(this)); }
@@ -507,7 +507,7 @@ namespace mse {
 		public:
 			typedef mse::us::impl::static_immutable::TStaticImmutableObjBase<_TROy> base_class;
 			TStaticImmutableObj(const TStaticImmutableObj& _X) : base_class(_X) {}
-			TStaticImmutableObj(TStaticImmutableObj&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+			TStaticImmutableObj(TStaticImmutableObj&& _X) : base_class(MSE_FWD(_X)) {}
 
 			MSE_STATIC_USING(TStaticImmutableObj, base_class);
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableObj() {
@@ -531,13 +531,13 @@ namespace mse {
 		private:
 
 			TStaticImmutableObj& operator=(TStaticImmutableObj&& _X) {
-				base_class::operator=(std::forward<decltype(_X)>(_X));
+				base_class::operator=(MSE_FWD(_X));
 				return (*this);
 			}
 			TStaticImmutableObj& operator=(const TStaticImmutableObj& _X) { base_class::operator=(_X); return (*this); }
 			template<class _Ty2>
 			TStaticImmutableObj& operator=(_Ty2&& _X) {
-				base_class::operator=(std::forward<decltype(_X)>(_X));
+				base_class::operator=(MSE_FWD(_X));
 				return (*this);
 			}
 			template<class _Ty2>
@@ -703,7 +703,7 @@ namespace mse {
 			template <typename _Ty>
 			struct UnderlyingTemplateParam<mse::rsv::TStaticImmutableFixedConstPointer<_Ty> > {
 				typedef typename UnderlyingTemplateParam<typename mse::rsv::TStaticImmutableFixedConstPointer<_Ty>::base_class>::type helper_type1;
-				typedef typename std::conditional<std::is_same<void, helper_type1>::value, _Ty, helper_type1>::type type;
+				typedef mse::impl::conditional_t<std::is_same<void, helper_type1>::value, _Ty, helper_type1> type;
 			};
 		}
 	}
@@ -733,9 +733,9 @@ namespace mse {
 				public:
 					A(int x) : b(x) {}
 					A(const A& _X) : b(_X.b) {}
-					A(A&& _X) : b(std::forward<decltype(_X)>(_X).b) {}
+					A(A&& _X) : b(MSE_FWD(_X).b) {}
 					virtual ~A() {}
-					A& operator=(A&& _X) { b = std::forward<decltype(_X)>(_X).b; return (*this); }
+					A& operator=(A&& _X) { b = MSE_FWD(_X).b; return (*this); }
 					A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 					int b = 3;

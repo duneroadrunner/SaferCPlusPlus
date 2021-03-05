@@ -109,7 +109,7 @@ namespace mse {
 	template<typename _TROy> using TXScopeRegisteredProxyObj = TNDXScopeRegisteredProxyObj<_TROy>;
 	template<typename _TROy> using TXScopeRegisteredConstProxyObj = TNDXScopeRegisteredConstProxyObj<_TROy>;
 
-	template<typename _Ty> auto registered_proxy_fptr(_Ty&& _X) { return ndregistered_proxy_fptr(std::forward<decltype(_X)>(_X)); }
+	template<typename _Ty> auto registered_proxy_fptr(_Ty&& _X) { return ndregistered_proxy_fptr(MSE_FWD(_X)); }
 	template<typename _Ty> auto registered_proxy_fptr(const _Ty& _X) { return ndregistered_proxy_fptr(_X); }
 
 	template <class X>
@@ -131,19 +131,19 @@ namespace mse {
 
 		MSE_USING(TNDRegisteredProxyPointer, base_class);
 		TNDRegisteredProxyPointer(const TNDRegisteredProxyPointer& src_cref) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyPointer(const TNDRegisteredProxyPointer<_Ty2>& src_cref) : base_class(src_cref.contained_pointer()) {}
 		TNDRegisteredProxyPointer<_Ty>& operator=(const TNDRegisteredProxyPointer<_Ty>& _Right_cref) {
 			(*this).contained_pointer() = _Right_cref;
 			return (*this);
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyPointer<_Ty>& operator=(const TNDRegisteredProxyPointer<_Ty2>& _Right_cref) {
 			(*this).contained_pointer() = (TNDRegisteredProxyPointer(_Right_cref));
 			return (*this);
 		}
 
-		typedef typename std::remove_reference<decltype(*(*std::declval<_MP>()))>::type target_obj_t;
+		typedef mse::impl::remove_reference_t<decltype(*(*std::declval<_MP>()))> target_obj_t;
 		target_obj_t& operator*() const {
 			return (*(*contained_pointer()));
 		}
@@ -165,7 +165,7 @@ namespace mse {
 		const _MP& contained_pointer() const& { return (*this); }
 		const _MP& contained_pointer() const&& { return (*this); }
 		_MP& contained_pointer()& { return (*this); }
-		auto&& contained_pointer()&& { return static_cast<_MP&&>(std::forward<decltype(*this)>(*this)); }
+		auto&& contained_pointer()&& { return static_cast<_MP&&>(MSE_FWD(*this)); }
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
@@ -198,22 +198,22 @@ namespace mse {
 
 		MSE_USING(TNDRegisteredProxyConstPointer, base_class);
 		TNDRegisteredProxyConstPointer(const TNDRegisteredProxyConstPointer& src_cref) = default;
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyConstPointer(const TNDRegisteredProxyConstPointer<_Ty2>& src_cref) : base_class(src_cref.contained_pointer()) {}
 		TNDRegisteredProxyConstPointer(const TNDRegisteredProxyPointer<_Ty>& src_cref) : base_class(RegCPtrXSPtrToRegCPtrXSConstPtr(src_cref.contained_pointer())) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyConstPointer(const TNDRegisteredProxyPointer<_Ty2>& src_cref) : base_class(src_cref.contained_pointer()) {}
 		TNDRegisteredProxyConstPointer<_Ty>& operator=(const TNDRegisteredProxyConstPointer<_Ty>& _Right_cref) {
 			(*this).contained_pointer() = _Right_cref;
 			return (*this);
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyConstPointer<_Ty>& operator=(const TNDRegisteredProxyConstPointer<_Ty2>& _Right_cref) {
 			(*this).contained_pointer() = (TNDRegisteredProxyConstPointer(_Right_cref));
 			return (*this);
 		}
 
-		typedef typename std::remove_reference<decltype(*(*std::declval<_MP>()))>::type target_obj_t;
+		typedef mse::impl::remove_reference_t<decltype(*(*std::declval<_MP>()))> target_obj_t;
 		target_obj_t& operator*() const {
 			return (*(*contained_pointer()));
 		}
@@ -234,7 +234,7 @@ namespace mse {
 		const _MP& contained_pointer() const& { return (*this); }
 		const _MP& contained_pointer() const&& { return (*this); }
 		_MP& contained_pointer()& { return (*this); }
-		auto&& contained_pointer()&& { return static_cast<_MP&&>(std::forward<decltype(*this)>(*this)); }
+		auto&& contained_pointer()&& { return static_cast<_MP&&>(MSE_FWD(*this)); }
 
 		static auto ProxyObjPtrToProxyConstObjPtr(const TNDXScopeRegisteredProxyObj<_Ty>* ptr) {
 			/* Reinterpreting a TNDXScopeRegisteredProxyObj<_Ty> as a TNDXScopeRegisteredProxyObj<const _Ty> should be fine. */
@@ -272,7 +272,7 @@ namespace mse {
 	class TNDRegisteredProxyNotNullPointer : public TNDRegisteredProxyPointer<_Ty> {
 	public:
 		TNDRegisteredProxyNotNullPointer(const TNDRegisteredProxyNotNullPointer& src_cref) : TNDRegisteredProxyPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyNotNullPointer(const TNDRegisteredProxyNotNullPointer<_Ty2>& src_cref) : TNDRegisteredProxyPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredProxyNotNullPointer() {}
@@ -290,7 +290,7 @@ namespace mse {
 		TNDRegisteredProxyNotNullPointer(const  TNDRegisteredProxyPointer<_Ty>& src_cref) : TNDRegisteredProxyPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyNotNullPointer(const TNDRegisteredProxyPointer<_Ty2>& src_cref) : TNDRegisteredProxyPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
@@ -306,10 +306,10 @@ namespace mse {
 	class TNDRegisteredProxyNotNullConstPointer : public TNDRegisteredProxyConstPointer<_Ty> {
 	public:
 		TNDRegisteredProxyNotNullConstPointer(const TNDRegisteredProxyNotNullPointer<_Ty>& src_cref) : TNDRegisteredProxyConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyNotNullConstPointer(const TNDRegisteredProxyNotNullPointer<_Ty2>& src_cref) : TNDRegisteredProxyConstPointer<_Ty>(src_cref) {}
 		TNDRegisteredProxyNotNullConstPointer(const TNDRegisteredProxyNotNullConstPointer<_Ty>& src_cref) : TNDRegisteredProxyConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyNotNullConstPointer(const TNDRegisteredProxyNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredProxyConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredProxyNotNullConstPointer() {}
@@ -327,14 +327,14 @@ namespace mse {
 		TNDRegisteredProxyNotNullConstPointer(const TNDRegisteredProxyPointer<_Ty>& src_cref) : TNDRegisteredProxyConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyNotNullConstPointer(const TNDRegisteredProxyPointer<_Ty2>& src_cref) : TNDRegisteredProxyConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 		TNDRegisteredProxyNotNullConstPointer(const TNDRegisteredProxyConstPointer<_Ty>& src_cref) : TNDRegisteredProxyConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyNotNullConstPointer(const TNDRegisteredProxyConstPointer<_Ty2>& src_cref) : TNDRegisteredProxyConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
@@ -361,11 +361,11 @@ namespace mse {
 	class TNDRegisteredProxyFixedPointer : public TNDRegisteredProxyNotNullPointer<_Ty> {
 	public:
 		TNDRegisteredProxyFixedPointer(const TNDRegisteredProxyFixedPointer& src_cref) : TNDRegisteredProxyNotNullPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyFixedPointer(const TNDRegisteredProxyFixedPointer<_Ty2>& src_cref) : TNDRegisteredProxyNotNullPointer<_Ty>(src_cref) {}
 
 		TNDRegisteredProxyFixedPointer(const TNDRegisteredProxyNotNullPointer<_Ty>& src_cref) : TNDRegisteredProxyNotNullPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyFixedPointer(const TNDRegisteredProxyNotNullPointer<_Ty2>& src_cref) : TNDRegisteredProxyNotNullPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredProxyFixedPointer() {}
@@ -389,17 +389,17 @@ namespace mse {
 	class TNDRegisteredProxyFixedConstPointer : public TNDRegisteredProxyNotNullConstPointer<_Ty> {
 	public:
 		TNDRegisteredProxyFixedConstPointer(const TNDRegisteredProxyFixedPointer<_Ty>& src_cref) : TNDRegisteredProxyNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyFixedConstPointer(const TNDRegisteredProxyFixedPointer<_Ty2>& src_cref) : TNDRegisteredProxyNotNullConstPointer<_Ty>(src_cref) {}
 		TNDRegisteredProxyFixedConstPointer(const TNDRegisteredProxyFixedConstPointer<_Ty>& src_cref) : TNDRegisteredProxyNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyFixedConstPointer(const TNDRegisteredProxyFixedConstPointer<_Ty2>& src_cref) : TNDRegisteredProxyNotNullConstPointer<_Ty>(src_cref) {}
 
 		TNDRegisteredProxyFixedConstPointer(const TNDRegisteredProxyNotNullPointer<_Ty>& src_cref) : TNDRegisteredProxyNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyFixedConstPointer(const TNDRegisteredProxyNotNullPointer<_Ty2>& src_cref) : TNDRegisteredProxyNotNullConstPointer<_Ty>(src_cref) {}
 		TNDRegisteredProxyFixedConstPointer(const TNDRegisteredProxyNotNullConstPointer<_Ty>& src_cref) : TNDRegisteredProxyNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = typename std::enable_if<std::is_convertible<_Ty2 *, _Ty *>::value, void>::type>
+		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
 		TNDRegisteredProxyFixedConstPointer(const TNDRegisteredProxyNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredProxyNotNullConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredProxyFixedConstPointer() {}
@@ -435,12 +435,12 @@ namespace mse {
 		TNDXScopeRegisteredProxyObj(const mse::TXScopeObjFixedPointer<_TROFLy>& xs_ptr) : base_class(mse::TXScopeFixedPointer<_TROFLy>(xs_ptr)) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		TNDXScopeRegisteredProxyObj(const TNDXScopeRegisteredProxyObj& _X) : base_class(_X) {}
-		TNDXScopeRegisteredProxyObj(TNDXScopeRegisteredProxyObj&& _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+		TNDXScopeRegisteredProxyObj(TNDXScopeRegisteredProxyObj&& _X) : base_class(MSE_FWD(_X)) {}
 
-		TNDXScopeRegisteredProxyObj& operator=(TNDXScopeRegisteredProxyObj&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TNDXScopeRegisteredProxyObj& operator=(TNDXScopeRegisteredProxyObj&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 		TNDXScopeRegisteredProxyObj& operator=(const TNDXScopeRegisteredProxyObj& _X) { base_class::operator=(_X); return (*this); }
 		template<class _Ty2>
-		TNDXScopeRegisteredProxyObj& operator=(_Ty2&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TNDXScopeRegisteredProxyObj& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 		template<class _Ty2>
 		TNDXScopeRegisteredProxyObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
@@ -474,12 +474,12 @@ namespace mse {
 		TNDXScopeRegisteredConstProxyObj(const mse::TXScopeObjFixedConstPointer<_TROFLy>& xs_ptr) : base_class(mse::TXScopeFixedConstPointer<_TROFLy>(xs_ptr)) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		TNDXScopeRegisteredConstProxyObj(const TNDXScopeRegisteredConstProxyObj & _X) : base_class(_X) {}
-		TNDXScopeRegisteredConstProxyObj(TNDXScopeRegisteredConstProxyObj && _X) : base_class(std::forward<decltype(_X)>(_X)) {}
+		TNDXScopeRegisteredConstProxyObj(TNDXScopeRegisteredConstProxyObj && _X) : base_class(MSE_FWD(_X)) {}
 
-		TNDXScopeRegisteredConstProxyObj& operator=(TNDXScopeRegisteredConstProxyObj&& _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TNDXScopeRegisteredConstProxyObj& operator=(TNDXScopeRegisteredConstProxyObj&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 		TNDXScopeRegisteredConstProxyObj& operator=(const TNDXScopeRegisteredConstProxyObj& _X) { base_class::operator=(_X); return (*this); }
 		template<class _Ty2>
-		TNDXScopeRegisteredConstProxyObj& operator=(_Ty2 && _X) { base_class::operator=(std::forward<decltype(_X)>(_X)); return (*this); }
+		TNDXScopeRegisteredConstProxyObj& operator=(_Ty2 && _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 		template<class _Ty2>
 		TNDXScopeRegisteredConstProxyObj& operator=(const _Ty2 & _X) { base_class::operator=(_X); return (*this); }
 
@@ -637,9 +637,9 @@ namespace mse {
 				public:
 					A() {}
 					A(const A& _X) : b(_X.b) {}
-					A(A&& _X) : b(std::forward<decltype(_X)>(_X).b) {}
+					A(A&& _X) : b(MSE_FWD(_X).b) {}
 					virtual ~A() {}
-					A& operator=(A&& _X) { b = std::forward<decltype(_X)>(_X).b; return (*this); }
+					A& operator=(A&& _X) { b = MSE_FWD(_X).b; return (*this); }
 					A& operator=(const A& _X) { b = _X.b; return (*this); }
 
 					int b = 3;

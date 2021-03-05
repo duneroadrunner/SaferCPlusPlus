@@ -452,13 +452,13 @@ namespace mse {
 			operator typename mse::mstd::array<_Ty, _Size>::iterator() {
 				return base_class::begin();
 			}
-			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-				&& (!std::is_same<typename mse::mstd::array<_Ty2, _Size>::const_iterator, typename mse::mstd::array<_Ty2, _Size>::iterator>::value), void>::type>
+			template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+				&& (!std::is_same<typename mse::mstd::array<_Ty2, _Size>::const_iterator, typename mse::mstd::array<_Ty2, _Size>::iterator>::value)> >
 			operator typename mse::mstd::array<_Ty, _Size>::const_iterator() {
 				return base_class::cbegin();
 			}
-			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-				&& (!std::is_const<_Ty2>::value), void>::type>
+			template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+				&& (!std::is_const<_Ty2>::value)> >
 			operator mse::TNullableAnyRandomAccessIterator<const _Ty>() {
 				return base_class::begin();
 			}
@@ -467,8 +467,8 @@ namespace mse {
 			typename base_class::difference_type operator-(const typename base_class::iterator& _Right_cref) const { return base_class::begin() - _Right_cref; }
 			typename base_class::const_iterator operator+(typename base_class::difference_type n) const { return base_class::cbegin() + n; }
 			typename base_class::const_iterator operator-(typename base_class::difference_type n) const { return base_class::cbegin() - n; }
-			template<class _Ty2 = _Ty, class = typename std::enable_if<(std::is_same<_Ty2, _Ty>::value)
-				&& (!std::is_same<typename mse::mstd::array<_Ty2, _Size>::const_iterator, typename mse::mstd::array<_Ty2, _Size>::iterator>::value), void>::type>
+			template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+				&& (!std::is_same<typename mse::mstd::array<_Ty2, _Size>::const_iterator, typename mse::mstd::array<_Ty2, _Size>::iterator>::value)> >
 			typename base_class::difference_type operator-(const typename base_class::const_iterator& _Right_cref) const { return base_class::cbegin() - _Right_cref; }
 
 #ifdef MSE_LEGACYHELPERS_DISABLED
@@ -486,7 +486,7 @@ namespace mse {
 					ptr = nullptr;
 				}
 				static void allocate(_TPtr& ptr, size_t num_bytes) {
-					typedef typename std::remove_reference<decltype(*ptr)>::type target_t;
+					typedef mse::impl::remove_reference_t<decltype(*ptr)> target_t;
 					if (0 == num_bytes) {
 						ptr = nullptr;
 					}
@@ -613,7 +613,7 @@ namespace mse {
 			};
 			template<class T, class EqualTo = T>
 			struct IsSupportedByAllocateOverloaded : IsSupportedByAllocateOverloaded_impl<
-				typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 
 			template<class _Ty>
 			auto free_helper1(std::true_type, _Ty& ptr) {
@@ -693,7 +693,7 @@ namespace mse {
 		/* Memory safe approximation of fread(). */
 		template<class _TIter>
 		size_t fread(_TIter ptr, size_t size, size_t count, FILE* stream) {
-			typedef typename std::remove_reference<decltype((ptr)[0])>::type element_t;
+			typedef mse::impl::remove_reference_t<decltype((ptr)[0])> element_t;
 			thread_local std::vector<unsigned char> v;
 			v.resize(size * count);
 			auto num_bytes_read = ::fread(v.data(), size, count, stream);
@@ -723,7 +723,7 @@ namespace mse {
 		/* Memory safe approximation of fwrite(). */
 		template<class _TIter>
 		size_t fwrite(_TIter ptr, size_t size, size_t count, FILE* stream) {
-			typedef typename std::remove_reference<decltype((ptr)[0])>::type element_t;
+			typedef mse::impl::remove_reference_t<decltype((ptr)[0])> element_t;
 			auto num_items_to_write = size * count / sizeof(element_t);
 			thread_local std::vector<unsigned char> v;
 			v.resize(size * count);
@@ -733,7 +733,7 @@ namespace mse {
 			for (; element_index < num_items_to_write; uc_index += sizeof(element_t), element_index += 1) {
 				unsigned char* uc_ptr = &(v[uc_index]);
 				if (false) {
-					typedef typename std::remove_const<element_t>::type non_const_element_t;
+					typedef mse::impl::remove_const_t<element_t> non_const_element_t;
 					non_const_element_t* element_ptr = reinterpret_cast<non_const_element_t*>(uc_ptr);
 					(*element_ptr) = ptr[element_index];
 				}
@@ -755,7 +755,7 @@ namespace mse {
 		/* Memory safe approximation of memcpy(). */
 		template<class _TIter, class _TIter2>
 		void memcpy(_TIter destination, _TIter2 source, size_t num_bytes) {
-			typedef typename std::remove_reference<decltype((destination)[0])>::type element_t;
+			typedef mse::impl::remove_reference_t<decltype((destination)[0])> element_t;
 			auto num_items = num_bytes / sizeof(element_t);
 			//assert(num_items * sizeof(element_t) == num_bytes);
 			for (size_t i = 0; i < num_items; i += 1) {
@@ -765,7 +765,7 @@ namespace mse {
 		/* Memory safe approximation of memset(). */
 		template<class _TIter>
 		void memset(_TIter iter, int value, size_t num_bytes) {
-			typedef typename std::remove_reference<decltype((iter)[0])>::type element_t;
+			typedef mse::impl::remove_reference_t<decltype((iter)[0])> element_t;
 			value &= 0xff;
 			long long int adjusted_value = value;
 			if (sizeof(adjusted_value) >= sizeof(element_t)) {
@@ -813,7 +813,7 @@ namespace mse {
 					struct are_compatible_pointer_objects_helper1 : std::false_type {};
 					template<typename _Ty, typename _Ty2>
 					struct are_compatible_pointer_objects_helper1<std::true_type, _Ty, _Ty2> : are_compatible_pointer_objects_helper2<_Ty, _Ty2
-						, typename std::remove_reference<decltype(*std::declval<_Ty>())>::type, typename std::remove_reference<decltype(*std::declval<_Ty2>())>::type> {};
+						, mse::impl::remove_reference_t<decltype(*std::declval<_Ty>())>, mse::impl::remove_reference_t<decltype(*std::declval<_Ty2>())> > {};
 
 					template<typename _Ty, typename _Ty2>
 					struct are_compatible_pointer_objects : are_compatible_pointer_objects_helper1<typename mse::impl::conjunction<
@@ -841,8 +841,8 @@ namespace mse {
 			/* Unlike "C-style" casts, this 'unsafe_cast()' function can (unsafely) convert a library pointer or iterator object
 			to a corresponding pointer or iterator object targeting an incompatible type. */
 			template<typename _Ty, typename _Ty2>
-			auto unsafe_cast(_Ty2&& x) -> decltype(impl::ns_unsafe_cast::unsafe_cast_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x))) {
-				return impl::ns_unsafe_cast::unsafe_cast_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), std::forward<decltype(x)>(x));
+			auto unsafe_cast(_Ty2&& x) -> decltype(impl::ns_unsafe_cast::unsafe_cast_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), MSE_FWD(x))) {
+				return impl::ns_unsafe_cast::unsafe_cast_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), MSE_FWD(x));
 			}
 			template<typename _Ty, typename _Ty2>
 			_Ty unsafe_cast(_Ty2& x) {

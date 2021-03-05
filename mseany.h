@@ -98,7 +98,7 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `any` may be copy constructed into another `any` at any time, so a copy should always be allowed.
-		template<typename ValueType, typename = typename std::enable_if<!std::is_same<typename std::decay<ValueType>::type, any>::value>::type>
+		template<typename ValueType, typename = mse::impl::enable_if_t<!std::is_same<typename std::decay<ValueType>::type, any>::value> >
 		any(ValueType&& value)
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
@@ -127,7 +127,7 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `any` may be copy constructed into another `any` at any time, so a copy should always be allowed.
-		template<typename ValueType, typename = typename std::enable_if<!std::is_same<typename std::decay<ValueType>::type, any>::value>::type>
+		template<typename ValueType, typename = mse::impl::enable_if_t<!std::is_same<typename std::decay<ValueType>::type, any>::value> >
 		any& operator=(ValueType&& value)
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
@@ -334,7 +334,7 @@ namespace mse
 		template<typename T>
 		static vtable_type* vtable_for_type()
 		{
-			using VTableType = typename std::conditional<requires_allocation<T>::value, vtable_dynamic<T>, vtable_stack<T>>::type;
+			using VTableType = mse::impl::conditional_t<requires_allocation<T>::value, vtable_dynamic<T>, vtable_stack<T>>;
 			static vtable_type table = {
 				VTableType::type, VTableType::destroy,
 				VTableType::copy, VTableType::move,
@@ -394,14 +394,14 @@ namespace mse
 		vtable_type*  vtable;
 
 		template<typename ValueType, typename T>
-		typename std::enable_if<requires_allocation<T>::value>::type
+		mse::impl::enable_if_t<requires_allocation<T>::value>
 			do_construct(ValueType&& value)
 		{
 			storage.dynamic = new T(std::forward<ValueType>(value));
 		}
 
 		template<typename ValueType, typename T>
-		typename std::enable_if<!requires_allocation<T>::value>::type
+		mse::impl::enable_if_t<!requires_allocation<T>::value>
 			do_construct(ValueType&& value)
 		{
 			new (&storage.stack) T(std::forward<ValueType>(value));
@@ -430,13 +430,13 @@ namespace mse
 	namespace detail
 	{
 		template<typename ValueType>
-		inline ValueType any_cast_move_if_true(typename std::remove_reference<ValueType>::type* p, std::true_type)
+		inline ValueType any_cast_move_if_true(mse::impl::remove_reference_t<ValueType>* p, std::true_type)
 		{
 			return std::move(*p);
 		}
 
 		template<typename ValueType>
-		inline ValueType any_cast_move_if_true(typename std::remove_reference<ValueType>::type* p, std::false_type)
+		inline ValueType any_cast_move_if_true(mse::impl::remove_reference_t<ValueType>* p, std::false_type)
 		{
 			return *p;
 		}
@@ -446,7 +446,7 @@ namespace mse
 	template<typename ValueType>
 	inline ValueType any_cast(const any& operand)
 	{
-		auto p = any_cast<typename std::add_const<typename std::remove_reference<ValueType>::type>::type>(&operand);
+		auto p = any_cast<typename std::add_const<mse::impl::remove_reference_t<ValueType> >::type>(&operand);
 		if (p == nullptr) MSE_THROW(bad_any_cast());
 		return *p;
 	}
@@ -455,7 +455,7 @@ namespace mse
 	template<typename ValueType>
 	inline ValueType any_cast(any& operand)
 	{
-		auto p = any_cast<typename std::remove_reference<ValueType>::type>(&operand);
+		auto p = any_cast<mse::impl::remove_reference_t<ValueType> >(&operand);
 		if (p == nullptr) MSE_THROW(bad_any_cast());
 		return *p;
 	}
@@ -481,7 +481,7 @@ namespace mse
 		using can_move = std::false_type;
 #endif
 
-		auto p = any_cast<typename std::remove_reference<ValueType>::type>(&operand);
+		auto p = any_cast<mse::impl::remove_reference_t<ValueType> >(&operand);
 		if (p == nullptr) MSE_THROW(bad_any_cast());
 		return detail::any_cast_move_if_true<ValueType>(p, can_move());
 	}
@@ -587,10 +587,10 @@ namespace mse {
 			public:
 				TAnyPointerBaseV1(const TAnyPointerBaseV1& src) : m_any_pointer(src.m_any_pointer) {}
 
-				template <typename _TPointer1, class = typename std::enable_if<
+				template <typename _TPointer1, class = mse::impl::enable_if_t<
 					(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
 					&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
-					, void>::type>
+					> >
 					TAnyPointerBaseV1(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
 
 				_Ty& operator*() const {
@@ -667,10 +667,10 @@ namespace mse {
 				TAnyConstPointerBaseV1(const TAnyConstPointerBaseV1& src) : m_any_const_pointer(src.m_any_const_pointer) {}
 				TAnyConstPointerBaseV1(const TAnyPointerBaseV1<_Ty>& src) : m_any_const_pointer(src.m_any_pointer) {}
 
-				template <typename _TPointer1, class = typename std::enable_if<
+				template <typename _TPointer1, class = mse::impl::enable_if_t<
 					(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
 					&& (!std::is_convertible<TAnyPointerBaseV1<_Ty>, _TPointer1>::value)
-					, void>::type>
+					> >
 					TAnyConstPointerBaseV1(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
 
 				const _Ty& operator*() const {
