@@ -657,8 +657,8 @@ namespace mse {
 			TOpaqueWrapper(const _Ty& value_param) : m_value(value_param) {}
 			TOpaqueWrapper(_Ty&& value_param) : m_value(MSE_FWD(value_param)) {}
 
-			template<typename ...Args, typename = mse::impl::enable_if_t<std::is_constructible<_Ty, Args...>::value
-				&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<TOpaqueWrapper, Args...>::value> >
+			template<typename ...Args, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_constructible<_Ty, Args...>::value
+				&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<TOpaqueWrapper, Args...>::value> MSE_IMPL_EIS >
 				TOpaqueWrapper(Args&&...args) : m_value(std::forward<Args>(args)...) {}
 
 			_Ty& value()& { return m_value; }
@@ -2670,14 +2670,14 @@ namespace mse {
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::emplace(il, std::forward<Args>(args)...);
 		}
-		template<class T2 = T, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)> >
+		template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)> MSE_IMPL_EIS >
 		void reset() noexcept {
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
 			base_class::reset();
 		}
-		template<class T2 = T, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+		template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
 			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)
-			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)> >
+			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)> MSE_IMPL_EIS >
 		void swap(xscope_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
 			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator<T>();
@@ -2685,9 +2685,9 @@ namespace mse {
 		}
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class T2 = T, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
+		template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
-			)> >
+			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
 
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
@@ -2695,15 +2695,15 @@ namespace mse {
 	private:
 		/* If T is "marked" as containing a scope reference, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class T2, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value)
-			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)> >
+		template<class T2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)> MSE_IMPL_EIS >
 		void valid_if_T_is_not_marked_as_containing_a_scope_reference() const {}
 
 		/* If T is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class T2, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+		template<class T2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
 			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)
-			> >
+			> MSE_IMPL_EIS >
 		void valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -2821,9 +2821,9 @@ namespace mse {
 		}
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class T2 = T, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
+		template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
-			)> >
+			)> MSE_IMPL_EIS >
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
@@ -2831,15 +2831,15 @@ namespace mse {
 	private:
 		/* If T is "marked" as containing a scope reference, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class T2, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value)
-			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)> >
+		template<class T2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)> MSE_IMPL_EIS >
 			void valid_if_T_is_not_marked_as_containing_a_scope_reference() const {}
 
 		/* If T is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class T2, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+		template<class T2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
 			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)
-			> >
+			> MSE_IMPL_EIS >
 			void valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -2957,23 +2957,23 @@ namespace mse {
 		}
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class T2 = T, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
+		template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
-			)> >
+			)> MSE_IMPL_EIS >
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
 		/* If T is "marked" as containing a scope reference, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class T2, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value)
-			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)> >
+		template<class T2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)> MSE_IMPL_EIS >
 			void valid_if_T_is_not_marked_as_containing_a_scope_reference() const {}
 
 		/* If T is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class T2, class = mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+		template<class T2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
 			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)
-			> >
+			> MSE_IMPL_EIS >
 			void valid_if_T_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -3766,7 +3766,7 @@ namespace mse {
 
 		template <typename _Ty> struct is_exclusive_writer_enforcing_mutex_msemsearray : std::integral_constant<bool, (is_thread_safety_enforcing_mutex_msemsearray<_Ty>::value)
 			|| (std::is_same<_Ty, mse::non_thread_safe_shared_mutex>::value) || (std::is_same<_Ty, mse::non_thread_safe_mutex>::value)> {};
-		template<class _Ty, class = mse::impl::enable_if_t<(is_exclusive_writer_enforcing_mutex_msemsearray<_Ty>::value)> >
+		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(is_exclusive_writer_enforcing_mutex_msemsearray<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_exclusive_writer_enforcing_mutex_msemsearray() {}
 
 		template <typename _Ty> struct is_supported_aco_mutex_msemsearray : std::integral_constant<bool, (is_exclusive_writer_enforcing_mutex_msemsearray<_Ty>::value)
@@ -3859,8 +3859,8 @@ namespace mse {
 					}
 				}
 
-				template<class _TAccessMutex2 = _TAccessMutex, class = mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-					&& (mse::impl::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value)> >
+				template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+					&& (mse::impl::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 					void valid_if_TAccessMutex_is_supported() const {}
 
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -3895,8 +3895,8 @@ namespace mse {
 		template<typename _Ty2>
 		TXScopeAccessControlledPointer(const TXScopeAccessControlledPointer<_Ty2, _TAccessMutex>& src) : base_class(src) {}
 
-		template<class _TAccessMutex2 = _TAccessMutex, class = mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> >
+		template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 			void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -3938,8 +3938,8 @@ namespace mse {
 		TAccessControlledPointer(const TAccessControlledPointer<_Ty2, _TAccessMutex>& src) : base_class(src) {}
 
 		/* This element is safely "async passable" if the _TAccessMutex is a suitable thread safe mutex. */
-		template<class _TAccessMutex2 = _TAccessMutex, class = mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> >
+		template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -4007,8 +4007,8 @@ namespace mse {
 					}
 				}
 
-				template<class _TAccessMutex2 = _TAccessMutex, class = mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-					&& (mse::impl::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value)> >
+				template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+					&& (mse::impl::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 					void valid_if_TAccessMutex_is_supported() const {}
 
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -4041,8 +4041,8 @@ namespace mse {
 		template<typename _Ty2>
 		TXScopeAccessControlledConstPointer(const TXScopeAccessControlledConstPointer<_Ty2, _TAccessMutex>& src) : base_class(src) {}
 
-		template<class _TAccessMutex2 = _TAccessMutex, class = mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> >
+		template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 			void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -4083,8 +4083,8 @@ namespace mse {
 		TAccessControlledConstPointer(const TAccessControlledConstPointer<_Ty2, _TAccessMutex>& src) : base_class(src) {}
 
 		/* This element is safely "async passable" if the _TAccessMutex is a suitable thread safe mutex. */
-		template<class _TAccessMutex2 = _TAccessMutex, class = mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> >
+		template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 		void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -4151,8 +4151,8 @@ namespace mse {
 					}
 				}
 
-				template<class _TAccessMutex2 = _TAccessMutex, class = mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-					&& (mse::impl::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value)> >
+				template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+					&& (mse::impl::is_supported_aco_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 					void valid_if_TAccessMutex_is_supported() const {}
 
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -4183,8 +4183,8 @@ namespace mse {
 		template<typename _Ty2>
 		TXScopeAccessControlledExclusivePointer(TXScopeAccessControlledExclusivePointer<_Ty2, _TAccessMutex>&& src) : base_class(MSE_FWD(src)) {}
 
-		template<class _TAccessMutex2 = _TAccessMutex, class = mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> >
+		template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 			void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -4225,8 +4225,8 @@ namespace mse {
 		TAccessControlledExclusivePointer(TAccessControlledExclusivePointer<_Ty2, _TAccessMutex>&& src) : base_class(MSE_FWD(src)) {}
 
 		/* This element is safely "async passable" if the _TAccessMutex is a suitable thread safe mutex. */
-		template<class _TAccessMutex2 = _TAccessMutex, class = mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
-			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> >
+		template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
+			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
 	private:
@@ -4874,11 +4874,11 @@ namespace mse {
 			class Txscope_optional_structure_lock_guard : public mse::us::impl::XScopeStructureLockGuardTagBase {
 			public:
 				Txscope_optional_structure_lock_guard(Txscope_optional_structure_lock_guard&& src) : m_stored_ptr(MSE_FWD(src).m_stored_ptr) { lock_the_target(); }
-				template<class TDynamicContainer2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> >
+				template<class TDynamicContainer2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> MSE_IMPL_EIS >
 				Txscope_optional_structure_lock_guard(Txscope_optional_structure_lock_guard<TDynamicContainer2>&& src) : m_stored_ptr(MSE_FWD(src).m_stored_ptr) { lock_the_target(); }
 
 				Txscope_optional_structure_lock_guard(const Txscope_optional_structure_lock_guard& src) : m_stored_ptr(src.m_stored_ptr) { lock_the_target(); }
-				template<class TDynamicContainer2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> >
+				template<class TDynamicContainer2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> MSE_IMPL_EIS >
 				Txscope_optional_structure_lock_guard(const Txscope_optional_structure_lock_guard<TDynamicContainer2>& src) : m_stored_ptr(src.m_stored_ptr) { lock_the_target(); }
 
 				Txscope_optional_structure_lock_guard(const mse::TXScopeObjFixedPointer<TDynamicContainer>& owner_ptr) : m_stored_ptr(owner_ptr) {
@@ -4903,7 +4903,7 @@ namespace mse {
 					return m_stored_ptr;
 				}
 				/*
-				template<class TDynamicContainer2 = TDynamicContainer, class = mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<TDynamicContainer2>, mse::TXScopeFixedPointer<TDynamicContainer> >::value> >
+				template<class TDynamicContainer2 = TDynamicContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<TDynamicContainer2>, mse::TXScopeFixedPointer<TDynamicContainer> >::value> MSE_IMPL_EIS >
 				explicit operator mse::TXScopeFixedConstPointer<TDynamicContainer2>() const & {
 					return m_stored_ptr;
 				}
@@ -4938,19 +4938,19 @@ namespace mse {
 			class Txscope_const_optional_structure_lock_guard : public mse::us::impl::XScopeStructureLockGuardTagBase {
 			public:
 				Txscope_const_optional_structure_lock_guard(Txscope_const_optional_structure_lock_guard&& src) : m_stored_ptr(MSE_FWD(src).m_stored_ptr) { lock_the_target(); }
-				template<class TDynamicContainer2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> >
+				template<class TDynamicContainer2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> MSE_IMPL_EIS >
 				Txscope_const_optional_structure_lock_guard(Txscope_const_optional_structure_lock_guard<TDynamicContainer2>&& src) : m_stored_ptr(MSE_FWD(src).m_stored_ptr) { lock_the_target(); }
 
 				Txscope_const_optional_structure_lock_guard(const Txscope_const_optional_structure_lock_guard& src) : m_stored_ptr(src.m_stored_ptr) { lock_the_target(); }
-				template<class TDynamicContainer2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> >
+				template<class TDynamicContainer2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> MSE_IMPL_EIS >
 				Txscope_const_optional_structure_lock_guard(const Txscope_const_optional_structure_lock_guard<TDynamicContainer2>& src) : m_stored_ptr(src.m_stored_ptr) { lock_the_target(); }
 
 				Txscope_const_optional_structure_lock_guard(Txscope_optional_structure_lock_guard<TDynamicContainer>&& src) : m_stored_ptr(MSE_FWD(src).m_stored_ptr) { lock_the_target(); }
-				template<class TDynamicContainer2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> >
+				template<class TDynamicContainer2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> MSE_IMPL_EIS >
 				Txscope_const_optional_structure_lock_guard(Txscope_optional_structure_lock_guard<TDynamicContainer2>&& src) : m_stored_ptr(MSE_FWD(src).m_stored_ptr) { lock_the_target(); }
 
 				Txscope_const_optional_structure_lock_guard(const Txscope_optional_structure_lock_guard<TDynamicContainer>& src) : m_stored_ptr(src.m_stored_ptr) { lock_the_target(); }
-				template<class TDynamicContainer2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> >
+				template<class TDynamicContainer2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> MSE_IMPL_EIS >
 				Txscope_const_optional_structure_lock_guard(const Txscope_optional_structure_lock_guard<TDynamicContainer2>& src) : m_stored_ptr(src.m_stored_ptr) { lock_the_target(); }
 
 				Txscope_const_optional_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<TDynamicContainer>& owner_ptr) : m_stored_ptr(owner_ptr) {
@@ -5008,11 +5008,11 @@ namespace mse {
 				typedef mse::TXScopeAccessControlledConstPointer<TDynamicContainer, _TAccessMutex> xs_exclusive_writer_const_pointer_t;
 
 				Txscope_ewconst_optional_structure_lock_guard(Txscope_ewconst_optional_structure_lock_guard&& src) : m_stored_ptr(MSE_FWD(src).m_stored_ptr) {}
-				template<class TDynamicContainer2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> >
+				template<class TDynamicContainer2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> MSE_IMPL_EIS >
 				Txscope_ewconst_optional_structure_lock_guard(Txscope_ewconst_optional_structure_lock_guard<TDynamicContainer2, _TAccessMutex>&& src) : m_stored_ptr(MSE_FWD(src).m_stored_ptr) {}
 
 				Txscope_ewconst_optional_structure_lock_guard(const Txscope_ewconst_optional_structure_lock_guard& src) : m_stored_ptr(src.m_stored_ptr) {}
-				template<class TDynamicContainer2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> >
+				template<class TDynamicContainer2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value> MSE_IMPL_EIS >
 				Txscope_ewconst_optional_structure_lock_guard(const Txscope_ewconst_optional_structure_lock_guard<TDynamicContainer2, _TAccessMutex>& src) : m_stored_ptr(src.m_stored_ptr) {}
 
 				Txscope_ewconst_optional_structure_lock_guard(const xs_exclusive_writer_const_pointer_t& owner_ptr)
@@ -5058,7 +5058,7 @@ namespace mse {
 			class Txscope_optional_structure_lock_guard_of_wrapper : public mse::us::impl::XScopeStructureLockGuardTagBase {
 			public:
 				Txscope_optional_structure_lock_guard_of_wrapper(const Txscope_optional_structure_lock_guard_of_wrapper&) = default;
-				template<class TDynamicContainer2, class TBaseContainerStructureLockGuard2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value && std::is_convertible<TBaseContainerStructureLockGuard2, TBaseContainerStructureLockGuard>::value> >
+				template<class TDynamicContainer2, class TBaseContainerStructureLockGuard2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value && std::is_convertible<TBaseContainerStructureLockGuard2, TBaseContainerStructureLockGuard>::value> MSE_IMPL_EIS >
 				Txscope_optional_structure_lock_guard_of_wrapper(const Txscope_optional_structure_lock_guard_of_wrapper<TDynamicContainer2, TBaseContainerStructureLockGuard2>& src)
 					: m_stored_ptr(src.m_stored_ptr), m_MV_xscope_optional_structure_lock_guard(src.m_MV_xscope_optional_structure_lock_guard) {}
 
@@ -5087,7 +5087,7 @@ namespace mse {
 					return m_stored_ptr;
 				}
 				/*
-				template<class TDynamicContainer2 = TDynamicContainer, class = mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<TDynamicContainer2>, mse::TXScopeFixedPointer<TDynamicContainer> >::value> >
+				template<class TDynamicContainer2 = TDynamicContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<TDynamicContainer2>, mse::TXScopeFixedPointer<TDynamicContainer> >::value> MSE_IMPL_EIS >
 				explicit operator mse::TXScopeFixedConstPointer<TDynamicContainer2>() const & {
 					return m_stored_ptr;
 				}
@@ -5117,13 +5117,13 @@ namespace mse {
 			class Txscope_const_optional_structure_lock_guard_of_wrapper : public mse::us::impl::XScopeStructureLockGuardTagBase {
 			public:
 				Txscope_const_optional_structure_lock_guard_of_wrapper(const Txscope_const_optional_structure_lock_guard_of_wrapper&) = default;
-				template<class TDynamicContainer2, class TBaseContainerStructureLockGuard2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value && std::is_convertible<TBaseContainerStructureLockGuard2, TBaseContainerStructureLockGuard>::value> >
+				template<class TDynamicContainer2, class TBaseContainerStructureLockGuard2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value && std::is_convertible<TBaseContainerStructureLockGuard2, TBaseContainerStructureLockGuard>::value> MSE_IMPL_EIS >
 				Txscope_const_optional_structure_lock_guard_of_wrapper(const Txscope_const_optional_structure_lock_guard_of_wrapper<TDynamicContainer2, TBaseContainerStructureLockGuard2>& src)
 					: m_stored_ptr(src.m_stored_ptr), m_MV_xscope_optional_structure_lock_guard(src.m_MV_xscope_optional_structure_lock_guard) {}
 
 				Txscope_const_optional_structure_lock_guard_of_wrapper(const Txscope_optional_structure_lock_guard_of_wrapper<TDynamicContainer, TBaseContainerStructureLockGuard>& src)
 					: m_stored_ptr(src.m_stored_ptr), m_MV_xscope_optional_structure_lock_guard(src.m_MV_xscope_optional_structure_lock_guard) {}
-				template<class TDynamicContainer2, class TBaseContainerStructureLockGuard2, class = mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value && std::is_convertible<TBaseContainerStructureLockGuard2, TBaseContainerStructureLockGuard>::value> >
+				template<class TDynamicContainer2, class TBaseContainerStructureLockGuard2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TDynamicContainer2 *, TDynamicContainer *>::value && std::is_convertible<TBaseContainerStructureLockGuard2, TBaseContainerStructureLockGuard>::value> MSE_IMPL_EIS >
 				Txscope_const_optional_structure_lock_guard_of_wrapper(const Txscope_optional_structure_lock_guard_of_wrapper<TDynamicContainer2, TBaseContainerStructureLockGuard2>& src)
 					: m_stored_ptr(src.m_stored_ptr), m_MV_xscope_optional_structure_lock_guard(src.m_MV_xscope_optional_structure_lock_guard) {}
 
@@ -5218,7 +5218,7 @@ namespace mse {
 					return static_cast<const base_class&>(*this);
 				}
 				/*
-				template<class TDynamicContainer2 = TDynamicContainer, class = mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<TDynamicContainer2>, mse::TXScopeFixedPointer<TDynamicContainer> >::value> >
+				template<class TDynamicContainer2 = TDynamicContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<TDynamicContainer2>, mse::TXScopeFixedPointer<TDynamicContainer> >::value> MSE_IMPL_EIS >
 				explicit operator mse::TXScopeFixedConstPointer<TDynamicContainer2>() const {
 					return mse::TXScopeFixedConstPointer<TDynamicContainer2>(static_cast<const base_class&>(*this));
 				}

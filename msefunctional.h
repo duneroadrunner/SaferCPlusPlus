@@ -56,13 +56,13 @@ namespace mse {
 			function() noexcept : base_class() {}
 			function(std::nullptr_t) noexcept : base_class(nullptr) {}
 
-			template <typename _Fty2, class = mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const function*>::value)
-				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)> >
+			template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const function*>::value)
+				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)> MSE_IMPL_EIS >
 			function(const _Fty2& func) : base_class(func) {
 				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
 			}
-			template <typename _Fty2, class = mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const function*>::value)
-				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)> >
+			template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const function*>::value)
+				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)> MSE_IMPL_EIS >
 			function(_Fty2&& func) : base_class(MSE_FWD(func)) {
 				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
 			}
@@ -103,11 +103,11 @@ namespace mse {
 
 		xscope_function() noexcept : base_class() {}
 		xscope_function(std::nullptr_t) noexcept : base_class(nullptr) {}
-		template <typename _Fty2, class = mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const xscope_function*>::value)
-			&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)> >
+		template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const xscope_function*>::value)
+			&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)> MSE_IMPL_EIS >
 		xscope_function(const _Fty2& func) : base_class(mse::us::impl::make_newable_xscope(func)) {}
-		template <typename _Fty2, class = mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const xscope_function*>::value)
-			&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)> >
+		template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const xscope_function*>::value)
+			&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)> MSE_IMPL_EIS >
 		xscope_function(_Fty2&& func) : base_class(mse::us::impl::make_newable_xscope(MSE_FWD(func))) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
@@ -122,7 +122,7 @@ namespace mse {
 			base_class::operator=(mse::us::impl::as_ref<base_class>(MSE_FWD(_Right_cref)));
 			return (*this);
 		}
-		template <class _Fx, class = mse::impl::enable_if_t<!std::is_base_of<xscope_function, _Fx>::value> >
+		template <class _Fx, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_base_of<xscope_function, _Fx>::value> MSE_IMPL_EIS >
 		xscope_function& operator=(_Fx&& _Func) {
 			base_class::operator=(mse::us::impl::as_ref<base_class>(MSE_FWD(_Func)));
 			return (*this);

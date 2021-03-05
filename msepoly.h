@@ -317,10 +317,10 @@ namespace mse {
 		typedef us::impl::TAnyPointerBase<_Ty> base_class;
 		TXScopeAnyPointer(const us::impl::TAnyPointerBase<_Ty>& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = mse::impl::enable_if_t<
+		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
 			&& (!std::is_base_of<us::impl::TAnyConstPointerBase<_Ty>, _TPointer1>::value)
-			> >
+			> MSE_IMPL_EIS >
 			TXScopeAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
@@ -357,10 +357,10 @@ namespace mse {
 		typedef us::impl::TAnyPointerBase<_Ty> base_class;
 		TAnyPointer(const TAnyPointer& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = mse::impl::enable_if_t<
+		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TAnyPointer>::value)
 			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
-			> >
+			> MSE_IMPL_EIS >
 		TAnyPointer(const _TPointer1& pointer) : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
@@ -396,10 +396,10 @@ namespace mse {
 		TXScopeAnyConstPointer(const us::impl::TAnyConstPointerBase<_Ty>& src) : base_class(src) {}
 		TXScopeAnyConstPointer(const us::impl::TAnyPointerBase<_Ty>& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = mse::impl::enable_if_t<
+		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, us::impl::TAnyConstPointerBase<_Ty>>::value)
 			&& (!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
-			> >
+			> MSE_IMPL_EIS >
 			TXScopeAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
@@ -436,10 +436,10 @@ namespace mse {
 		TAnyConstPointer(const TAnyConstPointer& src) : base_class(src) {}
 		TAnyConstPointer(const TAnyPointer<_Ty>& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = mse::impl::enable_if_t<
+		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TAnyConstPointer>::value)
 			&& (!std::is_convertible<_TPointer1, TAnyPointer<_Ty>>::value)
-			> >
+			> MSE_IMPL_EIS >
 		TAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
@@ -619,31 +619,31 @@ namespace mse {
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 				TPolyPointerBase(const mse::TXScopeObjFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeObjFixedPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyPointerBase(const mse::TXScopeObjFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeObjFixedPointer<_Ty>>(p); }
 				TPolyPointerBase(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyPointerBase(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 				TPolyPointerBase(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<
 					std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value || std::is_same<const _Ty2, _Ty>::value
-					> >
+					> MSE_IMPL_EIS >
 					TPolyPointerBase(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredPointer<_Ty>>(p); }
 
 				TPolyPointerBase(const mse::TCRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TCRegisteredPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyPointerBase(const mse::TCRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_NORADPOINTER_DISABLED)
 				TPolyPointerBase(const mse::TNoradPointer<_Ty>& p) { m_pointer.template set<mse::TNoradPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyPointerBase(const mse::TNoradPointer<_Ty2>& p) { m_pointer.template set<mse::TNoradPointer<_Ty>>(p); }
 #endif // !defined(MSE_NORADPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 				TPolyPointerBase(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyPointerBase(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
@@ -653,7 +653,7 @@ namespace mse {
 				TPolyPointerBase(const typename mse::us::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ipointer>(p); }
 				TPolyPointerBase(const typename mse::us::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ss_iterator_type>(p); }
 				TPolyPointerBase(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyPointerBase(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<_Ty>>(p); }
 				TPolyPointerBase(const mse::TXScopeAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyPointer<_Ty>>(p); }
 				TPolyPointerBase(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyPointer<_Ty>>(p); }
@@ -706,10 +706,10 @@ namespace mse {
 		//MSE_USING(TXScopePolyPointer, us::impl::TPolyPointerBase<_Ty>);
 		//TXScopePolyPointer(const us::impl::TPolyPointerBase<_Ty>& p) : base_class(p) {}
 
-		template <typename _TPointer1, class = mse::impl::enable_if_t<
+		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			/*(!std::is_convertible<_TPointer1, us::impl::TPolyPointerBase<_Ty>>::value)
 			&& */(!std::is_base_of<us::impl::TPolyConstPointerBase<_Ty>, _TPointer1>::value)
-			> >
+			> MSE_IMPL_EIS >
 			TXScopePolyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
@@ -821,54 +821,54 @@ namespace mse {
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 				TPolyConstPointerBase(const mse::TXScopeObjFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TXScopeObjFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TXScopeObjFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TXScopeObjFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeObjFixedConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TXScopeFixedConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TXScopeFixedConstPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TXScopeFixedPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TXScopeFixedPointer<_Ty2>& p) { m_pointer.template set<mse::TXScopeFixedConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 #if !defined(MSE_REGISTEREDPOINTER_DISABLED)
 				TPolyConstPointerBase(const mse::TRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<TRegisteredObj<_Ty2> *, TRegisteredObj<_Ty> *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TRegisteredConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TCRegisteredConstPointer<_Ty>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TCRegisteredConstPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TCRegisteredPointer<_Ty>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TCRegisteredPointer<_Ty2>& p) { m_pointer.template set<mse::TCRegisteredConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REGISTEREDPOINTER_DISABLED)
 #if !defined(MSE_NORADPOINTER_DISABLED)
 				TPolyConstPointerBase(const mse::TNoradConstPointer<_Ty>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TNoradConstPointer<_Ty2>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TNoradPointer<_Ty>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TNoradPointer<_Ty2>& p) { m_pointer.template set<mse::TNoradConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_NORADPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 				TPolyConstPointerBase(const mse::TRefCountingConstPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TRefCountingConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 
 				TPolyConstPointerBase(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
@@ -879,7 +879,7 @@ namespace mse {
 				TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::cipointer& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::cipointer>(p); }
 				TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::ss_const_iterator_type& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ss_const_iterator_type>(p); }
 				TPolyConstPointerBase(const std::shared_ptr<const _Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const std::shared_ptr<const _Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 				TPolyConstPointerBase(const mse::TXScopeAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(p); }
 				TPolyConstPointerBase(const mse::TAnyConstPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(p); }
@@ -888,7 +888,7 @@ namespace mse {
 				TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::ipointer& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::cipointer>(p); }
 				TPolyConstPointerBase(const typename mse::us::msevector<_Ty>::ss_iterator_type& p) { m_pointer.template set<typename mse::us::msevector<_Ty>::ss_const_iterator_type>(p); }
 				TPolyConstPointerBase(const std::shared_ptr<_Ty>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const std::shared_ptr<_Ty2>& p) { m_pointer.template set<std::shared_ptr<const _Ty>>(p); }
 				TPolyConstPointerBase(const mse::TXScopeAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(mse::TXScopeAnyConstPointer<_Ty>(p)); }
 				TPolyConstPointerBase(const mse::TAnyPointer<_Ty>& p) { m_pointer.template set<mse::TXScopeAnyConstPointer<_Ty>>(mse::TXScopeAnyConstPointer<_Ty>(p)); }
@@ -940,10 +940,10 @@ namespace mse {
 		//TXScopePolyConstPointer(const us::impl::TPolyConstPointerBase<_Ty>& src) : base_class(src) {}
 		//TXScopePolyConstPointer(const us::impl::TPolyPointerBase<_Ty>& src) : base_class(src) {}
 
-		template <typename _TPointer1/*, class = mse::impl::enable_if_t<
+		template <typename _TPointer1/*, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, us::impl::TPolyConstPointerBase<_Ty>>::value)
 			&& (!std::is_convertible<_TPointer1, us::impl::TPolyPointerBase<_Ty>>::value)
-			>*/>
+			> MSE_IMPL_EIS*/>
 			TXScopePolyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
@@ -1168,7 +1168,7 @@ namespace mse {
 				TAnyRandomAccessIteratorBase(const TAnyRandomAccessIteratorBase& src) : m_any_random_access_iterator(src.m_any_random_access_iterator) {}
 				TAnyRandomAccessIteratorBase(_Ty arr[]) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _Ty*>(arr)) {}
 
-				template <typename _TRandomAccessIterator1, class = mse::impl::enable_if_t<!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIteratorBase>::value> >
+				template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIteratorBase>::value> MSE_IMPL_EIS >
 				TAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _TRandomAccessIterator1>(random_access_iterator)) {}
 
 				friend void swap(TAnyRandomAccessIteratorBase& first, TAnyRandomAccessIteratorBase& second) {
@@ -1290,7 +1290,7 @@ namespace mse {
 				TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessConstIteratorBase& src) : m_any_random_access_const_iterator(src.m_any_random_access_const_iterator) {}
 				TAnyRandomAccessConstIteratorBase(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
 
-				template <typename _TRandomAccessConstIterator1, class = mse::impl::enable_if_t<!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIteratorBase>::value> >
+				template <typename _TRandomAccessConstIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIteratorBase>::value> MSE_IMPL_EIS >
 				TAnyRandomAccessConstIteratorBase(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, _TRandomAccessConstIterator1>(random_access_const_iterator)) {}
 
 				friend void swap(TAnyRandomAccessConstIteratorBase& first, TAnyRandomAccessConstIteratorBase& second) {
@@ -1428,10 +1428,10 @@ namespace mse {
 
 		TAnyRandomAccessIterator(const TAnyRandomAccessIterator& src) : base_class(src) {}
 		TAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
-		template <typename _TRandomAccessIterator1, class = mse::impl::enable_if_t<
+		template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<TAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)
-			> >
+			> MSE_IMPL_EIS >
 		TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
 		}
@@ -1467,10 +1467,10 @@ namespace mse {
 		TAnyRandomAccessConstIterator(const TAnyRandomAccessIterator<_Ty>& src) : base_class(src) {}
 		TAnyRandomAccessConstIterator(const _Ty arr[]) : base_class(arr) {}
 
-		template <typename _TRandomAccessConstIterator1, class = mse::impl::enable_if_t<
+		template <typename _TRandomAccessConstIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator<_Ty>>::value)
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
-			> >
+			> MSE_IMPL_EIS >
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : base_class(random_access_const_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessConstIterator1>();
 #if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED))
@@ -1735,10 +1735,10 @@ namespace mse {
 
 
 	namespace impl {
-		template<typename _Ty, typename _TRALoneParam, class = mse::impl::enable_if_t<
+		template<typename _Ty, typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_same<std::basic_string<_Ty>, mse::impl::remove_const_t<_TRALoneParam> >::value)
 			&& (!std::is_same<mse::TXScopeObj<std::basic_string<_Ty> >, mse::impl::remove_const_t<_TRALoneParam> >::value)
-			> >
+			> MSE_IMPL_EIS >
 		void T_valid_if_not_an_std_basic_string_msepoly() {}
 
 		template<typename _Ty, typename _TPtr>
@@ -2042,12 +2042,12 @@ namespace mse {
 		TNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
 		explicit TNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
 
-		template <typename _TRandomAccessIterator1, class = mse::impl::enable_if_t<
+		template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessIterator1, TNullableAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
-			> >
+			> MSE_IMPL_EIS >
 		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
 		}
@@ -2102,12 +2102,12 @@ namespace mse {
 		TXScopeNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
 		explicit TXScopeNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
 
-		template <typename _TRandomAccessIterator1, class = mse::impl::enable_if_t<
+		template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
-			> >
+			> MSE_IMPL_EIS >
 		TXScopeNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {}
 
 		friend void swap(TXScopeNullableAnyRandomAccessIterator& first, TXScopeNullableAnyRandomAccessIterator& second) {
@@ -2154,12 +2154,12 @@ namespace mse {
 		TNullableAnyPointer(const TNullableAnyPointer& src) : base_class(src) {}
 		TNullableAnyPointer(const base_class& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = mse::impl::enable_if_t<
+		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TNullableAnyPointer>::value)
 			&& (!std::is_base_of<base_class, _TPointer1>::value)
 			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TPointer1, int>::value)
-			> >
+			> MSE_IMPL_EIS >
 		TNullableAnyPointer(const _TPointer1& random_access_iterator) : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
@@ -2210,12 +2210,12 @@ namespace mse {
 		TXScopeNullableAnyPointer(const TXScopeNullableAnyPointer& src) : base_class(src) {}
 		TXScopeNullableAnyPointer(const base_class& src) : base_class(src) {}
 
-		template <typename _TPointer1, class = mse::impl::enable_if_t<
+		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TXScopeNullableAnyPointer>::value)
 			&& (!std::is_base_of<base_class, _TPointer1>::value)
 			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TPointer1, int>::value)
-			> >
+			> MSE_IMPL_EIS >
 		TXScopeNullableAnyPointer(const _TPointer1& random_access_iterator) : base_class(random_access_iterator) {}
 
 		friend void swap(TXScopeNullableAnyPointer& first, TXScopeNullableAnyPointer& second) {

@@ -153,9 +153,9 @@ namespace mse {
 	}
 	namespace rsv {
 
-		template <class _Ty, class _Ty2, class = mse::impl::enable_if_t<
+		template <class _Ty, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
-			> >
+			> MSE_IMPL_EIS >
 			static void valid_if_not_rvalue_reference_of_given_type_msethreadlocal(_Ty2 src) {}
 
 		template<typename _Ty> class TThreadLocalObj;
@@ -185,7 +185,7 @@ namespace mse {
 			TThreadLocalPointer(const base_class& ptr) : base_class(ptr) {}
 			TThreadLocalPointer(const TThreadLocalPointer& src_cref) : base_class(
 				static_cast<const base_class&>(src_cref)) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TThreadLocalPointer(const TThreadLocalPointer<_Ty2>& src_cref) : base_class(mse::us::impl::ns_thread_local::TThreadLocalPointerBase<_Ty2>(src_cref)) {}
 			/*
 			TThreadLocalPointer<_Ty>& operator=(TThreadLocalObj<_Ty>* ptr) {
@@ -237,10 +237,10 @@ namespace mse {
 			TThreadLocalConstPointer() : base_class() {}
 			TThreadLocalConstPointer(const base_class& ptr) : base_class(ptr) {}
 			TThreadLocalConstPointer(const TThreadLocalConstPointer& src_cref) : base_class(static_cast<const base_class&>(src_cref)) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TThreadLocalConstPointer(const TThreadLocalConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			TThreadLocalConstPointer(const TThreadLocalPointer<_Ty>& src_cref) : base_class(static_cast<const typename TThreadLocalPointer<_Ty>::base_class&>(src_cref)) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TThreadLocalConstPointer(const TThreadLocalPointer<_Ty2>& src_cref) : base_class(mse::us::impl::ns_thread_local::TThreadLocalConstPointerBase<_Ty2>(src_cref)) {}
 			/*
 			TThreadLocalConstPointer<_Ty>& operator=(const TThreadLocalObj<_Ty>* ptr) {
@@ -320,7 +320,7 @@ namespace mse {
 			//TThreadLocalNotNullPointer(typename base_class::scope_obj_base_ptr_t src_cref) : base_class(src_cref) {}
 			TThreadLocalNotNullPointer(const typename base_class::base_class& ptr) : base_class(ptr) {}
 			TThreadLocalNotNullPointer(TThreadLocalObj<_Ty>* ptr) : base_class(ptr) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TThreadLocalNotNullPointer(const TThreadLocalNotNullPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 
 			TThreadLocalNotNullPointer<_Ty>& operator=(const TThreadLocalNotNullPointer<_Ty>& _Right_cref) {
@@ -355,10 +355,10 @@ namespace mse {
 
 		private:
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 
 			TThreadLocalNotNullConstPointer<_Ty>& operator=(const TThreadLocalNotNullConstPointer<_Ty>& _Right_cref) {
@@ -384,7 +384,7 @@ namespace mse {
 		public:
 			typedef TThreadLocalNotNullPointer<_Ty> base_class;
 			TThreadLocalFixedPointer(const TThreadLocalFixedPointer& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TThreadLocalFixedPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedPointer() {}
 			operator bool() const { return (*static_cast<const base_class*>(this)); }
@@ -414,10 +414,10 @@ namespace mse {
 		public:
 			typedef TThreadLocalNotNullConstPointer<_Ty> base_class;
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const base_class*>(this)); }
@@ -485,8 +485,8 @@ namespace mse {
 		private:
 			void* operator new(size_t size) { return ::operator new(size); }
 
-			template<class _Ty2 = _TROy, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value)
-				&& ((!std::is_const<_TROy>::value) || (!std::is_trivially_destructible<_TROy>::value))> >
+			template<class _Ty2 = _TROy, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value)
+				&& ((!std::is_const<_TROy>::value) || (!std::is_trivially_destructible<_TROy>::value))> MSE_IMPL_EIS >
 			void valid_if_TROy_is_not_const_qualified() const {}
 		};
 

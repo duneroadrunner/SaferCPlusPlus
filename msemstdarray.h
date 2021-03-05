@@ -547,8 +547,8 @@ namespace mse {
 
 			void async_not_shareable_tag() const {}
 			/* this array should be safely passable iff the element type is safely passable */
-			template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
-				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value)> >
+			template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value)> MSE_IMPL_EIS >
 			void async_passable_tag() const {}
 
 		private:

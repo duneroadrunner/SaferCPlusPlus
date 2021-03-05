@@ -98,7 +98,7 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `any` may be copy constructed into another `any` at any time, so a copy should always be allowed.
-		template<typename ValueType, typename = mse::impl::enable_if_t<!std::is_same<typename std::decay<ValueType>::type, any>::value> >
+		template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<typename std::decay<ValueType>::type, any>::value> MSE_IMPL_EIS >
 		any(ValueType&& value)
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
@@ -127,7 +127,7 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `any` may be copy constructed into another `any` at any time, so a copy should always be allowed.
-		template<typename ValueType, typename = mse::impl::enable_if_t<!std::is_same<typename std::decay<ValueType>::type, any>::value> >
+		template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<typename std::decay<ValueType>::type, any>::value> MSE_IMPL_EIS >
 		any& operator=(ValueType&& value)
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
@@ -587,10 +587,10 @@ namespace mse {
 			public:
 				TAnyPointerBaseV1(const TAnyPointerBaseV1& src) : m_any_pointer(src.m_any_pointer) {}
 
-				template <typename _TPointer1, class = mse::impl::enable_if_t<
+				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
 					&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
-					> >
+					> MSE_IMPL_EIS >
 					TAnyPointerBaseV1(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
 
 				_Ty& operator*() const {
@@ -667,10 +667,10 @@ namespace mse {
 				TAnyConstPointerBaseV1(const TAnyConstPointerBaseV1& src) : m_any_const_pointer(src.m_any_const_pointer) {}
 				TAnyConstPointerBaseV1(const TAnyPointerBaseV1<_Ty>& src) : m_any_const_pointer(src.m_any_pointer) {}
 
-				template <typename _TPointer1, class = mse::impl::enable_if_t<
+				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
 					&& (!std::is_convertible<TAnyPointerBaseV1<_Ty>, _TPointer1>::value)
-					> >
+					> MSE_IMPL_EIS >
 					TAnyConstPointerBaseV1(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
 
 				const _Ty& operator*() const {

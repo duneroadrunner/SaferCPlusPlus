@@ -180,11 +180,11 @@ namespace mse {
 		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
 		*/
 		template <class Y> friend class TRefCountingPointer;
-		template <class Y, class = mse::impl::enable_if_t<std::is_base_of<X, Y>::value> >
+		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 		TRefCountingPointer(const TRefCountingPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
 		}
-		template <class Y, class = mse::impl::enable_if_t<std::is_base_of<X, Y>::value> >
+		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 		TRefCountingPointer& operator=(const TRefCountingPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
@@ -275,7 +275,7 @@ namespace mse {
 #ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class X2 = X, class = mse::impl::enable_if_t<(std::is_same<X2, X>::value) && (mse::impl::is_potentially_not_xscope<X2>::value)> >
+		template<class X2 = X, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<X2, X>::value) && (mse::impl::is_potentially_not_xscope<X2>::value)> MSE_IMPL_EIS >
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		void valid_if_X_is_not_an_xscope_type() const {}
 
@@ -428,11 +428,11 @@ namespace mse {
 		signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
 		*/
 		template <class Y> friend class TRefCountingConstPointer;
-		template <class Y, class = mse::impl::enable_if_t<std::is_base_of<X, Y>::value> >
+		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 		TRefCountingConstPointer(const TRefCountingConstPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
 		}
-		template <class Y, class = mse::impl::enable_if_t<std::is_base_of<X, Y>::value> >
+		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 		TRefCountingConstPointer& operator=(const TRefCountingConstPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
@@ -517,7 +517,7 @@ namespace mse {
 #ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class X2 = X, class = mse::impl::enable_if_t<(std::is_same<X2, X>::value) && (mse::impl::is_potentially_not_xscope<X2>::value)> >
+		template<class X2 = X, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<X2, X>::value) && (mse::impl::is_potentially_not_xscope<X2>::value)> MSE_IMPL_EIS >
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 		void valid_if_X_is_not_an_xscope_type() const {}
 

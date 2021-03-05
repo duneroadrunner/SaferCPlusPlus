@@ -1353,7 +1353,7 @@ namespace mse {
 
 		//MSE_USING(TXScopeStringSection, base_class);
 		TXScopeStringSection(const TXScopeStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> MSE_IMPL_EIS >
 		TXScopeStringSection(const TStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		TXScopeStringSection(const base_class& src) : base_class(src) {}
 		TXScopeStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
@@ -1690,11 +1690,11 @@ namespace mse {
 		//MSE_USING(TXScopeStringConstSection, base_class);
 
 		TXScopeStringConstSection(const TXScopeStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> MSE_IMPL_EIS >
 		TXScopeStringConstSection(const TStringConstSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TStringConstSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		TXScopeStringConstSection(const TXScopeStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TXScopeStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		TXScopeStringConstSection(const base_class& src) : base_class(src) {}
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> MSE_IMPL_EIS >
 		TXScopeStringConstSection(const TStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
 		TXScopeStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
@@ -2391,7 +2391,7 @@ namespace mse {
 	std::basic_string_view<> iterators (for extra safety). */
 
 	namespace impl {
-		template<class _TRAIterator, class = mse::impl::enable_if_t<(!std::is_pointer<_TRAIterator>::value)> >
+		template<class _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_pointer<_TRAIterator>::value)> MSE_IMPL_EIS >
 		void T_valid_if_not_a_native_pointer_msemsestring() {}
 
 		template<class _TRAIterator>
@@ -2409,7 +2409,7 @@ namespace mse {
 		> {};
 		/* The following template function will instantiate iff the given iterator is not an std::basic_string<>::iterator
 		(or const_iterator). */
-		template<class _TRAIterator, class = mse::impl::enable_if_t<is_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>::value> >
+		template<class _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<is_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>::value> MSE_IMPL_EIS >
 		void T_valid_if_not_an_std_basic_string_iterator_msemsestring() {}
 
 		template<class _TRAIterator>
@@ -2423,7 +2423,7 @@ namespace mse {
 		> {};
 		/* The following template function will instantiate iff the given iterator is not an xscope iterator of an
 		std::basic_string<>. */
-		template<class _TRAIterator, class = mse::impl::enable_if_t<is_not_an_std_basic_string_xscope_iterator_msemsestring<_TRAIterator>::value> >
+		template<class _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<is_not_an_std_basic_string_xscope_iterator_msemsestring<_TRAIterator>::value> MSE_IMPL_EIS >
 		void T_valid_if_not_an_std_basic_string_xscope_iterator_msemsestring() {}
 
 		template<class _TRAIterator>
@@ -2446,7 +2446,7 @@ namespace mse {
 			> {};
 		/* The following template function will instantiate iff the given iterator is not an std::basic_string_view<>::iterator
 		(or const_iterator). */
-		template<class _TRAIterator, class = mse::impl::enable_if_t<is_not_an_std_basic_string_view_iterator_msemsestring<_TRAIterator>::value> >
+		template<class _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<is_not_an_std_basic_string_view_iterator_msemsestring<_TRAIterator>::value> MSE_IMPL_EIS >
 		void T_valid_if_not_an_std_basic_string_view_iterator_msemsestring() {}
 
 		template<class _TRAIterator>
@@ -2460,17 +2460,17 @@ namespace mse {
 			> {};
 		/* The following template function will instantiate iff the given iterator is not an xscope iterator of an
 		std::basic_string_view<>. */
-		template<class _TRAIterator, class = mse::impl::enable_if_t<is_not_an_std_basic_string_view_xscope_iterator_msemsestring<_TRAIterator>::value> >
+		template<class _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<is_not_an_std_basic_string_view_xscope_iterator_msemsestring<_TRAIterator>::value> MSE_IMPL_EIS >
 		void T_valid_if_not_an_std_basic_string_view_xscope_iterator_msemsestring() {}
 
-		template<class _TRAIterator, class = mse::impl::enable_if_t<
+		template<class _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<
 			is_not_an_std_basic_string_view_iterator_msemsestring<_TRAIterator>::value
 			&& is_not_an_std_basic_string_view_xscope_iterator_msemsestring<_TRAIterator>::value
 #ifndef MSE_MSTDSTRING_DISABLED
 			&& is_not_an_std_basic_string_iterator_msemsestring<_TRAIterator>::value
 			&& is_not_an_std_basic_string_xscope_iterator_msemsestring<_TRAIterator>::value
 #endif /*!MSE_MSTDSTRING_DISABLED*/
-		> >
+		> MSE_IMPL_EIS >
 		void T_valid_if_not_an_nrp_unsupported_iterator_msemsestring() {}
 	}
 
@@ -2483,7 +2483,7 @@ namespace mse {
 		//MSE_USING(TXScopeNRPStringSection, base_class);
 		TXScopeNRPStringSection(const TXScopeNRPStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
 		TXScopeNRPStringSection(const base_class& src) : base_class(src) {}
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> MSE_IMPL_EIS >
 		TXScopeNRPStringSection(const TNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const base_class&>(src)) {}
 		TXScopeNRPStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
@@ -2513,7 +2513,7 @@ namespace mse {
 
 	private:
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> MSE_IMPL_EIS >
 #endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
@@ -2570,7 +2570,7 @@ namespace mse {
 		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
 
 	private:
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> MSE_IMPL_EIS >
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
 		friend class TXScopeNRPStringSection<_TRAIterator, _Traits>;
@@ -2602,14 +2602,14 @@ namespace mse {
 
 		TXScopeNRPStringConstSection(const TXScopeNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
 		TXScopeNRPStringConstSection(const base_class& src) : base_class(src) { valid_if_TRAIterator_is_not_a_native_pointer(); }
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> MSE_IMPL_EIS >
 		TXScopeNRPStringConstSection(const TNRPStringConstSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const base_class&>(src)) {}
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> MSE_IMPL_EIS >
 		TXScopeNRPStringConstSection(const TXScopeNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TXScopeNRPStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)
-			&& (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)
+			&& (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> MSE_IMPL_EIS >
 		TXScopeNRPStringConstSection(const TNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TNRPStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> MSE_IMPL_EIS >
 		TXScopeNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
 			valid_if_TRAIterator_is_not_a_native_pointer();
 		}
@@ -2658,7 +2658,7 @@ namespace mse {
 		explicit TXScopeNRPStringConstSection(mse::impl::remove_const_t<value_type>(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> MSE_IMPL_EIS >
 #endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
@@ -2727,9 +2727,9 @@ namespace mse {
 
 		TNRPStringConstSection(const TNRPStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
 		TNRPStringConstSection(const base_class& src) : base_class(src) { valid_if_TRAIterator_is_not_a_native_pointer(); }
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> MSE_IMPL_EIS >
 		TNRPStringConstSection(const TNRPStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TNRPStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> MSE_IMPL_EIS >
 		TNRPStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {
 			valid_if_TRAIterator_is_not_a_native_pointer();
 		}
@@ -2772,7 +2772,7 @@ namespace mse {
 		template<size_t Tn>
 		explicit TNRPStringConstSection(mse::impl::remove_const_t<value_type>(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
-		template<class _Ty2 = _TRAIterator, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> >
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (!std::is_pointer<_Ty2>::value)> MSE_IMPL_EIS >
 		void valid_if_TRAIterator_is_not_a_native_pointer() const {}
 
 		friend class TXScopeNRPStringConstSection<_TRAIterator, _Traits>;
@@ -3141,7 +3141,7 @@ namespace mse {
 
 				typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<decltype(*std::declval<_TBasicStringConstPointer>())> > _TBasicString;
 
-				template<class _TBasicStringConstPointer2 = _TBasicStringConstPointer, class = mse::impl::enable_if_t<(std::is_same<_TBasicStringConstPointer2, _TBasicStringConstPointer>::value) && (std::is_default_constructible<_TBasicStringConstPointer>::value)> >
+				template<class _TBasicStringConstPointer2 = _TBasicStringConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TBasicStringConstPointer2, _TBasicStringConstPointer>::value) && (std::is_default_constructible<_TBasicStringConstPointer>::value)> MSE_IMPL_EIS >
 				Tgnii_basic_string_ss_const_iterator_type() {}
 
 				Tgnii_basic_string_ss_const_iterator_type(const _TBasicStringConstPointer& owner_cptr) : base_class(owner_cptr) {}
@@ -3149,9 +3149,9 @@ namespace mse {
 
 				Tgnii_basic_string_ss_const_iterator_type(Tgnii_basic_string_ss_const_iterator_type&& src) = default;
 				Tgnii_basic_string_ss_const_iterator_type(const Tgnii_basic_string_ss_const_iterator_type& src) = default;
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value> MSE_IMPL_EIS >
 				Tgnii_basic_string_ss_const_iterator_type(const Tgnii_basic_string_ss_const_iterator_type<_Ty2>& src) : base_class(src.target_container_ptr(), src.position()) {}
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TBasicStringConstPointer>::value> MSE_IMPL_EIS >
 				Tgnii_basic_string_ss_const_iterator_type(const Tgnii_basic_string_ss_iterator_type<_Ty2>& src) : base_class(src.target_container_ptr(), src.position()) {}
 
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
@@ -3194,7 +3194,7 @@ namespace mse {
 
 				typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<decltype(*std::declval<_TBasicStringPointer>())> > _TBasicString;
 
-				template<class _TBasicStringPointer2 = _TBasicStringPointer, class = mse::impl::enable_if_t<(std::is_same<_TBasicStringPointer2, _TBasicStringPointer>::value) && (std::is_default_constructible<_TBasicStringPointer>::value)> >
+				template<class _TBasicStringPointer2 = _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TBasicStringPointer2, _TBasicStringPointer>::value) && (std::is_default_constructible<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				Tgnii_basic_string_ss_iterator_type() {}
 
 				Tgnii_basic_string_ss_iterator_type(const _TBasicStringPointer& owner_ptr) : base_class(owner_ptr) {}
@@ -3202,7 +3202,7 @@ namespace mse {
 
 				Tgnii_basic_string_ss_iterator_type(Tgnii_basic_string_ss_iterator_type&& src) = default;
 				Tgnii_basic_string_ss_iterator_type(const Tgnii_basic_string_ss_iterator_type& src) = default;
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2, _TBasicStringPointer>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TBasicStringPointer>::value> MSE_IMPL_EIS >
 				Tgnii_basic_string_ss_iterator_type(const Tgnii_basic_string_ss_iterator_type<_Ty2>& src) : base_class(src.target_container_ptr(), src.position()) {}
 
 
@@ -3375,13 +3375,13 @@ namespace mse {
 				/* Normally we would just use the macro for inheriting assignment operators, but here we need to exclude any
 				that handle Tgnii_basic_string_xscope_cslsstrong_iterator_type<>s, because that class needs to be handled a bit
 				differently. */
-				template<class _Ty2mse_uao, class _Tbase_class2 = base_class, typename = mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_Tbase_class2>::value \
+				template<class _Ty2mse_uao, class _Tbase_class2 = base_class, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_Tbase_class2>::value \
 					&& (!std::is_same<Tgnii_basic_string_xscope_cslsstrong_iterator_type<_TBasicString>, mse::impl::remove_reference_t<_Ty2mse_uao> >::value) \
-					&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_Tbase_class2, _Ty2mse_uao>::value) || std::is_same<_Tbase_class2, mse::impl::remove_reference_t<_Ty2mse_uao> >::value)> > \
+					&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_Tbase_class2, _Ty2mse_uao>::value) || std::is_same<_Tbase_class2, mse::impl::remove_reference_t<_Ty2mse_uao> >::value)> MSE_IMPL_EIS > \
 				auto& operator=(_Ty2mse_uao&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); } \
-				template<class _Ty2mse_uao, class _Tbase_class2 = base_class, typename = mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_Tbase_class2>::value \
+				template<class _Ty2mse_uao, class _Tbase_class2 = base_class, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_Tbase_class2>::value \
 					&& (!std::is_same<Tgnii_basic_string_xscope_cslsstrong_iterator_type<_TBasicString>, mse::impl::remove_reference_t<_Ty2mse_uao> >::value) \
-					&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_Tbase_class2, _Ty2mse_uao>::value) || std::is_same<_Tbase_class2, mse::impl::remove_reference_t<_Ty2mse_uao> >::value)> > \
+					&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_Tbase_class2, _Ty2mse_uao>::value) || std::is_same<_Tbase_class2, mse::impl::remove_reference_t<_Ty2mse_uao> >::value)> MSE_IMPL_EIS > \
 				auto& operator=(const _Ty2mse_uao& _X) { base_class::operator=(_X); return (*this); }
 
 				auto& operator=(Tgnii_basic_string_xscope_ss_const_iterator_type&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
@@ -3601,11 +3601,11 @@ namespace mse {
 				gnii_basic_string(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
 				gnii_basic_string(const _Ty*  _F, const _Ty*  _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
 				template<class _Iter
-					//, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value>
+					//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 					, class = mse::impl::_mse_RequireInputIter<_Iter> >
 					gnii_basic_string(const _Iter& _First, const _Iter& _Last) : base_class(_First, _Last) { /*m_debug_size = size();*/ }
 				template<class _Iter
-					//, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value>
+					//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 					, class = mse::impl::_mse_RequireInputIter<_Iter> >
 					//gnii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
 					gnii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
@@ -3628,7 +3628,7 @@ namespace mse {
 					assign(_Right, _Roff, _Count);
 				}
 		#else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				explicit gnii_basic_string(const _TStringSection& _X) : base_class(_X.cbegin(), _X.cend()) { /*m_debug_size = size();*/ }
 		#endif /* MSE_HAS_CXX17 */
 
@@ -3755,7 +3755,7 @@ namespace mse {
 					//m_debug_size = size();
 					return (*this);
 				}
-				template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > >
+				template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > MSE_IMPL_EIS >
 				gnii_basic_string& assign(const _Iter _First, const _Iter _Last) {
 					smoke_check_source_iterators(_First, _Last);
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
@@ -3824,7 +3824,7 @@ namespace mse {
 					return assign_helper1(typename std::is_base_of<gnii_basic_string, _TParam1>::type(), _Right, _Roff, _Count);
 				}
 		#else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				gnii_basic_string& assign(const _TStringSection& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					contained_basic_string().assign(_X.cbegin(), _X.cend());
@@ -3957,14 +3957,14 @@ namespace mse {
 				typedef mse::impl::random_access_const_iterator_base<_Ty> nbs_const_iterator_base;
 				typedef mse::impl::random_access_iterator_base<_Ty> nbs_iterator_base;
 
-				template<typename _TBasicStringConstPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringConstPointer>::value)> >
+				template<typename _TBasicStringConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringConstPointer>::value)> MSE_IMPL_EIS >
 				using Tss_const_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_iterator_type<_TBasicStringConstPointer>;
-				template<typename _TBasicStringPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> >
+				template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				using Tss_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_iterator_type<_TBasicStringPointer>;
 
-				template<typename _TBasicStringPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> >
+				template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				using Tss_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_reverse_iterator_type<_TBasicStringPointer>;
-				template<typename _TBasicStringConstPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringConstPointer>::value)> >
+				template<typename _TBasicStringConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringConstPointer>::value)> MSE_IMPL_EIS >
 				using Tss_const_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_reverse_iterator_type<_TBasicStringConstPointer>;
 
 				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_iterator_type<_Myt> ss_iterator_type;
@@ -4107,7 +4107,7 @@ namespace mse {
 					retval.advance(msev_int(original_pos));
 					return retval;
 				}
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				ss_iterator_type insert_before(const ss_const_iterator_type &pos, const _TStringSection& _X) {
 					if (pos.m_owner_ptr != this) { MSE_THROW(gnii_basic_string_range_error("invalid arguments - void insert_before() - gnii_basic_string")); }
 					pos.assert_valid_index();
@@ -4307,7 +4307,7 @@ namespace mse {
 					retval.advance(msev_int(original_pos));
 					return retval;
 				}
-				template<typename _TBasicStringPointer1, typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TBasicStringPointer1, typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				static auto& insert(_TBasicStringPointer1 this_ptr, size_type pos, const _TStringSection& _X) {
 					s_assert_valid_index(this_ptr, pos);
 					msev_size_t original_pos = pos;
@@ -4374,7 +4374,7 @@ namespace mse {
 				static auto insert(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, _XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {
 					return insert(this_ptr, pos.position(), _Ilist);
 				}
-				template<typename _TBasicStringPointer1, typename _TBasicStringPointer2, typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TBasicStringPointer1, typename _TBasicStringPointer2, typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				static auto insert(_TBasicStringPointer1 this_ptr, const Tss_const_iterator_type<_TBasicStringPointer2>& pos, const _TStringSection& _X) {
 					return insert(this_ptr, pos.position(), _X);
 				}
@@ -4451,7 +4451,7 @@ namespace mse {
 				static auto insert(_TBasicStringPointer1 this_ptr, const xscope_const_iterator& pos, _XSTD initializer_list<typename std_basic_string::value_type> _Ilist) {
 					return insert(this_ptr, pos.position(), _Ilist);
 				}
-				template<typename _TBasicStringPointer1, typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TBasicStringPointer1, typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				static auto insert(_TBasicStringPointer1 this_ptr, const xscope_const_iterator& pos, const _TStringSection& _X) {
 					return insert(this_ptr, pos.position(), _X);
 				}
@@ -4550,7 +4550,7 @@ namespace mse {
 					//m_debug_size = size();
 					return (*this);
 				}
-				template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > >
+				template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > MSE_IMPL_EIS >
 				gnii_basic_string& append(const _Iter _First, const _Iter _Last) {
 					smoke_check_source_iterators(_First, _Last);
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
@@ -4624,7 +4624,7 @@ namespace mse {
 					return append_helper1(typename std::is_base_of<gnii_basic_string, _TParam1>::type(), _Right, _Roff, _Count);
 				}
 		#else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				gnii_basic_string& append(const _TStringSection& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					contained_basic_string().append(_X.cbegin(), _X.cend());
@@ -4656,7 +4656,7 @@ namespace mse {
 					return (append(_Right));
 				}
 		#else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				gnii_basic_string& operator+=(const _TStringSection& _X) {
 					return (append(_X));
 				}
@@ -4744,7 +4744,7 @@ namespace mse {
 					return replace_helper1(typename std::is_base_of<gnii_basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
 				}
 		#else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, const _TStringSection& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					contained_basic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _X.cbegin(), _X.cend());
@@ -4796,7 +4796,7 @@ namespace mse {
 					return (replace(_First - begin(), _Last - _First, _Count, _Ch));
 				}
 
-				template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
+				template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
 				gnii_basic_string& replace(const const_iterator _First, const const_iterator _Last,
 					const _Iter _First2, const _Iter _Last2) {
 					const gnii_basic_string _Right(_First2, _Last2, get_allocator());
@@ -4804,7 +4804,7 @@ namespace mse {
 					return (*this);
 				}
 
-				template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
+				template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
 				gnii_basic_string& replace(const size_type _Off, const size_type _N0, const _Iter _First2, const _Iter _Last2) {
 					smoke_check_source_iterators(_First2, _Last2);
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
@@ -4925,7 +4925,7 @@ namespace mse {
 					return compare_helper1(typename std::is_base_of<gnii_basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
 				}
 		#else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				int compare(const size_type _Off, const size_type _N0, const _TStringSection& _X) const {
 					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), gnii_basic_string(_X.cbegin(), _X.cend()));
 				}
@@ -4956,7 +4956,7 @@ namespace mse {
 					return find_helper1(typename std::is_base_of<gnii_basic_string, _TParam1>::type(), _Right, _Off);
 				}
 		#else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				size_type find(const _TStringSection& _X, const size_type _Off = npos) const {
 					return contained_basic_string().find(gnii_basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 				}
@@ -5003,7 +5003,7 @@ namespace mse {
 					return rfind_helper1(typename std::is_base_of<gnii_basic_string, _TParam1>::type(), _Right, _Off);
 				}
 		#else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				size_type rfind(const _TStringSection& _X, const size_type _Off = npos) const {
 					return contained_basic_string().rfind(gnii_basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 				}
@@ -5179,7 +5179,7 @@ namespace mse {
 			private:
 				/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 				(intended) compile error. */
-				template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> >
+				template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 				void valid_if_Ty_is_not_an_xscope_type() const {}
 
 				auto begin() { return contained_basic_string().begin(); }
@@ -5219,7 +5219,7 @@ namespace mse {
 					/*m_debug_size = size();*/
 					return retval;
 				}
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				typename std_basic_string::iterator insert(typename std_basic_string::const_iterator _P, const _TStringSection& _X) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					/* todo: optimize? In most cases a temporary copy shouldn't be necessary, but what about when the string section
@@ -5547,7 +5547,7 @@ namespace mse {
 					return static_cast<const base_class&>(*this);
 				}
 				/*
-				template<class TDynamicContainer2 = TDynamicContainer, class = mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<TDynamicContainer2>, mse::TXScopeFixedPointer<TDynamicContainer> >::value> >
+				template<class TDynamicContainer2 = TDynamicContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<TDynamicContainer2>, mse::TXScopeFixedPointer<TDynamicContainer> >::value> MSE_IMPL_EIS >
 				explicit operator mse::TXScopeFixedConstPointer<TDynamicContainer2>() const {
 					return static_cast<const base_class&>(*this);
 				}
@@ -5665,7 +5665,7 @@ namespace std {
 		return (_Left.swap(_Right));
 	}
 	template<class _Ty, class _Traits, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator
-		, class _TStateMutex2, template<typename> class _TTXScopeConstIterator2, class = mse::impl::enable_if_t<!std::is_same<_TStateMutex, _TStateMutex2>::value> >
+		, class _TStateMutex2, template<typename> class _TTXScopeConstIterator2, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<_TStateMutex, _TStateMutex2>::value> MSE_IMPL_EIS >
 	void swap(mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Left, mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex2, _TTXScopeConstIterator2>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap basic_strings
 		return (_Left.swap(_Right));
@@ -5844,13 +5844,13 @@ namespace mse {
 		typedef typename base_class::reverse_iterator reverse_iterator;
 		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
 
-		template<typename _TBasicStringConstPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringConstPointer>::value)> >
+		template<typename _TBasicStringConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringConstPointer>::value)> MSE_IMPL_EIS >
 		using Tss_const_iterator_type = typename base_class::template Tss_const_iterator_type<_TBasicStringConstPointer>;
-		template<typename _TBasicStringPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> >
+		template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 		using Tss_iterator_type = typename base_class::template Tss_iterator_type<_TBasicStringPointer>;
-		template<typename _TBasicStringPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> >
+		template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 		using Tss_reverse_iterator_type = typename base_class::template Tss_reverse_iterator_type<_TBasicStringPointer>;
-		template<typename _TBasicStringConstPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringConstPointer>::value)> >
+		template<typename _TBasicStringConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringConstPointer>::value)> MSE_IMPL_EIS >
 		using Tss_const_reverse_iterator_type = typename base_class::template Tss_const_reverse_iterator_type<_TBasicStringConstPointer>;
 		typedef typename base_class::ss_iterator_type ss_iterator_type;
 		typedef typename base_class::ss_const_iterator_type ss_const_iterator_type;
@@ -6004,11 +6004,11 @@ namespace mse {
 				fixed_nii_basic_string_base(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
 				fixed_nii_basic_string_base(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
 				template<class _Iter
-					//, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value>
+					//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 					, class = mse::impl::_mse_RequireInputIter<_Iter> >
 					fixed_nii_basic_string_base(const _Iter& _First, const _Iter& _Last) : base_class(_First, _Last) { /*m_debug_size = size();*/ }
 				template<class _Iter
-					//, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value>
+					//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 					, class = mse::impl::_mse_RequireInputIter<_Iter> >
 					//fixed_nii_basic_string_base(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
 					fixed_nii_basic_string_base(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
@@ -6031,7 +6031,7 @@ namespace mse {
 					assign(_Right, _Roff, _Count);
 				}
 #else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				explicit fixed_nii_basic_string_base(const _TStringSection& _X) : base_class(_X.cbegin(), _X.cend()) { /*m_debug_size = size();*/ }
 #endif /* MSE_HAS_CXX17 */
 
@@ -6201,7 +6201,7 @@ namespace mse {
 					//m_debug_size = size();
 					return (*this);
 				}
-				template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > >
+				template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > MSE_IMPL_EIS >
 				_Myt& assign(const _Iter _First, const _Iter _Last) {
 					smoke_check_source_iterators(_First, _Last);
 					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
@@ -6270,7 +6270,7 @@ namespace mse {
 					return assign_helper1(typename std::is_base_of<_Myt, _TParam1>::type(), _Right, _Roff, _Count);
 				}
 #else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				_Myt& assign(const _TStringSection& _X) {
 					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 					contained_basic_string().assign(_X.cbegin(), _X.cend());
@@ -6357,14 +6357,14 @@ namespace mse {
 				typedef mse::impl::random_access_const_iterator_base<_Ty> nbs_const_iterator_base;
 				typedef mse::impl::random_access_iterator_base<_Ty> nbs_iterator_base;
 
-				template<typename _TVectorConstPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> >
+				template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
 				using Tss_const_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_iterator_type<_TVectorConstPointer>;
-				template<typename _TVectorPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> >
+				template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				using Tss_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_iterator_type<_TVectorPointer>;
 
-				template<typename _TVectorPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> >
+				template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				using Tss_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_reverse_iterator_type<_TVectorPointer>;
-				template<typename _TVectorConstPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> >
+				template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
 				using Tss_const_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_reverse_iterator_type<_TVectorConstPointer>;
 
 				typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_iterator_type<_Myt> ss_iterator_type;
@@ -6575,7 +6575,7 @@ namespace mse {
 					return compare_helper1(typename std::is_base_of<fixed_nii_basic_string_base, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
 				}
 #else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				int compare(const size_type _Off, const size_type _N0, const _TStringSection& _X) const {
 					return contained_basic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), fixed_nii_basic_string_base(_X.cbegin(), _X.cend()));
 				}
@@ -6606,7 +6606,7 @@ namespace mse {
 					return find_helper1(typename std::is_base_of<fixed_nii_basic_string_base, _TParam1>::type(), _Right, _Off);
 				}
 #else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				size_type find(const _TStringSection& _X, const size_type _Off = npos) const {
 					return contained_basic_string().find(fixed_nii_basic_string_base(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 				}
@@ -6653,7 +6653,7 @@ namespace mse {
 					return rfind_helper1(typename std::is_base_of<fixed_nii_basic_string_base, _TParam1>::type(), _Right, _Off);
 				}
 #else /* MSE_HAS_CXX17 */
-				template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				size_type rfind(const _TStringSection& _X, const size_type _Off = npos) const {
 					return contained_basic_string().rfind(fixed_nii_basic_string_base(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 				}
@@ -6830,10 +6830,10 @@ namespace mse {
 
 				/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 				(intended) compile error. */
-				template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> >
+				template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 				void valid_if_Ty_is_not_an_xscope_type() const {}
 
-				template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (!std::is_same<bool, _Ty2>::value)> >
+				template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (!std::is_same<bool, _Ty2>::value)> MSE_IMPL_EIS >
 				void valid_if_Ty_is_not_bool() const {}
 
 
@@ -6932,11 +6932,11 @@ namespace mse {
 		fixed_nii_basic_string(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
 		fixed_nii_basic_string(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
 		template<class _Iter
-			//, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value>
+			//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 			, class = mse::impl::_mse_RequireInputIter<_Iter> >
 			fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last) : base_class(_First, _Last) { /*m_debug_size = size();*/ }
 		template<class _Iter
-			//, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value>
+			//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 			, class = mse::impl::_mse_RequireInputIter<_Iter> >
 			//fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
 			fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
@@ -6957,14 +6957,14 @@ namespace mse {
 		typedef mse::impl::random_access_const_iterator_base<_Ty> nv_const_iterator_base;
 		typedef mse::impl::random_access_iterator_base<_Ty> nv_iterator_base;
 
-		template<typename _TVectorConstPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> >
+		template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
 		using Tss_const_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_iterator_type<_TVectorConstPointer>;
-		template<typename _TVectorPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> >
+		template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 		using Tss_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_iterator_type<_TVectorPointer>;
 
-		template<typename _TVectorPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> >
+		template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 		using Tss_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_reverse_iterator_type<_TVectorPointer>;
-		template<typename _TVectorConstPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> >
+		template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
 		using Tss_const_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_reverse_iterator_type<_TVectorConstPointer>;
 
 		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_iterator_type<_Myt> ss_iterator_type;
@@ -7039,7 +7039,7 @@ namespace mse {
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		friend /*class */xscope_ss_const_iterator_type;
@@ -7138,11 +7138,11 @@ namespace mse {
 		xscope_fixed_nii_basic_string(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
 		xscope_fixed_nii_basic_string(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
 		template<class _Iter
-			//, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value>
+			//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 			, class = mse::impl::_mse_RequireInputIter<_Iter> >
 			xscope_fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last) : base_class(_First, _Last) { /*m_debug_size = size();*/ }
 		template<class _Iter
-			//, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value>
+			//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 			, class = mse::impl::_mse_RequireInputIter<_Iter> >
 			//xscope_fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
 			xscope_fixed_nii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
@@ -7158,14 +7158,14 @@ namespace mse {
 		typedef mse::impl::random_access_const_iterator_base<_Ty> nv_const_iterator_base;
 		typedef mse::impl::random_access_iterator_base<_Ty> nv_iterator_base;
 
-		template<typename _TVectorConstPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> >
+		template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
 		using Tss_const_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_iterator_type<_TVectorConstPointer>;
-		template<typename _TVectorPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> >
+		template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 		using Tss_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_iterator_type<_TVectorPointer>;
 
-		template<typename _TVectorPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> >
+		template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 		using Tss_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_reverse_iterator_type<_TVectorPointer>;
-		template<typename _TVectorConstPointer, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> >
+		template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
 		using Tss_const_reverse_iterator_type = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_reverse_iterator_type<_TVectorConstPointer>;
 
 		typedef mse::impl::ns_gnii_basic_string::Tgnii_basic_string_rp_ss_iterator_type<_Myt> ss_iterator_type;
@@ -7238,15 +7238,15 @@ namespace mse {
 	private:
 		/* If _Ty is "marked" as containing a scope reference, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class _Ty2, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
-			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<_Ty2>::value)> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<_Ty2>::value)> MSE_IMPL_EIS >
 			void valid_if_Ty_is_not_marked_as_containing_a_scope_reference() const {}
 
 		/* If _Ty is "marked" as containing an accessible "scope address of" operator, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class _Ty2, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
 			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<_Ty2>::value)
-			> >
+			> MSE_IMPL_EIS >
 			void valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
 
 		friend /*class */xscope_ss_const_iterator_type;
@@ -7453,11 +7453,11 @@ namespace mse {
 			msebasic_string(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			msebasic_string(const _Ty*  _F, const _Ty*  _L, const _A& _Al = _A()) : base_class(_F, _L, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			template<class _Iter
-				//, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value>
+				//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				msebasic_string(const _Iter& _First, const _Iter& _Last) : base_class(_First, _Last), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			template<class _Iter
-				//, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value>
+				//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				//msebasic_string(const _Iter& _First, const _Iter& _Last, const typename base_class::_Alloc& _Al) : base_class(_First, _Last, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
 				msebasic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
@@ -7484,7 +7484,7 @@ namespace mse {
 			}
 #else /* MSE_HAS_CXX17 */
 			/* construct from mse::string_view and "string sections". */
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			explicit msebasic_string(const _TStringSection& _X) : base_class(_X), m_mmitset(*this) { /*m_debug_size = size();*/ }
 #endif /* MSE_HAS_CXX17 */
 
@@ -7672,7 +7672,7 @@ namespace mse {
 				m_mmitset.reset();
 				return (*this);
 			}
-			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > >
+			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > MSE_IMPL_EIS >
 			msebasic_string& assign(const _Iter _First, const _Iter _Last) {
 				base_class::assign(_First, _Last);
 				m_mmitset.reset();
@@ -7714,7 +7714,7 @@ namespace mse {
 				return assign_helper1(typename std::is_base_of<base_class, _TParam1>::type(), _Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			msebasic_string& assign(const _TStringSection& _X) {
 				base_class::assign(_X);
 				m_mmitset.reset();
@@ -7877,7 +7877,7 @@ namespace mse {
 				/*return retval;*/
 			}
 #endif /*!(defined(GPP4P8_COMPATIBLE))*/
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			typename base_class::iterator insert(typename base_class::const_iterator _P, const _TStringSection& _X) {
 				structure_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 				if (m_mmitset.is_empty()) {
@@ -9169,7 +9169,7 @@ namespace mse {
 				typename base_class::const_iterator _P = pos;
 				(*this).insert(_P, _Ilist);
 			}
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			void insert_before(const mm_const_iterator_type &pos, const _TStringSection& _X) {
 				if (pos.m_owner_cptr != this) { MSE_THROW(msebasic_string_range_error("invalid arguments - void insert_before() - msebasic_string")); }
 				typename base_class::const_iterator _P = pos;
@@ -9210,7 +9210,7 @@ namespace mse {
 				ipointer retval(*this); retval.advance(msev_int(original_pos));
 				return retval;
 			}
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			ipointer insert_before(const cipointer &pos, const _TStringSection& _X) {
 				msev_size_t original_pos = pos.position();
 				(*this).insert_before(pos.const_item_pointer(), _X);
@@ -9233,7 +9233,7 @@ namespace mse {
 				typename base_class::const_iterator _P = (*this).begin() + msev_as_a_size_t(pos);
 				(*this).insert(_P, _Ilist);
 			}
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			void insert_before(msev_size_t pos, const _TStringSection& _X) {
 				typename base_class::const_iterator _P = (*this).begin() + msev_as_a_size_t(pos);
 				(*this).insert(_P, _X);
@@ -9247,7 +9247,7 @@ namespace mse {
 				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				ipointer insert(const cipointer &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
 			ipointer insert(const cipointer &pos, _XSTD initializer_list<typename base_class::value_type> _Ilist) { return insert_before(pos, _Ilist); }
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			ipointer insert(const cipointer &pos, const _TStringSection& _X) { return insert_before(pos, _X); }
 			template<class ..._Valty>
 #if !(defined(GPP4P8_COMPATIBLE))
@@ -9870,7 +9870,7 @@ namespace mse {
 					return static_cast<const base_class&>(*this);
 				}
 				/*
-				template<class MBS2 = MBS, class = mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<MBS2>, mse::TXScopeFixedPointer<MBS> >::value> >
+				template<class MBS2 = MBS, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<MBS2>, mse::TXScopeFixedPointer<MBS> >::value> MSE_IMPL_EIS >
 				explicit operator mse::TXScopeFixedConstPointer<MBS2>() const {
 					return static_cast<const base_class&>(*this);
 				}

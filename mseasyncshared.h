@@ -1211,11 +1211,11 @@ namespace mse {
 				TAsyncSharedV2XWPReadWriteAccessRequesterBase(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr) : m_shptr(shptr) {}
 				TAsyncSharedV2XWPReadWriteAccessRequesterBase(std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>&& shptr) : m_shptr(MSE_FWD(shptr)) {}
 
-				template<class _Ty2 = _TAccessLease, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TAccessLease>::value) && (std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _TAccessLease>::value)> >
+				template<class _Ty2 = _TAccessLease, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TAccessLease>::value) && (std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _TAccessLease>::value)> MSE_IMPL_EIS >
 				void valid_if_TAccessLease_is_marked_as_an_exclusive_pointer() const {}
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REFCOUNTINGPOINTER_DISABLED) && !defined(MSE_NORADPOINTER_DISABLED)
-				template<class _Ty2 = _TAccessLease, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TAccessLease>::value) && (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TAccessLease>::value)> >
+				template<class _Ty2 = _TAccessLease, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TAccessLease>::value) && (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TAccessLease>::value)> MSE_IMPL_EIS >
 #endif /*!defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REFCOUNTINGPOINTER_DISABLED) && !defined(MSE_NORADPOINTER_DISABLED)*/
 				void valid_if_TAccessLease_is_marked_as_a_strong_pointer() const {}
 
@@ -1291,8 +1291,8 @@ namespace mse {
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
-		template<class _target_type2 = target_type, class = mse::impl::enable_if_t<(std::is_same<_target_type2, target_type>::value)
-			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_target_type2>::value)> >
+		template<class _target_type2 = target_type, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_target_type2, target_type>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_target_type2>::value)> MSE_IMPL_EIS >
 		void valid_if_target_type_is_marked_as_xscope_shareable() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1374,8 +1374,8 @@ namespace mse {
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
-		template<class _target_type2 = target_type, class = mse::impl::enable_if_t<(std::is_same<_target_type2, target_type>::value) && (
-			mse::impl::is_marked_as_shareable_msemsearray<_target_type2>::value)> >
+		template<class _target_type2 = target_type, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_target_type2, target_type>::value) && (
+			mse::impl::is_marked_as_shareable_msemsearray<_target_type2>::value)> MSE_IMPL_EIS >
 		void valid_if_target_type_is_marked_as_shareable() const {}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -1617,11 +1617,11 @@ namespace mse {
 				TAsyncSharedV2XWPReadOnlyAccessRequesterBase(const std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr) : m_shptr(shptr) {}
 				TAsyncSharedV2XWPReadOnlyAccessRequesterBase(std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>&& shptr) : m_shptr(MSE_FWD(shptr)) {}
 
-				template<class _Ty2 = _TAccessLease, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TAccessLease>::value) && (std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _TAccessLease>::value)> >
+				template<class _Ty2 = _TAccessLease, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TAccessLease>::value) && (std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _TAccessLease>::value)> MSE_IMPL_EIS >
 				void valid_if_TAccessLease_is_marked_as_an_exclusive_pointer() const {}
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REFCOUNTINGPOINTER_DISABLED) && !defined(MSE_NORADPOINTER_DISABLED)
-				template<class _Ty2 = _TAccessLease, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TAccessLease>::value) && (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TAccessLease>::value)> >
+				template<class _Ty2 = _TAccessLease, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TAccessLease>::value) && (std::is_base_of<mse::us::impl::StrongPointerTagBase, _TAccessLease>::value)> MSE_IMPL_EIS >
 #endif /*!defined(MSE_SCOPEPOINTER_DISABLED) && !defined(MSE_REFCOUNTINGPOINTER_DISABLED) && !defined(MSE_NORADPOINTER_DISABLED)*/
 				void valid_if_TAccessLease_is_marked_as_a_strong_pointer() const {}
 
@@ -1677,8 +1677,8 @@ namespace mse {
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
-		template<class _target_type2 = target_type, class = mse::impl::enable_if_t<(std::is_same<_target_type2, target_type>::value)
-			&& (mse::impl::is_marked_as_xscope_shareable_and_passable_msemsearray<_target_type2>::value)> >
+		template<class _target_type2 = target_type, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_target_type2, target_type>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_and_passable_msemsearray<_target_type2>::value)> MSE_IMPL_EIS >
 		void valid_if_target_type_is_marked_as_xscope_shareable_and_passable() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1732,8 +1732,8 @@ namespace mse {
 		/* If the target type is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
-		template<class _target_type2 = target_type, class = mse::impl::enable_if_t<(std::is_same<_target_type2, target_type>::value) && (
-			mse::impl::is_marked_as_shareable_msemsearray<_target_type2>::value)> >
+		template<class _target_type2 = target_type, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_target_type2, target_type>::value) && (
+			mse::impl::is_marked_as_shareable_msemsearray<_target_type2>::value)> MSE_IMPL_EIS >
 			void valid_if_target_type_is_marked_as_shareable() const {}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -1794,12 +1794,12 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value> MSE_IMPL_EIS >
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		TAsyncSharedV2ReadWriteAccessRequester(mse::us::impl::TTaggedUniquePtr<_Ty>&& uqptr) : base_class(make_asyncsharedv2xwpreadwrite(MSE_FWD(uqptr))) {}
@@ -1871,12 +1871,12 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value> MSE_IMPL_EIS >
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		TAsyncSharedV2ReadOnlyAccessRequester(mse::us::impl::TTaggedUniquePtr<_Ty>&& uqptr) : base_class(make_asyncsharedv2xwpreadonly(MSE_FWD(uqptr))) {}
@@ -1932,8 +1932,8 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "xscope_async_shareable_and_passable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
-			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value)> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value)> MSE_IMPL_EIS >
 		void valid_if_Ty_is_marked_as_xscope_shareable() const {}
 
 		TXScopeAsyncSharedV2ACOReadWriteAccessRequester(_TExclusiveWritePointer&& xwptr)
@@ -2000,12 +2000,12 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_msemsearray<_Ty2>::value> MSE_IMPL_EIS >
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		TAsyncSharedV2ImmutableFixedPointer(std::shared_ptr<const _Ty> shptr) : m_shptr(shptr) {}
@@ -2062,12 +2062,12 @@ namespace mse {
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
 		function), then the following member function will not instantiate, causing an (intended) compile error. User-defined
 		objects can be marked safe to share by wrapping them with rsv::TUserDeclaredAsyncShareableObj<>. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_and_passable_msemsearray<_Ty2>::value> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && mse::impl::is_marked_as_shareable_and_passable_msemsearray<_Ty2>::value> MSE_IMPL_EIS >
 		void valid_if_Ty_is_marked_as_shareable() const {}
 
 		/* If _Ty is an xscope type, then the following member function will not instantiate, causing an
 		(intended) compile error. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 		void valid_if_Ty_is_not_an_xscope_type() const {}
 
 		TAsyncSharedV2AtomicFixedPointer(std::shared_ptr<std::atomic<_Ty> > shptr) : m_shptr(shptr) {}
@@ -2150,10 +2150,10 @@ namespace mse {
 		/* We will mark this type as safely "async shareable" if the elements it contains are also "async shareable"
 		and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
 		to ensure safe "async shareability". */
-		template<class value_type2 = value_type, class = mse::impl::enable_if_t<(std::is_same<value_type2, value_type>::value)
+		template<class value_type2 = value_type, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<value_type2, value_type>::value)
 			&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<value_type2>::value)
 			&& (mse::impl::is_strong_container_reference_holding_iterator<_TRAIterator>::value)
-			> >
+			> MSE_IMPL_EIS >
 		void xscope_async_shareable_and_passable_tag() const {}
 
 	private:
@@ -2191,10 +2191,10 @@ namespace mse {
 		/* We will mark this type as safely "async shareable" if the elements it contains are also "async shareable"
 		and _TRAIterator is marked as "strong". This is technically unsafe as those criteria may not be sufficient
 		to ensure safe "async shareability". */
-		template<class value_type2 = value_type, class = mse::impl::enable_if_t<(std::is_same<value_type2, value_type>::value)
+		template<class value_type2 = value_type, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<value_type2, value_type>::value)
 			&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<value_type2>::value)
 			&& (mse::impl::is_strong_container_reference_holding_iterator<_TRAIterator>::value)
-			> >
+			> MSE_IMPL_EIS >
 		void async_shareable_and_passable_tag() const {}
 
 	private:
@@ -2665,7 +2665,7 @@ namespace mse {
 
 			thread() _NOEXCEPT {}
 
-			template<class _Fn, class... _Args, class = mse::impl::enable_if_t<!std::is_same<typename std::decay<_Fn>::type, thread>::value> >
+			template<class _Fn, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<typename std::decay<_Fn>::type, thread>::value> MSE_IMPL_EIS >
 			explicit thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
 				s_valid_if_passable(_Ax...); // ensure that the function arguments are of a safely passable type
 				s_valid_if_passable(_Fx);
@@ -2719,7 +2719,7 @@ namespace mse {
 
 		xscope_thread() _NOEXCEPT {}
 
-		template<class _Fn, class... _Args, class = mse::impl::enable_if_t<!std::is_same<typename std::decay<_Fn>::type, xscope_thread>::value> >
+		template<class _Fn, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<typename std::decay<_Fn>::type, xscope_thread>::value> MSE_IMPL_EIS >
 		explicit xscope_thread(_Fn&& _Fx, _Args&&... _Ax) : base_class(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...) {
 			s_valid_if_xscope_passable(_Ax...); // ensure that the function arguments are of a safely passable type
 			s_valid_if_xscope_passable(_Fx);
@@ -2756,7 +2756,7 @@ namespace mse {
 	public:
 		typedef size_t handle_t;
 
-		template<class _Fn, class... _Args, class = mse::impl::enable_if_t<!std::is_same<typename std::decay<_Fn>::type, xscope_thread>::value> >
+		template<class _Fn, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<typename std::decay<_Fn>::type, xscope_thread>::value> MSE_IMPL_EIS >
 		handle_t new_thread(_Fn&& _Fx, _Args&&... _Ax) {
 			m_xscope_thread_map.emplace(m_next_available_handle, xscope_thread(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...));
 			auto retval = m_next_available_handle;

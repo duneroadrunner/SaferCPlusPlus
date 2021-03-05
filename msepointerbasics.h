@@ -231,13 +231,24 @@ namespace mse {
 		template <class _Ty> using remove_reference_t = typename std::remove_reference<_Ty>::type;
 	}
 
+	/* msvc(2019) seems to have some issues with the "proper" way of using std::enable_if_t<> as a template parameter, but the
+	old "improper" way seems to work in our use cases, so we use these macros for the prefix and suffix of std::enable_if_t<> to
+	accomodate this. */
+#if defined(_MSC_VER)
+#define MSE_IMPL_EIP typename =
+#define MSE_IMPL_EIS 
+#else // defined(_MSC_VER)
+#define MSE_IMPL_EIP 
+#define MSE_IMPL_EIS * = nullptr
+#endif // defined(_MSC_VER)
+
 #define MSE_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 
 #define MSE_IMPL_DESTRUCTOR_PREFIX1
 
 	/* This macro roughly simulates constructor inheritance. */
 #define MSE_USING_V1(Derived, Base) \
-    template<typename ...Args, typename = mse::impl::enable_if_t<std::is_constructible<Base, Args...>::value> > \
+    template<typename ...Args, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_constructible<Base, Args...>::value> MSE_IMPL_EIS > \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
 	namespace impl {
@@ -261,57 +272,57 @@ namespace mse {
 	/* These macros roughly simulate constructor inheritance. */
 
 #define MSE_USING_SANS_INITIALIZER_LISTS(Derived, Base) \
-    template<typename ...Args, typename = mse::impl::enable_if_t< \
+    template<typename ...Args, MSE_IMPL_EIP mse::impl::enable_if_t< \
 			std::is_constructible<Base, Args...>::value \
 			&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Args...>::value \
-		> > \
+		> MSE_IMPL_EIS > \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
 #define MSE_USING(Derived, Base) \
     MSE_USING_SANS_INITIALIZER_LISTS(Derived, Base) \
 	/* Template parameter type deduction doesn't work for initializer_lists so we add a constructor overload to handle them. */ \
 	/* But this constructor overload might sometimes match when you don't want. */ \
-    template<typename _Ty_using1, typename = mse::impl::enable_if_t< \
+    template<typename _Ty_using1, MSE_IMPL_EIP mse::impl::enable_if_t< \
 			std::is_constructible<Base, std::initializer_list<_Ty_using1> >::value \
-		> > \
+		> MSE_IMPL_EIS > \
     Derived(const std::initializer_list<_Ty_using1>& il) : Base(il) {} \
-	template<typename Arg, typename = mse::impl::enable_if_t<std::is_constructible<Base, Arg>::value \
-		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Arg>::value> > \
+	template<typename Arg, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_constructible<Base, Arg>::value \
+		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Arg>::value> MSE_IMPL_EIS > \
 	Derived(Arg&& arg) : Base(std::forward<Arg>(arg)) {} \
-	template<typename Arg, typename = mse::impl::enable_if_t<std::is_constructible<Base, Arg>::value \
-		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Arg>::value> > \
+	template<typename Arg, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_constructible<Base, Arg>::value \
+		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Arg>::value> MSE_IMPL_EIS > \
 	Derived(const Arg& arg) : Base(arg) {} \
-	template<typename Arg1, typename Arg2, typename = mse::impl::enable_if_t<std::is_constructible<Base, Arg1, Arg2>::value \
-		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Arg1, Arg2>::value> > \
+	template<typename Arg1, typename Arg2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_constructible<Base, Arg1, Arg2>::value \
+		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Arg1, Arg2>::value> MSE_IMPL_EIS > \
 	Derived(Arg1&& arg1, Arg2&& arg2) : Base(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2)) {} \
-	template<typename Arg1, typename Arg2, typename = mse::impl::enable_if_t<std::is_constructible<Base, Arg1, Arg2>::value \
-		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Arg1, Arg2>::value> > \
+	template<typename Arg1, typename Arg2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_constructible<Base, Arg1, Arg2>::value \
+		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Arg1, Arg2>::value> MSE_IMPL_EIS > \
 	Derived(const Arg1& arg1, const Arg2& arg2) : Base(arg1, arg2) {}
 
 	/* These macros roughly simulate constructor inheritance, but add an additional initialization statement
 	to each constructor. */
 #define MSE_USING_SANS_INITIALIZER_LISTS_WITH_ADDED_INIT(Derived, Base, InitializationStatement) \
-    template<typename ...Args, typename = mse::impl::enable_if_t< \
+    template<typename ...Args, MSE_IMPL_EIP mse::impl::enable_if_t< \
 	std::is_constructible<Base, Args...>::value \
 	&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Args...>::value \
-	> > \
+	> MSE_IMPL_EIS > \
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) { InitializationStatement; }
 
 #define MSE_USING_WITH_ADDED_INIT(Derived, Base, InitializationStatement) \
 	MSE_USING_SANS_INITIALIZER_LISTS_WITH_ADDED_INIT(Derived, Base, InitializationStatement) \
-    template<typename _Ty_using1, typename = mse::impl::enable_if_t< \
+    template<typename _Ty_using1, MSE_IMPL_EIP mse::impl::enable_if_t< \
 			std::is_constructible<Base, std::initializer_list<_Ty_using1> >::value \
-		> > \
+		> MSE_IMPL_EIS > \
     Derived(const std::initializer_list<_Ty_using1>& il) : Base(il) { InitializationStatement; } \
-	template<typename Arg, typename = mse::impl::enable_if_t< \
+	template<typename Arg, MSE_IMPL_EIP mse::impl::enable_if_t< \
 		std::is_constructible<Base, Arg>::value \
 		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Arg>::value \
-	> > \
+	> MSE_IMPL_EIS > \
 	Derived(Arg&& arg) : Base(std::forward<Arg>(arg)) { InitializationStatement; } \
-	template<typename Arg1, typename Arg2, typename = mse::impl::enable_if_t< \
+	template<typename Arg1, typename Arg2, MSE_IMPL_EIP mse::impl::enable_if_t< \
 		std::is_constructible<Base, Arg1, Arg2>::value \
 		&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<Derived, Arg1, Arg2>::value \
-	> > \
+	> MSE_IMPL_EIS > \
 	Derived(Arg1&& arg1, Arg2&& arg2) : Base(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2)) { InitializationStatement; }
 
 
@@ -333,11 +344,11 @@ namespace mse {
 	}
 
 #define MSE_USING_ASSIGNMENT_OPERATOR(Base) \
-	template<class _Ty2mse_uao, class _TBase2 = Base, typename = mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value \
-		&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_TBase2, _Ty2mse_uao>::value) || std::is_same<_TBase2, mse::impl::remove_reference_t<_Ty2mse_uao> >::value)> > \
+	template<class _Ty2mse_uao, class _TBase2 = Base, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value \
+		&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_TBase2, _Ty2mse_uao>::value) || std::is_same<_TBase2, mse::impl::remove_reference_t<_Ty2mse_uao> >::value)> MSE_IMPL_EIS > \
 	auto& operator=(_Ty2mse_uao&& _X) { Base::operator=(MSE_FWD(_X)); return (*this); } \
-	template<class _Ty2mse_uao, class _TBase2 = Base, typename = mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value \
-		&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_TBase2, _Ty2mse_uao>::value) || std::is_same<_TBase2, _Ty2mse_uao>::value)> > \
+	template<class _Ty2mse_uao, class _TBase2 = Base, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value \
+		&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_TBase2, _Ty2mse_uao>::value) || std::is_same<_TBase2, _Ty2mse_uao>::value)> MSE_IMPL_EIS > \
 	auto& operator=(const _Ty2mse_uao& _X) { Base::operator=(_X); return (*this); }
 
 #define MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(ClassName) \
@@ -349,9 +360,9 @@ namespace mse {
 	MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Derived, Base) MSE_USING_ASSIGNMENT_OPERATOR(Base)
 
 #define MSE_USING_AMPERSAND_OPERATOR(Base) \
-	template<class _TBase2 = Base, typename = mse::impl::enable_if_t<std::is_same<_TBase2, Base>::value> > \
+	template<class _TBase2 = Base, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_TBase2, Base>::value> MSE_IMPL_EIS > \
 	auto operator&() { return _TBase2::operator&(); } \
-	template<class _TBase2 = Base, typename = mse::impl::enable_if_t<std::is_same<_TBase2, Base>::value> > \
+	template<class _TBase2 = Base, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_TBase2, Base>::value> MSE_IMPL_EIS > \
 	auto operator&() const { return _TBase2::operator&(); }
 
 #if defined(MSE_REGISTEREDPOINTER_DISABLED) || defined(MSE_NORADPOINTER_DISABLED) || defined(MSE_SCOPEPOINTER_DISABLED) || defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED) || defined(MSE_THREADLOCALPOINTER_DISABLED) || defined(MSE_STATICPOINTER_DISABLED)
@@ -544,7 +555,7 @@ namespace mse {
 
 		/* The purpose of these template functions are just to produce a compile error on attempts to instantiate
 		when certain conditions are not met. */
-		template<class _Ty, class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_Ty>::value)> >
+		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_not_an_xscope_type() {}
 
 		template<class _Ty>
@@ -773,7 +784,7 @@ namespace mse {
 #endif // MSE_SCOPEPOINTER_DISABLED
 			|| (std::is_same<_Ty, void>::value)> {};
 
-		template<class _Ty, class = mse::impl::enable_if_t<(is_marked_as_shareable_msemsearray<_Ty>::value)> >
+		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(is_marked_as_shareable_msemsearray<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_marked_as_shareable_msemsearray() {}
 
 		template<typename _Ty>
@@ -795,7 +806,7 @@ namespace mse {
 #endif // MSE_SCOPEPOINTER_DISABLED
 			|| (std::is_same<_Ty, void>::value)> {};
 
-		template<class _Ty, class = mse::impl::enable_if_t<(is_marked_as_passable_msemsearray<_Ty>::value)> >
+		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(is_marked_as_passable_msemsearray<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_marked_as_passable_msemsearray() {}
 		template<typename _Ty>
 		const _Ty& async_passable(const _Ty& _X) {
@@ -810,14 +821,14 @@ namespace mse {
 
 		template <typename _Ty> struct is_marked_as_shareable_and_passable_msemsearray : std::integral_constant<bool, (is_marked_as_shareable_msemsearray<_Ty>::value)
 			&& (is_marked_as_passable_msemsearray<_Ty>::value)> {};
-		template<class _Ty, class = mse::impl::enable_if_t<(is_marked_as_shareable_and_passable_msemsearray<_Ty>::value)> >
+		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(is_marked_as_shareable_and_passable_msemsearray<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_marked_as_shareable_and_passable_msemsearray() {}
 
 
 		template <typename _Ty> struct is_marked_as_xscope_shareable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncShareableTagMethod_msemsearray<_Ty>::value)
 			|| (mse::impl::HasXScopeAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::value) || (is_marked_as_shareable_msemsearray<_Ty>::value)> {};
 
-		template<class _Ty, class = mse::impl::enable_if_t<(is_marked_as_xscope_shareable_msemsearray<_Ty>::value)> >
+		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(is_marked_as_xscope_shareable_msemsearray<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_marked_as_xscope_shareable_msemsearray() {}
 		template<typename _Ty>
 		const _Ty& xscope_async_shareable(const _Ty& _X) {
@@ -833,7 +844,7 @@ namespace mse {
 		template <typename _Ty> struct is_marked_as_xscope_passable_msemsearray : std::integral_constant<bool, (mse::impl::HasXScopeAsyncPassableTagMethod_msescope<_Ty>::value)
 			|| (mse::impl::HasXScopeAsyncShareableAndPassableTagMethod_msemsearray<_Ty>::value) || (is_marked_as_passable_msemsearray<_Ty>::value)> {};
 
-		template<class _Ty, class = mse::impl::enable_if_t<(is_marked_as_xscope_passable_msemsearray<_Ty>::value)> >
+		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(is_marked_as_xscope_passable_msemsearray<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_marked_as_xscope_passable_msemsearray() {}
 		template<typename _Ty>
 		const _Ty& xscope_async_passable(const _Ty& _X) {
@@ -848,29 +859,29 @@ namespace mse {
 
 		template <typename _Ty> struct is_marked_as_xscope_shareable_and_passable_msemsearray : std::integral_constant<bool, (is_marked_as_xscope_shareable_msemsearray<_Ty>::value)
 			&& (is_marked_as_xscope_passable_msemsearray<_Ty>::value)> {};
-		template<class _Ty, class = mse::impl::enable_if_t<(is_marked_as_xscope_shareable_and_passable_msemsearray<_Ty>::value)> >
+		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(is_marked_as_xscope_shareable_and_passable_msemsearray<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_marked_as_xscope_shareable_and_passable_msemsearray() {}
 	}
 
 #define MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(Tmse_isap) \
-		template<class Tmse_isap2 = Tmse_isap, class = mse::impl::enable_if_t<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
-			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<Tmse_isap2>::value)> > \
+		template<class Tmse_isap2 = Tmse_isap, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
+			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<Tmse_isap2>::value)> MSE_IMPL_EIS > \
 		void xscope_async_shareable_tag() const {}
 #define MSE_INHERIT_XSCOPE_ASYNC_PASSABILITY_OF(Tmse_isap) \
-		template<class Tmse_isap2 = Tmse_isap, class = mse::impl::enable_if_t<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
-			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<Tmse_isap2>::value)> > \
+		template<class Tmse_isap2 = Tmse_isap, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
+			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<Tmse_isap2>::value)> MSE_IMPL_EIS > \
 		void xscope_async_passable_tag() const {}
 #define MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(Tmse_isap) \
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(Tmse_isap) \
 		MSE_INHERIT_XSCOPE_ASYNC_PASSABILITY_OF(Tmse_isap)
 
 #define MSE_INHERIT_ASYNC_SHAREABILITY_OF(Tmse_isap) \
-		template<class Tmse_isap2 = Tmse_isap, class = mse::impl::enable_if_t<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
-			&& (mse::impl::is_marked_as_shareable_msemsearray<Tmse_isap2>::value)> > \
+		template<class Tmse_isap2 = Tmse_isap, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
+			&& (mse::impl::is_marked_as_shareable_msemsearray<Tmse_isap2>::value)> MSE_IMPL_EIS > \
 		void async_shareable_tag() const {}
 #define MSE_INHERIT_ASYNC_PASSABILITY_OF(Tmse_isap) \
-		template<class Tmse_isap2 = Tmse_isap, class = mse::impl::enable_if_t<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
-			&& (mse::impl::is_marked_as_passable_msemsearray<Tmse_isap2>::value)> > \
+		template<class Tmse_isap2 = Tmse_isap, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<Tmse_isap2, Tmse_isap>::value) \
+			&& (mse::impl::is_marked_as_passable_msemsearray<Tmse_isap2>::value)> MSE_IMPL_EIS > \
 		void async_passable_tag() const {}
 
 #define MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(Tmse_isap) \
@@ -936,7 +947,7 @@ namespace mse {
 				TPointer() : m_ptr(nullptr) {}
 				TPointer(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
 				TPointer(const TPointer<_Ty, _TID>& src) : m_ptr(src.m_ptr) { note_value_assignment(); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
 				TPointer(const TPointer<_Ty2, TPointerID<_Ty2> >& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TPointer() {}
 
@@ -971,7 +982,7 @@ namespace mse {
 					m_ptr = _Right_cref.m_ptr;
 					return (*this);
 				}
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
 				TPointer<_Ty, _TID>& operator=(const TPointer<_Ty2, TPointerID<_Ty2> >& _Right_cref) {
 					note_value_assignment();
 					m_ptr = _Right_cref.m_ptr;
@@ -1015,7 +1026,7 @@ namespace mse {
 			public:
 				TPointerForLegacy() : m_ptr(nullptr) {}
 				TPointerForLegacy(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
-				template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
 				TPointerForLegacy(const TPointerForLegacy<_Ty2, _TID>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TPointerForLegacy() {}
 
@@ -1084,15 +1095,15 @@ namespace mse {
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 			};
 
-			template<typename _Ty, typename _Tz, class = mse::impl::enable_if_t<std::is_integral<_Ty>::value &&
-				(std::is_same<TPointerForLegacy<_Ty>, TPointerForLegacy<_Tz> >::value || std::is_same<TPointerForLegacy<mse::impl::remove_const_t<_Ty> >, TPointerForLegacy<_Tz> >::value)> >
+			template<typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_integral<_Ty>::value &&
+				(std::is_same<TPointerForLegacy<_Ty>, TPointerForLegacy<_Tz> >::value || std::is_same<TPointerForLegacy<mse::impl::remove_const_t<_Ty> >, TPointerForLegacy<_Tz> >::value)> MSE_IMPL_EIS >
 			_Ty& raw_reference_to(TPointerForLegacy<_Tz>& x) {
 				typedef _Ty& _Ty_ref;
 				return _Ty_ref(x);
 			}
 
-			template<typename _Ty, typename _Tz, class = mse::impl::enable_if_t<std::is_integral<_Ty>::value &&
-				(std::is_same<TPointerForLegacy<_Ty>, TPointerForLegacy<_Tz> >::value || std::is_same<TPointerForLegacy<mse::impl::remove_const_t<_Ty> >, TPointerForLegacy<_Tz> >::value)> >
+			template<typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_integral<_Ty>::value &&
+				(std::is_same<TPointerForLegacy<_Ty>, TPointerForLegacy<_Tz> >::value || std::is_same<TPointerForLegacy<mse::impl::remove_const_t<_Ty> >, TPointerForLegacy<_Tz> >::value)> MSE_IMPL_EIS >
 				_Ty* raw_pointer_to(TPointerForLegacy<_Tz>& x) { return std::addressof(raw_reference_to(x)); }
 		}
 	}
@@ -1122,7 +1133,7 @@ namespace mse {
 			TSaferPtr() : m_ptr(nullptr) {}
 			TSaferPtr(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
 			TSaferPtr(const TSaferPtr<_Ty>& src) : m_ptr(src.m_ptr) { note_value_assignment(); }
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TSaferPtr(const TSaferPtr<_Ty2>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 			virtual ~TSaferPtr() {}
 
@@ -1202,7 +1213,7 @@ namespace mse {
 		public:
 			TSaferPtrForLegacy() : m_ptr(nullptr) {}
 			TSaferPtrForLegacy(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TSaferPtrForLegacy(const TSaferPtrForLegacy<_Ty2>& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 			virtual ~TSaferPtrForLegacy() {}
 
@@ -1279,7 +1290,7 @@ namespace mse {
 #else /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
 	namespace impl {
-		template<typename _Ty, class = mse::impl::enable_if_t<(!std::is_pointer<_Ty>::value)> >
+		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_pointer<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_not_raw_pointer_msepointerbasics() {}
 	}
 
@@ -1312,7 +1323,7 @@ namespace mse {
 	class TSyncWeakFixedPointer : public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 	public:
 		TSyncWeakFixedPointer(const TSyncWeakFixedPointer&) = default;
-		template<class _TLeasePointerType2, class = mse::impl::enable_if_t<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value> >
+		template<class _TLeasePointerType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value> MSE_IMPL_EIS >
 		TSyncWeakFixedPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		_TTargetType& operator*() const {
 			dummy_foo(*m_lease_pointer); // this should throw if m_lease_pointer is no longer valid
@@ -1371,10 +1382,10 @@ namespace mse {
 	class TSyncWeakFixedConstPointer : public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 	public:
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedConstPointer&) = default;
-		template<class _TLeasePointerType2, class = mse::impl::enable_if_t<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value> >
+		template<class _TLeasePointerType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value> MSE_IMPL_EIS >
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType2>&src) : m_target_pointer(std::addressof(*src)), m_lease_pointer(src.lease_pointer()) {}
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>&src) : m_target_pointer(src.m_target_pointer), m_lease_pointer(src.m_lease_pointer) {}
-		template<class _TLeasePointerType2, class = mse::impl::enable_if_t<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value> >
+		template<class _TLeasePointerType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeasePointerType2, _TLeasePointerType>::value> MSE_IMPL_EIS >
 		TSyncWeakFixedConstPointer(const TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType2>& src) : m_target_pointer(src.m_target_pointer), m_lease_pointer(src.m_lease_pointer) {}
 		const _TTargetType& operator*() const {
 			/*const auto &test_cref =*/ *m_lease_pointer; // this should throw if m_lease_pointer is no longer valid
@@ -1438,9 +1449,9 @@ namespace mse {
 	}
 
 	namespace impl {
-		template<class _Ty, class _Ty2, class = mse::impl::enable_if_t<std::is_same<_Ty, _Ty2>::value> >
+		template<class _Ty, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_Ty, _Ty2>::value> MSE_IMPL_EIS >
 		static void T_valid_if_same_msepointerbasics() {}
-		template<class _Ty, class _Ty2 = _Ty, class = mse::impl::enable_if_t<std::is_same<_Ty, std::true_type>::value> >
+		template<class _Ty, class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_Ty, std::true_type>::value> MSE_IMPL_EIS >
 		static void T_valid_if_true_type_msepointerbasics() {}
 		template<class _TLeasePointer, class _TMemberObjectPointer>
 		static void make_pointer_to_member_v2_checks_msepointerbasics(const _TLeasePointer &/*lease_pointer*/, const _TMemberObjectPointer& member_object_ptr) {
@@ -1538,17 +1549,17 @@ namespace mse {
 			|| (is_unique_ptr<_TStrongPointer>::value)/* for when TXScopeOwningPointer<>s are "disabled" */
 			, std::true_type, std::false_type>::type {};
 
-		template<typename _TStrongPointer, class = mse::impl::enable_if_t<is_strong_ptr<_TStrongPointer>::value> >
+		template<typename _TStrongPointer, MSE_IMPL_EIP mse::impl::enable_if_t<is_strong_ptr<_TStrongPointer>::value> MSE_IMPL_EIS >
 		class is_valid_if_strong_pointer {
 			public:
 				static void no_op() {}
 		};
 
-		template<typename _TNeverNullPointer, class = mse::impl::enable_if_t<
+		template<typename _TNeverNullPointer, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(std::is_base_of<mse::us::impl::NeverNullTagBase, _TNeverNullPointer>::value)
 			|| (std::is_pointer<_TNeverNullPointer>::value)/* for when scope pointers are "disabled" */
 			|| (is_shared_ptr<_TNeverNullPointer>::value)/* for when refcounting pointers are "disabled" */
-			> >
+			> MSE_IMPL_EIS >
 			class is_valid_if_never_null_pointer {
 			public:
 				static void no_op() {}
@@ -1560,13 +1571,13 @@ namespace mse {
 			static void no_op() {}
 		};
 
-		template<typename _Ty, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _Ty>::value)> >
+		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _Ty>::value)> MSE_IMPL_EIS >
 		class is_valid_if_exclusive_pointer {
 		public:
 			static void no_op() {}
 		};
 
-		template<typename _Ty, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _Ty>::value)> >
+		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_exclusive_pointer_msepointerbasics() {}
 	}
 
@@ -1580,7 +1591,7 @@ namespace mse {
 		class TStrongFixedPointer : public mse::us::impl::StrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
 		public:
 			TStrongFixedPointer(const TStrongFixedPointer&) = default;
-			template<class _TLeaseType2, class = mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> >
+			template<class _TLeaseType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> MSE_IMPL_EIS >
 			TStrongFixedPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType2>&src) : m_target_pointer(std::addressof(*src)), m_lease(src.lease()) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStrongFixedPointer() {
 				/* This is just a no-op function that will cause a compile error when _TLeaseType is not an eligible type. */
@@ -1652,10 +1663,10 @@ namespace mse {
 		class TStrongFixedConstPointer : public mse::us::impl::StrongPointerNeverNullAsyncNotShareableAndNotPassableTagBase {
 		public:
 			TStrongFixedConstPointer(const TStrongFixedConstPointer&) = default;
-			template<class _TLeaseType2, class = mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> >
+			template<class _TLeaseType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> MSE_IMPL_EIS >
 			TStrongFixedConstPointer(const TStrongFixedConstPointer<_TTargetType, _TLeaseType2>&src) : m_target_pointer(std::addressof(*src)), m_lease(src.lease()) {}
 			TStrongFixedConstPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType>&src) : m_target_pointer(src.m_target_pointer), m_lease(src.m_lease) {}
-			template<class _TLeaseType2, class = mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> >
+			template<class _TLeaseType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> MSE_IMPL_EIS >
 			TStrongFixedConstPointer(const TStrongFixedPointer<_TTargetType, _TLeaseType2>&src) : m_target_pointer(std::addressof(*src)), m_lease(src.lease()) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStrongFixedConstPointer() {
 				/* This is just a no-op function that will cause a compile error when _TLeaseType is not an eligible type. */

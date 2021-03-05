@@ -102,7 +102,7 @@ namespace mse {
 					TCheckedThreadSafePointer(const TCheckedThreadSafePointer& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+					template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 					TCheckedThreadSafePointer(const TCheckedThreadSafePointer<_Ty2>& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
@@ -118,7 +118,7 @@ namespace mse {
 						if (*this) { (*(*this)).increment_refcount(); }
 						return (*this);
 					}
-					template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+					template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 					TCheckedThreadSafePointer<_Ty>& operator=(const TCheckedThreadSafePointer<_Ty2>& _Right_cref) {
 						return (*this).operator=(TCheckedThreadSafePointer(_Right_cref));
 					}
@@ -156,7 +156,7 @@ namespace mse {
 					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeConstPointer& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
-					template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+					template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeConstPointer<_Ty2>& src_cref) : base_class(src_cref.m_ptr) {
 						if (*this) { (*(*this)).increment_refcount(); }
 					}
@@ -175,7 +175,7 @@ namespace mse {
 						if (*this) { (*(*this)).increment_refcount(); }
 						return (*this);
 					}
-					template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+					template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 					TCheckedThreadSafeConstPointer<_Ty>& operator=(const TCheckedThreadSafeConstPointer<_Ty2>& _Right_cref) {
 						return (*this).operator=(TCheckedThreadSafeConstPointer(_Right_cref));
 					}
@@ -359,9 +359,9 @@ namespace mse {
 	}
 	namespace rsv {
 
-		template <class _Ty, class _Ty2, class = mse::impl::enable_if_t<
+		template <class _Ty, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
-			> >
+			> MSE_IMPL_EIS >
 			static void valid_if_not_rvalue_reference_of_given_type_msestatic(_Ty2 src) {}
 
 		template<typename _Ty> class TStaticImmutableObj;
@@ -392,10 +392,10 @@ namespace mse {
 			TStaticImmutableConstPointer() : base_class() {}
 			TStaticImmutableConstPointer(const base_class& ptr) : base_class(ptr) {}
 			TStaticImmutableConstPointer(const TStaticImmutableConstPointer& src_cref) : base_class(static_cast<const base_class&>(src_cref)) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TStaticImmutableConstPointer(const TStaticImmutableConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			//TStaticImmutableConstPointer(const TStaticImmutablePointer<_Ty>& src_cref) : base_class(src_cref) {}
-			//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			//TStaticImmutableConstPointer(const TStaticImmutablePointer<_Ty2>& src_cref) : base_class(impl::TStaticImmutableConstPointerBase<_Ty2>(src_cref)) {}
 			TStaticImmutableConstPointer<_Ty>& operator=(const TStaticImmutableObj<_Ty>* ptr) {
 				base_class::operator=(ptr);
@@ -451,10 +451,10 @@ namespace mse {
 
 		private:
 			TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			//TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			//TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 
 			TStaticImmutableNotNullConstPointer<_Ty>& operator=(const TStaticImmutableNotNullConstPointer<_Ty>& _Right_cref) {
@@ -479,10 +479,10 @@ namespace mse {
 		public:
 			typedef TStaticImmutableNotNullConstPointer<_Ty> base_class;
 			TStaticImmutableFixedConstPointer(const TStaticImmutableFixedConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TStaticImmutableFixedConstPointer(const TStaticImmutableFixedConstPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty>& src_cref) : base_class(src_cref) {}
-			//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+			//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const base_class*>(this)); }

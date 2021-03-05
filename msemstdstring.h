@@ -315,9 +315,9 @@ namespace mse {
 			typedef typename _MBS::const_iterator _It;
 			basic_string(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_F, _L, _Al)) {}
 			basic_string(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_F, _L, _Al)) {}
-			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
+			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
 			basic_string(_Iter _First, _Iter _Last) : m_shptr(std::make_shared<_MBS>(_First, _Last)) {}
-			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
+			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
 			basic_string(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MBS>(_First, _Last, _Al)) {}
 			basic_string(const _Ty* const _Ptr) : m_shptr(std::make_shared<_MBS>(_Ptr)) {}
 			basic_string(const _Ty* const _Ptr, const size_t _Count) : m_shptr(std::make_shared<_MBS>(_Ptr, _Count)) {}
@@ -342,7 +342,7 @@ namespace mse {
 			}
 #else /* MSE_HAS_CXX17 */
 			/* construct from mse::string_view and "string sections". */
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			explicit basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
 #endif /* MSE_HAS_CXX17 */
 
@@ -396,7 +396,7 @@ namespace mse {
 				m_shptr->assign(_Count, _Ch);
 				return (*this);
 			}
-			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > >
+			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > MSE_IMPL_EIS >
 			basic_string& assign(const _Iter _First, const _Iter _Last) {
 				m_shptr->assign(_First, _Last);
 				return (*this);
@@ -435,7 +435,7 @@ namespace mse {
 				return assign_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			basic_string& assign(const _TStringSection& _X) {
 				m_shptr->assign(_X);
 				return (*this);
@@ -716,7 +716,7 @@ namespace mse {
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
 				return retval;
 			}
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			iterator insert_before(const const_iterator &pos, const _TStringSection& _X) {	// insert initializer_list
 				auto res = m_shptr->insert_before(pos.msebasic_string_ss_const_iterator_type(), _X);
 				iterator retval = begin(); retval.msebasic_string_ss_iterator_type() = res;
@@ -734,7 +734,7 @@ namespace mse {
 				m_shptr->insert_before(pos, _Ilist);
 				return *this;
 			}
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			basic_string& insert_before(msev_size_t pos, const _TStringSection& _X) {
 				m_shptr->insert_before(pos, _X);
 				return *this;
@@ -749,7 +749,7 @@ namespace mse {
 				iterator insert(const const_iterator &pos, const _Iter &start, const _Iter &end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, const _Ty* start, const _Ty* end) { return insert_before(pos, start, end); }
 			iterator insert(const const_iterator &pos, _XSTD initializer_list<typename _MBS::value_type> _Ilist) { return insert_before(pos, _Ilist); }
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			iterator insert(const const_iterator &pos, const _TStringSection& _X) { return insert_before(pos, _X); }
 			template<class ..._Valty>
 			iterator emplace(const const_iterator &pos, _Valty&& ..._Val) {
@@ -808,7 +808,7 @@ namespace mse {
 				msebasic_string().append(mse::as_a_size_t(_Count), _Ch);
 				return (*this);
 			}
-			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > >
+			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator_v<_Iter> > MSE_IMPL_EIS >
 			basic_string& append(const _Iter _First, const _Iter _Last) {
 				msebasic_string().append(_First, _Last);
 				return (*this);
@@ -849,7 +849,7 @@ namespace mse {
 				return append_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			basic_string& append(const _TStringSection& _X) {
 				m_shptr->append(_X);
 				return (*this);
@@ -879,7 +879,7 @@ namespace mse {
 				return (append(_Right));
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			basic_string& operator+=(const _TStringSection& _X) {
 				return (append(_X));
 			}
@@ -935,7 +935,7 @@ namespace mse {
 				return replace_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			basic_string& replace(const size_type _Off, const size_type _N0, const _TStringSection& _X) {
 				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _X.cbegin(), _X.cend());
 				return (*this);
@@ -983,14 +983,14 @@ namespace mse {
 				return (replace(_First - begin(), _Last - _First, _Count, _Ch));
 			}
 
-			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
+			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
 			basic_string& replace(const const_iterator _First, const const_iterator _Last,
 				const _Iter _First2, const _Iter _Last2) {
 				replace(_First, _Last, _First2, _Last2);
 				return (*this);
 			}
 
-			template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
+			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
 			basic_string& replace(const size_type _Off, const size_type _N0, const _Iter _First2, const _Iter _Last2) {
 				msebasic_string().replace(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), _First2, _Last2);
 				return (*this);
@@ -1073,7 +1073,7 @@ namespace mse {
 				return compare_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Off, _N0, _Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			int compare(const size_type _Off, const size_type _N0, const _TStringSection& _X) const {
 				msebasic_string().compare(mse::msev_as_a_size_t(_Off), mse::msev_as_a_size_t(_N0), basic_string(_X.cbegin(), _X.cend()));
 				return (*this);
@@ -1095,7 +1095,7 @@ namespace mse {
 				return find_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Off);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			size_type find(const _TStringSection& _X, const size_type _Off = npos) const {
 				return m_shptr->find(basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 			}
@@ -1132,7 +1132,7 @@ namespace mse {
 				return rfind_helper1(typename std::is_base_of<basic_string, _TParam1>::type(), _Right, _Off);
 			}
 #else /* MSE_HAS_CXX17 */
-			template<typename _TStringSection, class = mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> >
+			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 			size_type rfind(const _TStringSection& _X, const size_type _Off = npos) const {
 				return m_shptr->rfind(basic_string(_X.cbegin(), _X.cend()), mse::as_a_size_t(_Off));
 			}
@@ -1305,8 +1305,8 @@ namespace mse {
 
 			void async_not_shareable_tag() const {}
 			/* this array should be safely passable iff the element type is safely passable */
-			template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
-				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value)> >
+			template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value)> MSE_IMPL_EIS >
 			void async_passable_tag() const {}
 
 		private:

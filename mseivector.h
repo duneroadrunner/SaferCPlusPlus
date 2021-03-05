@@ -70,9 +70,9 @@ namespace mse {
 		typedef typename _MV::const_iterator _It;
 		ivector(_It _F, _It _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
 		ivector(const _Ty* _F, const _Ty* _L, const _A& _Al = _A()) : m_shptr(std::make_shared<_MV>(_F, _L, _Al)) {}
-		template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
+		template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
 			ivector(_Iter _First, _Iter _Last) : m_shptr(std::make_shared<_MV>(_First, _Last)) {}
-		template<class _Iter, class = mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> >
+		template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
 			ivector(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MV>(_First, _Last, _Al)) {}
 
 		_Myt& operator=(_Myt&& _X) { m_shptr->operator=(MSE_FWD(_X).msevector()); return (*this); }

@@ -99,9 +99,9 @@ namespace mse {
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
 			)> {};
 
-		template <class _Ty, class _Ty2, class = mse::impl::enable_if_t<
+		template <class _Ty, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_same<_Ty&&, _Ty2>::value) || (!std::is_rvalue_reference<_Ty2>::value)
-			> >
+			> MSE_IMPL_EIS >
 		static void valid_if_not_rvalue_reference_of_given_type(_Ty2 src) {}
 	}
 
@@ -288,7 +288,7 @@ namespace mse {
 		TXScopeObjPointer(TXScopeObj<_Ty>& scpobj_ref) : mse::us::impl::TXScopeObjPointerBase<_Ty>(scpobj_ref) {}
 		TXScopeObjPointer(const TXScopeObjPointer& src_cref) : mse::us::impl::TXScopeObjPointerBase<_Ty>(
 			static_cast<const mse::us::impl::TXScopeObjPointerBase<_Ty>&>(src_cref)) {}
-		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeObjPointer(const TXScopeObjPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeObjPointerBase<_Ty>(mse::us::impl::TXScopeObjPointerBase<_Ty2>(src_cref)) {}
 		TXScopeObjPointer<_Ty>& operator=(TXScopeObj<_Ty>* ptr) {
 			return mse::us::impl::TXScopeObjPointerBase<_Ty>::operator=(ptr);
@@ -327,10 +327,10 @@ namespace mse {
 		TXScopeObjConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty>(scpobj_cref) {}
 		TXScopeObjConstPointer(const TXScopeObjConstPointer& src_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty>(
 			static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty>&>(src_cref)) {}
-		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeObjConstPointer(const TXScopeObjConstPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty>(src_cref) {}
 		TXScopeObjConstPointer(const TXScopeObjPointer<_Ty>& src_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty>(src_cref) {}
-		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeObjConstPointer(const TXScopeObjPointer<_Ty2>& src_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty>(mse::us::impl::TXScopeItemConstPointerBase<_Ty2>(src_cref)) {}
 		TXScopeObjConstPointer<_Ty>& operator=(const TXScopeObj<_Ty>* ptr) {
 			return mse::us::impl::TXScopeItemConstPointerBase<_Ty>::operator=(ptr);
@@ -366,7 +366,7 @@ namespace mse {
 	private:
 		TXScopeObjNotNullPointer(TXScopeObj<_Ty>& scpobj_ref) : TXScopeObjPointer<_Ty>(scpobj_ref) {}
 		TXScopeObjNotNullPointer(TXScopeObj<_Ty>* ptr) : TXScopeObjPointer<_Ty>(ptr) {}
-		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeObjNotNullPointer(const TXScopeObjNotNullPointer<_Ty2>& src_cref) : TXScopeObjPointer<_Ty>(src_cref) {}
 		TXScopeObjNotNullPointer<_Ty>& operator=(const TXScopeObjPointer<_Ty>& _Right_cref) {
 			TXScopeObjPointer<_Ty>::operator=(_Right_cref);
@@ -389,10 +389,10 @@ namespace mse {
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjNotNullConstPointer() {}
 	private:
 		TXScopeObjNotNullConstPointer(const TXScopeObjNotNullConstPointer<_Ty>& src_cref) : TXScopeObjConstPointer<_Ty>(src_cref) {}
-		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeObjNotNullConstPointer(const TXScopeObjNotNullConstPointer<_Ty2>& src_cref) : TXScopeObjConstPointer<_Ty>(src_cref) {}
 		TXScopeObjNotNullConstPointer(const TXScopeObjNotNullPointer<_Ty>& src_cref) : TXScopeObjConstPointer<_Ty>(src_cref) {}
-		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeObjNotNullConstPointer(const TXScopeObjNotNullPointer<_Ty2>& src_cref) : TXScopeObjConstPointer<_Ty>(src_cref) {}
 		TXScopeObjNotNullConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : TXScopeObjConstPointer<_Ty>(scpobj_cref) {}
 		operator bool() const { return (*static_cast<const TXScopeObjConstPointer<_Ty>*>(this)); }
@@ -411,7 +411,7 @@ namespace mse {
 	class TXScopeObjFixedPointer : public TXScopeObjNotNullPointer<_Ty> {
 	public:
 		TXScopeObjFixedPointer(const TXScopeObjFixedPointer& src_cref) : TXScopeObjNotNullPointer<_Ty>(src_cref) {}
-		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeObjFixedPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : TXScopeObjNotNullPointer<_Ty>(src_cref) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedPointer() {}
 		operator bool() const { return (*static_cast<const TXScopeObjNotNullPointer<_Ty>*>(this)); }
@@ -443,10 +443,10 @@ namespace mse {
 	class TXScopeObjFixedConstPointer : public TXScopeObjNotNullConstPointer<_Ty> {
 	public:
 		TXScopeObjFixedConstPointer(const TXScopeObjFixedConstPointer<_Ty>& src_cref) : TXScopeObjNotNullConstPointer<_Ty>(src_cref) {}
-		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeObjFixedConstPointer(const TXScopeObjFixedConstPointer<_Ty2>& src_cref) : TXScopeObjNotNullConstPointer<_Ty>(src_cref) {}
 		TXScopeObjFixedConstPointer(const TXScopeObjFixedPointer<_Ty>& src_cref) : TXScopeObjNotNullConstPointer<_Ty>(src_cref) {}
-		//template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeObjFixedConstPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : TXScopeObjNotNullConstPointer<_Ty>(src_cref) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedConstPointer() {}
 		operator bool() const { return (*static_cast<const TXScopeObjNotNullConstPointer<_Ty>*>(this)); }
@@ -519,9 +519,9 @@ namespace mse {
 		void xscope_tag() const {}
 		//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
 		/* This type can be safely used as a function return value if _Ty is also safely returnable. */
-		template<class _Ty2 = _TROy, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (
+		template<class _Ty2 = _TROy, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
-			)> >
+			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
@@ -565,15 +565,15 @@ namespace mse {
 	public:
 		typedef mse::us::impl::TXScopeItemPointerBase<_Ty> base_class;
 		TXScopeFixedPointer(const TXScopeFixedPointer& src_cref) = default;
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TXScopeFixedPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
 
 		TXScopeFixedPointer(const TXScopeObjFixedPointer<_Ty>& src_cref) : base_class(static_cast<const base_class&>(src_cref)) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TXScopeFixedPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
 
 		//TXScopeFixedPointer(const TXScopeOwnerPointer<_Ty>& src_cref) : TXScopeFixedPointer(&(*src_cref)) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TXScopeFixedPointer(const TXScopeOwnerPointer<_Ty2>& src_cref) : TXScopeFixedPointer(&(*src_cref)) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {}
@@ -606,23 +606,23 @@ namespace mse {
 	public:
 		typedef mse::us::impl::TXScopeItemConstPointerBase<_Ty> base_class;
 		TXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty>& src_cref) = default;
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TXScopeFixedConstPointer(const TXScopeFixedConstPointer<_Ty2>& src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<_Ty2>&>(src_cref)) {}
 
 		TXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty>& src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty>&>(src_cref)) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TXScopeFixedConstPointer(const TXScopeFixedPointer<_Ty2>& src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
 
 		TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<_Ty>& src_cref) : base_class(static_cast<const base_class&>(src_cref)) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<_Ty2>& src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<_Ty2>&>(src_cref)) {}
 
 		TXScopeFixedConstPointer(const TXScopeObjFixedPointer<_Ty>& src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty>&>(src_cref)) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TXScopeFixedConstPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<_Ty2>&>(src_cref)) {}
 
 		//TXScopeFixedConstPointer(const TXScopeOwnerPointer<_Ty>& src_cref) : TXScopeFixedConstPointer(&(*src_cref)) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TXScopeFixedConstPointer(const TXScopeOwnerPointer<_Ty2>& src_cref) : TXScopeFixedConstPointer(&(*src_cref)) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {}
@@ -839,12 +839,12 @@ namespace mse {
 			typedef mse::us::impl::TXScopeItemPointerBase<specified_type> base_class; \
 			TXScopeFixedPointer(const TXScopeFixedPointer<mapped_type>& src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
 			TXScopeFixedPointer(const TXScopeFixedPointer& src_cref) = default; \
-			template<class specified_type2, class = mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> > \
+			template<class specified_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedPointer(const TXScopeFixedPointer<specified_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<specified_type2>&>(src_cref)) {} \
 			TXScopeFixedPointer(const TXScopeObjFixedPointer<specified_type> & src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
-			template<class specified_type2, class = mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> > \
+			template<class specified_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedPointer(const TXScopeObjFixedPointer<specified_type2> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemPointerBase<specified_type2>&>(src_cref)) {} \
-			template<class specified_type2, class = mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> > \
+			template<class specified_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedPointer(const TXScopeOwnerPointer<specified_type2> & src_cref) : TXScopeFixedPointer(&(*src_cref)) {} \
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {} \
 			operator bool() const { return true; } \
@@ -866,18 +866,18 @@ namespace mse {
 			typedef mse::us::impl::TXScopeItemConstPointerBase<specified_type> base_class; \
 			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<mapped_type>& src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
 			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<specified_type>& src_cref) = default; \
-			template<class specified_type2, class = mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> > \
+			template<class specified_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<specified_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<specified_type2>&>(src_cref)) {} \
 			TXScopeFixedConstPointer(const TXScopeFixedPointer<specified_type> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<specified_type>&>(src_cref)) {} \
-			template<class specified_type2, class = mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> > \
+			template<class specified_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeFixedPointer<specified_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<specified_type2>&>(src_cref)) {} \
 			TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<specified_type> & src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
-			template<class specified_type2, class = mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> > \
+			template<class specified_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<specified_type2> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemConstPointerBase<specified_type2>&>(src_cref)) {} \
 			TXScopeFixedConstPointer(const TXScopeObjFixedPointer<specified_type> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemPointerBase<specified_type>&>(src_cref)) {} \
-			template<class specified_type2, class = mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> > \
+			template<class specified_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeObjFixedPointer<specified_type2> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemPointerBase<specified_type2>&>(src_cref)) {} \
-			template<class specified_type2, class = mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> > \
+			template<class specified_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeOwnerPointer<specified_type2> & src_cref) : TXScopeFixedConstPointer(&(*src_cref)) {} \
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {} \
 			operator bool() const { return true; } \
@@ -943,12 +943,12 @@ namespace mse {
 			typedef mse::us::impl::TXScopeItemPointerBase<integral_type> base_class; \
 			TXScopeFixedPointer(const TXScopeFixedPointer<mse::TInt<integral_type>>& src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
 			TXScopeFixedPointer(const TXScopeFixedPointer& src_cref) = default; \
-			template<class integral_type2, class = mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> > \
+			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedPointer(const TXScopeFixedPointer<integral_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type2>&>(src_cref)) {} \
 			TXScopeFixedPointer(const TXScopeObjFixedPointer<integral_type> & src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
-			template<class integral_type2, class = mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> > \
+			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedPointer(const TXScopeObjFixedPointer<integral_type2> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type2>&>(src_cref)) {} \
-			template<class integral_type2, class = mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> > \
+			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedPointer(const TXScopeOwnerPointer<integral_type2> & src_cref) : TXScopeFixedPointer(&(*src_cref)) {} \
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {} \
 			operator bool() const { return true; } \
@@ -970,18 +970,18 @@ namespace mse {
 			typedef mse::us::impl::TXScopeItemConstPointerBase<integral_type> base_class; \
 			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<mse::TInt<integral_type>>& src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
 			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<integral_type>& src_cref) = default; \
-			template<class integral_type2, class = mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> > \
+			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<integral_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<integral_type2>&>(src_cref)) {} \
 			TXScopeFixedConstPointer(const TXScopeFixedPointer<integral_type> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type>&>(src_cref)) {} \
-			template<class integral_type2, class = mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> > \
+			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeFixedPointer<integral_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type2>&>(src_cref)) {} \
 			TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<integral_type> & src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
-			template<class integral_type2, class = mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> > \
+			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<integral_type2> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemConstPointerBase<integral_type2>&>(src_cref)) {} \
 			TXScopeFixedConstPointer(const TXScopeObjFixedPointer<integral_type> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type>&>(src_cref)) {} \
-			template<class integral_type2, class = mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> > \
+			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeObjFixedPointer<integral_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type2>&>(src_cref)) {} \
-			template<class integral_type2, class = mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> > \
+			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeOwnerPointer<integral_type2> & src_cref) : TXScopeFixedConstPointer(&(*src_cref)) {} \
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {} \
 			operator bool() const { return true; } \
@@ -1149,7 +1149,7 @@ namespace mse {
 			typedef TStrongFixedPointer<_TTargetType, _TLeaseType> base_class;
 
 			TXScopeStrongFixedPointer(const TXScopeStrongFixedPointer&) = default;
-			template<class _TLeaseType2, class = mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> >
+			template<class _TLeaseType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> MSE_IMPL_EIS >
 			TXScopeStrongFixedPointer(const TXScopeStrongFixedPointer<_TTargetType, _TLeaseType2>& src_cref) : base_class(static_cast<const TStrongFixedPointer<_TTargetType, _TLeaseType2>&>(src_cref)) {}
 
 			template <class _TTargetType2, class _TLeaseType2>
@@ -1199,10 +1199,10 @@ namespace mse {
 			typedef TStrongFixedConstPointer<_TTargetType, _TLeaseType> base_class;
 
 			TXScopeStrongFixedConstPointer(const TXScopeStrongFixedConstPointer&) = default;
-			template<class _TLeaseType2, class = mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> >
+			template<class _TLeaseType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> MSE_IMPL_EIS >
 			TXScopeStrongFixedConstPointer(const TXScopeStrongFixedConstPointer<_TTargetType, _TLeaseType2>& src_cref) : base_class(static_cast<const TStrongFixedConstPointer<_TTargetType, _TLeaseType2>&>(src_cref)) {}
 			TXScopeStrongFixedConstPointer(const TXScopeStrongFixedPointer<_TTargetType, _TLeaseType>& src_cref) : base_class(static_cast<const TStrongFixedConstPointer<_TTargetType, _TLeaseType>&>(src_cref)) {}
-			template<class _TLeaseType2, class = mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> >
+			template<class _TLeaseType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> MSE_IMPL_EIS >
 			TXScopeStrongFixedConstPointer(const TXScopeStrongFixedPointer<_TTargetType, _TLeaseType2>& src_cref) : base_class(static_cast<const TStrongFixedConstPointer<_TTargetType, _TLeaseType2>&>(src_cref)) {}
 
 			template <class _TTargetType2, class _TLeaseType2>
@@ -1305,14 +1305,14 @@ namespace mse {
 			TXScopeFixedPointerFParam(const TXScopeFixedPointerFParam& src_cref) = default;
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TXScopeFixedPointerFParam(TXScopeCagedItemFixedPointerToRValue<_Ty2>&& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 
 #ifndef MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TXScopeFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) { intentional_compile_error<_Ty2>(); }
 #else // !MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TXScopeFixedPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 #endif // !MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
 
@@ -1346,20 +1346,20 @@ namespace mse {
 			TXScopeFixedConstPointerFParam(const TXScopeFixedPointerFParam<_Ty>& src_cref) : base_class(src_cref) {}
 
 #ifndef MSE_SCOPEPOINTER_DISABLED
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TXScopeFixedConstPointerFParam(TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& src_cref) : base_class(src_cref.uncaged_pointer()) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TXScopeFixedConstPointerFParam(TXScopeCagedItemFixedPointerToRValue<_Ty2>&& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 
 #ifndef MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) { intentional_compile_error<_Ty2>(); }
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) { intentional_compile_error<_Ty2>(); }
 #else // !MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedConstPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
-			template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> >
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 			TXScopeFixedConstPointerFParam(const TXScopeCagedItemFixedPointerToRValue<_Ty2>& src_cref) : base_class(src_cref.uncaged_pointer()) {}
 #endif // !MSE_TXSCOPECAGEDITEMFIXEDCONSTPOINTER_LEGACY_COMPATIBILITY1
 
@@ -1678,19 +1678,19 @@ namespace mse {
 		/* This macro adds an overload of the given (template) function that bequeaths the (first) input parameter's "returnable
 		function parameter" status to the function's return value. */
 #define MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_function) \
-		template <typename _Ty, class... _Args, class = mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> > \
+		template <typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS > \
 		auto make_xscope_function(const mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax) \
 			-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_function(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) { \
 			const auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param); \
 			return mse::rsv::as_a_returnable_fparam(make_xscope_function(param_base_ref, std::forward<_Args>(_Ax)...)); \
 		} \
-		template <typename _Ty, class... _Args, class = mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> > \
+		template <typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS > \
 		auto make_xscope_function(mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax) \
 			-> decltype(mse::rsv::as_a_returnable_fparam(make_xscope_function(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) { \
 			auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param); \
 			return mse::rsv::as_a_returnable_fparam(make_xscope_function(param_base_ref, std::forward<_Args>(_Ax)...)); \
 		} \
-		template <typename _Ty, class... _Args, class = mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> > \
+		template <typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS > \
 		auto make_xscope_function(mse::rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) { \
 			return mse::rsv::as_a_returnable_fparam(make_xscope_function(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...)); \
 		}
@@ -1786,36 +1786,36 @@ namespace mse {
 
 namespace std {
 	/* Overloads for rsv::TReturnableFParam<>. */
-	template <size_t _Index, typename _Ty, class... _Args, class = mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> >
+	template <size_t _Index, typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS >
 	auto get(const mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
 		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Index>(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) {
 		const auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
 		return mse::rsv::as_a_returnable_fparam(get<_Index>(param_base_ref, std::forward<_Args>(_Ax)...));
 	}
-	template <size_t _Index, typename _Ty, class... _Args, class = mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> >
+	template <size_t _Index, typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS >
 	auto get(mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
 		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Index>(mse::us::impl::raw_reference_to<_Ty>(param), std::forward<_Args>(_Ax)...))) {
 		auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
 		return mse::rsv::as_a_returnable_fparam(get<_Index>(param_base_ref, std::forward<_Args>(_Ax)...));
 	}
-	template <size_t _Index, typename _Ty, class... _Args, class = mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> >
+	template <size_t _Index, typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS >
 	auto get(mse::rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) {
 		return mse::rsv::as_a_returnable_fparam(get<_Index>(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...));
 	}
 
-	template <typename _Tx, typename _Ty, class... _Args, class = mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> >
+	template <typename _Tx, typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS >
 	auto get(const mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
 		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Tx>(std::declval<const _Ty&>(), std::forward<_Args>(_Ax)...))) {
 		const auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
 		return mse::rsv::as_a_returnable_fparam(get<_Tx>(param_base_ref, std::forward<_Args>(_Ax)...));
 	}
-	template <typename _Tx, typename _Ty, class... _Args, class = mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> >
+	template <typename _Tx, typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS >
 	auto get(mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
 		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Tx>(std::declval<_Ty&>(), std::forward<_Args>(_Ax)...))) {
 		auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
 		return mse::rsv::as_a_returnable_fparam(get<_Tx>(param_base_ref, std::forward<_Args>(_Ax)...));
 	}
-	template <typename _Tx, typename _Ty, class... _Args, class = mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> >
+	template <typename _Tx, typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS >
 	auto get(mse::rsv::TReturnableFParam<_Ty>&& param, _Args&&... _Ax) {
 		return mse::rsv::as_a_returnable_fparam(get<_Tx>(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...));
 	}
@@ -1833,18 +1833,18 @@ namespace mse {
 			valid_if_TROy_is_marked_as_returnable_or_not_xscope_type();
 		}
 
-		template<class _Ty2 = _TROy, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> >
+		template<class _Ty2 = _TROy, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 
 	private:
 		/* If _TROy is not recognized as safe to use as a function return value, then the following member function
 		will not instantiate, causing an (intended) compile error. */
-		template<class = mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TROy>::value)
+		template<MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TROy>::value)
 			|| (mse::impl::potentially_does_not_contain_non_owning_scope_reference<_TROy>::value)
 			|| (true
 				&& (std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_TROy>::value>())
 				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::value>())*/
-				)> >
+				)> MSE_IMPL_EIS >
 		void valid_if_TROy_is_marked_as_returnable_or_not_xscope_type() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1858,7 +1858,7 @@ namespace mse {
 		typedef TReturnValue<_TROy> base_class;
 		MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TXScopeReturnValue, base_class);
 
-		template<class _Ty2 = _TROy, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> >
+		template<class _Ty2 = _TROy, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 
 	private:
@@ -1935,7 +1935,7 @@ namespace mse {
 
 	private:
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<!(std::is_same<_Ty2, _Ty>::value)> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<!(std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
 #endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 		void valid_if_safe_pointers_are_disabled() const {}
 
@@ -1956,7 +1956,7 @@ namespace mse {
 
 	private:
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<!(std::is_same<_Ty2, _Ty>::value)> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<!(std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
 #endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 		void valid_if_safe_pointers_are_disabled() const {}
 
@@ -1978,7 +1978,7 @@ namespace mse {
 
 	private:
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<!(std::is_same<_Ty2, _Ty>::value)> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<!(std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
 #endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 		void valid_if_safe_pointers_are_disabled() const {}
 
@@ -1999,7 +1999,7 @@ namespace mse {
 
 	private:
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<!(std::is_same<_Ty2, _Ty>::value)> >
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<!(std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
 #endif /*!defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 		void valid_if_safe_pointers_are_disabled() const {}
 
@@ -2069,9 +2069,9 @@ namespace mse {
 
 		void xscope_tag() const {}
 		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
-		template<class _Ty2 = _Ty, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
-			)> >
+			)> MSE_IMPL_EIS >
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 	private:
@@ -2201,11 +2201,11 @@ namespace mse {
 
 			/* If _TROy is "marked" as not safe to use as a function return value, then the following member function
 			will not instantiate, causing an (intended) compile error. */
-			template<class = mse::impl::enable_if_t<(mse::impl::potentially_does_not_contain_non_owning_scope_reference<_TROy>::value)
-				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::value>())*/> >
+			template<MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::potentially_does_not_contain_non_owning_scope_reference<_TROy>::value)
+				/*&& (!std::integral_constant<bool, mse::impl::HasXScopeNotReturnableTagMethod<_TROy>::value>())*/> MSE_IMPL_EIS >
 				void valid_if_TROy_is_not_marked_as_unreturn_value() const {}
 
-			template<class = mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_TROy>::value> >
+			template<MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_TROy>::value> MSE_IMPL_EIS >
 			void valid_if_TROy_is_an_xscope_type() const {}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -2460,7 +2460,7 @@ namespace mse {
 			return m_stored_ptr;
 		}
 		/*
-		template<class target_t2 = target_t, class = mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<target_t2>, mse::TXScopeFixedPointer<target_t> >::value> >
+		template<class target_t2 = target_t, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<target_t2>, mse::TXScopeFixedPointer<target_t> >::value> MSE_IMPL_EIS >
 		explicit operator mse::TXScopeFixedConstPointer<target_t2>() const & {
 			return m_stored_ptr;
 		}
@@ -2477,9 +2477,9 @@ namespace mse {
 
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class _Ty2 = _TStrongPointerNR, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
+		template<class _Ty2 = _TStrongPointerNR, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
-			)> >
+			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};
 
@@ -2528,9 +2528,9 @@ namespace mse {
 
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class _Ty2 = _TStrongPointerNR, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
+		template<class _Ty2 = _TStrongPointerNR, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
-			)> >
+			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};
 
@@ -2560,7 +2560,7 @@ namespace mse {
 			return m_stored_ptr;
 		}
 		/*
-		template<class target_t2 = target_t, class = mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<target_t2>, mse::TXScopeFixedPointer<target_t> >::value> >
+		template<class target_t2 = target_t, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<mse::TXScopeFixedConstPointer<target_t2>, mse::TXScopeFixedPointer<target_t> >::value> MSE_IMPL_EIS >
 		explicit operator mse::TXScopeFixedConstPointer<target_t2>() const & {
 			return m_stored_ptr;
 		}
@@ -2577,9 +2577,9 @@ namespace mse {
 
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class _Ty2 = _TStrongPointerNR, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
+		template<class _Ty2 = _TStrongPointerNR, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
-			)> >
+			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};
 
@@ -2620,9 +2620,9 @@ namespace mse {
 
 		void async_not_shareable_and_not_passable_tag() const {}
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-		template<class _Ty2 = _TStrongPointerNR, class = mse::impl::enable_if_t<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
+		template<class _Ty2 = _TStrongPointerNR, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TStrongPointerNR>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
-			)> >
+			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 	};
 

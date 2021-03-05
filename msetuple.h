@@ -198,13 +198,13 @@ namespace mse {
 
 			//using base_class::operator=;
 
-			template<class _This2 = _This, class = mse::impl::enable_if_t<(std::is_same<_This2, _This>::value)
+			template<class _This2 = _This, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_This2, _This>::value)
 				&& (mse::impl::is_marked_as_shareable_msemsearray<_This2>::value)
-				&& (mse::impl::conjunction<mse::impl::is_marked_as_shareable_msemsearray<_Rest>...>::value)> >
+				&& (mse::impl::conjunction<mse::impl::is_marked_as_shareable_msemsearray<_Rest>...>::value)> MSE_IMPL_EIS >
 			void async_shareable_tag() const {}
-			template<class _This2 = _This, class = mse::impl::enable_if_t<(std::is_same<_This2, _This>::value)
+			template<class _This2 = _This, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_This2, _This>::value)
 				&& (mse::impl::is_marked_as_passable_msemsearray<_This2>::value)
-				&& (mse::impl::conjunction<mse::impl::is_marked_as_passable_msemsearray<_Rest>...>::value)> >
+				&& (mse::impl::conjunction<mse::impl::is_marked_as_passable_msemsearray<_Rest>...>::value)> MSE_IMPL_EIS >
 			void async_passable_tag() const {}
 
 		private:
@@ -288,13 +288,13 @@ namespace mse {
 		xscope_tuple(const base_class& src) : base_class(src) {}
 		xscope_tuple(base_class&& src) : base_class(MSE_FWD(src)) {}
 
-		template<class _This2 = _This, class = mse::impl::enable_if_t<(std::is_same<_This2, _This>::value)
+		template<class _This2 = _This, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_This2, _This>::value)
 			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_This2>::value)
-			&& (mse::impl::conjunction<mse::impl::is_marked_as_xscope_shareable_msemsearray<_Rest>...>::value)> >
+			&& (mse::impl::conjunction<mse::impl::is_marked_as_xscope_shareable_msemsearray<_Rest>...>::value)> MSE_IMPL_EIS >
 		void async_xscope_shareable_tag() const {}
-		template<class _This2 = _This, class = mse::impl::enable_if_t<(std::is_same<_This2, _This>::value)
+		template<class _This2 = _This, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_This2, _This>::value)
 			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<_This2>::value)
-			&& (mse::impl::conjunction<mse::impl::is_marked_as_xscope_passable_msemsearray<_Rest>...>::value)> >
+			&& (mse::impl::conjunction<mse::impl::is_marked_as_xscope_passable_msemsearray<_Rest>...>::value)> MSE_IMPL_EIS >
 		void async_xscope_passable_tag() const {}
 
 	private:

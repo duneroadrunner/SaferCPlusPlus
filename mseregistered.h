@@ -235,7 +235,7 @@ namespace mse {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredPointer(const TNDRegisteredPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<TNDRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
@@ -257,7 +257,7 @@ namespace mse {
 			}
 			return (*this);
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredPointer<_Ty>& operator=(const TNDRegisteredPointer<_Ty2>& _Right_cref) {
 			return (*this).operator=(TNDRegisteredPointer(_Right_cref));
 		}
@@ -317,7 +317,7 @@ namespace mse {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredConstPointer(const TNDRegisteredConstPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
@@ -328,7 +328,7 @@ namespace mse {
 				(*((*this).m_ptr)).register_pointer(*this);
 			}
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredConstPointer(const TNDRegisteredPointer<_Ty2>& src_cref) : mse::us::TSaferPtr<const TNDRegisteredObj<_Ty>>(src_cref.m_ptr) {
 			if (nullptr != (*this).m_ptr) {
 				(*((*this).m_ptr)).register_pointer(*this);
@@ -350,7 +350,7 @@ namespace mse {
 			}
 			return (*this);
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredConstPointer<_Ty>& operator=(const TNDRegisteredConstPointer<_Ty2>& _Right_cref) {
 			return (*this).operator=(TNDRegisteredConstPointer(_Right_cref));
 		}
@@ -405,7 +405,7 @@ namespace mse {
 	class TNDRegisteredNotNullPointer : public TNDRegisteredPointer<_Ty> {
 	public:
 		TNDRegisteredNotNullPointer(const TNDRegisteredNotNullPointer& src_cref) : TNDRegisteredPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredNotNullPointer(const TNDRegisteredNotNullPointer<_Ty2>& src_cref) : TNDRegisteredPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredNotNullPointer() {}
@@ -426,7 +426,7 @@ namespace mse {
 		TNDRegisteredNotNullPointer(const  TNDRegisteredPointer<_Ty>& src_cref) : TNDRegisteredPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredNotNullPointer(const TNDRegisteredPointer<_Ty2>& src_cref) : TNDRegisteredPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
@@ -447,10 +447,10 @@ namespace mse {
 	class TNDRegisteredNotNullConstPointer : public TNDRegisteredConstPointer<_Ty> {
 	public:
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredNotNullPointer<_Ty>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredNotNullPointer<_Ty2>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {}
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredNotNullConstPointer<_Ty>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredNotNullConstPointer() {}
@@ -465,14 +465,14 @@ namespace mse {
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredPointer<_Ty>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredPointer<_Ty2>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredConstPointer<_Ty>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredConstPointer<_Ty2>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
@@ -499,11 +499,11 @@ namespace mse {
 	class TNDRegisteredFixedPointer : public TNDRegisteredNotNullPointer<_Ty> {
 	public:
 		TNDRegisteredFixedPointer(const TNDRegisteredFixedPointer& src_cref) : TNDRegisteredNotNullPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredFixedPointer(const TNDRegisteredFixedPointer<_Ty2>& src_cref) : TNDRegisteredNotNullPointer<_Ty>(src_cref) {}
 
 		TNDRegisteredFixedPointer(const TNDRegisteredNotNullPointer<_Ty>& src_cref) : TNDRegisteredNotNullPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredFixedPointer(const TNDRegisteredNotNullPointer<_Ty2>& src_cref) : TNDRegisteredNotNullPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredFixedPointer() {}
@@ -530,17 +530,17 @@ namespace mse {
 	class TNDRegisteredFixedConstPointer : public TNDRegisteredNotNullConstPointer<_Ty> {
 	public:
 		TNDRegisteredFixedConstPointer(const TNDRegisteredFixedPointer<_Ty>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredFixedConstPointer(const TNDRegisteredFixedPointer<_Ty2>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 		TNDRegisteredFixedConstPointer(const TNDRegisteredFixedConstPointer<_Ty>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredFixedConstPointer(const TNDRegisteredFixedConstPointer<_Ty2>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 
 		TNDRegisteredFixedConstPointer(const TNDRegisteredNotNullPointer<_Ty>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredFixedConstPointer(const TNDRegisteredNotNullPointer<_Ty2>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 		TNDRegisteredFixedConstPointer(const TNDRegisteredNotNullConstPointer<_Ty>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDRegisteredFixedConstPointer(const TNDRegisteredNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredFixedConstPointer() {}

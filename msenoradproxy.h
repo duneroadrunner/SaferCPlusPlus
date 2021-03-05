@@ -130,13 +130,13 @@ namespace mse {
 
 		MSE_USING(TNDNoradProxyPointer, base_class);
 		TNDNoradProxyPointer(const TNDNoradProxyPointer& src_cref) = default;
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyPointer(const TNDNoradProxyPointer<_Ty2>& src_cref) : base_class(src_cref.contained_pointer()) {}
 		TNDNoradProxyPointer<_Ty>& operator=(const TNDNoradProxyPointer<_Ty>& _Right_cref) {
 			(*this).contained_pointer() = _Right_cref;
 			return (*this);
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyPointer<_Ty>& operator=(const TNDNoradProxyPointer<_Ty2>& _Right_cref) {
 			(*this).contained_pointer() = (TNDNoradProxyPointer(_Right_cref));
 			return (*this);
@@ -195,16 +195,16 @@ namespace mse {
 
 		MSE_USING(TNDNoradProxyConstPointer, base_class);
 		TNDNoradProxyConstPointer(const TNDNoradProxyConstPointer& src_cref) = default;
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyConstPointer(const TNDNoradProxyConstPointer<_Ty2>& src_cref) : base_class(src_cref.contained_pointer()) {}
 		TNDNoradProxyConstPointer(const TNDNoradProxyPointer<_Ty>& src_cref) : base_class(RegCPtrXSPtrToRegCPtrXSConstPtr(src_cref.contained_pointer())) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyConstPointer(const TNDNoradProxyPointer<_Ty2>& src_cref) : base_class(src_cref.contained_pointer()) {}
 		TNDNoradProxyConstPointer<_Ty>& operator=(const TNDNoradProxyConstPointer<_Ty>& _Right_cref) {
 			(*this).contained_pointer() = _Right_cref;
 			return (*this);
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyConstPointer<_Ty>& operator=(const TNDNoradProxyConstPointer<_Ty2>& _Right_cref) {
 			(*this).contained_pointer() = (TNDNoradProxyConstPointer(_Right_cref));
 			return (*this);
@@ -267,7 +267,7 @@ namespace mse {
 	class TNDNoradProxyNotNullPointer : public TNDNoradProxyPointer<_Ty> {
 	public:
 		TNDNoradProxyNotNullPointer(const TNDNoradProxyNotNullPointer& src_cref) : TNDNoradProxyPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyNotNullPointer(const TNDNoradProxyNotNullPointer<_Ty2>& src_cref) : TNDNoradProxyPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyNotNullPointer() {}
@@ -279,7 +279,7 @@ namespace mse {
 		TNDNoradProxyNotNullPointer(const  TNDNoradProxyPointer<_Ty>& src_cref) : TNDNoradProxyPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyNotNullPointer(const TNDNoradProxyPointer<_Ty2>& src_cref) : TNDNoradProxyPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
@@ -295,10 +295,10 @@ namespace mse {
 	class TNDNoradProxyNotNullConstPointer : public TNDNoradProxyConstPointer<_Ty> {
 	public:
 		TNDNoradProxyNotNullConstPointer(const TNDNoradProxyNotNullPointer<_Ty>& src_cref) : TNDNoradProxyConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyNotNullConstPointer(const TNDNoradProxyNotNullPointer<_Ty2>& src_cref) : TNDNoradProxyConstPointer<_Ty>(src_cref) {}
 		TNDNoradProxyNotNullConstPointer(const TNDNoradProxyNotNullConstPointer<_Ty>& src_cref) : TNDNoradProxyConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyNotNullConstPointer(const TNDNoradProxyNotNullConstPointer<_Ty2>& src_cref) : TNDNoradProxyConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyNotNullConstPointer() {}
@@ -316,14 +316,14 @@ namespace mse {
 		TNDNoradProxyNotNullConstPointer(const TNDNoradProxyPointer<_Ty>& src_cref) : TNDNoradProxyConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyNotNullConstPointer(const TNDNoradProxyPointer<_Ty2>& src_cref) : TNDNoradProxyConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
 		TNDNoradProxyNotNullConstPointer(const TNDNoradProxyConstPointer<_Ty>& src_cref) : TNDNoradProxyConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyNotNullConstPointer(const TNDNoradProxyConstPointer<_Ty2>& src_cref) : TNDNoradProxyConstPointer<_Ty>(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
@@ -350,11 +350,11 @@ namespace mse {
 	class TNDNoradProxyFixedPointer : public TNDNoradProxyNotNullPointer<_Ty> {
 	public:
 		TNDNoradProxyFixedPointer(const TNDNoradProxyFixedPointer& src_cref) : TNDNoradProxyNotNullPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyFixedPointer(const TNDNoradProxyFixedPointer<_Ty2>& src_cref) : TNDNoradProxyNotNullPointer<_Ty>(src_cref) {}
 
 		TNDNoradProxyFixedPointer(const TNDNoradProxyNotNullPointer<_Ty>& src_cref) : TNDNoradProxyNotNullPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyFixedPointer(const TNDNoradProxyNotNullPointer<_Ty2>& src_cref) : TNDNoradProxyNotNullPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyFixedPointer() {}
@@ -378,17 +378,17 @@ namespace mse {
 	class TNDNoradProxyFixedConstPointer : public TNDNoradProxyNotNullConstPointer<_Ty> {
 	public:
 		TNDNoradProxyFixedConstPointer(const TNDNoradProxyFixedPointer<_Ty>& src_cref) : TNDNoradProxyNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyFixedConstPointer(const TNDNoradProxyFixedPointer<_Ty2>& src_cref) : TNDNoradProxyNotNullConstPointer<_Ty>(src_cref) {}
 		TNDNoradProxyFixedConstPointer(const TNDNoradProxyFixedConstPointer<_Ty>& src_cref) : TNDNoradProxyNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyFixedConstPointer(const TNDNoradProxyFixedConstPointer<_Ty2>& src_cref) : TNDNoradProxyNotNullConstPointer<_Ty>(src_cref) {}
 
 		TNDNoradProxyFixedConstPointer(const TNDNoradProxyNotNullPointer<_Ty>& src_cref) : TNDNoradProxyNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyFixedConstPointer(const TNDNoradProxyNotNullPointer<_Ty2>& src_cref) : TNDNoradProxyNotNullConstPointer<_Ty>(src_cref) {}
 		TNDNoradProxyFixedConstPointer(const TNDNoradProxyNotNullConstPointer<_Ty>& src_cref) : TNDNoradProxyNotNullConstPointer<_Ty>(src_cref) {}
-		template<class _Ty2, class = mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> >
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		TNDNoradProxyFixedConstPointer(const TNDNoradProxyNotNullConstPointer<_Ty2>& src_cref) : TNDNoradProxyNotNullConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradProxyFixedConstPointer() {}
