@@ -1,12 +1,12 @@
-Feb 2021
+Mar 2021
 
 ### Overview
 
-"SaferCPlusPlus" is essentially a collection of safe data types intended to facilitate memory and data race safe C++ programming. This library is intended to work with and be complimentary to the Core Guidelines lifetime checker or other safety assuring static analyzers, like [scpptool](https://github.com/duneroadrunner/scpptool), over their various stages of development and availability. (Including situations where they are not available at all.)
+"SaferCPlusPlus" is essentially a collection of safe data types intended to facilitate memory and data race safe C++ programming. This library is intended to work with a safety assuring static analyzer like [scpptool](https://github.com/duneroadrunner/scpptool) and, optionally, the Core Guidelines lifetime checker, over their various stages of development and availability. (Including situations where they are not available at all.)
 
 The library's elements are designed, as much as possible, to seamlessly integrate with all manner of existing and future C++ code. It includes things like:
 
-- Drop-in replacements for [`std::vector<>`](#vector), [`std::array<>`](#array) and [`std::string`](#string).
+- Drop-in replacements for [`std::vector<>`](#mstdvector), [`std::array<>`](#mstdarray) and [`std::string`](#mstdstring).
 
 - Replacements for [`std::string_view`](#nrp_string_view) and [`std::span`](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection).
 
@@ -16,9 +16,9 @@ The library's elements are designed, as much as possible, to seamlessly integrat
 
 - Replacements for native pointers/references with various flexibility and performance trade-offs. 
 
-While a "static safety analyzer/enforcer" like the Core Guidelines lifetime checker or scpptool (neither of which, at the time of writing (Feb 2021), is entirely complete) would be required to ensure complete safety, the SaferCPlusPlus library elements have a lot of safety enforcement already built in. The library is extensive enough that most existing uses of unsafe C++ elements can be replaced. 
+While a "static safety analyzer/enforcer" like the scpptool would be required to ensure complete safety, the SaferCPlusPlus library elements have a lot of safety enforcement already built in. The library is extensive enough that most existing uses of unsafe C++ elements can be replaced. 
 
-Besides zero-overhead pointers that enforce some of the necessary restrictions not yet (at the time of writing) implemented in the lifetime checker, the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and an unrestricted pointer that ensures memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat [draconian restrictions](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md) imposed by the (eventual completed) lifetime checker.
+Besides zero-overhead pointers that enforce some of the necessary restrictions that would be imposed by a complete "static safety analyzer/enforcer", the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and an unrestricted pointer that ensures memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat [draconian restrictions](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md) imposed by the (eventual completed) lifetime checker.
 
 And the library also addresses the data race issue, where the Core Guidelines don't (yet) offer anything substantial.
 
@@ -104,19 +104,19 @@ Tested with msvc2019(v16.5.4), g++9.3.0 and clang++10.0.0. Versions of g++ prior
     2. [CNDInt, CNDSize_t and CNDBool](#cndint-cndsize_t-and-cndbool)
     3. [Quarantined types](#quarantined-types)
 17. [Arrays](#arrays)
-    1. [mstd::array](#array)
+    1. [mstd::array](#mstdarray)
     2. [nii_array](#nii_array)
     3. [xscope_nii_array](#xscope_nii_array)
     4. [xscope_iterator](#xscope_iterator)
 18. [Vectors](#vectors)
-    1. [mstd::vector](#vector)
+    1. [mstd::vector](#mstdvector)
     2. [nii_vector](#nii_vector)
     3. [fixed_nii_vector](#fixed_nii_vector)
     4. [xscope_borrowing_fixed_nii_vector](#xscope_borrowing_fixed_nii_vector)
     5. [ivector](#ivector)
 19. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
 20. [Strings](#strings)
-    1. [mstd::string](#string)
+    1. [mstd::string](#mstdstring)
     2. [nii_string](#nii_string)
     3. [xscope_borrowing_fixed_nii_basic_string](#xscope_borrowing_fixed_nii_basic_string)
     4. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
@@ -131,9 +131,10 @@ Tested with msvc2019(v16.5.4), g++9.3.0 and clang++10.0.0. Versions of g++ prior
     5. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
     6. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
 22. [Optionals](#optionals)
-    1. [mstd::optional](#optional)
-    2. [mt_optional](#mt_optional)
-    3. [xscope_mt_optional, xscope_st_optional](#xscope_mt_optional-xscope_st_optional)
+    1. [mstd::optional](#mstdoptional)
+    2. [optional](#optional)
+    3. [fixed_optional](#fixed_optional)
+    4. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
 23. [Tuples](#tuples)
     1. [mstd::tuple](#tuple)
     2. [xscope_tuple](#xscope_tuple)
@@ -151,7 +152,7 @@ Tested with msvc2019(v16.5.4), g++9.3.0 and clang++10.0.0. Versions of g++ prior
 
 The library was designed to help reduce or eliminate the potential for invalid memory accesses and data races in general C++ code. The general strategy is simply to substitute potentially unsafe C++ elements with compatible safe replacements from the library. The library does not impose any particular paradigm or code structure. (Though more modern coding styles that de-emphasize explicit use of iterators may result in better performance.)
 
-When a completed static safety enforcer (like the lifetime checker or [scpptool](https://github.com/duneroadrunner/scpptool)) is/becomes available, some of the most used elements of the library (namely the "scope" pointer elements) may be rendered largely redundant. At such time, code using the pointer/reference types in this library should, unlike "regular" C++ code, already be compliant with the restrictions that will be imposed by such a completed static safety enforcer. So you can think of the use of this library as a method of "future-proofing" your code for a time when it may become standard practice to automatically reject C++ code that isn't approved by a static safety enforcer.
+When using a static safety enforcer (like the [scpptool](https://github.com/duneroadrunner/scpptool) and/or the Core Guidelines lifetime checker, when completed), some of the most used elements of the library (namely the "scope" pointer elements) may be rendered largely redundant. Code using the pointer/reference types in this library should, unlike "regular" C++ code, already be compliant with the restrictions that will be imposed by such a completed static safety enforcer. So you can think of the use of this library as a method of "future-proofing" your code for a time when it may become standard practice to automatically reject C++ code that isn't approved by a static safety enforcer.
 
 While using the library can incur a modest performance penalty, because the library elements are largely compatible with their native counterparts, they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them, for example, to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.
 
@@ -214,7 +215,7 @@ Checked C and SaferCPlusPlus are more complementary than competitive. Checked C 
 
 ### Getting started on safening existing code
 
-The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#vector) and [`mse::mstd::array<>`](#array). You can substitute `std::string_view` with [`mse::nrp_string_view`](#nrp_string_view), and your `std::string`s with [`mse::mstd::string`](#string).
+The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#mstdvector) and [`mse::mstd::array<>`](#mstdarray). You can substitute `std::string_view` with [`mse::nrp_string_view`](#nrp_string_view), and your `std::string`s with [`mse::mstd::string`](#mstdstring).
 
 Statistically speaking, doing this should already catch a significant chunk of potential memory bugs. By default, an exception will be thrown upon any attempt to access invalid memory (or the program will terminate if compiled with support for exceptions disabled). This behavior can be customized (for example, to notify a custom logger of any invalid memory access attempts) by defining the `MSE_CUSTOM_THROW_DEFINITION()` preprocessor function macro.
 
@@ -2629,11 +2630,11 @@ Integer types with more comprehensive range checking can be found here: https://
 
 ### Arrays
 
-The library provides a few array types - [`mstd::array<>`](#array), [`nii_array<>`](#nii_array) and [`xscope_nii_array<>`](#xscope_nii_array). `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. Due to their iterators, arrays are not, in general, safe to share among threads.  `nii_array<>` is designed to be safely shared between asynchronous threads. Note that these two arrays do not support using [scope](#scope-pointers) types as the element type, while `xscope_nii_array<>` does. 
+The library provides a few array types - [`mstd::array<>`](#mstdarray), [`nii_array<>`](#nii_array) and [`xscope_nii_array<>`](#xscope_nii_array). `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. Due to their iterators, arrays are not, in general, safe to share among threads.  `nii_array<>` is designed to be safely shared between asynchronous threads. Note that these two arrays do not support using [scope](#scope-pointers) types as the element type, while `xscope_nii_array<>` does. 
 
 And remember that you can use ["random access sections"](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
-### array
+### mstd::array
 
 `mstd::array<>` is a memory-safe drop-in replacement for `std::array<>`. Note that the current implementation requires "`mseregistered.h`".  
 
@@ -2751,7 +2752,7 @@ usage example:
 
 ### Vectors
 
-The library provides a number of vector types. Like their [array](#arrays) counterparts, [`mstd::vector<>`](#vector) is a memory-safe drop-in replacement for `std::vector<>` and [`nii_vector<>`](#nii_vector) is a vector that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads.
+The library provides a number of vector types. Like their [array](#arrays) counterparts, [`mstd::vector<>`](#mstdvector) is a memory-safe drop-in replacement for `std::vector<>` and [`nii_vector<>`](#nii_vector) is a vector that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads.
 
 But unlike (fixed-size) arrays, dynamic containers like (resizable) vectors present an extra memory safety challenge in that the container may be modified/resized so that an element in the container might be eliminated, or moved to a different location, while there are still references (iterators) targeting the element. This results in dynamic containers having additional overhead (for safety mechanisms) and/or usage restrictions. For this reason, directly referencing elements in these (resizable) vectors is discouraged. You may instead move the vector contents to a (more efficient) "non-resizable" vector and access the elements from that container. A [`fixed_nii_vector<>`](#fixed_nii_vector) is provided, but generally you'll want to use [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector). Upon construction it "borrows" the contents of a specified vector and returns the (possibly modified) contents upon destruction. The premise here is that the moving of a vector's contents is an inexpensive operation that might be expected to be completely optimized away in cases where the contents are returned to their original location. Like arrays, fixed-size vectors support (efficient) [scope iterators](#xscope_iterator).
 
@@ -2761,7 +2762,7 @@ But if there are occasions when you want to perform a dynamic/resizing operation
 
 And remember that you can use ["random access sections"](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
-### vector
+### mstd::vector
 
 `mstd::vector<>` is a memory-safe drop-in replacement for `std::vector<>`.
 
@@ -2804,7 +2805,7 @@ usage example:
 
 ### nii_vector
 
-Like its array counterpart, [`nii_array<>`](#nii_array), `nii_vector<>` is a vector that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. You can obtain "explicit" iterators using the (generic) `make_begin_iterator(...)` free function that takes as an argument a (safe) pointer to the vector, but directly accessing the elements of an `nii_vector<>` is discouraged. Prefer instead to access (or hold references to) vector elements by using an [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector).
+Like its array counterpart, [`nii_array<>`](#nii_array), `nii_vector<>` is a vector that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. You can obtain "explicit" iterators using the (generic) `make_begin_iterator(...)` free function that takes as an argument a (safe) pointer to the vector, but directly accessing the elements of an `nii_vector<>` is discouraged. Prefer instead to access (or hold references to) vector elements by using an [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector). (Indeed, if the elements are going to be accessed or referenced directly, consider using [`stnii_vector<>`](#stnii_vector) instead.)
 
 Note that the standard vector `insert()`, `erase()` and `emplace()` member functions return "implicit" iterators which, again, `nii_vector<>` does not support. Instead there are free function counterparts that take a (safe) pointer to the container as their first argument which is used to generate and return an "explicit" iterator (as demonstrated in the usage example).
 
@@ -2818,7 +2819,7 @@ usage example: (see the example for [`xscope_borrowing_fixed_nii_vector<>`](#xsc
 
 ### fixed_nii_vector
 
-A `fixed_nii_vector<>` is basically like an [`nii_array<>`](#nii_array) (i.e. not resizable) whose size is determined at construction rather than at compile-time. Note that while a `fixed_nii_vector<>` can (cheaply) "take" the contents of a dynamic/resizable vector during move construction, like a (fixed-size) array, attempts to move the contents out of a `fixed_nii_vector<>` would result in the contents being (less cheaply) copied.
+A `fixed_nii_vector<>` is basically like an [`nii_array<>`](#nii_array) (i.e. not resizable) whose size is determined at construction rather than at compile-time. (Except that unlike an array, a `fixed_nii_vector<>` can (cheaply) "take" the contents of a dynamic/resizable vector during move construction, leaving the source vector empty.)
 
 usage example:
 ```cpp
@@ -2980,7 +2981,7 @@ usage example:
 
 ### ivector
 
-`mse::ivector<>` is a safe vector like [`mse::mstd::vector<>`](#vector), but its (implicit) iterators behave more like list iterators than standard vector iterators. That is, upon insert or delete, the iterators continue to point to the same item, not (necessarily) the same position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted.
+`mse::ivector<>` is a safe vector like [`mse::mstd::vector<>`](#mstdvector), but its (implicit) iterators behave more like list iterators than standard vector iterators. That is, upon insert or delete, the iterators continue to point to the same item, not (necessarily) the same position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted.
 
 usage example:
 ```cpp
@@ -3007,7 +3008,7 @@ usage example:
     }
 ```
 
-#### structure locking
+### structure locking
 
 While the preferred method for accessing elements of a resizable vector is via [`xscope_borrowing_fixed_nii_vector`](#xscope_borrowing_fixed_nii_vector), note that constructing an `xscope_borrowing_fixed_nii_vector` requires a non-const [scope pointer](#scope-pointers) to the resizable vector. For situations where such a non-const scope pointer is not available, the elements can be accessed directly from the resizable vector, potentially with a little more overhead, and some restrictions. 
 
@@ -3151,6 +3152,38 @@ usage example:
     }
 ```
 
+### exclusive writer protected dynamic containers
+
+As [noted previously](#mtnii_vector), unlike the other vectors, (for thread safety reasons) [`nii_vector<>`](#nii_vector)'s [scope const iterator](#xscope_iterator) doesn't "[structure lock](#structure-locking)" the vector and therefore, you cannot obtain a [scope pointer](#txscopefixedpointer) from it. However, an object protected by an "[excluse writer](#exclusive-writer-objects)" access control wrapper is ensured to remain unmodified while a corresponding "access controlled const pointer" exists. So it is safe to obtain a (const) scope pointer from a scope const iterator constructed from an "access controlled const pointer" of an `nii_vector<>` protected by an "excluse writer" access control wrapper.
+
+usage example:
+
+```cpp
+    #include "msemsevector.h"
+    
+    void main(int argc, char* argv[]) {
+        /* Unfortunately, you cannot obtain a direct scope const pointer to an nii_vector<> element from a scope const
+        pointer to the nii_vector<>. (nii_vector<> is the only one of the library's vectors that has this shortcoming.)
+        However, for vectors that are access controlled with an "exclusive writer" access policy, you can use an
+        "exclusive writer" const pointer to obtain a direct scope const pointer to a vector element. */
+        auto xs_ew_niivec1 = mse::make_xscope(mse::make_exclusive_writer(mse::nii_vector<int>{ 1, 2, 3 }));
+        // which can also be written as:
+        // mse::TXScopeObj<mse::TExclusiveWriterObj<mse::nii_vector<int> > > xs_ew_niivec1 = mse::nii_vector<int>{ 1, 2, 3 };
+        {
+            auto xs_ew_cptr1 = mse::make_xscope_access_controlled_const_pointer(xs_ew_niivec1);
+            /* The following scope iterator is of a type that reflects that it was constructed from an "exclusive writer"
+            const pointer. */
+            auto xs_citer1 = mse::make_xscope_begin_const_iterator(xs_ew_cptr1);
+            xs_citer1 += 2;
+            /* We can obtain a (zero-overhead) scope pointer from the (lvalue) iterator. */
+            auto xs_cptr1 = mse::xscope_const_pointer(xs_citer1);
+            auto val1 = *xs_cptr1;
+        }
+        /* Once the "access controlled const pointer" no longer exists, we can obtain an "access controlled 
+        (non-const) pointer" and modify the vector again. */
+        mse::push_back(mse::make_xscope_access_controlled_pointer(xs_ew_niivec1), 4);
+    }
+```
 
 ### TXScopeRandomAccessSection, TXScopeRandomAccessConstSection, TRandomAccessSection, TRandomAccessConstSection
 
@@ -3226,9 +3259,9 @@ See also [TXScopeCSSSXSTERandomAccessSection](https://github.com/duneroadrunner/
 
 ### Strings
 
-From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A few string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#string) is a memory-safe drop-in replacement for `std::string` and [`nii_string`](#nii_string) is a string that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads. [`xscope_borrowing_fixed_nii_basic_string<>`](#xscope_borrowing_fixed_nii_basic_string) is a non-resizable string that facilitates more efficient and less restricted direct access to characters in the string.
+From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A few string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#mstdstring) is a memory-safe drop-in replacement for `std::string` and [`nii_string`](#nii_string) is a string that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads. [`xscope_borrowing_fixed_nii_basic_string<>`](#xscope_borrowing_fixed_nii_basic_string) is a non-resizable string that facilitates more efficient and less restricted direct access to characters in the string.
 
-### string
+### mstd::string
 
 `mstd::string` is a memory-safe drop-in replacement for `std::string`. As with the standard library, `mstd::string` is defined as an alias for `mstd::basic_string<char>`. The `mstd::wstring`, `mstd::u16string` and `mstd::u32string` aliases are also present.
 
@@ -3614,9 +3647,9 @@ usage example:
 
 ### Optionals
 
-Conceptually, you might think of an `optional<>` as a dynamic container, like a `vector<>`, that supports a maximum of one element. So the library provides a few versions of `optional<>` that roughly correspond to their [`vector<>` counterparts](#vectors). The library introduces "optional element" pointers, which would loosely correspond to iterators. Like their iterator counterparts, scope optional element pointers, while they exist, hold a ["structure lock"](#structure-locking) on their target `optional<>` object which prevents the contained element from being destroyed.
+Conceptually, you might think of an `optional<>` as a dynamic container, like a `vector<>`, that supports a maximum of one element. So the library provides a few versions of `optional<>` that roughly correspond to their [`vector<>` counterparts](#vectors). The library introduces "optional element" pointers, which would loosely correspond to iterators.
 
-### optional
+### mstd::optional
 
 `mstd::optional<>` is essentially just a safe implementation of std::optional<>. 
 
@@ -3624,41 +3657,69 @@ usage example:
 
 ```cpp
     #include "mseoptional.h"
-    #include "msemstdstring.h"
-    #include "mserefcounting.h"
     
     void main(int argc, char* argv[]) {
+        auto opt1 = mse::mstd::optional<int>{ 7 };
+        assert(opt1.has_value());
+        auto val1 = opt1.value();
+    }
+```
+
+### optional
+
+Analogous to its vector counterpart, [`nii_vector<>`](#nii_vector), `optional<>` is eligible to be shared among asynchronous threads. And like `nii_vector<>`, the preferred way of accessing or referencing the contained element is via [`xscope_borrowing_fixed_optional<>`](#xscope_borrowing_fixed_optional).
+
+usage example: (see the example for [`xscope_borrowing_fixed_optional<>`](#xscope_borrowing_fixed_optional))
+
+### fixed_optional
+
+Analogous to its vector counterpart, [`fixed_nii_vector<>`](#fixed_nii_vector), `fixed_optional<>` is just a version of `optional<>` whose number of contained elements (zero or one) is fixed at construction.
+
+### xscope_fixed_optional
+
+Analogous to its vector counterpart, [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector), `xscope_fixed_optional<>` is just a version of [`fixed_optional<>`](#fixed_optional) that supports scope types as its element type, and as a scope type itself, is subject to the restrictions of scope objects.
+
+### xscope_borrowing_fixed_optional
+
+Analogous to its vector counterpart, [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector), `xscope_borrowing_fixed_optional<>` is like [`xscope_fixed_optional<>`](#xscope_fixed_optional), except that, at construction, "borrows" the contents of a specified (via scope pointer) existing `optional<>`, then, upon destruction "releases" the (possibly modified) contents back to the original owner. Unlike `xscope_borrowing_fixed_nii_vector<>` though, the contained element, if any, is not (necessarily) moved when "borrowed", but equivalently, the "borrowing" object is granted "exclusive access" to the "lending" object for the duration of the borrow.
+
+usage example:
+
+```cpp
+    #include "mseoptional.h"
+    #include "msemstdstring.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        auto xs_opt1 = mse::make_xscope(mse::make_optional(mse::mstd::string("abc")));
+        // which can also be written as
+        // auto xs_opt1 = mse::TXScopeObj<mse::optional<mse::mstd::string> >("abc");
+
+        xs_opt1 = {};
+        xs_opt1 = mse::mstd::string("def");
+
         {
-            /* mstd::optional<> is essentially just a safe implementation of std::optional<>. But you may, on occasion, also
-            need a (safe) pointer that directly targets the contained element. You could make the element type a "registered"
-            or "norad" object. Alternatively, you can obtain a safe pointer to the contained element from a pointer to the
-            optional<> object like so: */
-            auto opt1_refcptr = mse::make_refcounting<mse::mstd::optional<mse::mstd::string> >("abc");
-            auto elem_ptr1 = mse::make_optional_element_pointer(opt1_refcptr);
-            auto val1 = *elem_ptr1;
-        }
-        {
-            /* More commonly, the optional<> object might be declared as a scope object. */
-            auto xs_opt1 = mse::make_xscope(mse::mstd::make_optional(mse::mstd::string("abc")));
-            // which can also be written as
-            // auto xs_opt1 = mse::TXScopeObj<mse::mstd::optional<mse::mstd::string> >("abc");
+            /* Here we obtain an xscope_borrowing_fixed_optional<> that "borrows" the contents of xs_opt1. */
+            auto xs_bfopt1 = mse::make_xscope_borrowing_fixed_optional(&xs_opt1);
 
-            auto xs_elem_ptr1 = mse::make_xscope_optional_element_pointer(&xs_opt1);
+            /* Note that accessing xs_opt1 is prohibited while xs_bfopt1 exists. This restriction is enforced.*/
 
-            /* Note that the scope version of the "optional element pointer", like scope vector iterators, has the side-effect,
-            while it exists, of "locking" the optional<> (scope) object so as to prevent any operation that might destroy the
-            contained element. This property allows us to obtain a "regular" scope pointer to the element from the scope
-            "optional element pointer". */
+            /* Here we obtain a (safe) pointer to the contained element. */
+            auto xs_elem_ptr1 = mse::make_xscope_fixed_optional_element_pointer(&xs_bfopt1);
 
+            /* We can also then obtain a scope pointer to the contained element. */
             auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
             auto val1 = *xs_ptr1;
+            *xs_ptr1 = mse::mstd::string("ghi");
         }
+        /* After the xscope_borrowing_fixed_optional<> is gone, we can again access our optional<>. */
+        xs_opt1.reset();
     }
 ```
 
 ### mt_optional
 
-The reason is subtle, but the implementation [`mstd::optional<>`](#optional) uses to support the ability to obtain a scope (const) pointer to its contained element from a const reference to the `mstd::optional<>` makes it ineligible to be shared among threads. Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` is a version that is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at cost of slightly higher run-time overhead.
+Analogous to [`mtnii_vector<>`](#mtnii_vector), `mt_optional<>` supports direct access and references to its contained element and is [eligible to be shared](#asynchronously-shared-objects) among threads (when its contained element is eligible to be shared), at a cost of slightly higher run-time overhead. Like their iterator counterparts, scope optional element pointers, while they exist, hold a ["structure lock"](#structure-locking) on their target `optional<>` object which prevents the contained element from being destroyed. As with the vectors, [`xscope_borrowing_fixed_optional<>`](#xscope_borrowing_fixed_optional) (like all the "fixed-size" optionals) can also be shared among threads and are generally preferred when suitable.
 
 usage example:
 
@@ -3676,7 +3737,7 @@ usage example:
 
 ### xscope_mt_optional, xscope_st_optional
 
-[`mstd::optional<>`](#optional) and [`mt_optional<>`](#mt_optional) can, like any other type, be declared as a [scope type](#scope-pointers) (using `mse::make_xscope()` / `mse::TXScopeObj<>`). But they do not support using scope types as their contained element type. It is (intended to be) uncommon to need such capability. But the library does provide a couple of versions that support it. `xscope_mt_optional<>` is eligible to be shared among (scope) threads, while `xscope_st_optional<>` is not. `xscope_mt_optional<>` and `xscope_st_optional<>` are of course themselves scope types and subject to the corresponding usage restrictions.
+[`mstd::optional<>`](#mstdoptional) and [`mt_optional<>`](#mt_optional) can, like any other type, be declared as a [scope type](#scope-pointers) (using `mse::make_xscope()` / `mse::TXScopeObj<>`). But they do not support using scope types as their contained element type. It is (intended to be) uncommon to need such capability. But the library does provide a couple of versions that support it. `xscope_mt_optional<>` is eligible to be shared among (scope) threads, while `xscope_st_optional<>` is not. `xscope_mt_optional<>` and `xscope_st_optional<>` are of course themselves scope types and subject to the corresponding usage restrictions.
 
 usage example:
 
@@ -3785,28 +3846,44 @@ void main(int argc, char* argv[]) {
 
     mse::mstd::array<int, 3> ma1{ 1, 2, 3 };
 
-    mse::TXScopeObj<mse::nii_vector<int> > xscope_nv1 = mse::nii_vector<int>{ 1, 2, 3 };
-    auto xscope_nv1_begin_iter = mse::make_xscope_begin_iterator(&xscope_nv1);
-    auto xscope_nv1_end_iter = mse::make_xscope_end_iterator(&xscope_nv1);
+    auto xscope_nv1 = mse::make_xscope(mse::nii_vector<int>{ 1, 2, 3 });
+
+    /* Here we declare a vector protected by an "excluse writer" access control wrapper. */
+    auto xscope_ewnv1 = mse::make_xscope(mse::make_xscope_exclusive_writer(mse::nii_vector<int>{ 1, 2, 3 }));
 
     {
-        /*  mse::for_each_ptr() is like std:::for_each() but instead of passing, to the given function, a reference
+        /*  mse::for_each_ptr() is like std::for_each() but instead of passing, to the given function, a reference
         to each item it passes a (safe) pointer to each item. The actual type of the pointer varies depending on the
         type of the given iterators. */
         typedef mse::for_each_ptr_type<decltype(ma1.begin())> item_ptr_t;
         mse::for_each_ptr(ma1.begin(), ma1.end(), [](item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 
-        mse::for_each_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
+        mse::for_each_ptr(xscope_na1_begin_citer, xscope_na1_end_citer, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
 
         /* A "scope range" version is also available that bypasses the use of iterators. As well as often being more
         convenient, it can theoretically be little more performance optimal. */
         typedef mse::xscope_range_for_each_ptr_type<decltype(&xscope_na1)> range_item_ptr_t;
         mse::xscope_range_for_each_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 
-        /* Note that for performance (and safety) reasons, vectors may be "structure locked" for the duration of the loop.
-        That is, any attempt to modify the size of the vector during the loop may result in an exception. */
-        mse::for_each_ptr(xscope_nv1_begin_iter, xscope_nv1_end_iter, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
-        mse::xscope_range_for_each_ptr(&xscope_nv1, [](auto x_ptr) { std::cout << *x_ptr << std::endl; });
+        {
+            auto xscope_bfnv1 = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xscope_nv1));
+            mse::xscope_range_for_each_ptr(&xscope_bfnv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+        }
+        {
+            /* Note that for performance (and safety) reasons, vectors may be "structure locked" for the duration of the loop.
+            That is, any attempt to modify the size of the vector during the loop may result in an exception. */
+            auto xscope_nv1_begin_iter = mse::make_xscope_begin_iterator(&xscope_nv1);
+            auto xscope_nv1_end_iter = mse::make_xscope_end_iterator(&xscope_nv1);
+            mse::for_each_ptr(xscope_nv1_begin_iter, xscope_nv1_end_iter, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+            mse::xscope_range_for_each_ptr(&xscope_nv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+        }
+        {
+            /* A vector protected by an "excluse writer" access control wrapper is ensured to remain unmodified while a
+            corresponding "access controlled const pointer" exists. */
+            auto xscope_ewnv1_cptr = mse::make_xscope_access_controlled_const_pointer(&xscope_ewnv1);
+            /* So looping over its elements is safe and efficient. */
+            mse::xscope_range_for_each_ptr(xscope_ewnv1_cptr, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
+        }
     }
 }
 ```
