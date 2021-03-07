@@ -1,8 +1,8 @@
-Feb 2021
+Mar 2021
 
 ### Overview
 
-"SaferCPlusPlus" is essentially a collection of safe data types intended to facilitate memory and data race safe C++ programming. This library is intended to work with and be complimentary to the Core Guidelines lifetime checker or other safety assuring static analyzers, like [scpptool](https://github.com/duneroadrunner/scpptool), over their various stages of development and availability. (Including situations where they are not available at all.)
+"SaferCPlusPlus" is essentially a collection of safe data types intended to facilitate memory and data race safe C++ programming. This library is intended to work with a safety assuring static analyzer like [scpptool](https://github.com/duneroadrunner/scpptool) and, optionally, the Core Guidelines lifetime checker, over their various stages of development and availability. (Including situations where they are not available at all.)
 
 The library's elements are designed, as much as possible, to seamlessly integrate with all manner of existing and future C++ code. It includes things like:
 
@@ -16,9 +16,9 @@ The library's elements are designed, as much as possible, to seamlessly integrat
 
 - Replacements for native pointers/references with various flexibility and performance trade-offs. 
 
-While a "static safety analyzer/enforcer" like the Core Guidelines lifetime checker or scpptool (neither of which, at the time of writing (Feb 2021), is entirely complete) would be required to ensure complete safety, the SaferCPlusPlus library elements have a lot of safety enforcement already built in. The library is extensive enough that most existing uses of unsafe C++ elements can be replaced. 
+While a "static safety analyzer/enforcer" like the scpptool would be required to ensure complete safety, the SaferCPlusPlus library elements have a lot of safety enforcement already built in. The library is extensive enough that most existing uses of unsafe C++ elements can be replaced. 
 
-Besides zero-overhead pointers that enforce some of the necessary restrictions not yet (at the time of writing) implemented in the lifetime checker, the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and an unrestricted pointer that ensures memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat [draconian restrictions](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md) imposed by the (eventual completed) lifetime checker.
+Besides zero-overhead pointers that enforce some of the necessary restrictions that would be imposed by a complete "static safety analyzer/enforcer", the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and an unrestricted pointer that ensures memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat [draconian restrictions](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md) imposed by the (eventual completed) lifetime checker.
 
 And the library also addresses the data race issue, where the Core Guidelines don't (yet) offer anything substantial.
 
@@ -152,7 +152,7 @@ Tested with msvc2019(v16.5.4), g++9.3.0 and clang++10.0.0. Versions of g++ prior
 
 The library was designed to help reduce or eliminate the potential for invalid memory accesses and data races in general C++ code. The general strategy is simply to substitute potentially unsafe C++ elements with compatible safe replacements from the library. The library does not impose any particular paradigm or code structure. (Though more modern coding styles that de-emphasize explicit use of iterators may result in better performance.)
 
-When a completed static safety enforcer (like the lifetime checker or [scpptool](https://github.com/duneroadrunner/scpptool)) is/becomes available, some of the most used elements of the library (namely the "scope" pointer elements) may be rendered largely redundant. At such time, code using the pointer/reference types in this library should, unlike "regular" C++ code, already be compliant with the restrictions that will be imposed by such a completed static safety enforcer. So you can think of the use of this library as a method of "future-proofing" your code for a time when it may become standard practice to automatically reject C++ code that isn't approved by a static safety enforcer.
+When using a static safety enforcer (like the [scpptool](https://github.com/duneroadrunner/scpptool) and/or the Core Guidelines lifetime checker, when completed), some of the most used elements of the library (namely the "scope" pointer elements) may be rendered largely redundant. Code using the pointer/reference types in this library should, unlike "regular" C++ code, already be compliant with the restrictions that will be imposed by such a completed static safety enforcer. So you can think of the use of this library as a method of "future-proofing" your code for a time when it may become standard practice to automatically reject C++ code that isn't approved by a static safety enforcer.
 
 While using the library can incur a modest performance penalty, because the library elements are largely compatible with their native counterparts, they can be easily "disabled" (automatically replaced with their native counterparts) with a compile-time directive, allowing them, for example, to be used to help catch bugs in debug/test/beta builds while incurring no overhead in release builds.
 
