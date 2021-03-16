@@ -125,6 +125,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 
 namespace mse {
 	namespace lh {
+		typedef decltype(NULL) NULL_t;
 
 		template <typename _Ty>
 		class TLHNullableAnyPointer : public mse::TNullableAnyPointer<_Ty> {
@@ -132,7 +133,7 @@ namespace mse {
 			typedef mse::TNullableAnyPointer<_Ty> base_class;
 			MSE_USING(TLHNullableAnyPointer, base_class);
 			TLHNullableAnyPointer(const TLHNullableAnyPointer& src) = default;
-			TLHNullableAnyPointer(const int val) : base_class(std::nullptr_t()) {
+			TLHNullableAnyPointer(const NULL_t val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
@@ -142,6 +143,14 @@ namespace mse {
 			}
 
 			bool operator==(const std::nullptr_t& _Right_cref) const { return base_class::operator==(_Right_cref); }
+			bool operator!=(const std::nullptr_t& _Right_cref) const { return !((*this) == _Right_cref); }
+			bool operator==(const NULL_t val) const {
+				/* This operator is just to support zero being used as a null pointer value. */
+				assert(0 == val);
+				return (*this == nullptr);
+			}
+			bool operator!=(const NULL_t val) const { return !((*this) == val); }
+
 			TLHNullableAnyPointer& operator=(const std::nullptr_t& _Right_cref) {
 				base_class::operator=(_Right_cref);
 				return *this;
@@ -162,12 +171,17 @@ namespace mse {
 		};
 
 		template <typename _Ty>
+		bool operator==(const NULL_t lhs, const TLHNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }
+		template <typename _Ty>
+		bool operator!=(const NULL_t lhs, const TLHNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
+
+		template <typename _Ty>
 		class TXScopeLHNullableAnyPointer : public mse::TXScopeNullableAnyPointer<_Ty> {
 		public:
 			typedef mse::TXScopeNullableAnyPointer<_Ty> base_class;
 			MSE_USING(TXScopeLHNullableAnyPointer, base_class);
 			TXScopeLHNullableAnyPointer(const TXScopeLHNullableAnyPointer& src) = default;
-			TXScopeLHNullableAnyPointer(const int val) : base_class(std::nullptr_t()) {
+			TXScopeLHNullableAnyPointer(const NULL_t val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
@@ -177,6 +191,13 @@ namespace mse {
 			}
 
 			bool operator==(const std::nullptr_t& _Right_cref) const { return base_class::operator==(_Right_cref); }
+			bool operator!=(const std::nullptr_t& _Right_cref) const { return !((*this) == _Right_cref); }
+			bool operator==(const NULL_t val) const {
+				/* This operator is just to support zero being used as a null pointer value. */
+				assert(0 == val);
+				return (*this == nullptr);
+			}
+			bool operator!=(const NULL_t val) const { return !((*this) == val); }
 
 			operator bool() const {
 				return base_class::operator bool();
@@ -189,6 +210,11 @@ namespace mse {
 		};
 
 		template <typename _Ty>
+		bool operator==(const NULL_t lhs, const TXScopeLHNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }
+		template <typename _Ty>
+		bool operator!=(const NULL_t lhs, const TXScopeLHNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
+
+		template <typename _Ty>
 		class TLHNullableAnyRandomAccessIterator : public mse::TNullableAnyRandomAccessIterator<_Ty> {
 		public:
 			typedef mse::TNullableAnyRandomAccessIterator<_Ty> base_class;
@@ -197,7 +223,7 @@ namespace mse {
 			MSE_USING(TLHNullableAnyRandomAccessIterator, base_class);
 			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator& src) = default;
 
-			TLHNullableAnyRandomAccessIterator(const int val) : base_class(std::nullptr_t()) {
+			TLHNullableAnyRandomAccessIterator(const NULL_t val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer/iterator value. */
 				assert(0 == val);
 			}
@@ -237,7 +263,7 @@ namespace mse {
 			MSE_USING(TXScopeLHNullableAnyRandomAccessIterator, base_class);
 			TXScopeLHNullableAnyRandomAccessIterator(const TXScopeLHNullableAnyRandomAccessIterator& src) = default;
 
-			TXScopeLHNullableAnyRandomAccessIterator(const int val) : base_class(std::nullptr_t()) {
+			TXScopeLHNullableAnyRandomAccessIterator(const NULL_t val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer/iterator value. */
 				assert(0 == val);
 			}

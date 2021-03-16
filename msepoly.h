@@ -2170,6 +2170,7 @@ namespace mse {
 		}
 
 		bool operator==(const std::nullptr_t& _Right_cref) const { return m_is_null; }
+		bool operator!=(const std::nullptr_t& _Right_cref) const { return !((*this) == _Right_cref); }
 		TNullableAnyPointer& operator=(const std::nullptr_t& _Right_cref) {
 			return operator=(TNullableAnyPointer());
 		}
@@ -2189,6 +2190,11 @@ namespace mse {
 
 		bool m_is_null = false;
 	};
+
+	template <typename _Ty>
+	bool operator==(const std::nullptr_t& lhs, const TNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }
+	template <typename _Ty>
+	bool operator!=(const std::nullptr_t& lhs, const TNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_nullable_any_pointer(const _Ty& x) {
@@ -2224,6 +2230,7 @@ namespace mse {
 		}
 
 		bool operator==(const std::nullptr_t& _Right_cref) const { return m_is_null; }
+		bool operator!=(const std::nullptr_t& _Right_cref) const { return !((*this) == _Right_cref); }
 
 		operator bool() const {
 			return (!m_is_null);
@@ -2236,6 +2243,11 @@ namespace mse {
 
 		bool m_is_null = false;
 	};
+
+	template <typename _Ty>
+	bool operator==(const std::nullptr_t& lhs, const TXScopeNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }
+	template <typename _Ty>
+	bool operator!=(const std::nullptr_t& lhs, const TXScopeNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_nullable_any_pointer(const _Ty& x) {
