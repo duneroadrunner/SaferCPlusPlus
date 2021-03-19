@@ -50,8 +50,10 @@
 #define MSE_LH_FWRITE(ptr, size, count, stream) fwrite(ptr, size, count, stream)
 
 #define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) memcpy(destination, source, num_bytes)
+#define MSE_LH_TYPED_MEMCMP(element_type, destination, source, num_bytes) memcmp(destination, source, num_bytes)
 #define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) memset(ptr, value, num_bytes)
 #define MSE_LH_MEMCPY(destination, source, num_bytes) memcpy(destination, source, num_bytes)
+#define MSE_LH_MEMCMP(destination, source, num_bytes) memcmp(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) memset(ptr, value, num_bytes)
 
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
@@ -96,9 +98,11 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::fwrite(ptr, size, count, stream)
 
-#define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::memset< mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >::memcpy(destination, source, num_bytes)
-#define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::memset< mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >::memset(ptr, value, num_bytes)
+#define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::memcpy<mse::lh::TLHNullableAnyRandomAccessIterator<element_type>, mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >(destination, source, num_bytes)
+#define MSE_LH_TYPED_MEMCMP(element_type, destination, source, num_bytes) mse::lh::memcmp< mse::lh::TLHNullableAnyRandomAccessIterator<element_type>, mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >(destination, source, num_bytes)
+#define MSE_LH_TYPED_MEMSET(element_type, ptr, value, num_bytes) mse::lh::memset< mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >(ptr, value, num_bytes)
 #define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::memcpy(destination, source, num_bytes)
+#define MSE_LH_MEMCMP(destination, source, num_bytes) mse::lh::memcmp(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::memset(ptr, value, num_bytes)
 
 /* MSE_LH_ADDRESSABLE_TYPE() is a type annotation used to indicate that the '&' operator may/will be used to obtain the address of
@@ -778,15 +782,35 @@ namespace mse {
 			return res;
 		}
 
+		/* One of the principles of the safe library is that the underlying representation of objects/variable/data (as stored in
+		memory) is not directly accessible. The low-level memory functions, like memcpy/memcmp/memset/etc., aren't really compatible
+		with the spirit of this principle. But in practice, for many simple cases, these functions have an equivalent "safe"
+		counterpart implementation. Though in some cases, the safe implementations will not produce the exact same result. */
+
 		/* Memory safe approximation of memcpy(). */
 		template<class _TIter, class _TIter2>
-		void memcpy(_TIter destination, _TIter2 source, size_t num_bytes) {
+		_TIter memcpy(_TIter destination, _TIter2 source, size_t num_bytes) {
 			typedef mse::impl::remove_reference_t<decltype((destination)[0])> element_t;
 			auto num_items = num_bytes / sizeof(element_t);
 			//assert(num_items * sizeof(element_t) == num_bytes);
 			for (size_t i = 0; i < num_items; i += 1) {
 				destination[i] = source[i];
 			}
+			return destination;
+		}
+		/* Memory safe approximation of memcmp(). */
+		template<class _TIter, class _TIter2>
+		int memcmp(_TIter destination, _TIter2 source, size_t num_bytes) {
+			typedef mse::impl::remove_reference_t<decltype((destination)[0])> element_t;
+			auto num_items = num_bytes / sizeof(element_t);
+			//assert(num_items * sizeof(element_t) == num_bytes);
+			for (size_t i = 0; i < num_items; i += 1) {
+				auto diff = destination[i] - source[i];
+				if (0 != diff) {
+					return diff;
+				}
+			}
+			return 0;
 		}
 		/* Memory safe approximation of memset(). */
 		template<class _TIter>
