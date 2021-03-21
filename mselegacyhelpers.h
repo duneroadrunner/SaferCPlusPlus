@@ -787,54 +787,134 @@ namespace mse {
 		with the spirit of this principle. But in practice, for many simple cases, these functions have an equivalent "safe"
 		counterpart implementation. Though in some cases, the safe implementations will not produce the exact same result. */
 
+		namespace impl {
+			template<class T, class EqualTo>
+			struct HasOrInheritsSubscriptOperator_impl
+			{
+				template<class U, class V>
+				static auto test(U* u) -> decltype((*u)[0], std::declval<V>(), bool(true));
+				template<typename, typename>
+				static auto test(...)->std::false_type;
+
+				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			};
+			template<class T, class EqualTo = T>
+			struct HasOrInheritsSubscriptOperator : HasOrInheritsSubscriptOperator_impl<
+				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+			namespace us {
+				template<class _TIter, class _TIter2>
+				_TIter memcpy_helper1(std::true_type, _TIter destination, _TIter2 source, size_t num_bytes) {
+					typedef mse::impl::remove_reference_t<decltype((destination)[0])> element_t;
+					auto num_items = num_bytes / sizeof(element_t);
+					//assert(num_items * sizeof(element_t) == num_bytes);
+					for (size_t i = 0; i < num_items; i += 1) {
+						destination[i] = source[i];
+					}
+					return destination;
+				}
+
+				template<class _TPointer, class _TPointer2>
+				_TPointer memcpy_helper1(std::false_type, _TPointer destination, _TPointer2 source, size_t num_bytes) {
+					//typedef mse::impl::remove_reference_t<decltype(*destination)> element_t;
+					//auto num_items = num_bytes / sizeof(element_t);
+					//assert(1 == num_items);
+					//assert(num_items * sizeof(element_t) == num_bytes);
+					*destination = *source;
+					return destination;
+				}
+			}
+		}
 		/* Memory safe approximation of memcpy(). */
 		template<class _TIter, class _TIter2>
 		_TIter memcpy(_TIter destination, _TIter2 source, size_t num_bytes) {
-			typedef mse::impl::remove_reference_t<decltype((destination)[0])> element_t;
-			auto num_items = num_bytes / sizeof(element_t);
-			//assert(num_items * sizeof(element_t) == num_bytes);
-			for (size_t i = 0; i < num_items; i += 1) {
-				destination[i] = source[i];
+			return impl::us::memcpy_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), destination, source, num_bytes);
+		}
+
+		namespace impl {
+			namespace us {
+				template<class _TIter, class _TIter2>
+				int memcmp_helper1(std::true_type, _TIter destination, _TIter2 source, size_t num_bytes) {
+					typedef mse::impl::remove_reference_t<decltype((destination)[0])> element_t;
+					auto num_items = num_bytes / sizeof(element_t);
+					//assert(num_items * sizeof(element_t) == num_bytes);
+					for (size_t i = 0; i < num_items; i += 1) {
+						auto diff = destination[i] - source[i];
+						if (0 != diff) {
+							return diff;
+						}
+					}
+					return 0;
+				}
+
+				template<class _TPointer, class _TPointer2>
+				int memcmp_helper1(std::false_type, _TPointer destination, _TPointer2 source, size_t num_bytes) {
+					//typedef mse::impl::remove_reference_t<decltype(*destination)> element_t;
+					//auto num_items = num_bytes / sizeof(element_t);
+					//assert(1 == num_items);
+					//assert(num_items * sizeof(element_t) == num_bytes);
+					return (*destination) - (*source);
+				}
 			}
-			return destination;
 		}
 		/* Memory safe approximation of memcmp(). */
 		template<class _TIter, class _TIter2>
 		int memcmp(_TIter destination, _TIter2 source, size_t num_bytes) {
-			typedef mse::impl::remove_reference_t<decltype((destination)[0])> element_t;
-			auto num_items = num_bytes / sizeof(element_t);
-			//assert(num_items * sizeof(element_t) == num_bytes);
-			for (size_t i = 0; i < num_items; i += 1) {
-				auto diff = destination[i] - source[i];
-				if (0 != diff) {
-					return diff;
+			return impl::us::memcmp_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), destination, source, num_bytes);
+		}
+
+		namespace impl {
+			namespace us {
+				template<class element_t>
+				auto memset_adjusted_value1(std::true_type, int value) {
+					value &= 0xff;
+					long long int adjusted_value = value;
+					if (sizeof(adjusted_value) >= sizeof(element_t)) {
+						for (size_t i = 1; i < sizeof(element_t); i += 1) {
+							adjusted_value |= (value << (8 * i));
+						}
+					}
+					else {
+						/* In this case, if the value being set is non-zero, then it's likely that this function won't
+						faithfully emulate the standard memset() function. */
+						assert(0 == value);
+					}
+					return element_t(adjusted_value);
+				}
+				template<class element_t>
+				auto memset_adjusted_value1(std::false_type, int value) {
+					/* The (integer) value is not assignable to the element. If the given value is zero, we'll assume that memset is
+					just being used to "reset" the element to "the default" state. */
+					assert(0 == value);
+					return element_t{};
+				}
+
+				template<class _TIter>
+				void memset_helper1(std::true_type, _TIter iter, int value, size_t num_bytes) {
+					typedef mse::impl::remove_reference_t<decltype(iter[0])> element_t;
+					const auto element_value = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t, long long int>::type(), value);
+					auto num_items = num_bytes / sizeof(element_t);
+					//assert(num_items * sizeof(element_t) == num_bytes);
+					for (size_t i = 0; i < num_items; i += 1) {
+						iter[i] = element_value;
+					}
+				}
+
+				template<class _TPointer>
+				void memset_helper1(std::false_type, _TPointer ptr, int value, size_t num_bytes) {
+					typedef mse::impl::remove_reference_t<decltype(*ptr)> element_t;
+					//auto num_items = num_bytes / sizeof(element_t);
+					//assert(1 == num_items);
+					//assert(num_items * sizeof(element_t) == num_bytes);
+					*ptr = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t, long long int>::type(), value);
 				}
 			}
-			return 0;
 		}
 		/* Memory safe approximation of memset(). */
 		template<class _TIter>
 		void memset(_TIter iter, int value, size_t num_bytes) {
-			typedef mse::impl::remove_reference_t<decltype((iter)[0])> element_t;
-			value &= 0xff;
-			long long int adjusted_value = value;
-			if (sizeof(adjusted_value) >= sizeof(element_t)) {
-				for (size_t i = 1; i < sizeof(element_t); i += 1) {
-					adjusted_value |= (value << (8 * i));
-				}
-			}
-			else {
-				/* In this case, if the value being set is non-zero, then it's likely that this function won't
-				faithfully emulate the standard memset() function. */
-				assert(0 == value);
-			}
-			/* Only element types that are (or can be constructed from) integral types are supported. */
-			const auto element_value = element_t(adjusted_value);
-			auto num_items = num_bytes / sizeof(element_t);
-			//assert(num_items * sizeof(element_t) == num_bytes);
-			for (size_t i = 0; i < num_items; i += 1) {
-				iter[i] = element_value;
-			}
+			impl::us::memset_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), iter, value, num_bytes);
 		}
 	}
 	namespace us {
