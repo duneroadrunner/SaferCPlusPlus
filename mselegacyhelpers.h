@@ -893,7 +893,7 @@ namespace mse {
 				template<class _TIter>
 				void memset_helper1(std::true_type, _TIter iter, int value, size_t num_bytes) {
 					typedef mse::impl::remove_reference_t<decltype(iter[0])> element_t;
-					const auto element_value = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t, long long int>::type(), value);
+					const auto element_value = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t&, long long int>::type(), value);
 					auto num_items = num_bytes / sizeof(element_t);
 					//assert(num_items * sizeof(element_t) == num_bytes);
 					for (size_t i = 0; i < num_items; i += 1) {
@@ -907,7 +907,7 @@ namespace mse {
 					//auto num_items = num_bytes / sizeof(element_t);
 					//assert(1 == num_items);
 					//assert(num_items * sizeof(element_t) == num_bytes);
-					*ptr = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t, long long int>::type(), value);
+					*ptr = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t&, long long int>::type(), value);
 				}
 			}
 		}
@@ -979,6 +979,19 @@ namespace mse {
 				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(typename impl::ns_unsafe_cast::are_compatible_pointer_objects<_Ty, _Ty2>::type(), x);
 			}
 		}
+	}
+
+	namespace lh {
+		class any_obj : public mse::any {
+		public:
+			typedef mse::any base_cass;
+			using base_cass::base_cass;
+
+			template<class T>
+			operator T() {
+				return mse::any_cast<T>(*this);
+			}
+		};
 	}
 }
 

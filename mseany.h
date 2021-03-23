@@ -57,7 +57,7 @@ namespace mse
 		}
 	}
 
-	class any final
+	class any /*final*/
 	{
 	public:
 		/// Constructs an object of type any with an empty state.
