@@ -61,6 +61,7 @@
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_NULL_POINTER NULL
+#define MSE_LH_VOID_STAR void *
 
 #define MSE_LH_CAST(type, value) ((type)value)
 #define MSE_LH_UNSAFE_CAST(type, value) ((type)value)
@@ -115,6 +116,7 @@ restrictions, as a function parameter type because it accepts some (high perform
 MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) mse::lh::TXScopeLHNullableAnyPointer< element_type >
 #define MSE_LH_NULL_POINTER nullptr
+#define MSE_LH_VOID_STAR mse::lh::any_obj
 
 #define MSE_LH_CAST(type, value) type(value)
 #define MSE_LH_UNSAFE_CAST(type, value) mse::us::lh::unsafe_cast<type>(value)
@@ -988,7 +990,12 @@ namespace mse {
 			using base_cass::base_cass;
 
 			template<class T>
-			operator T() {
+			operator T() const {
+				auto void_star_ptr = mse::any_cast<void*>(this);
+				if (void_star_ptr) {
+					/* Consider losing this at some point for safety reasons? */
+					return T(mse::any_cast<void*>(*this));
+				}
 				return mse::any_cast<T>(*this);
 			}
 		};
