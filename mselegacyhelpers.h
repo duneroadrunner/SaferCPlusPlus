@@ -116,7 +116,7 @@ restrictions, as a function parameter type because it accepts some (high perform
 MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) mse::lh::TXScopeLHNullableAnyPointer< element_type >
 #define MSE_LH_NULL_POINTER nullptr
-#define MSE_LH_VOID_STAR mse::lh::any_obj
+#define MSE_LH_VOID_STAR mse::lh::void_star_replacement
 
 #define MSE_LH_CAST(type, value) type(value)
 #define MSE_LH_UNSAFE_CAST(type, value) mse::us::lh::unsafe_cast<type>(value)
@@ -463,10 +463,11 @@ namespace mse {
 		}
 
 
-		template <typename _Ty, size_t _Size>
-		class TNativeArrayReplacement : public mse::mstd::array<_Ty, _Size> {
+		template <typename _udTy, size_t _Size>
+		class TNativeArrayReplacement : public mse::mstd::array<mse::impl::decay_t<_udTy>, _Size> {
 		public:
-			typedef mse::mstd::array<_Ty, _Size> base_class;
+			typedef mse::mstd::array<mse::impl::decay_t<_udTy>, _Size> base_class;
+			typedef mse::impl::decay_t<_udTy> _Ty;
 			using base_class::base_class;
 
 			operator mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>() {
@@ -984,12 +985,42 @@ namespace mse {
 	}
 
 	namespace lh {
-		class any_obj : public mse::any {
+		class void_star_replacement : public mse::any {
 		public:
 			typedef mse::any base_cass;
-			using base_cass::base_cass;
+			//using base_cass::base_cass;
 
-			template<class T>
+			void_star_replacement() = default;
+			void_star_replacement(const void_star_replacement&) = default;
+			//void_star_replacement(void_star_replacement&&) = default;
+			void_star_replacement(std::nullptr_t) : base_cass((void*)(nullptr)), m_is_nullptr(true) {}
+			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
+				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
+			void_star_replacement(const T& ptr) : base_cass(ptr), m_is_nullptr(bool(ptr)) {}
+
+			operator bool() const {
+				return m_is_nullptr;
+			}
+
+			bool operator==(std::nullptr_t) const {
+				return bool(*this);
+			}
+			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
+				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
+			bool operator==(const T& rhs) const {
+				if (!rhs) {
+					return bool(*this);
+				}
+				return T(*this) == rhs;
+			}
+			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
+				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
+			bool operator!=(const T& rhs) const {
+				return !((*this) == rhs);
+			}
+
+			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
+				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
 			operator T() const {
 				auto void_star_ptr = mse::any_cast<void*>(this);
 				if (void_star_ptr) {
@@ -998,6 +1029,9 @@ namespace mse {
 				}
 				return mse::any_cast<T>(*this);
 			}
+
+		private:
+			bool m_is_nullptr = false;
 		};
 	}
 }

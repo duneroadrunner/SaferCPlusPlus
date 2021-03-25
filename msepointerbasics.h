@@ -229,6 +229,7 @@ namespace mse {
 		template <bool _Test, class _Ty1, class _Ty2> using conditional_t = typename std::conditional<_Test, _Ty1, _Ty2>::type;
 		template <class _Ty> using remove_const_t = typename std::remove_const<_Ty>::type;
 		template <class _Ty> using remove_reference_t = typename std::remove_reference<_Ty>::type;
+		template <class _Ty> using decay_t = typename std::decay<_Ty>::type;
 	}
 
 	/* msvc(2019) seems to have some issues with the "proper" way of using std::enable_if_t<> as a template parameter, but the

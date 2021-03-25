@@ -29,6 +29,9 @@ their use. The following suppresses (a lot of) those restrictions allowing a lit
 pointers can be used with some of the library elements. */
 //#define MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS
 
+/* The following suppresses the scope pointer restrictions for native 'char*'s only. */
+//#define MSE_CHAR_STAR_EXEMPTED
+
 /* The following will result in program termination instead of exceptions being thrown when an invalid memory access is attempted. */
 //#include <iostream>
 //#define MSE_CUSTOM_THROW_DEFINITION(x) std::cerr << std::endl << x.what(); exit(-11)
