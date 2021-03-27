@@ -27,6 +27,16 @@
 #pragma warning( disable : 4100 4456 4189 4127 )
 #endif /*_MSC_VER*/
 
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma push_macro("MSE_THROW")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
+#ifdef MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
+#else // MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) throw(x)
+#endif // MSE_CUSTOM_THROW_DEFINITION
+
 #ifdef MSE_LEGACYHELPERS_DISABLED
 
 #define MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) 
@@ -985,31 +995,96 @@ namespace mse {
 	}
 
 	namespace lh {
-		class void_star_replacement : public mse::any {
+		namespace impl {
+
+			class explicitly_castable_any : public mse::any {
+			public:
+				typedef mse::any base_class;
+				//using base_class::base_class;
+
+				explicitly_castable_any() = default;
+				explicitly_castable_any(const explicitly_castable_any&) = default;
+				//explicitly_castable_any(explicitly_castable_any&&) = default;
+				template<class T>
+				explicitly_castable_any(const T& x) : base_class(x) {}
+
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type) \
+					{ \
+						auto ptr = mse::any_cast<type>(this); \
+						if (ptr) { \
+							return convert<T>(mse::any_cast<type>(*this)); \
+						} \
+					}
+
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TINT_TYPE_CHECK(type) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TInt<type>)
+
+				template<class T>
+				explicit operator T() const {
+					{
+						auto ptr = mse::any_cast<T>(this);
+						if (ptr) {
+							return convert<T>(mse::any_cast<T>(*this));
+						}
+					}
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(std::nullptr_t);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(void*);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(const char*);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(char*);
+					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(bool);
+					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TINT_TYPE_CHECK);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::CNDBool);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::CNDSize_t);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(float);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(double);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(long double);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(std::string);
+
+					return mse::any_cast<T>(*this);
+				}
+
+			private:
+				template<class T1, class T2>
+				static T1 convert_helper1(std::true_type, const T2& x) {
+					return T1(x);
+				}
+				template<class T1, class T2>
+				static T1 convert_helper1(std::false_type, const T2& x) {
+					MSE_THROW(mse::bad_any_cast());
+					//return T1();
+				}
+				template<class T1, class T2>
+				static T1 convert(const T2& x) {
+					return convert_helper1<T1>(typename std::is_convertible<T2, T1>::type(), x);
+				}
+			};
+		}
+
+		class void_star_replacement : public impl::explicitly_castable_any {
 		public:
-			typedef mse::any base_cass;
-			//using base_cass::base_cass;
+			typedef impl::explicitly_castable_any base_class;
+			//using base_class::base_class;
 
 			void_star_replacement() = default;
 			void_star_replacement(const void_star_replacement&) = default;
 			//void_star_replacement(void_star_replacement&&) = default;
-			void_star_replacement(std::nullptr_t) : base_cass((void*)(nullptr)), m_is_nullptr(true) {}
+			void_star_replacement(std::nullptr_t) : base_class((void*)(nullptr)), m_is_nullptr(true) {}
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
 				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
-			void_star_replacement(const T& ptr) : base_cass(ptr), m_is_nullptr(bool(ptr)) {}
+			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(bool(ptr)) {}
 
 			operator bool() const {
-				return m_is_nullptr;
+				return !m_is_nullptr;
 			}
 
 			bool operator==(std::nullptr_t) const {
-				return bool(*this);
+				return !bool(*this);
 			}
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
 				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
 			bool operator==(const T& rhs) const {
 				if (!rhs) {
-					return bool(*this);
+					return !bool(*this);
 				}
 				return T(*this) == rhs;
 			}
@@ -1022,12 +1097,7 @@ namespace mse {
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
 				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
 			operator T() const {
-				auto void_star_ptr = mse::any_cast<void*>(this);
-				if (void_star_ptr) {
-					/* Consider losing this at some point for safety reasons? */
-					return T(mse::any_cast<void*>(*this));
-				}
-				return mse::any_cast<T>(*this);
+				return base_class::operator T();
 			}
 
 		private:
@@ -1037,6 +1107,10 @@ namespace mse {
 }
 
 #endif /*MSE_LEGACYHELPERS_DISABLED*/
+
+#ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
+#pragma pop_macro("MSE_THROW")
+#endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef _MSC_VER
 #pragma warning( pop )  
