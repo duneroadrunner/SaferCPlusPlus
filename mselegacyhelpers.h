@@ -514,8 +514,8 @@ namespace mse {
 				&& (!std::is_same<typename mse::mstd::array<_Ty2, _Size>::const_iterator, typename mse::mstd::array<_Ty2, _Size>::iterator>::value)> MSE_IMPL_EIS >
 			typename base_class::difference_type operator-(const typename base_class::const_iterator& _Right_cref) const { return base_class::cbegin() - _Right_cref; }
 
-			typename base_class::const_reference operator*() const { return base_class::operator*(); }
-			typename base_class::const_pointer operator->() const { return base_class::operator->(); }
+			typename base_class::const_reference operator*() const { return (*this).at(0); }
+			typename base_class::const_pointer operator->() const { return std::addressof(operator*()); }
 
 #ifdef MSE_LEGACYHELPERS_DISABLED
 			TNativeArrayReplacement(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::nii_array<_Ty, _Size>(_Ilist)) {}
