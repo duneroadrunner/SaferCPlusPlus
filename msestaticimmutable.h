@@ -653,33 +653,33 @@ namespace mse {
 
 #ifdef MSEPRIMITIVES_H
 
-		/* Note that here we're relying on the fact that mse::TInt<integral_type> happens to be safely
-		"reinterpret_cast<>able" as an 'integral_type'. */
-#define MSE_STATICIMMUTABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+		/* Note that here we're relying on the fact that template_wrapper<arithmetic_type> happens to be safely
+		"reinterpret_cast<>able" as an 'arithmetic_type'. */
+#define MSE_STATICIMMUTABLE_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TStaticImmutableObj<integral_type> : public TStaticImmutableObj<mse::TInt<integral_type>> { \
+		class TStaticImmutableObj<arithmetic_type> : public TStaticImmutableObj<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TStaticImmutableObj<mse::TInt<integral_type>> base_class; \
+			typedef TStaticImmutableObj<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TStaticImmutableObj, base_class); \
 			MSE_STATICIMMUTABLE_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TStaticImmutableObj); \
 		};
 
-#define MSE_STATICIMMUTABLE_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type) \
+#define MSE_STATICIMMUTABLE_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TStaticImmutableFixedConstPointer<integral_type> : public TStaticImmutableFixedConstPointer<mse::TInt<integral_type>> { \
+		class TStaticImmutableFixedConstPointer<arithmetic_type> : public TStaticImmutableFixedConstPointer<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TStaticImmutableFixedConstPointer<mse::TInt<integral_type>> base_class; \
+			typedef TStaticImmutableFixedConstPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TStaticImmutableFixedConstPointer, base_class); \
-			MSE_STATICIMMUTABLE_IMPL_PTR_OPERATOR_TXSCOPEFIXEDCONSTPOINTER(integral_type, mse::TInt<integral_type>); \
+			MSE_STATICIMMUTABLE_IMPL_PTR_OPERATOR_TXSCOPEFIXEDCONSTPOINTER(arithmetic_type, template_wrapper<arithmetic_type>); \
 		};
 
-#define MSE_STATICIMMUTABLE_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
-		MSE_STATICIMMUTABLE_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_STATICIMMUTABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_STATICIMMUTABLE_IMPL_PTR_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type); \
-		MSE_STATICIMMUTABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+#define MSE_STATICIMMUTABLE_IMPL_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
+		MSE_STATICIMMUTABLE_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_STATICIMMUTABLE_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_STATICIMMUTABLE_IMPL_PTR_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper); \
+		MSE_STATICIMMUTABLE_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper);
 
-		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_STATICIMMUTABLE_IMPL_INTEGRAL_SPECIALIZATION)
+		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_STATICIMMUTABLE_IMPL_ARITHMETIC_SPECIALIZATION)
 
 #endif /*MSEPRIMITIVES_H*/
 

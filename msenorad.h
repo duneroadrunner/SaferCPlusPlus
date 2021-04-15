@@ -890,59 +890,59 @@ namespace mse {
 
 #ifdef MSEPRIMITIVES_H
 
-#define MSE_GNORAD_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+#define MSE_GNORAD_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<typename _TRefCounter> \
-		class TGNoradObj<integral_type, _TRefCounter> : public TGNoradObj<mse::TInt<integral_type>, _TRefCounter> { \
+		class TGNoradObj<arithmetic_type, _TRefCounter> : public TGNoradObj<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
-			typedef TGNoradObj<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			typedef TGNoradObj<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradObj, base_class); \
 		};
 
-#define MSE_GNORAD_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type) \
+#define MSE_GNORAD_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<typename _TRefCounter> \
-		class TGNoradPointer<integral_type, _TRefCounter> : public TGNoradPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		class TGNoradPointer<arithmetic_type, _TRefCounter> : public TGNoradPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
-			typedef TGNoradPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			typedef TGNoradPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradPointer, base_class); \
 		}; \
 		template<typename _TRefCounter> \
-		class TGNoradConstPointer<integral_type, _TRefCounter> : public TGNoradConstPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		class TGNoradConstPointer<arithmetic_type, _TRefCounter> : public TGNoradConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
-			typedef TGNoradConstPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			typedef TGNoradConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradConstPointer, base_class); \
 		}; \
 		template<typename _TRefCounter> \
-		class TGNoradNotNullPointer<integral_type, _TRefCounter> : public TGNoradNotNullPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		class TGNoradNotNullPointer<arithmetic_type, _TRefCounter> : public TGNoradNotNullPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
-			typedef TGNoradNotNullPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			typedef TGNoradNotNullPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradNotNullPointer, base_class); \
 		}; \
 		template<typename _TRefCounter> \
-		class TGNoradNotNullConstPointer<integral_type, _TRefCounter> : public TGNoradNotNullConstPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		class TGNoradNotNullConstPointer<arithmetic_type, _TRefCounter> : public TGNoradNotNullConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
-			typedef TGNoradNotNullConstPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			typedef TGNoradNotNullConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradNotNullConstPointer, base_class); \
 		}; \
 		template<typename _TRefCounter> \
-		class TGNoradFixedPointer<integral_type, _TRefCounter> : public TGNoradFixedPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		class TGNoradFixedPointer<arithmetic_type, _TRefCounter> : public TGNoradFixedPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
-			typedef TGNoradFixedPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			typedef TGNoradFixedPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradFixedPointer, base_class); \
 		}; \
 		template<typename _TRefCounter> \
-		class TGNoradFixedConstPointer<integral_type, _TRefCounter> : public TGNoradFixedConstPointer<mse::TInt<integral_type>, _TRefCounter> { \
+		class TGNoradFixedConstPointer<arithmetic_type, _TRefCounter> : public TGNoradFixedConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
-			typedef TGNoradFixedConstPointer<mse::TInt<integral_type>, _TRefCounter> base_class; \
+			typedef TGNoradFixedConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradFixedConstPointer, base_class); \
 		};
 
-#define MSE_GNORAD_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
-		MSE_GNORAD_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_GNORAD_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_GNORAD_IMPL_PTR_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type); \
-		MSE_GNORAD_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+#define MSE_GNORAD_IMPL_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
+		MSE_GNORAD_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_GNORAD_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_GNORAD_IMPL_PTR_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper); \
+		MSE_GNORAD_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper);
 
-			MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_GNORAD_IMPL_INTEGRAL_SPECIALIZATION)
+		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_GNORAD_IMPL_ARITHMETIC_SPECIALIZATION)
 
 #endif /*MSEPRIMITIVES_H*/
 

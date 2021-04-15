@@ -264,12 +264,17 @@ namespace std {
 
 namespace mse {
 
-	template<typename _TBaseInt = MSE_CINT_BASE_INTEGER_TYPE> class TInt;
+	template<typename TBase = MSE_CINT_BASE_INTEGER_TYPE> class TInt;
 
 	typedef TInt<MSE_CINT_BASE_INTEGER_TYPE> CNDInt;
 
 	class CNDSize_t;
 	static size_t as_a_size_t(CNDSize_t n);
+
+	template<typename TBase> class TFloatingPoint;
+	typedef TFloatingPoint<float> CNDFloat;
+	typedef TFloatingPoint<double> CNDDouble;
+	typedef TFloatingPoint<long double> CNDLongDouble;
 
 	namespace impl {
 		template<typename _TDestination, typename _TSource>
@@ -422,7 +427,7 @@ namespace mse {
 		template<typename _Ty>
 		struct corresponding_TInt { typedef typename std::conditional<std::is_arithmetic<_Ty>::value, TInt<_Ty>, _Ty>::type type; };
 #define MSE_TINT_TYPE(_Ty) typename mse::impl::corresponding_TInt<_Ty>::type
-#define MSE_NATIVE_INT_TYPE(_Ty) MSE_TINT_TYPE(_Ty)::base_int_type
+#define MSE_NATIVE_INT_TYPE(_Ty) MSE_TINT_TYPE(_Ty)::base_type
 
 #define MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz) typename mse::impl::range_encompassing::range_encompassing_native_int_type<MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz)>::type
 
@@ -454,16 +459,16 @@ namespace mse {
 		(unintuitively) to false, whereas the expression (0 > (CNDInt)5 - (CNDSize_t)7) evaluates to true. Also, the classes do
 		some range checking. For example, the code "CNDSize_t s = -2;" will throw an exception. */
 		template<typename _Ty>
-		class TIntBase1 {
+		class TArithmeticBase1 {
 		public:
 			// Constructs zero.
-			TIntBase1() : m_val(MSE_DEFAULT_INT_VALUE) {}
+			TArithmeticBase1() : m_val(MSE_DEFAULT_INT_VALUE) {}
 
 			// Copy constructor
-			TIntBase1(const TIntBase1 &x) : m_val(x.m_val) { note_value_assignment(); };
+			TArithmeticBase1(const TArithmeticBase1 &x) : m_val(x.m_val) { note_value_assignment(); };
 
 			// Constructors from primitive integer types
-			explicit TIntBase1(_Ty x) : m_val(x) { note_value_assignment(); }
+			explicit TArithmeticBase1(_Ty x) : m_val(x) { note_value_assignment(); }
 
 			template<typename _Tz>
 			void assign_check_range(const _Tz &x) {
@@ -485,11 +490,11 @@ namespace mse {
 	}
 	
 
-	template<typename _TBaseInt/* = MSE_CINT_BASE_INTEGER_TYPE*/>
-	class TInt : private impl::TIntBase1<_TBaseInt> {
+	template<typename TBase/* = MSE_CINT_BASE_INTEGER_TYPE*/>
+	class TInt : private impl::TArithmeticBase1<TBase> {
 	public:
-		typedef impl::TIntBase1<_TBaseInt> base_class;
-		typedef _TBaseInt base_int_type;
+		typedef impl::TArithmeticBase1<TBase> base_class;
+		typedef TBase base_type;
 
 		TInt() : base_class() {}
 		TInt(const TInt &x) : base_class(x) {};
@@ -502,21 +507,21 @@ namespace mse {
 
 		TInt& operator=(const TInt &x) { (*this).note_value_assignment(); (*this).m_val = x.m_val; return (*this); }
 		template<typename _Ty>
-		TInt& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = x/*static_cast<base_int_type>(x)*/; return (*this); }
+		TInt& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = x/*static_cast<base_type>(x)*/; return (*this); }
 
-		operator base_int_type() const { (*this).assert_initialized(); return (*this).m_val; }
+		operator base_type() const { (*this).assert_initialized(); return (*this).m_val; }
 		/* provisional */
-		const base_int_type& mse_base_type_ref() const & { (*this).assert_initialized(); return (*this).m_val; }
-		const base_int_type& mse_base_type_ref() const&& = delete;
-		base_int_type& mse_base_type_ref() & { (*this).assert_initialized(); return (*this).m_val; }
-		base_int_type& mse_base_type_ref() && = delete;
+		const base_type& mse_base_type_ref() const & { (*this).assert_initialized(); return (*this).m_val; }
+		const base_type& mse_base_type_ref() const&& = delete;
+		base_type& mse_base_type_ref() & { (*this).assert_initialized(); return (*this).m_val; }
+		base_type& mse_base_type_ref() && = delete;
 
 		TInt operator ~() const { (*this).assert_initialized(); return TInt(~(*this).m_val); }
 		TInt& operator |=(const TInt &x) { (*this).assert_initialized(); (*this).m_val |= x.m_val; return (*this); }
 		TInt& operator &=(const TInt &x) { (*this).assert_initialized(); (*this).m_val &= x.m_val; return (*this); }
 		TInt& operator ^=(const TInt &x) { (*this).assert_initialized(); (*this).m_val ^= x.m_val; return (*this); }
 
-		auto operator -() const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return -MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val); }
+		auto operator -() const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return -MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_type, base_type)((*this).m_val); }
 		TInt& operator +=(const TInt &x) { (*this).assert_initialized(); (*this).m_val += x.m_val; return (*this); }
 		TInt& operator -=(const TInt &x) { (*this).assert_initialized(); (*this).m_val -= x.m_val; return (*this); }
 		TInt& operator *=(const TInt &x) { (*this).assert_initialized(); (*this).m_val *= x.m_val; return (*this); }
@@ -525,19 +530,19 @@ namespace mse {
 		TInt& operator >>=(const TInt &x) { (*this).assert_initialized(); (*this).m_val >>= x.m_val; return (*this); }
 		TInt& operator <<=(const TInt &x) { (*this).assert_initialized(); (*this).m_val <<= x.m_val; return (*this); }
 
-		auto operator +(const TInt &x) const -> MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val) + MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_int_type, base_int_type)(x.m_val)); }
+		auto operator +(const TInt &x) const -> MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_type, base_type)((*this).m_val) + MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
 		auto operator +(const TInt<_Ty2> &x) const ->MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>)((*this).m_val) + MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator +(_Ty2 x) const { (*this).assert_initialized(); return ((*this) + TInt<_Ty2>(x)); }
 
-		auto operator -(const TInt &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val) - MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_int_type, base_int_type)(x.m_val)); }
+		auto operator -(const TInt &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_type, base_type)((*this).m_val) - MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
 		auto operator -(const TInt<_Ty2> &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>)((*this).m_val) - MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator -(_Ty2 x) const { (*this).assert_initialized(); return ((*this) - TInt<_Ty2>(x)); }
 
-		auto operator *(const TInt &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val) * MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(base_int_type, base_int_type)(x.m_val)); }
+		auto operator *(const TInt &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(base_type, base_type)((*this).m_val) * MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
 		auto operator *(const TInt<_Ty2> &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>)((*this).m_val) * MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
@@ -545,7 +550,7 @@ namespace mse {
 
 		auto operator /(const TInt &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt) {
 			if (x.m_val == 0) { MSE_THROW(std::domain_error("attempted division by zero - TInt")); }
-			(*this).assert_initialized(); return (MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_int_type, base_int_type)((*this).m_val) / MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_int_type, base_int_type)(x.m_val));
+			(*this).assert_initialized(); return (MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_type, base_type)((*this).m_val) / MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_type, base_type)(x.m_val));
 		}
 		template<typename _Ty2>
 		auto operator /(const TInt<_Ty2> &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>)((*this).m_val) / MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>)(x.m_val)); }
@@ -598,7 +603,7 @@ namespace mse {
 		}
 		TInt& operator --() {
 			(*this).assert_initialized();
-			if (0 <= std::numeric_limits<base_int_type>::lowest()) {
+			if (0 <= std::numeric_limits<base_type>::lowest()) {
 				(*this) = (*this) - 1; return (*this);
 			}
 			else {
@@ -620,7 +625,7 @@ namespace mse {
 		template<typename _Ty2>
 		auto checked_and_adjusted_x(const _Ty2& x) {
 			(*this).template assign_check_range<_Ty2>(x);
-			return static_cast<base_int_type>(x);
+			return static_cast<base_type>(x);
 		}
 
 		template<typename _Ty2> friend class TInt;
@@ -636,78 +641,78 @@ namespace std {
 #define _STCONS(ty, name, val)	static constexpr ty name = static_cast<ty>(val)
 #endif // !_STCONS
 
-	template<typename _TBaseInt>
-	class numeric_limits<mse::TInt<_TBaseInt>> {	// limits for type int
+	template<typename TBase>
+	class numeric_limits<mse::TInt<TBase>> {	// limits for type int
 	public:
-		typedef _TBaseInt base_int_type;
+		typedef TBase base_type;
 
-		static constexpr base_int_type(min)() _THROW0()
+		static constexpr base_type(min)() _THROW0()
 		{	// return minimum value
-			return numeric_limits<_TBaseInt>::min();
+			return numeric_limits<TBase>::min();
 		}
-		static constexpr base_int_type(max)() _THROW0()
+		static constexpr base_type(max)() _THROW0()
 		{	// return maximum value
-			return numeric_limits<_TBaseInt>::max();
+			return numeric_limits<TBase>::max();
 		}
-		static constexpr base_int_type lowest() _THROW0()
+		static constexpr base_type lowest() _THROW0()
 		{	// return most negative value
-			return numeric_limits<_TBaseInt>::lowest();
+			return numeric_limits<TBase>::lowest();
 		}
-		static constexpr base_int_type epsilon() _THROW0()
+		static constexpr base_type epsilon() _THROW0()
 		{	// return smallest effective increment from 1.0
-			return numeric_limits<_TBaseInt>::epsilon();
+			return numeric_limits<TBase>::epsilon();
 		}
-		static constexpr base_int_type round_error() _THROW0()
+		static constexpr base_type round_error() _THROW0()
 		{	// return largest rounding error
-			return numeric_limits<_TBaseInt>::round_error();
+			return numeric_limits<TBase>::round_error();
 		}
-		static constexpr base_int_type denorm_min() _THROW0()
+		static constexpr base_type denorm_min() _THROW0()
 		{	// return minimum denormalized value
-			return numeric_limits<_TBaseInt>::denorm_min();
+			return numeric_limits<TBase>::denorm_min();
 		}
-		static constexpr base_int_type infinity() _THROW0()
+		static constexpr base_type infinity() _THROW0()
 		{	// return positive infinity
-			return numeric_limits<_TBaseInt>::infinity();
+			return numeric_limits<TBase>::infinity();
 		}
-		static constexpr base_int_type quiet_NaN() _THROW0()
+		static constexpr base_type quiet_NaN() _THROW0()
 		{	// return non-signaling NaN
-			return numeric_limits<_TBaseInt>::quiet_NaN();
+			return numeric_limits<TBase>::quiet_NaN();
 		}
-		static constexpr base_int_type signaling_NaN() _THROW0()
+		static constexpr base_type signaling_NaN() _THROW0()
 		{	// return signaling NaN
-			return numeric_limits<_TBaseInt>::signaling_NaN();
+			return numeric_limits<TBase>::signaling_NaN();
 		}
-		_STCONS(float_denorm_style, has_denorm, numeric_limits<_TBaseInt>::has_denorm);
-		_STCONS(bool, has_denorm_loss, numeric_limits<_TBaseInt>::has_denorm_loss);
-		_STCONS(bool, has_infinity, numeric_limits<_TBaseInt>::has_infinity);
-		_STCONS(bool, has_quiet_NaN, numeric_limits<_TBaseInt>::has_quiet_NaN);
-		_STCONS(bool, has_signaling_NaN, numeric_limits<_TBaseInt>::has_signaling_NaN);
-		_STCONS(bool, is_bounded, numeric_limits<_TBaseInt>::is_bounded);
-		_STCONS(bool, is_exact, numeric_limits<_TBaseInt>::is_exact);
-		_STCONS(bool, is_iec559, numeric_limits<_TBaseInt>::is_iec559);
-		_STCONS(bool, is_integer, numeric_limits<_TBaseInt>::is_integer);
-		_STCONS(bool, is_modulo, numeric_limits<_TBaseInt>::is_modulo);
-		_STCONS(bool, is_signed, numeric_limits<_TBaseInt>::is_signed);
-		_STCONS(bool, is_specialized, numeric_limits<_TBaseInt>::is_specialized);
-		_STCONS(bool, tinyness_before, numeric_limits<_TBaseInt>::tinyness_before);
-		_STCONS(bool, traps, numeric_limits<_TBaseInt>::traps);
-		_STCONS(float_round_style, round_style, numeric_limits<_TBaseInt>::round_style);
-		_STCONS(int, digits, numeric_limits<_TBaseInt>::digits);
-		_STCONS(int, digits10, numeric_limits<_TBaseInt>::digits10);
-		_STCONS(int, max_digits10, numeric_limits<_TBaseInt>::max_digits10);
-		_STCONS(int, max_exponent, numeric_limits<_TBaseInt>::max_exponent);
-		_STCONS(int, max_exponent10, numeric_limits<_TBaseInt>::max_exponent10);
-		_STCONS(int, min_exponent, numeric_limits<_TBaseInt>::min_exponent);
-		_STCONS(int, min_exponent10, numeric_limits<_TBaseInt>::min_exponent10);
-		_STCONS(int, radix, numeric_limits<_TBaseInt>::radix);
+		_STCONS(float_denorm_style, has_denorm, numeric_limits<TBase>::has_denorm);
+		_STCONS(bool, has_denorm_loss, numeric_limits<TBase>::has_denorm_loss);
+		_STCONS(bool, has_infinity, numeric_limits<TBase>::has_infinity);
+		_STCONS(bool, has_quiet_NaN, numeric_limits<TBase>::has_quiet_NaN);
+		_STCONS(bool, has_signaling_NaN, numeric_limits<TBase>::has_signaling_NaN);
+		_STCONS(bool, is_bounded, numeric_limits<TBase>::is_bounded);
+		_STCONS(bool, is_exact, numeric_limits<TBase>::is_exact);
+		_STCONS(bool, is_iec559, numeric_limits<TBase>::is_iec559);
+		_STCONS(bool, is_integer, numeric_limits<TBase>::is_integer);
+		_STCONS(bool, is_modulo, numeric_limits<TBase>::is_modulo);
+		_STCONS(bool, is_signed, numeric_limits<TBase>::is_signed);
+		_STCONS(bool, is_specialized, numeric_limits<TBase>::is_specialized);
+		_STCONS(bool, tinyness_before, numeric_limits<TBase>::tinyness_before);
+		_STCONS(bool, traps, numeric_limits<TBase>::traps);
+		_STCONS(float_round_style, round_style, numeric_limits<TBase>::round_style);
+		_STCONS(int, digits, numeric_limits<TBase>::digits);
+		_STCONS(int, digits10, numeric_limits<TBase>::digits10);
+		_STCONS(int, max_digits10, numeric_limits<TBase>::max_digits10);
+		_STCONS(int, max_exponent, numeric_limits<TBase>::max_exponent);
+		_STCONS(int, max_exponent10, numeric_limits<TBase>::max_exponent10);
+		_STCONS(int, min_exponent, numeric_limits<TBase>::min_exponent);
+		_STCONS(int, min_exponent10, numeric_limits<TBase>::min_exponent10);
+		_STCONS(int, radix, numeric_limits<TBase>::radix);
 	};
 
-	template<typename _TBaseInt>
-	struct hash<mse::TInt<_TBaseInt>> {	// hash functor
-		typedef mse::TInt<_TBaseInt> argument_type;
+	template<typename TBase>
+	struct hash<mse::TInt<TBase>> {	// hash functor
+		typedef mse::TInt<TBase> argument_type;
 		typedef size_t result_type;
-		size_t operator()(const mse::TInt<_TBaseInt>& _Keyval) const _NOEXCEPT {
-			return (hash<typename mse::TInt<_TBaseInt>::base_int_type>()(_Keyval));
+		size_t operator()(const mse::TInt<TBase>& _Keyval) const _NOEXCEPT {
+			return (hash<typename mse::TInt<TBase>::base_type>()(_Keyval));
 		}
 	};
 }
@@ -715,28 +720,28 @@ namespace std {
 namespace mse {
 	/* Note that CNDSize_t does not have a default conversion to size_t. This is by design. Use the as_a_size_t() member
 	function to get a size_t when necessary. */
-	class CNDSize_t : private impl::TIntBase1<size_t> {
+	class CNDSize_t : private impl::TArithmeticBase1<size_t> {
 	public:
-		typedef impl::TIntBase1<size_t> base_class;
-		typedef size_t base_int_type;
+		typedef impl::TArithmeticBase1<size_t> base_class;
+		typedef size_t base_type;
 #ifdef MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
-		typedef MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(base_int_type, signed char/*just to make sure the resulting type is signed*/) signed_size_t;
+		typedef MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(base_type, signed char/*just to make sure the resulting type is signed*/) signed_size_t;
 #else // MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
-		typedef typename CNDInt::base_int_type signed_size_t;
+		typedef typename CNDInt::base_type signed_size_t;
 #endif //MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 		typedef TInt<signed_size_t> CNDSignedSize_t;
 
 		CNDSize_t() : base_class() {}
 		CNDSize_t(const CNDSize_t &x) : base_class(x) {};
 		//CNDSize_t(const base_class &x) : base_class(x) {};
-		/*explicit */CNDSize_t(CNDInt x) : base_class(static_cast<base_int_type>(x)) { (*this).template assign_check_range<CNDInt>(x); }
+		/*explicit */CNDSize_t(CNDInt x) : base_class(static_cast<base_type>(x)) { (*this).template assign_check_range<CNDInt>(x); }
 
 		template<typename _Ty>
-		CNDSize_t(const _Ty& x) : base_class(static_cast<base_int_type>(x)) { (*this).template assign_check_range<_Ty>(x); }
+		CNDSize_t(const _Ty& x) : base_class(static_cast<base_type>(x)) { (*this).template assign_check_range<_Ty>(x); }
 
 		CNDSize_t& operator=(const CNDSize_t &x) { (*this).note_value_assignment(); (*this).m_val = x.m_val; return (*this); }
 		template<typename _Ty>
-		CNDSize_t& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = static_cast<base_int_type>(x); return (*this); }
+		CNDSize_t& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = static_cast<base_type>(x); return (*this); }
 
 		operator signed_size_t() const { (*this).assert_initialized(); impl::g_assign_check_range<signed_size_t, decltype(m_val)>(m_val); return signed_size_t(m_val); }
 #ifndef MSVC2010_COMPATIBLE
@@ -749,7 +754,7 @@ namespace mse {
 		size_t& mse_base_type_ref() & { (*this).assert_initialized(); return (*this).m_val; }
 		size_t& mse_base_type_ref() && = delete;
 
-		//explicit operator typename CNDInt::base_int_type() const { (*this).assert_initialized(); return CNDInt(m_val); }
+		//explicit operator typename CNDInt::base_type() const { (*this).assert_initialized(); return CNDInt(m_val); }
 #endif /*MSVC2010_COMPATIBLE*/
 		//size_t as_a_size_t() const { (*this).assert_initialized(); return m_val; }
 
@@ -764,7 +769,7 @@ namespace mse {
 		CNDSize_t& operator +=(const CNDSize_t &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
 		CNDSize_t& operator -=(const CNDSize_t &x) {
 			(*this).assert_initialized();
-			//assert(0 <= std::numeric_limits<base_int_type>::lowest());
+			//assert(0 <= std::numeric_limits<base_type>::lowest());
 			if (x.m_val > m_val) {
 				MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
 			}
@@ -867,7 +872,7 @@ namespace mse {
 		}
 		CNDSize_t& operator --() { (*this).assert_initialized();
 		(*this).assert_initialized();
-		if (0 <= std::numeric_limits<base_int_type>::lowest()) {
+		if (0 <= std::numeric_limits<base_type>::lowest()) {
 				(*this) = (*this) - 1; return (*this);
 			}
 			else {
@@ -885,7 +890,7 @@ namespace mse {
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		//base_int_type m_val;
+		//base_type m_val;
 
 		friend size_t as_a_size_t(CNDSize_t n);
 	};
@@ -902,41 +907,41 @@ namespace std {
 
 	template<> class numeric_limits<mse::CNDSize_t> {	// limits for type int
 	public:
-		typedef size_t base_int_type;
+		typedef size_t base_type;
 
-		static constexpr base_int_type(min)() _THROW0()
+		static constexpr base_type(min)() _THROW0()
 		{	// return minimum value
 			return numeric_limits<size_t>::min();
 		}
-		static constexpr base_int_type(max)() _THROW0()
+		static constexpr base_type(max)() _THROW0()
 		{	// return maximum value
 			return numeric_limits<size_t>::max();
 		}
-		static constexpr base_int_type lowest() _THROW0()
+		static constexpr base_type lowest() _THROW0()
 		{	// return most negative value
 			return numeric_limits<size_t>::lowest();
 		}
-		static constexpr base_int_type epsilon() _THROW0()
+		static constexpr base_type epsilon() _THROW0()
 		{	// return smallest effective increment from 1.0
 			return numeric_limits<size_t>::epsilon();
 		}
-		static constexpr base_int_type round_error() _THROW0()
+		static constexpr base_type round_error() _THROW0()
 		{	// return largest rounding error
 			return numeric_limits<size_t>::round_error();
 		}
-		static constexpr base_int_type denorm_min() _THROW0()
+		static constexpr base_type denorm_min() _THROW0()
 		{	// return minimum denormalized value
 			return numeric_limits<size_t>::denorm_min();
 		}
-		static constexpr base_int_type infinity() _THROW0()
+		static constexpr base_type infinity() _THROW0()
 		{	// return positive infinity
 			return numeric_limits<size_t>::infinity();
 		}
-		static constexpr base_int_type quiet_NaN() _THROW0()
+		static constexpr base_type quiet_NaN() _THROW0()
 		{	// return non-signaling NaN
 			return numeric_limits<size_t>::quiet_NaN();
 		}
-		static constexpr base_int_type signaling_NaN() _THROW0()
+		static constexpr base_type signaling_NaN() _THROW0()
 		{	// return signaling NaN
 			return numeric_limits<size_t>::signaling_NaN();
 		}
@@ -970,7 +975,224 @@ namespace std {
 		typedef mse::CNDSize_t argument_type;
 		typedef size_t result_type;
 		size_t operator()(const mse::CNDSize_t& _Keyval) const _NOEXCEPT {
-			return (hash<mse::CNDSize_t::base_int_type>()(mse::as_a_size_t(_Keyval)));
+			return (hash<mse::CNDSize_t::base_type>()(mse::as_a_size_t(_Keyval)));
+		}
+	};
+}
+
+namespace mse {
+	namespace impl {
+		template<typename _Ty>
+		struct corresponding_TFloatingPoint { typedef typename std::conditional<std::is_arithmetic<_Ty>::value, TFloatingPoint<_Ty>, _Ty>::type type; };
+#define MSE_TFLOATINGPOINT_TYPE(_Ty) typename mse::impl::corresponding_TFloatingPoint<_Ty>::type
+#define MSE_NATIVE_FLOATINGPOINT_TYPE(_Ty) MSE_TFLOATINGPOINT_TYPE(_Ty)::base_type
+#define MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(_Ty, _Tz) typename std::conditional<sizeof(MSE_NATIVE_FLOATINGPOINT_TYPE(_Ty)) < sizeof(MSE_NATIVE_FLOATINGPOINT_TYPE(_Tz)), MSE_NATIVE_FLOATINGPOINT_TYPE(_Tz), MSE_NATIVE_FLOATINGPOINT_TYPE(_Ty)>::type
+
+#define MSE_NATIVE_FLOATINGPOINT_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(_Ty, _Tz)
+#define MSE_NATIVE_FLOATINGPOINT_ADD_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(_Ty, _Tz)
+#define MSE_NATIVE_FLOATINGPOINT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(_Ty, _Tz)
+#define MSE_NATIVE_FLOATINGPOINT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(_Ty, _Tz)
+#define MSE_NATIVE_FLOATINGPOINT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(_Ty, _Tz)
+
+#define MSE_TFLOATINGPOINT_RESULT_TYPE1(_Ty, _Tz) TFloatingPoint<MSE_NATIVE_FLOATINGPOINT_RESULT_TYPE1(MSE_NATIVE_FLOATINGPOINT_TYPE(_Ty), MSE_NATIVE_FLOATINGPOINT_TYPE(_Tz))>
+#define MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(_Ty, _Tz) TFloatingPoint<MSE_NATIVE_FLOATINGPOINT_ADD_RESULT_TYPE1(MSE_NATIVE_FLOATINGPOINT_TYPE(_Ty), MSE_NATIVE_FLOATINGPOINT_TYPE(_Tz))>
+#define MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) TFloatingPoint<MSE_NATIVE_FLOATINGPOINT_SUBTRACT_RESULT_TYPE1(MSE_NATIVE_FLOATINGPOINT_TYPE(_Ty), MSE_NATIVE_FLOATINGPOINT_TYPE(_Tz))>
+#define MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) TFloatingPoint<MSE_NATIVE_FLOATINGPOINT_MULTIPLY_RESULT_TYPE1(MSE_NATIVE_FLOATINGPOINT_TYPE(_Ty), MSE_NATIVE_FLOATINGPOINT_TYPE(_Tz))>
+#define MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) TFloatingPoint<MSE_NATIVE_FLOATINGPOINT_DIVIDE_RESULT_TYPE1(MSE_NATIVE_FLOATINGPOINT_TYPE(_Ty), MSE_NATIVE_FLOATINGPOINT_TYPE(_Tz))>
+	}
+
+	/* Native floating point types don't pose quite the same safety and correctness risks that native integer types do, but substitutes
+	that can act as base classes are still needed. */
+	template<typename TBase>
+	class TFloatingPoint : private impl::TArithmeticBase1<TBase> {
+	public:
+		typedef impl::TArithmeticBase1<TBase> base_class;
+		typedef TBase base_type;
+
+		TFloatingPoint() : base_class() {}
+		TFloatingPoint(const TFloatingPoint& x) : base_class(x) {};
+		//explicit TFloatingPoint(const base_class &x) : base_class(x) {};
+		//explicit TFloatingPoint(const CNDSize_t &x) : base_class(CNDInt(x)) { (*this).template assign_check_range<CNDInt>(CNDInt(x)); };
+
+		template<typename _Ty/*, class = typename std::enable_if<!std::is_same<typename std::remove_reference<
+			typename std::remove_const<_Ty>::type>::type, CNDSize_t>::value, void>::type*/>
+			TFloatingPoint(const _Ty& x) : base_class(checked_and_adjusted_x(x)) {}
+
+		TFloatingPoint& operator=(const TFloatingPoint& x) { (*this).note_value_assignment(); (*this).m_val = x.m_val; return (*this); }
+		template<typename _Ty>
+		TFloatingPoint& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = x/*static_cast<base_type>(x)*/; return (*this); }
+
+		operator base_type() const { (*this).assert_initialized(); return (*this).m_val; }
+		/* provisional */
+		const base_type& mse_base_type_ref() const& { (*this).assert_initialized(); return (*this).m_val; }
+		const base_type& mse_base_type_ref() const&& = delete;
+		base_type& mse_base_type_ref()& { (*this).assert_initialized(); return (*this).m_val; }
+		base_type& mse_base_type_ref() && = delete;
+
+		auto operator -() const->MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); return -((*this).m_val); }
+		TFloatingPoint& operator +=(const TFloatingPoint& x) { (*this).assert_initialized(); (*this).m_val += x.m_val; return (*this); }
+		TFloatingPoint& operator -=(const TFloatingPoint& x) { (*this).assert_initialized(); (*this).m_val -= x.m_val; return (*this); }
+		TFloatingPoint& operator *=(const TFloatingPoint& x) { (*this).assert_initialized(); (*this).m_val *= x.m_val; return (*this); }
+		TFloatingPoint& operator /=(const TFloatingPoint& x) { (*this).assert_initialized(); (*this).m_val /= x.m_val; return (*this); }
+
+		auto operator +(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); return (MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_type, base_type)((*this).m_val) + MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
+		template<typename _Ty2>
+		auto operator +(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) + MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator +(_Ty2 x) const { (*this).assert_initialized(); return ((*this) + TFloatingPoint<_Ty2>(x)); }
+
+		auto operator -(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); return (MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_type, base_type)((*this).m_val) - MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
+		template<typename _Ty2>
+		auto operator -(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) - MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator -(_Ty2 x) const { (*this).assert_initialized(); return ((*this) - TFloatingPoint<_Ty2>(x)); }
+
+		auto operator *(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); return (MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(base_type, base_type)((*this).m_val) * MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
+		template<typename _Ty2>
+		auto operator *(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) * MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator *(_Ty2 x) const { (*this).assert_initialized(); return ((*this) * TFloatingPoint<_Ty2>(x)); }
+
+		auto operator /(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) {
+			if (x.m_val == 0) { MSE_THROW(std::domain_error("attempted division by zero - TFloatingPoint")); }
+			(*this).assert_initialized(); return (MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_type, base_type)((*this).m_val) / MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(base_type, base_type)(x.m_val));
+		}
+		template<typename _Ty2>
+		auto operator /(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) / MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator /(_Ty2 x) const { (*this).assert_initialized(); return ((*this) / TFloatingPoint<_Ty2>(x)); }
+
+		bool operator <(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) < (x.m_val)); }
+		template<typename _Ty2>
+		bool operator <(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) < MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator <(_Ty2 x) const { (*this).assert_initialized(); return ((*this) < TFloatingPoint<_Ty2>(x)); }
+
+		bool operator >(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) > (x.m_val)); }
+		template<typename _Ty2>
+		bool operator >(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) > MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator >(_Ty2 x) const { (*this).assert_initialized(); return ((*this) > TFloatingPoint<_Ty2>(x)); }
+
+		bool operator <=(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) <= (x.m_val)); }
+		template<typename _Ty2>
+		bool operator <=(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) <= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator <=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) <= TFloatingPoint<_Ty2>(x)); }
+
+		bool operator >=(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) >= (x.m_val)); }
+		template<typename _Ty2>
+		bool operator >=(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) >= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator >=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) >= TFloatingPoint<_Ty2>(x)); }
+
+		bool operator ==(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) == (x.m_val)); }
+		template<typename _Ty2>
+		bool operator ==(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) == MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator ==(_Ty2 x) const { (*this).assert_initialized(); return ((*this) == TFloatingPoint<_Ty2>(x)); }
+
+		bool operator !=(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) != (x.m_val)); }
+		template<typename _Ty2>
+		bool operator !=(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) != MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator !=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) != TFloatingPoint<_Ty2>(x)); }
+
+		void async_shareable_and_passable_tag() const {}
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		template<typename _Ty2>
+		auto checked_and_adjusted_x(const _Ty2& x) {
+			(*this).template assign_check_range<_Ty2>(x);
+			return static_cast<base_type>(x);
+		}
+
+		template<typename _Ty2> friend class TFloatingPoint;
+	};
+}
+
+namespace std {
+#ifndef _THROW0
+#define _THROW0()
+#endif // !_THROW0
+#ifndef _STCONS
+#define _STCONS(ty, name, val)	static constexpr ty name = static_cast<ty>(val)
+#endif // !_STCONS
+
+	template<typename TBase>
+	class numeric_limits<mse::TFloatingPoint<TBase>> {	// limits for type int
+	public:
+		typedef TBase base_type;
+
+		static constexpr base_type(min)() _THROW0()
+		{	// return minimum value
+			return numeric_limits<TBase>::min();
+		}
+		static constexpr base_type(max)() _THROW0()
+		{	// return maximum value
+			return numeric_limits<TBase>::max();
+		}
+		static constexpr base_type lowest() _THROW0()
+		{	// return most negative value
+			return numeric_limits<TBase>::lowest();
+		}
+		static constexpr base_type epsilon() _THROW0()
+		{	// return smallest effective increment from 1.0
+			return numeric_limits<TBase>::epsilon();
+		}
+		static constexpr base_type round_error() _THROW0()
+		{	// return largest rounding error
+			return numeric_limits<TBase>::round_error();
+		}
+		static constexpr base_type denorm_min() _THROW0()
+		{	// return minimum denormalized value
+			return numeric_limits<TBase>::denorm_min();
+		}
+		static constexpr base_type infinity() _THROW0()
+		{	// return positive infinity
+			return numeric_limits<TBase>::infinity();
+		}
+		static constexpr base_type quiet_NaN() _THROW0()
+		{	// return non-signaling NaN
+			return numeric_limits<TBase>::quiet_NaN();
+		}
+		static constexpr base_type signaling_NaN() _THROW0()
+		{	// return signaling NaN
+			return numeric_limits<TBase>::signaling_NaN();
+		}
+		_STCONS(float_denorm_style, has_denorm, numeric_limits<TBase>::has_denorm);
+		_STCONS(bool, has_denorm_loss, numeric_limits<TBase>::has_denorm_loss);
+		_STCONS(bool, has_infinity, numeric_limits<TBase>::has_infinity);
+		_STCONS(bool, has_quiet_NaN, numeric_limits<TBase>::has_quiet_NaN);
+		_STCONS(bool, has_signaling_NaN, numeric_limits<TBase>::has_signaling_NaN);
+		_STCONS(bool, is_bounded, numeric_limits<TBase>::is_bounded);
+		_STCONS(bool, is_exact, numeric_limits<TBase>::is_exact);
+		_STCONS(bool, is_iec559, numeric_limits<TBase>::is_iec559);
+		_STCONS(bool, is_integer, numeric_limits<TBase>::is_integer);
+		_STCONS(bool, is_modulo, numeric_limits<TBase>::is_modulo);
+		_STCONS(bool, is_signed, numeric_limits<TBase>::is_signed);
+		_STCONS(bool, is_specialized, numeric_limits<TBase>::is_specialized);
+		_STCONS(bool, tinyness_before, numeric_limits<TBase>::tinyness_before);
+		_STCONS(bool, traps, numeric_limits<TBase>::traps);
+		_STCONS(float_round_style, round_style, numeric_limits<TBase>::round_style);
+		_STCONS(int, digits, numeric_limits<TBase>::digits);
+		_STCONS(int, digits10, numeric_limits<TBase>::digits10);
+		_STCONS(int, max_digits10, numeric_limits<TBase>::max_digits10);
+		_STCONS(int, max_exponent, numeric_limits<TBase>::max_exponent);
+		_STCONS(int, max_exponent10, numeric_limits<TBase>::max_exponent10);
+		_STCONS(int, min_exponent, numeric_limits<TBase>::min_exponent);
+		_STCONS(int, min_exponent10, numeric_limits<TBase>::min_exponent10);
+		_STCONS(int, radix, numeric_limits<TBase>::radix);
+	};
+
+	template<typename TBase>
+	struct hash<mse::TFloatingPoint<TBase>> {	// hash functor
+		typedef mse::TFloatingPoint<TBase> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TFloatingPoint<TBase>& _Keyval) const _NOEXCEPT {
+			return (hash<typename mse::TFloatingPoint<TBase>::base_type>()(_Keyval));
 		}
 	};
 }
@@ -984,62 +1206,88 @@ namespace mse {
 	inline auto operator+(_Tz lhs, const TInt<_Ty> &rhs) { return rhs + lhs; }
 	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator+(_Tz lhs, const CNDSize_t &rhs) { return rhs + lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator+(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs + lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator-(_Tz lhs, const TInt<_Ty> &rhs) { return -(rhs - lhs); }
 	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator-(_Tz lhs, const CNDSize_t &rhs) { return lhs - CNDInt(rhs); }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator-(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return -(rhs - lhs); }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator*(_Tz lhs, const TInt<_Ty> &rhs) { return rhs * lhs; }
 	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator*(_Tz lhs, const CNDSize_t &rhs) { return rhs * lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator*(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs * lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
-	inline auto operator/(_Tz lhs, const TInt<_Ty> &rhs) { return CNDInt(lhs) / rhs; }
+	inline auto operator/(_Tz lhs, const TInt<_Ty> &rhs) { return TInt<_Tz>(lhs) / rhs; }
 	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator/(_Tz lhs, const CNDSize_t &rhs) { return CNDInt(lhs) / rhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator/(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return TFloatingPoint<_Tz>(lhs) / rhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator<(_Tz lhs, const TInt<_Ty> &rhs) { return rhs > lhs; }
 	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator<(_Tz lhs, const CNDSize_t &rhs) { return rhs > lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator<(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs > lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator>(_Tz lhs, const TInt<_Ty> &rhs) { return rhs < lhs; }
 	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator>(_Tz lhs, const CNDSize_t &rhs) { return rhs < lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator>(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs < lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator<=(_Tz lhs, const TInt<_Ty> &rhs) { return rhs >= lhs; }
 	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator<=(_Tz lhs, const CNDSize_t &rhs) { return rhs >= lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator<=(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs >= lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator>=(_Tz lhs, const TInt<_Ty> &rhs) { return rhs <= lhs; }
 	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator>=(_Tz lhs, const CNDSize_t &rhs) { return rhs <= lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator>=(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs <= lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator==(_Tz lhs, const TInt<_Ty> &rhs) { return rhs == lhs; }
 	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator==(_Tz lhs, const CNDSize_t &rhs) { return rhs == lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator==(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs == lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator!=(_Tz lhs, const TInt<_Ty> &rhs) { return rhs != lhs; }
 	template<typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator!=(_Tz lhs, const CNDSize_t &rhs) { return rhs != lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator!=(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs != lhs; }
 
 #ifdef MSE_PRIMITIVES_DISABLED
 	typedef bool CBool;
 	typedef MSE_CINT_BASE_INTEGER_TYPE CInt;
 	typedef size_t CSize_t;
 	static size_t as_a_size_t(CSize_t n) { return (n); }
+	typedef float CFloat;
+	typedef double CDouble;
+	typedef long double CLongDouble;
 #else /*MSE_PRIMITIVES_DISABLED*/
 
 	typedef CNDBool CBool;
 	typedef CNDInt CInt;
 	typedef CNDSize_t CSize_t;
+	typedef CNDFloat CFloat;
+	typedef CNDDouble CDouble;
+	typedef CNDLongDouble CLongDouble;
 
 #endif /*MSE_PRIMITIVES_DISABLED*/
 
@@ -1112,40 +1360,40 @@ namespace mse {
 
 #if LLONG_MAX != LONG_MAX
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_LONG_LONG_INTEGER_TYPES(MACRO_FUNCTION) \
-	MACRO_FUNCTION(long long int) \
-	MACRO_FUNCTION(unsigned long long int)
+	MACRO_FUNCTION(long long int, mse::TInt) \
+	MACRO_FUNCTION(unsigned long long int, mse::TInt)
 #else // LLONG_MAX != LONG_MAX
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_LONG_LONG_INTEGER_TYPES(MACRO_FUNCTION)
 #endif // LLONG_MAX != LONG_MAX
 
 #if LONG_MAX != INT_MAX
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_LONG_INTEGER_TYPES(MACRO_FUNCTION) \
-	MACRO_FUNCTION(long int) \
-	MACRO_FUNCTION(unsigned long int)
+	MACRO_FUNCTION(long int, mse::TInt) \
+	MACRO_FUNCTION(unsigned long int, mse::TInt)
 #else // LONG_MAX != INT_MAX
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_LONG_INTEGER_TYPES(MACRO_FUNCTION)
 #endif // LONG_MAX != INT_MAX
 
 #if INT_MAX != SHRT_MAX
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_INTEGER_TYPES(MACRO_FUNCTION) \
-	MACRO_FUNCTION(int) \
-	MACRO_FUNCTION(unsigned int)
+	MACRO_FUNCTION(int, mse::TInt) \
+	MACRO_FUNCTION(unsigned int, mse::TInt)
 #else // INT_MAX != SHRT_MAX
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_INTEGER_TYPES(MACRO_FUNCTION)
 #endif // INT_MAX != SHRT_MAX
 
 #if SHRT_MAX != CHAR_MAX
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_SHORT_INTEGER_TYPES(MACRO_FUNCTION) \
-	MACRO_FUNCTION(short int) \
-	MACRO_FUNCTION(unsigned short int)
+	MACRO_FUNCTION(short int, mse::TInt) \
+	MACRO_FUNCTION(unsigned short int, mse::TInt)
 #else // SHRT_MAX != CHAR_MAX
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_SHORT_INTEGER_TYPES(MACRO_FUNCTION)
 #endif // SHRT_MAX != CHAR_MAX
 
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_CHAR_TYPES(MACRO_FUNCTION) \
-	MACRO_FUNCTION(char) \
-	MACRO_FUNCTION(unsigned char) \
-	MACRO_FUNCTION(signed char)
+	MACRO_FUNCTION(char, mse::TInt) \
+	MACRO_FUNCTION(unsigned char, mse::TInt) \
+	MACRO_FUNCTION(signed char, mse::TInt)
 
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MACRO_FUNCTION) \
 	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_LONG_LONG_INTEGER_TYPES(MACRO_FUNCTION) \
@@ -1153,6 +1401,15 @@ namespace mse {
 	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_INTEGER_TYPES(MACRO_FUNCTION) \
 	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_SHORT_INTEGER_TYPES(MACRO_FUNCTION) \
 	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_CHAR_TYPES(MACRO_FUNCTION)
+
+#define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_FLOATINGPOINT_TYPES(MACRO_FUNCTION) \
+	MACRO_FUNCTION(float, mse::TFloatingPoint) \
+	MACRO_FUNCTION(double, mse::TFloatingPoint) \
+	MACRO_FUNCTION(long double, mse::TFloatingPoint)
+
+#define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MACRO_FUNCTION) \
+	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MACRO_FUNCTION) \
+	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_FLOATINGPOINT_TYPES(MACRO_FUNCTION)
 
 
 	namespace self_test {

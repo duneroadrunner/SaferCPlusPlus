@@ -1019,7 +1019,8 @@ namespace mse {
 						} \
 					}
 
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TINT_TYPE_CHECK(type) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TInt<type>)
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1(type, not_used_template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type)
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK(type, template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(template_wrapper<type>)
 
 				template<class T>
 				explicit operator T() const {
@@ -1033,14 +1034,11 @@ namespace mse {
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(void*);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(const char*);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(char*);
-					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1);
+					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(bool);
-					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TINT_TYPE_CHECK);
+					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::CNDBool);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::CNDSize_t);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(float);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(double);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(long double);
 
 					return mse::any_cast<T>(*this);
 				}
@@ -1099,7 +1097,9 @@ namespace mse {
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
 				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
 			operator T() const {
-				return base_class::operator T();
+				//return base_class::operator T();
+				const base_class& bc_cref = *this;
+				return T(bc_cref);
 			}
 
 		private:

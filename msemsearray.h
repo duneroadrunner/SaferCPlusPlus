@@ -347,7 +347,7 @@ namespace mse {
 					template <typename TBeginIter, typename TEndIter>
 					static _Ty value(const TBeginIter& begin_iter, const TEndIter& end_iter, size_t index) {
 						if (end_iter > (begin_iter + index)) {
-							return *(begin_iter + index);
+							return _Ty(*(begin_iter + index));
 						}
 						else {
 							//typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*begin_iter)> T;
@@ -400,11 +400,11 @@ namespace mse {
 				class not_default_constructible_array_helper_type {
 				public:
 					template <typename TBeginIter, typename TEndIter>
-					static auto value(const TBeginIter& begin_iter, const TEndIter& end_iter, size_t index) {
+					static _Ty value(const TBeginIter& begin_iter, const TEndIter& end_iter, size_t index) {
 						if (end_iter <= (begin_iter + index)) {
 							MSE_THROW(msearray_range_error("not enough elements in the (non-default constructible) array initializer list"));
 						}
-						return *(begin_iter + index);
+						return _Ty(*(begin_iter + index));
 					}
 					template <typename TBeginIter, typename TEndIter, size_t... IDXs>
 					static auto _range_to_tuple(TBeginIter iter, const TEndIter& end_iter, std::index_sequence<IDXs...>) {
@@ -7319,19 +7319,19 @@ namespace mse {
 
 #ifdef MSEPRIMITIVES_H
 
-#define MSE_ASYNC_SHAREABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+#define MSE_ASYNC_SHAREABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TAsyncShareableObj<integral_type> : public TAsyncShareableObj<mse::TInt<integral_type>> { \
+		class TAsyncShareableObj<arithmetic_type> : public TAsyncShareableObj<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TAsyncShareableObj<mse::TInt<integral_type>> base_class; \
+			typedef TAsyncShareableObj<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TAsyncShareableObj, base_class); \
 		};
 
-#define MSE_ASYNC_SHAREABLE_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
-		MSE_ASYNC_SHAREABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_ASYNC_SHAREABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+#define MSE_ASYNC_SHAREABLE_IMPL_INTEGRAL_SPECIALIZATION(arithmetic_type, template_wrapper) \
+		MSE_ASYNC_SHAREABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_ASYNC_SHAREABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper);
 
-		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_ASYNC_SHAREABLE_IMPL_INTEGRAL_SPECIALIZATION)
+		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_ASYNC_SHAREABLE_IMPL_INTEGRAL_SPECIALIZATION)
 
 #endif /*MSEPRIMITIVES_H*/
 
@@ -7376,19 +7376,19 @@ namespace mse {
 
 #ifdef MSEPRIMITIVES_H
 
-#define MSE_ASYNC_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+#define MSE_ASYNC_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TAsyncPassableObj<integral_type> : public TAsyncPassableObj<mse::TInt<integral_type>> { \
+		class TAsyncPassableObj<arithmetic_type> : public TAsyncPassableObj<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TAsyncPassableObj<mse::TInt<integral_type>> base_class; \
+			typedef TAsyncPassableObj<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TAsyncPassableObj, base_class); \
 		};
 
-#define MSE_ASYNC_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
-		MSE_ASYNC_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_ASYNC_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+#define MSE_ASYNC_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION(arithmetic_type, template_wrapper) \
+		MSE_ASYNC_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_ASYNC_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper);
 
-		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_ASYNC_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION)
+		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_ASYNC_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION)
 
 #endif /*MSEPRIMITIVES_H*/
 
@@ -7433,19 +7433,19 @@ namespace mse {
 
 #ifdef MSEPRIMITIVES_H
 
-#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TAsyncShareableAndPassableObj<integral_type> : public TAsyncShareableAndPassableObj<mse::TInt<integral_type>> { \
+		class TAsyncShareableAndPassableObj<arithmetic_type> : public TAsyncShareableAndPassableObj<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TAsyncShareableAndPassableObj<mse::TInt<integral_type>> base_class; \
+			typedef TAsyncShareableAndPassableObj<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TAsyncShareableAndPassableObj, base_class); \
 		};
 
-#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
-		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+#define MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION(arithmetic_type, template_wrapper) \
+		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper);
 
-		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION)
+		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_ASYNC_SHAREABLE_AND_PASSABLE_IMPL_INTEGRAL_SPECIALIZATION)
 
 #endif /*MSEPRIMITIVES_H*/
 

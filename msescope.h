@@ -925,105 +925,105 @@ namespace mse {
 
 #ifdef MSEPRIMITIVES_H
 
-#define MSE_SCOPE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+#define MSE_SCOPE_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TXScopeObj<integral_type> : public TXScopeObj<mse::TInt<integral_type>> { \
+		class TXScopeObj<arithmetic_type> : public TXScopeObj<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TXScopeObj<mse::TInt<integral_type>> base_class; \
+			typedef TXScopeObj<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TXScopeObj, base_class); \
 		};
 
 	/* To achieve compatibility with the us::unsafe_make_xscope_pointer() functions, these specializations make use of
-	reinterpret_cast<>s in certain situations. The safety of these reinterpret_cast<>s rely on 'mse::TInt<integral_type>'
-	being safely "reinterpretable" as an 'integral_type'. */
-#define MSE_SCOPE_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type) \
+	reinterpret_cast<>s in certain situations. The safety of these reinterpret_cast<>s rely on 'template_wrapper<arithmetic_type>'
+	being safely "reinterpretable" as an 'arithmetic_type'. */
+#define MSE_SCOPE_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TXScopeFixedPointer<integral_type> : public mse::us::impl::TXScopeItemPointerBase<integral_type>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase { \
+		class TXScopeFixedPointer<arithmetic_type> : public mse::us::impl::TXScopeItemPointerBase<arithmetic_type>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase { \
 		public: \
-			typedef mse::us::impl::TXScopeItemPointerBase<integral_type> base_class; \
-			TXScopeFixedPointer(const TXScopeFixedPointer<mse::TInt<integral_type>>& src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
+			typedef mse::us::impl::TXScopeItemPointerBase<arithmetic_type> base_class; \
+			TXScopeFixedPointer(const TXScopeFixedPointer<template_wrapper<arithmetic_type>>& src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
 			TXScopeFixedPointer(const TXScopeFixedPointer& src_cref) = default; \
-			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
-			TXScopeFixedPointer(const TXScopeFixedPointer<integral_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type2>&>(src_cref)) {} \
-			TXScopeFixedPointer(const TXScopeObjFixedPointer<integral_type> & src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
-			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
-			TXScopeFixedPointer(const TXScopeObjFixedPointer<integral_type2> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type2>&>(src_cref)) {} \
-			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
-			TXScopeFixedPointer(const TXScopeOwnerPointer<integral_type2> & src_cref) : TXScopeFixedPointer(&(*src_cref)) {} \
+			template<class arithmetic_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<arithmetic_type2*, arithmetic_type*>::value> MSE_IMPL_EIS > \
+			TXScopeFixedPointer(const TXScopeFixedPointer<arithmetic_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<arithmetic_type2>&>(src_cref)) {} \
+			TXScopeFixedPointer(const TXScopeObjFixedPointer<arithmetic_type> & src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
+			template<class arithmetic_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<arithmetic_type2*, arithmetic_type*>::value> MSE_IMPL_EIS > \
+			TXScopeFixedPointer(const TXScopeObjFixedPointer<arithmetic_type2> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemPointerBase<arithmetic_type2>&>(src_cref)) {} \
+			template<class arithmetic_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<arithmetic_type2*, arithmetic_type*>::value> MSE_IMPL_EIS > \
+			TXScopeFixedPointer(const TXScopeOwnerPointer<arithmetic_type2> & src_cref) : TXScopeFixedPointer(&(*src_cref)) {} \
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {} \
 			operator bool() const { return true; } \
 			void xscope_tag() const {} \
 		private: \
-			TXScopeFixedPointer(integral_type * ptr) : base_class(ptr) {} \
-			TXScopeFixedPointer(mse::TInt<integral_type> * ptr) : base_class(reinterpret_cast<integral_type *>(ptr)) {} \
+			TXScopeFixedPointer(arithmetic_type * ptr) : base_class(ptr) {} \
+			TXScopeFixedPointer(template_wrapper<arithmetic_type> * ptr) : base_class(reinterpret_cast<arithmetic_type *>(ptr)) {} \
 			TXScopeFixedPointer(const base_class & ptr) : base_class(ptr) {} \
-			TXScopeFixedPointer<integral_type>& operator=(const TXScopeFixedPointer<integral_type> & _Right_cref) = delete; \
+			TXScopeFixedPointer<arithmetic_type>& operator=(const TXScopeFixedPointer<arithmetic_type> & _Right_cref) = delete; \
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION; \
-			template<class integral_type2, class _TMemberObjectPointer> \
-			friend auto make_xscope_pointer_to_member_v2(const TXScopeFixedPointer<integral_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
-				->mse::impl::make_xscope_pointer_to_member_v2_return_type1<integral_type2, _TMemberObjectPointer>; \
-			template<class integral_type2> friend TXScopeFixedPointer<integral_type2> us::unsafe_make_xscope_pointer_to(integral_type2 & ref); \
+			template<class arithmetic_type2, class _TMemberObjectPointer> \
+			friend auto make_xscope_pointer_to_member_v2(const TXScopeFixedPointer<arithmetic_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
+				->mse::impl::make_xscope_pointer_to_member_v2_return_type1<arithmetic_type2, _TMemberObjectPointer>; \
+			template<class arithmetic_type2> friend TXScopeFixedPointer<arithmetic_type2> us::unsafe_make_xscope_pointer_to(arithmetic_type2 & ref); \
 		}; \
 		template<> \
-		class TXScopeFixedConstPointer<integral_type> : public mse::us::impl::TXScopeItemConstPointerBase<integral_type>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase { \
+		class TXScopeFixedConstPointer<arithmetic_type> : public mse::us::impl::TXScopeItemConstPointerBase<arithmetic_type>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase { \
 		public: \
-			typedef mse::us::impl::TXScopeItemConstPointerBase<integral_type> base_class; \
-			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<mse::TInt<integral_type>>& src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
-			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<integral_type>& src_cref) = default; \
-			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
-			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<integral_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<integral_type2>&>(src_cref)) {} \
-			TXScopeFixedConstPointer(const TXScopeFixedPointer<integral_type> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type>&>(src_cref)) {} \
-			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
-			TXScopeFixedConstPointer(const TXScopeFixedPointer<integral_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type2>&>(src_cref)) {} \
-			TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<integral_type> & src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
-			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
-			TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<integral_type2> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemConstPointerBase<integral_type2>&>(src_cref)) {} \
-			TXScopeFixedConstPointer(const TXScopeObjFixedPointer<integral_type> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type>&>(src_cref)) {} \
-			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
-			TXScopeFixedConstPointer(const TXScopeObjFixedPointer<integral_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<integral_type2>&>(src_cref)) {} \
-			template<class integral_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<integral_type2*, integral_type*>::value> MSE_IMPL_EIS > \
-			TXScopeFixedConstPointer(const TXScopeOwnerPointer<integral_type2> & src_cref) : TXScopeFixedConstPointer(&(*src_cref)) {} \
+			typedef mse::us::impl::TXScopeItemConstPointerBase<arithmetic_type> base_class; \
+			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<template_wrapper<arithmetic_type>>& src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
+			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<arithmetic_type>& src_cref) = default; \
+			template<class arithmetic_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<arithmetic_type2*, arithmetic_type*>::value> MSE_IMPL_EIS > \
+			TXScopeFixedConstPointer(const TXScopeFixedConstPointer<arithmetic_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemConstPointerBase<arithmetic_type2>&>(src_cref)) {} \
+			TXScopeFixedConstPointer(const TXScopeFixedPointer<arithmetic_type> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<arithmetic_type>&>(src_cref)) {} \
+			template<class arithmetic_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<arithmetic_type2*, arithmetic_type*>::value> MSE_IMPL_EIS > \
+			TXScopeFixedConstPointer(const TXScopeFixedPointer<arithmetic_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<arithmetic_type2>&>(src_cref)) {} \
+			TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<arithmetic_type> & src_cref) : base_class(reinterpret_cast<const base_class&>(src_cref)) {} \
+			template<class arithmetic_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<arithmetic_type2*, arithmetic_type*>::value> MSE_IMPL_EIS > \
+			TXScopeFixedConstPointer(const TXScopeObjFixedConstPointer<arithmetic_type2> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemConstPointerBase<arithmetic_type2>&>(src_cref)) {} \
+			TXScopeFixedConstPointer(const TXScopeObjFixedPointer<arithmetic_type> & src_cref) : base_class(reinterpret_cast<const mse::us::impl::TXScopeItemPointerBase<arithmetic_type>&>(src_cref)) {} \
+			template<class arithmetic_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<arithmetic_type2*, arithmetic_type*>::value> MSE_IMPL_EIS > \
+			TXScopeFixedConstPointer(const TXScopeObjFixedPointer<arithmetic_type2> & src_cref) : base_class(static_cast<const mse::us::impl::TXScopeItemPointerBase<arithmetic_type2>&>(src_cref)) {} \
+			template<class arithmetic_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<arithmetic_type2*, arithmetic_type*>::value> MSE_IMPL_EIS > \
+			TXScopeFixedConstPointer(const TXScopeOwnerPointer<arithmetic_type2> & src_cref) : TXScopeFixedConstPointer(&(*src_cref)) {} \
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {} \
 			operator bool() const { return true; } \
 			void xscope_tag() const {} \
 		private: \
-			TXScopeFixedConstPointer(typename std::add_const<integral_type>::type * ptr) : base_class(ptr) {} \
-			TXScopeFixedConstPointer(typename std::add_const<mse::TInt<integral_type>>::type * ptr) : base_class(reinterpret_cast<const integral_type *>(ptr)) {} \
+			TXScopeFixedConstPointer(typename std::add_const<arithmetic_type>::type * ptr) : base_class(ptr) {} \
+			TXScopeFixedConstPointer(typename std::add_const<template_wrapper<arithmetic_type>>::type * ptr) : base_class(reinterpret_cast<const arithmetic_type *>(ptr)) {} \
 			TXScopeFixedConstPointer(const base_class & ptr) : base_class(ptr) {} \
-			TXScopeFixedConstPointer<integral_type>& operator=(const TXScopeFixedConstPointer<integral_type> & _Right_cref) = delete; \
+			TXScopeFixedConstPointer<arithmetic_type>& operator=(const TXScopeFixedConstPointer<arithmetic_type> & _Right_cref) = delete; \
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION; \
-			template<class integral_type2, class _TMemberObjectPointer> \
-			friend auto make_xscope_pointer_to_member_v2(const TXScopeFixedConstPointer<integral_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
+			template<class arithmetic_type2, class _TMemberObjectPointer> \
+			friend auto make_xscope_pointer_to_member_v2(const TXScopeFixedConstPointer<arithmetic_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
 				->TXScopeFixedConstPointer<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > >; \
-			template<class integral_type2, class _TMemberObjectPointer> \
-			friend auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedPointer<integral_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
+			template<class arithmetic_type2, class _TMemberObjectPointer> \
+			friend auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedPointer<arithmetic_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
 				->TXScopeFixedConstPointer<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > >; \
-			template<class integral_type2, class _TMemberObjectPointer> \
-			friend auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedConstPointer<integral_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
+			template<class arithmetic_type2, class _TMemberObjectPointer> \
+			friend auto make_xscope_const_pointer_to_member_v2(const TXScopeFixedConstPointer<arithmetic_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
 				->TXScopeFixedConstPointer<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > >; \
 			/* These versions of make_xscope_pointer_to_member() are actually now deprecated. */ \
-			template<class _TTargetType, class integral_type2> \
-			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType & target, const TXScopeObjFixedConstPointer<integral_type2> & lease_pointer); \
-			template<class _TTargetType, class integral_type2> \
-			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeObjFixedPointer<integral_type2> & lease_pointer); \
-			template<class _TTargetType, class integral_type2> \
-			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeObjFixedConstPointer<integral_type2> & lease_pointer); \
-			template<class _TTargetType, class integral_type2> \
-			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType & target, const TXScopeFixedConstPointer<integral_type2> & lease_pointer); \
-			template<class _TTargetType, class integral_type2> \
-			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeFixedPointer<integral_type2> & lease_pointer); \
-			template<class _TTargetType, class integral_type2> \
-			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeFixedConstPointer<integral_type2> & lease_pointer); \
-			template<class integral_type2> friend TXScopeFixedConstPointer<integral_type2> us::unsafe_make_xscope_const_pointer_to(const integral_type2 & cref); \
+			template<class _TTargetType, class arithmetic_type2> \
+			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType & target, const TXScopeObjFixedConstPointer<arithmetic_type2> & lease_pointer); \
+			template<class _TTargetType, class arithmetic_type2> \
+			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeObjFixedPointer<arithmetic_type2> & lease_pointer); \
+			template<class _TTargetType, class arithmetic_type2> \
+			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeObjFixedConstPointer<arithmetic_type2> & lease_pointer); \
+			template<class _TTargetType, class arithmetic_type2> \
+			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType & target, const TXScopeFixedConstPointer<arithmetic_type2> & lease_pointer); \
+			template<class _TTargetType, class arithmetic_type2> \
+			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeFixedPointer<arithmetic_type2> & lease_pointer); \
+			template<class _TTargetType, class arithmetic_type2> \
+			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeFixedConstPointer<arithmetic_type2> & lease_pointer); \
+			template<class arithmetic_type2> friend TXScopeFixedConstPointer<arithmetic_type2> us::unsafe_make_xscope_const_pointer_to(const arithmetic_type2 & cref); \
 		};
 
-#define MSE_SCOPE_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
-		MSE_SCOPE_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_SCOPE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_SCOPE_IMPL_PTR_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type); \
-		MSE_SCOPE_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+#define MSE_SCOPE_IMPL_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
+		MSE_SCOPE_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_SCOPE_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_SCOPE_IMPL_PTR_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper); \
+		MSE_SCOPE_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper);
 
-	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_SCOPE_IMPL_INTEGRAL_SPECIALIZATION)
+		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_SCOPE_IMPL_ARITHMETIC_SPECIALIZATION)
 
 #endif /*MSEPRIMITIVES_H*/
 

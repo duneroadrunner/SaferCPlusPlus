@@ -628,40 +628,40 @@ namespace mse {
 
 #ifdef MSEPRIMITIVES_H
 
-#define MSE_THREADLOCAL_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+#define MSE_THREADLOCAL_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TThreadLocalObj<integral_type> : public TThreadLocalObj<mse::TInt<integral_type>> { \
+		class TThreadLocalObj<arithmetic_type> : public TThreadLocalObj<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TThreadLocalObj<mse::TInt<integral_type>> base_class; \
+			typedef TThreadLocalObj<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TThreadLocalObj, base_class); \
 			MSE_THREADLOCAL_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TThreadLocalObj); \
 		};
 
-		/* Note that here we're relying on the fact that mse::TInt<integral_type> happens to be safely
-		"reinterpret_cast<>able" as an 'integral_type'. */
-#define MSE_THREADLOCAL_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type) \
+		/* Note that here we're relying on the fact that template_wrapper<arithmetic_type> happens to be safely
+		"reinterpret_cast<>able" as an 'arithmetic_type'. */
+#define MSE_THREADLOCAL_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TThreadLocalFixedPointer<integral_type> : public TThreadLocalFixedPointer<mse::TInt<integral_type>> { \
+		class TThreadLocalFixedPointer<arithmetic_type> : public TThreadLocalFixedPointer<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TThreadLocalFixedPointer<mse::TInt<integral_type>> base_class; \
+			typedef TThreadLocalFixedPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TThreadLocalFixedPointer, base_class); \
-			MSE_THREADLOCAL_IMPL_PTR_OPERATOR_TXSCOPEFIXEDPOINTER(integral_type, mse::TInt<integral_type>); \
+			MSE_THREADLOCAL_IMPL_PTR_OPERATOR_TXSCOPEFIXEDPOINTER(arithmetic_type, template_wrapper<arithmetic_type>); \
 		}; \
 		template<> \
-		class TThreadLocalFixedConstPointer<integral_type> : public TThreadLocalFixedConstPointer<mse::TInt<integral_type>> { \
+		class TThreadLocalFixedConstPointer<arithmetic_type> : public TThreadLocalFixedConstPointer<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TThreadLocalFixedConstPointer<mse::TInt<integral_type>> base_class; \
+			typedef TThreadLocalFixedConstPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TThreadLocalFixedConstPointer, base_class); \
-			MSE_THREADLOCAL_IMPL_PTR_OPERATOR_TXSCOPEFIXEDCONSTPOINTER(integral_type, mse::TInt<integral_type>); \
+			MSE_THREADLOCAL_IMPL_PTR_OPERATOR_TXSCOPEFIXEDCONSTPOINTER(arithmetic_type, template_wrapper<arithmetic_type>); \
 		};
 
-#define MSE_THREADLOCAL_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
-		MSE_THREADLOCAL_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_THREADLOCAL_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_THREADLOCAL_IMPL_PTR_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type); \
-		MSE_THREADLOCAL_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+#define MSE_THREADLOCAL_IMPL_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
+		MSE_THREADLOCAL_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_THREADLOCAL_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_THREADLOCAL_IMPL_PTR_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper); \
+		MSE_THREADLOCAL_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper);
 
-		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_THREADLOCAL_IMPL_INTEGRAL_SPECIALIZATION)
+		MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_THREADLOCAL_IMPL_ARITHMETIC_SPECIALIZATION)
 
 #endif /*MSEPRIMITIVES_H*/
 

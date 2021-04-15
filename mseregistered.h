@@ -831,59 +831,59 @@ namespace mse {
 
 #ifdef MSEPRIMITIVES_H
 
-#define MSE_NDREGISTERED_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type) \
+#define MSE_NDREGISTERED_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TNDRegisteredObj<integral_type> : public TNDRegisteredObj<mse::TInt<integral_type>> { \
+		class TNDRegisteredObj<arithmetic_type> : public TNDRegisteredObj<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TNDRegisteredObj<mse::TInt<integral_type>> base_class; \
+			typedef TNDRegisteredObj<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDRegisteredObj, base_class); \
 		};
 
-#define MSE_NDREGISTERED_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type) \
+#define MSE_NDREGISTERED_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
 		template<> \
-		class TNDRegisteredPointer<integral_type> : public TNDRegisteredPointer<mse::TInt<integral_type>> { \
+		class TNDRegisteredPointer<arithmetic_type> : public TNDRegisteredPointer<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TNDRegisteredPointer<mse::TInt<integral_type>> base_class; \
+			typedef TNDRegisteredPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDRegisteredPointer, base_class); \
 		}; \
 		template<> \
-		class TNDRegisteredConstPointer<integral_type> : public TNDRegisteredConstPointer<mse::TInt<integral_type>> { \
+		class TNDRegisteredConstPointer<arithmetic_type> : public TNDRegisteredConstPointer<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TNDRegisteredConstPointer<mse::TInt<integral_type>> base_class; \
+			typedef TNDRegisteredConstPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDRegisteredConstPointer, base_class); \
 		}; \
 		template<> \
-		class TNDRegisteredNotNullPointer<integral_type> : public TNDRegisteredNotNullPointer<mse::TInt<integral_type>> { \
+		class TNDRegisteredNotNullPointer<arithmetic_type> : public TNDRegisteredNotNullPointer<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TNDRegisteredNotNullPointer<mse::TInt<integral_type>> base_class; \
+			typedef TNDRegisteredNotNullPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDRegisteredNotNullPointer, base_class); \
 		}; \
 		template<> \
-		class TNDRegisteredNotNullConstPointer<integral_type> : public TNDRegisteredNotNullConstPointer<mse::TInt<integral_type>> { \
+		class TNDRegisteredNotNullConstPointer<arithmetic_type> : public TNDRegisteredNotNullConstPointer<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TNDRegisteredNotNullConstPointer<mse::TInt<integral_type>> base_class; \
+			typedef TNDRegisteredNotNullConstPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDRegisteredNotNullConstPointer, base_class); \
 		}; \
 		template<> \
-		class TNDRegisteredFixedPointer<integral_type> : public TNDRegisteredFixedPointer<mse::TInt<integral_type>> { \
+		class TNDRegisteredFixedPointer<arithmetic_type> : public TNDRegisteredFixedPointer<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TNDRegisteredFixedPointer<mse::TInt<integral_type>> base_class; \
+			typedef TNDRegisteredFixedPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDRegisteredFixedPointer, base_class); \
 		}; \
 		template<> \
-		class TNDRegisteredFixedConstPointer<integral_type> : public TNDRegisteredFixedConstPointer<mse::TInt<integral_type>> { \
+		class TNDRegisteredFixedConstPointer<arithmetic_type> : public TNDRegisteredFixedConstPointer<template_wrapper<arithmetic_type>> { \
 		public: \
-			typedef TNDRegisteredFixedConstPointer<mse::TInt<integral_type>> base_class; \
+			typedef TNDRegisteredFixedConstPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDRegisteredFixedConstPointer, base_class); \
 		};
 
-#define MSE_NDREGISTERED_IMPL_INTEGRAL_SPECIALIZATION(integral_type) \
-		MSE_NDREGISTERED_IMPL_PTR_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_NDREGISTERED_IMPL_OBJ_INTEGRAL_SPECIALIZATION(integral_type); \
-		MSE_NDREGISTERED_IMPL_PTR_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type); \
-		MSE_NDREGISTERED_IMPL_OBJ_INTEGRAL_SPECIALIZATION(typename std::add_const<integral_type>::type);
+#define MSE_NDREGISTERED_IMPL_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
+		MSE_NDREGISTERED_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_NDREGISTERED_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_NDREGISTERED_IMPL_PTR_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper); \
+		MSE_NDREGISTERED_IMPL_OBJ_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper);
 
-	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MSE_NDREGISTERED_IMPL_INTEGRAL_SPECIALIZATION)
+	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_NDREGISTERED_IMPL_ARITHMETIC_SPECIALIZATION)
 
 #endif /*MSEPRIMITIVES_H*/
 
