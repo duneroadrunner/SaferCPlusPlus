@@ -1000,6 +1000,7 @@ namespace mse {
 	namespace lh {
 		namespace impl {
 
+			/* todo: make distinct xscope and non-xscope versions */
 			class explicitly_castable_any : public mse::any {
 			public:
 				typedef mse::any base_class;
@@ -1060,6 +1061,7 @@ namespace mse {
 			};
 		}
 
+		/* todo: make distinct xscope and non-xscope versions */
 		class void_star_replacement : public impl::explicitly_castable_any {
 		public:
 			typedef impl::explicitly_castable_any base_class;
@@ -1099,7 +1101,7 @@ namespace mse {
 			operator T() const {
 				//return base_class::operator T();
 				const base_class& bc_cref = *this;
-				return T(bc_cref);
+				return bc_cref.operator T();
 			}
 
 		private:
