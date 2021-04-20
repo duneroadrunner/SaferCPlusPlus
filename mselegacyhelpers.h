@@ -70,6 +70,7 @@
 #define MSE_LH_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) element_type *
+#define MSE_LH_LOCAL_VAR_ONLY_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_NULL_POINTER NULL
 #define MSE_LH_VOID_STAR void *
 
@@ -125,6 +126,7 @@ the associated declared object(s). */
 restrictions, as a function parameter type because it accepts some (high performance) pointers that (the otherwise more flexible)
 MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) mse::lh::TXScopeLHNullableAnyPointer< element_type >
+#define MSE_LH_LOCAL_VAR_ONLY_POINTER_TYPE(element_type) mse::lh::TXScopeLHNullableAnyPointer< element_type >
 #define MSE_LH_NULL_POINTER nullptr
 #define MSE_LH_VOID_STAR mse::lh::void_star_replacement
 
@@ -143,6 +145,9 @@ namespace mse {
 	namespace lh {
 		typedef decltype(NULL) NULL_t;
 
+		template <typename _udTy, size_t _Size>
+		class TNativeArrayReplacement;
+
 		template <typename _Ty>
 		class TLHNullableAnyPointer : public mse::TNullableAnyPointer<_Ty> {
 		public:
@@ -153,6 +158,10 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
+			template <size_t _Size>
+			TLHNullableAnyPointer(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
+			template <size_t _Size>
+			TLHNullableAnyPointer(const TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.cbegin()) {}
 
 			friend void swap(TLHNullableAnyPointer& first, TLHNullableAnyPointer& second) {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
@@ -201,6 +210,10 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
+			template <size_t _Size>
+			TXScopeLHNullableAnyPointer(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
+			template <size_t _Size>
+			TXScopeLHNullableAnyPointer(const TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.cbegin()) {}
 
 			friend void swap(TXScopeLHNullableAnyPointer& first, TXScopeLHNullableAnyPointer& second) {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
@@ -243,6 +256,10 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer/iterator value. */
 				assert(0 == val);
 			}
+			template <size_t _Size>
+			TLHNullableAnyRandomAccessIterator(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
+			template <size_t _Size>
+			TLHNullableAnyRandomAccessIterator(const TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.cbegin()) {}
 
 			friend void swap(TLHNullableAnyRandomAccessIterator& first, TLHNullableAnyRandomAccessIterator& second) {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
@@ -283,6 +300,10 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer/iterator value. */
 				assert(0 == val);
 			}
+			template <size_t _Size>
+			TXScopeLHNullableAnyRandomAccessIterator(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
+			template <size_t _Size>
+			TXScopeLHNullableAnyRandomAccessIterator(const TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.cbegin()) {}
 
 			friend void swap(TXScopeLHNullableAnyRandomAccessIterator& first, TXScopeLHNullableAnyRandomAccessIterator& second) {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
@@ -480,18 +501,12 @@ namespace mse {
 			typedef mse::impl::decay_t<_udTy> _Ty;
 			using base_class::base_class;
 
-			operator mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>() {
-				return base_class::begin();
-			}
-			operator mse::TNullableAnyRandomAccessIterator<_Ty>() {
-				return base_class::begin();
-			}
-			operator mse::TAnyRandomAccessIterator<_Ty>() {
-				return base_class::begin();
-			}
-			operator mse::TAnyRandomAccessConstIterator<_Ty>() const {
-				return base_class::cbegin();
-			}
+			operator mse::TNullableAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
+			operator mse::TXScopeNullableAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
+			operator mse::TAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
+			operator mse::TXScopeAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
+			operator mse::TAnyRandomAccessConstIterator<_Ty>() const { return base_class::cbegin(); }
+			operator mse::TXScopeAnyRandomAccessConstIterator<_Ty>() const { return base_class::cbegin(); }
 			operator typename mse::mstd::array<_Ty, _Size>::iterator() {
 				return base_class::begin();
 			}
@@ -515,7 +530,9 @@ namespace mse {
 			typename base_class::difference_type operator-(const typename base_class::const_iterator& _Right_cref) const { return base_class::cbegin() - _Right_cref; }
 
 			typename base_class::const_reference operator*() const { return (*this).at(0); }
+			typename base_class::reference operator*() { return (*this).at(0); }
 			typename base_class::const_pointer operator->() const { return std::addressof(operator*()); }
+			typename base_class::pointer operator->() { return std::addressof(operator*()); }
 
 #ifdef MSE_LEGACYHELPERS_DISABLED
 			TNativeArrayReplacement(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::nii_array<_Ty, _Size>(_Ilist)) {}
@@ -923,7 +940,8 @@ namespace mse {
 					//auto num_items = num_bytes / sizeof(element_t);
 					//assert(1 == num_items);
 					//assert(num_items * sizeof(element_t) == num_bytes);
-					*ptr = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t&, long long int>::type(), value);
+					//*ptr = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t&, long long int>::type(), value);
+					*ptr = memset_adjusted_value1<element_t>(typename std::is_constructible<element_t, long long int>::type(), value);
 				}
 			}
 		}
