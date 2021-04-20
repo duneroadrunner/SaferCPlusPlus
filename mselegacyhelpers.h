@@ -54,7 +54,8 @@
 #define MSE_LH_ALLOC(element_type, ptr, num_bytes) ptr = (element_type *)malloc(num_bytes)
 
 #define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) element_type *
-#define MSE_LH_PARAM_ONLY_ARRAY_ITERATOR_TYPE(element_type) element_type *
+#define MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE(element_type) element_type *
+#define MSE_LH_PARAM_ONLY_ARRAY_ITERATOR_TYPE(element_type) MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE(element_type)
 
 #define MSE_LH_FREAD(ptr, size, count, stream) fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) fwrite(ptr, size, count, stream)
@@ -69,8 +70,8 @@
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
 #define MSE_LH_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) element_type *
-#define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) element_type *
 #define MSE_LH_LOCAL_VAR_ONLY_POINTER_TYPE(element_type) element_type *
+#define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) MSE_LH_LOCAL_VAR_ONLY_POINTER_TYPE(element_type)
 #define MSE_LH_NULL_POINTER NULL
 #define MSE_LH_VOID_STAR void *
 
@@ -102,10 +103,11 @@
 #define MSE_LH_ALLOC(element_type, ptr, num_bytes) mse::lh::allocate(ptr, num_bytes)
 
 #define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TLHNullableAnyRandomAccessIterator< element_type >
-/* MSE_LH_PARAM_ONLY_ARRAY_ITERATOR_TYPE is a significantly restricted version of MSE_LH_ARRAY_ITERATOR_TYPE. You might choose to
-use it, despite its restrictions, as a function parameter type because it accepts some (high performance) iterators that (the 
+/* MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE is a significantly restricted version of MSE_LH_ARRAY_ITERATOR_TYPE. You might choose to
+use it, despite its restrictions, as a local variable type because it accepts some (high performance) iterators that (the 
 otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
-#define MSE_LH_PARAM_ONLY_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TXScopeLHNullableAnyRandomAccessIterator< element_type >
+#define MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TXScopeLHNullableAnyRandomAccessIterator< element_type >
+#define MSE_LH_PARAM_ONLY_ARRAY_ITERATOR_TYPE(element_type) MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE(element_type)
 
 #define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::fwrite(ptr, size, count, stream)
@@ -122,11 +124,11 @@ the associated declared object(s). */
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) mse::TRegisteredObj< object_type >
 #define MSE_LH_POINTER_TYPE(element_type) mse::lh::TLHNullableAnyPointer< element_type >
 #define MSE_LH_ALLOC_POINTER_TYPE(element_type) mse::TRefCountingPointer< element_type >
-/* MSE_LH_PARAM_ONLY_POINTER_TYPE is a significantly restricted version of MSE_LH_POINTER_TYPE. You might choose to use it, despite its
-restrictions, as a function parameter type because it accepts some (high performance) pointers that (the otherwise more flexible)
+/* MSE_LH_LOCAL_VAR_ONLY_POINTER_TYPE is a significantly restricted version of MSE_LH_POINTER_TYPE. You might choose to use it, despite its
+restrictions, as a local variable type because it accepts some (high performance) pointers that (the otherwise more flexible)
 MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
-#define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) mse::lh::TXScopeLHNullableAnyPointer< element_type >
 #define MSE_LH_LOCAL_VAR_ONLY_POINTER_TYPE(element_type) mse::lh::TXScopeLHNullableAnyPointer< element_type >
+#define MSE_LH_PARAM_ONLY_POINTER_TYPE(element_type) MSE_LH_LOCAL_VAR_ONLY_POINTER_TYPE(element_type)
 #define MSE_LH_NULL_POINTER nullptr
 #define MSE_LH_VOID_STAR mse::lh::void_star_replacement
 
