@@ -229,7 +229,7 @@ Once you've embraced the scope pointer lifestyle, you can use a conformance help
 
 Two types of registered pointers are provided - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TCRegisteredPointer<>`](#tcregisteredpointer). They are functionally equivalent, but `TRegisteredPointer<>` is optimized for better average performance, while `TCRegisteredPointer<>` is a little more optimized for better "worst-case" performance. (Specifically, the operation of retargeting (or "detargeting") a `TRegisteredPointer<>` in the worst case is *O(n)*, where *n* is the number of other pointers targeting the same original target object. With `TCRegisteredPointer<>` it's always *O(1)*.)
 
-Note that these registered pointers cannot target some types that cannot act as base classes. The primitive types like int, bool, etc. cannot act as base classes. The library provides safer [substitutes](#cndint-cndsize_t-and-cndbool) for `int`, `bool` and `size_t` that can act as base classes. Also note that these registered pointers are not thread safe. When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library.
+Note that these registered pointers cannot be shared among asynchronous threads (enforced by the type system and scpptool). When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library.
 
 Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead. In fact, even when registered pointers are used, they would be expected to be commonly used in [conjuction with scope pointers](#tregisteredproxypointer). Though for the sake of simplicity, we don't use scope pointers in the registered pointer usage examples.  
 
@@ -669,7 +669,7 @@ Scope pointers generally satisfy the restrictions the lifetime checker would imp
 
 Unlike other elements of the library, proper use of scope types is not fully enforced in the type system. Full enforcement requires the use of a tool like [scpptool](https://github.com/duneroadrunner/scpptool) (or the eventually-completed lifetime checker). Run-time checking is (still) available to catch unsafe misuses of scope types by defining the `MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED` preprocessor symbol. (Though this is (now) kind of redundant if you're using an aforementioned enforcement tool.)
 
-Scope pointers usually point to scope objects. Scope objects are objects that live to the end of the scope in which they are declared. You can designate pretty much any type to be a scope object type by wrapping it in the `mse::TXScopeObj<>` (transparent) wrapper template. As with registered objects, this wrapper does not support some types that cannot act as a base class. For `int`, `bool` and `size_t` use the safer [substitutes](#cndint-cndsize_t-and-cndbool) that can act as base classes. 
+Scope pointers usually point to scope objects. Scope objects are objects that live to the end of the scope in which they are declared. You can designate pretty much any type to be a scope object type by wrapping it in the `mse::TXScopeObj<>` (transparent) wrapper template. 
 
 The rules for using scope pointers and objects are essentially as follows:
 
