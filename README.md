@@ -2634,6 +2634,8 @@ The library provides a few array types - [`mstd::array<>`](#mstdarray), [`nii_ar
 
 And remember that you can use ["random access sections"](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
+(Note that because these safe arrays are not actually aggregate types, aggregate intialization is emulated (at compile-time). Some compilers may not be able to handle very large initializer lists well. A work-around for such cases is to initialize the safe array with an `std::array<>` initialized with the large initializer list.)
+
 ### mstd::array
 
 `mstd::array<>` is a memory-safe drop-in replacement for `std::array<>`. Note that the current implementation requires "`mseregistered.h`".  
@@ -2904,7 +2906,7 @@ usage example:
 
 ### xscope_borrowing_fixed_nii_vector
 
-`xscope_borrowing_fixed_nii_vector<>` is a kind of [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector) that, at construction, "borrows" (or "takes" by moving) the contents of a specified (via [scope pointer](#scope-pointers)) existing vector, then, upon destruction "returns" the (possibly modified) contents back to the original owner.
+`xscope_borrowing_fixed_nii_vector<>` is a kind of [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector) that, at construction, "borrows" (or "takes" by moving) the contents of a specified (via [scope pointer](#scope-pointers)) existing vector, then, upon destruction "returns" the (possibly modified) contents back to the original owner. Using a `xscope_borrowing_fixed_nii_vector<>` is generally the preferred way to access the elements in a (resizable) vector.
 
 usage example:
 ```cpp
