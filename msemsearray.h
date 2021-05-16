@@ -571,6 +571,22 @@ namespace mse {
 		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(IsDereferenceable_msemsearray<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_dereferenceable() {}
 
+		template<class T, class EqualTo>
+		struct IsNullable_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype((std::declval<U>() == nullptr), (std::declval<V>() == nullptr), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<>
+		struct IsNullable_msemsearray_impl<void*, void*> : std::false_type {};
+		template<class T, class EqualTo = T>
+		struct IsNullable_msemsearray : IsNullable_msemsearray_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
 		template<typename T, size_t n>
 		size_t native_array_size_msemsearray(const T(&)[n]) {
 			return n;

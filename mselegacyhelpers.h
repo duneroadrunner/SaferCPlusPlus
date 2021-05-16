@@ -79,6 +79,7 @@
 #define MSE_LH_UNSAFE_CAST(type, value) ((type)value)
 #define MSE_LH_UNSAFE_MAKE_POINTER_TO(target) &(target)
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_TO(target) &(target)
+#define MSE_LH_UNSAFE_MAKE_RAW_POINTER_FROM(ptr) (ptr)
 
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE
@@ -136,6 +137,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_UNSAFE_CAST(type, value) mse::us::lh::unsafe_cast<type>(value)
 #define MSE_LH_UNSAFE_MAKE_POINTER_TO(target) MSE_LH_POINTER_TYPE(mse::us::unsafe_make_any_pointer_to(target))
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_TO(target) std::addressof(target)
+#define MSE_LH_UNSAFE_MAKE_RAW_POINTER_FROM(ptr) mse::us::lh::unsafe_cast<decltype(std::addressof(*ptr)) >(ptr)
 
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE MSE_SUPPRESS_CHECK_IN_DECLSCOPE
@@ -502,6 +504,17 @@ namespace mse {
 			typedef mse::mstd::array<mse::impl::decay_t<_udTy>, _Size> base_class;
 			typedef mse::impl::decay_t<_udTy> _Ty;
 			using base_class::base_class;
+
+			/* Technically, this constructor should only be enabled for 'char' types to support initialization from string literals. */
+			template <size_t _Size2, MSE_IMPL_EIP mse::impl::enable_if_t<(_Size2 <= _Size)> MSE_IMPL_EIS >
+			TNativeArrayReplacement(_Ty const (&arr1)[_Size2]) {
+				for (size_t i = 0; i < _Size2; i += 1) {
+					(*this)[i] = arr1[i];
+				}
+				for (size_t i = _Size2; i < _Size; i += 1) {
+					(*this)[i] = _Ty();
+				}
+			}
 
 			operator mse::TNullableAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
 			operator mse::TXScopeNullableAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
@@ -986,8 +999,29 @@ namespace mse {
 							mse::impl::IsDereferenceable_msemsearray<_Ty>, mse::impl::IsDereferenceable_msemsearray<_Ty2> >::type, _Ty, _Ty2> {};
 
 					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper2(std::false_type, _Ty2& x) {
+					_Ty unsafe_cast_helper4(std::false_type, _Ty2& x) {
+						return (_Ty)(std::addressof(*x));
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper4(std::true_type, _Ty2& x) {
+						if (x == nullptr) {
+							return nullptr;
+						}
+						return (_Ty)(std::addressof(*x));
+					}
+
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper3(std::false_type, _Ty2& x) {
 						return (_Ty)(x);
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper3(std::true_type, _Ty2& x) {
+						return unsafe_cast_helper4<_Ty>(typename mse::impl::IsNullable_msemsearray<_Ty2>::type(), x);
+					}
+
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper2(std::false_type, _Ty2& x) {
+						return unsafe_cast_helper3<_Ty>(typename std::is_pointer<_Ty>::type(), x);
 					}
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper2(std::true_type, _Ty2& x) {
