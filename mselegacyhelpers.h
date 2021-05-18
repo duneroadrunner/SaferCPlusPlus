@@ -571,7 +571,8 @@ namespace mse {
 			typedef mse::mstd::function<_Fty> base_class;
 			using base_class::base_class;
 
-			auto operator*() const { return (*this); }
+			base_class const& operator*() const { return (*this); }
+			auto operator->() const { return std::addressof(operator*()); }
 		};
 
 
