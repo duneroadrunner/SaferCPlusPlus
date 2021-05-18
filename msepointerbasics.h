@@ -523,6 +523,14 @@ namespace mse {
 		template <typename T> struct is_unqualified_unique_ptr<std::unique_ptr<T> > : std::true_type {};
 		template <typename T> struct is_unique_ptr : is_unqualified_unique_ptr<typename std::remove_cv<T>::type> {};
 
+		template<typename _Tz, typename _Ty>
+		struct is_nonfunction_pointer_helper1 : std::false_type {};
+		template<typename _Ty>
+		struct is_nonfunction_pointer_helper1<std::true_type, _Ty> : mse::impl::negation<std::is_function<mse::impl::remove_reference_t<decltype(*std::declval<_Ty>())> > > {};
+
+		template<typename _Ty>
+		struct is_nonfunction_pointer : is_nonfunction_pointer_helper1<typename std::is_pointer<_Ty>::type, _Ty> {};
+
 		template<typename _Ty>
 		struct is_potentially_xscope : std::integral_constant<bool, mse::impl::disjunction<
 			std::is_base_of<mse::us::impl::XScopeTagBase
@@ -546,7 +554,7 @@ namespace mse {
 			, mse::impl::disjunction<mse::impl::negation<std::is_pointer<mse::impl::remove_reference_t<_Ty> > >
 				, std::is_convertible<_Ty, const char *> >
 #else // MSE_CHAR_STAR_EXEMPTED
-			, mse::impl::negation<std::is_pointer<mse::impl::remove_reference_t<_Ty> > >
+			, mse::impl::negation<is_nonfunction_pointer<mse::impl::remove_reference_t<_Ty> > >
 #endif // MSE_CHAR_STAR_EXEMPTED
 #endif // (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
 		>::value> {};

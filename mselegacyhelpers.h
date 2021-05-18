@@ -39,10 +39,10 @@
 
 #ifdef MSE_LEGACYHELPERS_DISABLED
 
-#define MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) 
-#define MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) 
-#define MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size) [size]
-#define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
+#define MSE_LH_FIXED_ARRAY_TYPE_PREFIX
+#define MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) (
+#define MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size) )[size]
+#define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
 #define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) element_type *
 
 #define MSE_LH_ALLOC_POINTER1(element_type) (element_type *)malloc(sizeof(element_type))
@@ -56,6 +56,11 @@
 #define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) element_type *
 #define MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE(element_type) element_type *
 #define MSE_LH_PARAM_ONLY_ARRAY_ITERATOR_TYPE(element_type) MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE(element_type)
+
+#define MSE_LH_FUNCTION_POINTER_TYPE_PREFIX
+#define MSE_LH_FUNCTION_POINTER_TYPE_SUFFIX(params)
+#define MSE_LH_FUNCTION_POINTER_TYPE_POST_NAME_SUFFIX(params) params
+#define MSE_LH_FUNCTION_POINTER_DECLARATION(return_type, params, name) MSE_LH_FUNCTION_POINTER_TYPE_PREFIX return_type MSE_LH_FUNCTION_POINTER_TYPE_SUFFIX(params) (*name) MSE_LH_FUNCTION_POINTER_TYPE_POST_NAME_SUFFIX(params)
 
 #define MSE_LH_FREAD(ptr, size, count, stream) fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) fwrite(ptr, size, count, stream)
@@ -89,10 +94,10 @@
 
 #else /*MSE_LEGACYHELPERS_DISABLED*/
 
-#define MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) mse::lh::TNativeArrayReplacement< 
+#define MSE_LH_FIXED_ARRAY_TYPE_PREFIX mse::lh::TNativeArrayReplacement< 
 #define MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) , size >
 #define MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size) 
-#define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX(size) element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
+#define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
 #define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TStrongVectorIterator< element_type >
 
 #define MSE_LH_ALLOC_POINTER1(element_type) mse::lh::allocate<mse::TNullableAnyPointer<element_type> >()
@@ -109,6 +114,11 @@ use it, despite its restrictions, as a local variable type because it accepts so
 otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TXScopeLHNullableAnyRandomAccessIterator< element_type >
 #define MSE_LH_PARAM_ONLY_ARRAY_ITERATOR_TYPE(element_type) MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE(element_type)
+
+#define MSE_LH_FUNCTION_POINTER_TYPE_PREFIX mse::lh::TNativeFunctionPointerReplacement<
+#define MSE_LH_FUNCTION_POINTER_TYPE_SUFFIX(params) params>
+#define MSE_LH_FUNCTION_POINTER_TYPE_POST_NAME_SUFFIX(params)
+#define MSE_LH_FUNCTION_POINTER_DECLARATION(return_type, params, name) MSE_LH_FUNCTION_POINTER_TYPE_PREFIX return_type MSE_LH_FUNCTION_POINTER_TYPE_SUFFIX(params) name MSE_LH_FUNCTION_POINTER_TYPE_POST_NAME_SUFFIX(params)
 
 #define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::fwrite(ptr, size, count, stream)
@@ -553,6 +563,15 @@ namespace mse {
 			TNativeArrayReplacement(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::nii_array<_Ty, _Size>(_Ilist)) {}
 #endif // MSE_LEGACYHELPERS_DISABLED
 
+		};
+
+		template<class _Fty>
+		class TNativeFunctionPointerReplacement : public mse::mstd::function<_Fty> {
+		public:
+			typedef mse::mstd::function<_Fty> base_class;
+			using base_class::base_class;
+
+			auto operator*() const { return (*this); }
 		};
 
 

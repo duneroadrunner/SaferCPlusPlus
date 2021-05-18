@@ -1992,6 +1992,26 @@ void msetl_example2() {
 			MSE_LH_MEMCPY(array2, array1, 3/*elements*/ * sizeof(arr_element_type));
 			auto res18 = array2[1];
 		}
+
+		{
+			struct CB {
+				static std::string foo1(int x, int y) {
+					return std::to_string(x + y);
+				}
+			};
+
+			MSE_LH_FUNCTION_POINTER_DECLARATION(std::string, (int x, int y), func_ptr1) = &CB::foo1;
+			func_ptr1 = &CB::foo1;
+			auto res_str1 = func_ptr1(3, 5);
+			auto res_str1b = (*func_ptr1)(3, 5);
+
+			std::string (*func_ptr2)(int x, int y) = &CB::foo1;
+			func_ptr2 = &CB::foo1;
+			auto res_str2 = func_ptr2(3, 5);
+			auto res_str2b = (*func_ptr2)(3, 5);
+
+			func_ptr1 = func_ptr2;
+		}
 	}
 }
 
