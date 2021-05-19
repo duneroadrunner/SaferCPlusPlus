@@ -58,9 +58,9 @@
 #define MSE_LH_PARAM_ONLY_ARRAY_ITERATOR_TYPE(element_type) MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE(element_type)
 
 #define MSE_LH_FUNCTION_POINTER_TYPE_PREFIX
-#define MSE_LH_FUNCTION_POINTER_TYPE_SUFFIX(params)
-#define MSE_LH_FUNCTION_POINTER_TYPE_POST_NAME_SUFFIX(params) params
-#define MSE_LH_FUNCTION_POINTER_DECLARATION(return_type, params, name) MSE_LH_FUNCTION_POINTER_TYPE_PREFIX return_type MSE_LH_FUNCTION_POINTER_TYPE_SUFFIX(params) (*name) MSE_LH_FUNCTION_POINTER_TYPE_POST_NAME_SUFFIX(params)
+#define MSE_LH_FUNCTION_POINTER_TYPE_SUFFIX(params) (*
+#define MSE_LH_FUNCTION_POINTER_TYPE_POST_NAME_SUFFIX(params) )params
+#define MSE_LH_FUNCTION_POINTER_DECLARATION(return_type, params, name) MSE_LH_FUNCTION_POINTER_TYPE_PREFIX return_type MSE_LH_FUNCTION_POINTER_TYPE_SUFFIX(params) name MSE_LH_FUNCTION_POINTER_TYPE_POST_NAME_SUFFIX(params)
 
 #define MSE_LH_FREAD(ptr, size, count, stream) fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) fwrite(ptr, size, count, stream)
