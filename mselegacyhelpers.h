@@ -1070,7 +1070,14 @@ namespace mse {
 			}
 
 			template<typename _Ty>
-			auto make_raw_pointer_from(const _Ty& ptr) {
+			auto make_raw_pointer_from(_Ty&& ptr) {
+				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
+			}
+			template<typename _Ty>
+			auto make_raw_pointer_from(_Ty& ptr) {
+				/* Note that we don't declare the paramater as a const reference because it might be an
+				mse::lh::TNativeArrayReplacement<> whose "operator*()" and "operator*() const" return different types.
+				(Specifically, they return types that differ by a const qualifier.) */
 				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
 			}
 		}
