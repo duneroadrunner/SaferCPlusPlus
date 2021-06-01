@@ -1316,6 +1316,22 @@ namespace mse {
 				struct HasOrInheritsMseBaseTypeRefMethod : HasOrInheritsMseBaseTypeRefMethod_impl<
 					typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
 
+				template <class _Ty, class _Tz>
+				struct base_type_helper1 {
+					using type = _Ty;
+				};
+				template <class _Ty>
+				struct base_type_helper1<_Ty, std::true_type> {
+					using type = typename std::remove_reference<decltype(force_lvalue_ref(std::declval<_Ty>()).mse_base_type_ref())>::type;
+				};
+			}
+
+			template <class _Ty>
+			struct base_type : rrt::base_type_helper1<_Ty, typename rrt::HasOrInheritsMseBaseTypeRefMethod<_Ty>::type> {};
+			template <class _Ty>
+			using base_type_t = typename base_type<_Ty>::type;
+
+			namespace rrt {
 				template<typename _Ty, typename _Tz>
 				_Ty& raw_reference_to_helper3(std::true_type, _Tz& x) {
 					return x.mse_base_type_ref();
@@ -1331,7 +1347,7 @@ namespace mse {
 
 				template<typename _Ty, typename _Tz>
 				_Ty& raw_reference_to_helper2(std::true_type, _Tz& x) {
-					return raw_reference_to_helper3<_Ty>(typename std::is_convertible<typename std::remove_reference<decltype(force_lvalue_ref(std::declval<_Tz>()).mse_base_type_ref())>::type*, _Ty*>::type(), x);
+					return raw_reference_to_helper3<_Ty>(typename std::is_convertible<base_type_t<_Tz>*, _Ty*>::type(), x);
 				}
 				template<typename _Ty, typename _Tz>
 				_Ty& raw_reference_to_helper2(std::false_type, _Tz& x) { return raw_reference_to_helper3<_Ty>(std::false_type(), x); }
@@ -1350,10 +1366,17 @@ namespace mse {
 			_Ty& raw_reference_to(_Tz& x) {
 				return rrt::raw_reference_to_helper1<_Ty>(typename std::is_convertible<_Tz*, _Ty*>::type(), x);
 			}
-
 			/* for now, we don't need this one */
 			template<typename _Ty, typename _Tz>
 			_Ty& raw_reference_to(_Tz&& x) = delete;
+
+			/* This function returns a raw reference to the given object. The type of the reference is the "base_type" (not to
+			be confused with "base class" type) of the object (which may or may not be different than the type of the object
+			itself). In particular, given an object of type mse::TInt<int>, it would return a reference of type 'const int&'. */
+			template<typename _Ty>
+			base_type_t<_Ty>& base_type_raw_reference_to(_Ty& x) {
+				return raw_reference_to<base_type_t<_Ty> >(x);
+			}
 		}
 	}
 

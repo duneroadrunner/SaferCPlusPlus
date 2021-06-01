@@ -147,7 +147,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_UNSAFE_CAST(type, value) mse::us::lh::unsafe_cast<type>(value)
 #define MSE_LH_UNSAFE_MAKE_POINTER_TO(target) MSE_LH_POINTER_TYPE(mse::us::unsafe_make_any_pointer_to(target))
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_TO(target) std::addressof(target)
-#define MSE_LH_UNSAFE_MAKE_RAW_POINTER_FROM(ptr) mse::us::lh::unsafe_cast<decltype(std::addressof(*ptr)) >(ptr)
+#define MSE_LH_UNSAFE_MAKE_RAW_POINTER_FROM(ptr) mse::us::lh::make_raw_pointer_from(ptr)
 
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE MSE_SUPPRESS_CHECK_IN_DECLSCOPE
@@ -1067,6 +1067,11 @@ namespace mse {
 			template<typename _Ty, typename _Ty2>
 			_Ty unsafe_cast(_Ty2& x) {
 				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(typename impl::ns_unsafe_cast::are_compatible_pointer_objects<_Ty, _Ty2>::type(), x);
+			}
+
+			template<typename _Ty>
+			auto make_raw_pointer_from(const _Ty& ptr) {
+				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
 			}
 		}
 	}
