@@ -988,42 +988,22 @@ namespace mse {
 	}
 	namespace us {
 		namespace lh {
+
+			/* "C-style" (unsafe) casts can convert a native pointer to a native pointer to an incompatible type. It cannot
+			convert an object that is not a native pointer(/reference) to an object of incompatible type. The "safe"
+			pointers in the library are (often) objects, not native pointers, but for compatibility with legacy code we
+			provide a function that can (unsafely) convert the library's safe pointers (and iterators) to corresponding
+			pointers (or iterators) pointing to incompatible types. */
+
 			namespace impl {
 				namespace ns_unsafe_cast {
 
-					/* "C-style" (unsafe) casts can convert a native pointer to a native pointer to an incompatible type. It cannot
-					convert an object that is not a native pointer(/reference) to an object of incompatible type. The "safe"
-					pointers in the library are (often) objects, not native pointers, but for compatibility with legacy code we
-					provide a function that that can (unsafely) convert the library's safe pointers (and iterators) to corresponding
-					pointers (or iterators) pointing to incompatible types. */
-
-					/* The 'are_compatible_pointer_objects' struct is used to determine if two "safe" pointer (or iterator) objects
-					correspond sufficiently to support (unsafe) conversion between them. Currently, the only supported objects are
-					mse::lh::TLHNullableAnyPointer<> and mse::lh::TLHNullableAnyRandomAccessIterator<>. */
-					template<typename _Ty, typename _Ty2, typename _TyPointee, typename _Ty2Pointee>
-					struct are_compatible_pointer_objects_helper2 : mse::impl::disjunction<
-						mse::impl::conjunction<std::is_convertible<_Ty*, const mse::lh::TLHNullableAnyRandomAccessIterator<_TyPointee>*>
-							, std::is_convertible<_Ty2*, const mse::lh::TLHNullableAnyRandomAccessIterator<_Ty2Pointee>*> >
-						, mse::impl::conjunction<std::is_convertible<_Ty*, const mse::lh::TLHNullableAnyPointer<_TyPointee>*>
-							, std::is_convertible<_Ty2*, const mse::lh::TLHNullableAnyPointer<_Ty2Pointee>*> >
-					>::type {};
-
-					template<typename T1, typename _Ty, typename _Ty2>
-					struct are_compatible_pointer_objects_helper1 : std::false_type {};
 					template<typename _Ty, typename _Ty2>
-					struct are_compatible_pointer_objects_helper1<std::true_type, _Ty, _Ty2> : are_compatible_pointer_objects_helper2<_Ty, _Ty2
-						, mse::impl::remove_reference_t<decltype(*std::declval<_Ty>())>, mse::impl::remove_reference_t<decltype(*std::declval<_Ty2>())> > {};
-
-					template<typename _Ty, typename _Ty2>
-					struct are_compatible_pointer_objects : are_compatible_pointer_objects_helper1<typename mse::impl::conjunction<
-							mse::impl::IsDereferenceable_msemsearray<_Ty>, mse::impl::IsDereferenceable_msemsearray<_Ty2> >::type, _Ty, _Ty2> {};
-
-					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper4(std::false_type, _Ty2& x) {
+					_Ty unsafe_cast_helper4(std::false_type, const _Ty2& x) {
 						return (_Ty)(std::addressof(*x));
 					}
 					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper4(std::true_type, _Ty2& x) {
+					_Ty unsafe_cast_helper4(std::true_type, const _Ty2& x) {
 						if (x == nullptr) {
 							return nullptr;
 						}
@@ -1031,43 +1011,44 @@ namespace mse {
 					}
 
 					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper3(std::false_type, _Ty2& x) {
+					_Ty unsafe_cast_helper3(std::false_type, const _Ty2& x) {
 						return (_Ty)(x);
 					}
 					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper3(std::true_type, _Ty2& x) {
+					_Ty unsafe_cast_helper3(std::true_type, const _Ty2& x) {
+						/* _Ty is a raw pointer type */
 						return unsafe_cast_helper4<_Ty>(typename mse::impl::IsNullable_msemsearray<_Ty2>::type(), x);
 					}
 
 					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper2(std::false_type, _Ty2& x) {
+					_Ty unsafe_cast_helper2(std::false_type, const _Ty2& x) {
 						return unsafe_cast_helper3<_Ty>(typename std::is_pointer<_Ty>::type(), x);
 					}
 					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper2(std::true_type, _Ty2& x) {
-						return std::forward<_Ty>(reinterpret_cast<_Ty&&>(x));
-					}
-
-					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper1(std::false_type, _Ty2& x) {
-						return unsafe_cast_helper2<_Ty>(typename ns_unsafe_cast::are_compatible_pointer_objects<_Ty, _Ty2>::type(), x);
-					}
-					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper1(std::true_type, const _Ty2& x) {
-						return unsafe_cast_helper2<_Ty>(typename ns_unsafe_cast::are_compatible_pointer_objects<_Ty, _Ty2>::type(), const_cast<_Ty2&>(x));
+					_Ty unsafe_cast_helper2(std::true_type, const _Ty2& x) {
+						return reinterpret_cast<const _Ty&>(x);
 					}
 				}
 			}
-			/* Unlike "C-style" casts, this 'unsafe_cast()' function can (unsafely) convert a library pointer or iterator object
-			to a corresponding pointer or iterator object targeting an incompatible type. */
 			template<typename _Ty, typename _Ty2>
-			auto unsafe_cast(_Ty2&& x) -> decltype(impl::ns_unsafe_cast::unsafe_cast_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), MSE_FWD(x))) {
-				return impl::ns_unsafe_cast::unsafe_cast_helper1<_Ty>(typename std::is_rvalue_reference<decltype(x)>::type(), MSE_FWD(x));
+			_Ty unsafe_cast(const _Ty2& x) {
+				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(std::false_type(), x);
 			}
-			template<typename _Ty, typename _Ty2>
-			_Ty unsafe_cast(_Ty2& x) {
-				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(typename impl::ns_unsafe_cast::are_compatible_pointer_objects<_Ty, _Ty2>::type(), x);
+
+			/* Here we provide overloads for the unsafe_cast<>() function that support the (unsafe) casting of selected smart
+			pointers, akin to how a raw pointer can be cast to a raw pointer to an incompatible type via "C-style" cast. */
+
+#define MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(smart_pointer) \
+			template<typename _Ty, typename _Ty2> \
+			_Ty unsafe_cast(const smart_pointer<_Ty2>& x) { \
+				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(typename mse::impl::is_instantiation_of<_Ty, smart_pointer>::type(), x); \
 			}
+
+			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyRandomAccessIterator)
+			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyRandomAccessIterator)
+			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyPointer)
+			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyPointer)
+
 
 			template<typename _Ty>
 			auto make_raw_pointer_from(_Ty&& ptr) {
