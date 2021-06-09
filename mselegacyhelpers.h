@@ -270,10 +270,10 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer/iterator value. */
 				assert(0 == val);
 			}
-			template <size_t _Size>
-			TLHNullableAnyRandomAccessIterator(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
-			template <size_t _Size>
-			TLHNullableAnyRandomAccessIterator(const TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.cbegin()) {}
+			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value) || (std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
+			TLHNullableAnyRandomAccessIterator(TNativeArrayReplacement<_Ty2, _Size>& val) : base_class(val.begin()) {}
+			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value) || (std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
+			TLHNullableAnyRandomAccessIterator(const TNativeArrayReplacement<_Ty2, _Size>& val) : base_class(val.cbegin()) {}
 
 			friend void swap(TLHNullableAnyRandomAccessIterator& first, TLHNullableAnyRandomAccessIterator& second) {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
@@ -1048,6 +1048,15 @@ namespace mse {
 			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyRandomAccessIterator)
 			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyPointer)
 			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyPointer)
+
+			template<typename _Ty, typename _Ty2, size_t _Size>
+			_Ty unsafe_cast(mse::lh::TNativeArrayReplacement<_Ty2, _Size>& x) {
+				return unsafe_cast<_Ty>(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty2>(x));
+			}
+			template<typename _Ty, typename _Ty2, size_t _Size>
+			_Ty unsafe_cast(const mse::lh::TNativeArrayReplacement<_Ty2, _Size>& x) {
+				return unsafe_cast<_Ty>(mse::lh::TLHNullableAnyRandomAccessIterator<const _Ty2>(x));
+			}
 
 
 			template<typename _Ty>
