@@ -143,7 +143,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_NULL_POINTER nullptr
 #define MSE_LH_VOID_STAR mse::lh::void_star_replacement
 
-#define MSE_LH_CAST(type, value) type(value)
+#define MSE_LH_CAST(type, value) ((type)(value))
 #define MSE_LH_UNSAFE_CAST(type, value) mse::us::lh::unsafe_cast<type>(value)
 #define MSE_LH_UNSAFE_MAKE_POINTER_TO(target) MSE_LH_POINTER_TYPE(mse::us::unsafe_make_any_pointer_to(target))
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_TO(target) std::addressof(target)
