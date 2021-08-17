@@ -441,7 +441,9 @@ namespace mse {
 						/*  Just as structs with scope pointer/reference members need to be declared as such, lambdas that
 						capture scope pointer/references must be declared as such. */
 						auto xs_lambda1 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([int1_xsptr]() { return *int1_xsptr; });
+#ifndef __apple_build_version__
 						mse::xscope_function<int()> xs_function3 = xs_lambda1;
+#endif // !__apple_build_version__
 					}
 				}
 #endif // MSE_SELF_TESTS

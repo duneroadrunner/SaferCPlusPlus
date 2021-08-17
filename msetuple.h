@@ -950,6 +950,7 @@ namespace mse {
 					};
 
 					{
+#ifndef __apple_build_version__
 						auto student0 = CB::get_student(0);
 						std::cout << "ID: 0, "
 							<< "GPA: " << std::get<0>(student0) << ", "
@@ -973,6 +974,7 @@ namespace mse {
 							<< "grade: " << grade2 << ", "
 							<< "name: " << name2 << '\n';
 #endif // MSE_HAS_CXX17
+#endif // !__apple_build_version__
 					}
 				}
 				{
@@ -998,6 +1000,7 @@ namespace mse {
 						<< ", " << std::get<2>(p2) << ")\n";
 				}
 				{
+#ifndef __apple_build_version__
 					/* example from https://en.cppreference.com/w/cpp/utility/tuple/swap */
 					struct CB {
 						static mse::mstd::tuple<int, int> f() // this function returns multiple values
@@ -1022,6 +1025,7 @@ namespace mse {
 						std::tie(a, b) = CB::f();
 						std::cout << a << " " << b << "\n";
 					}
+#endif // !__apple_build_version__
 				}
 				{
 					/* example from https://en.cppreference.com/w/cpp/utility/tuple/tuple_cat */
@@ -1060,6 +1064,7 @@ namespace mse {
 					};
 
 					{
+#ifndef __apple_build_version__
 						auto student0 = CB::get_student(0);
 						std::cout << "ID: 0, "
 							<< "GPA: " << std::get<0>(student0) << ", "
@@ -1083,6 +1088,7 @@ namespace mse {
 							<< "grade: " << grade2 << ", "
 							<< "name: " << name2 << '\n';
 #endif // MSE_HAS_CXX17
+#endif // !__apple_build_version__
 					}
 				}
 				{
@@ -1118,6 +1124,7 @@ namespace mse {
 					};
 
 					{
+#ifndef __apple_build_version__
 						// heterogeneous tuple construction
 						int n = 1;
 						auto t = mse::mstd::make_tuple(10, std::string("Test"), 3.14, std::ref(n), n);
@@ -1131,6 +1138,7 @@ namespace mse {
 						int a, b;
 						std::tie(a, b) = CB::f();
 						std::cout << a << " " << b << "\n";
+#endif // !__apple_build_version__
 					}
 				}
 				{

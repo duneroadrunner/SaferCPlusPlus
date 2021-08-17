@@ -1875,6 +1875,7 @@ void msetl_example2() {
 			int res1 = function1();
 		}
 		{
+#ifndef __apple_build_version__
 			/* xscope_function<>s support scope function objects as well. */
 			mse::xscope_function<int()> xs_function1 = []() { return 5; };
 
@@ -1895,6 +1896,7 @@ void msetl_example2() {
 			capture scope pointer/references must be declared as such. */
 			auto xs_lambda1 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([int1_xsptr]() { return *int1_xsptr; });
 			mse::xscope_function<int()> xs_function3 = xs_lambda1;
+#endif // !__apple_build_version__
 		}
 
 		mse::self_test::CFunctionTest1::s_test1();

@@ -973,6 +973,7 @@ int main(int argc, char* argv[]) {
 		In most cases it is probably preferable to just use mse::TRegisteredFixedPointer instead of mse::TRegisteredRefWrapper. 
 		*/
 		{
+#ifndef __apple_build_version__
 			/* This example originally comes from http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper. */
 			std::list<mse::TRegisteredObj<mse::CInt>> l(10);
 			std::iota(l.begin(), l.end(), -4);
@@ -997,6 +998,8 @@ int main(int argc, char* argv[]) {
 			std::cout << "Contents of the list, as seen through a shuffled vector: ";
 			for (auto i : v) { std::cout << static_cast<mse::CInt&>(i) << ' '; } std::cout << '\n';
 			std::cout << '\n';
+#endif // !__apple_build_version__
+
 		}
 		{
 			/* This example originally comes from http://www.cplusplus.com/reference/functional/reference_wrapper/. */
