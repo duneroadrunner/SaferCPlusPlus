@@ -3011,11 +3011,9 @@ namespace mse {
 					int res1 = (&a_scpobj)->b;
 					int res2 = B::foo2(&a_scpobj);
 					int res3 = B::foo3(&a_scpobj);
-#ifndef __apple_build_version__
 					mse::TXScopeOwnerPointer<A> a_scpoptr(7);
 					//int res4 = B::foo2(a_scpoptr);
 					int res4b = B::foo2(&(*a_scpoptr));
-#endif // !__apple_build_version__
 
 					/* You can use the "mse::make_xscope_pointer_to_member_v2()" function to obtain a safe pointer to a member of
 					an xscope object. */

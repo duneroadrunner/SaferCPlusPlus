@@ -40,6 +40,13 @@
 #pragma warning( disable : 4505 4522 )
 #endif /*_MSC_VER*/
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#ifdef __apple_build_version__
+#pragma clang diagnostic ignored "-Wmacro-redefined"
+#endif // __apple_build_version__
+#endif /*__clang__*/
+
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma push_macro("MSE_THROW")
 #pragma push_macro("_STD")
@@ -9999,6 +10006,10 @@ namespace mse {
 #pragma pop_macro("_NOEXCEPT")
 #pragma pop_macro("_NOEXCEPT_OP")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif /*__clang__*/
 
 #ifdef _MSC_VER
 #pragma warning( pop )  
