@@ -527,11 +527,11 @@ namespace mse {
 			}
 
 			operator mse::TNullableAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
-			operator mse::TXScopeNullableAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
-			operator mse::TAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
-			operator mse::TXScopeAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
+			explicit operator mse::TXScopeNullableAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
+			explicit operator mse::TAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
+			explicit operator mse::TXScopeAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
 			operator mse::TAnyRandomAccessConstIterator<_Ty>() const { return base_class::cbegin(); }
-			operator mse::TXScopeAnyRandomAccessConstIterator<_Ty>() const { return base_class::cbegin(); }
+			explicit operator mse::TXScopeAnyRandomAccessConstIterator<_Ty>() const { return base_class::cbegin(); }
 			operator typename mse::mstd::array<_Ty, _Size>::iterator() {
 				return base_class::begin();
 			}

@@ -1160,6 +1160,9 @@ namespace mse {
 			};
 
 			template <typename _Ty>
+			class TAnyRandomAccessConstIteratorBase;
+
+			template <typename _Ty>
 			class TAnyRandomAccessIteratorBase : public TRandomAccessIteratorStdBase<_Ty> {
 			public:
 				typedef TRandomAccessIteratorStdBase<_Ty> base_class;
@@ -1193,15 +1196,15 @@ namespace mse {
 
 				TAnyRandomAccessIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				TAnyRandomAccessIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
-				difference_type operator-(const TAnyRandomAccessIteratorBase& _Right_cref) const {
-					return (*common_random_access_iterator_interface_ptr()) - (*(_Right_cref.common_random_access_iterator_interface_ptr()));
+				difference_type operator-(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const {
+					return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) - _Right_cref);
 				}
-				bool operator==(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 == operator-(_Right_cref)); }
-				bool operator!=(const TAnyRandomAccessIteratorBase& _Right_cref) const { return !(operator==(_Right_cref)); }
-				bool operator<(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-				bool operator>(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-				bool operator<=(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-				bool operator>=(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				bool operator==(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) == _Right_cref); }
+				bool operator!=(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) != _Right_cref); }
+				bool operator<(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) < _Right_cref); }
+				bool operator>(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) > _Right_cref); }
+				bool operator<=(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) <= _Right_cref); }
+				bool operator>=(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) >= _Right_cref); }
 				TAnyRandomAccessIteratorBase& operator=(TAnyRandomAccessIteratorBase _Right) {
 					swap(*this, _Right);
 					return (*this);
