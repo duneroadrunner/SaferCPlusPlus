@@ -8418,6 +8418,18 @@ namespace mse {
 				typedef typename base_class::iterator::pointer pointer;
 				typedef typename base_class::iterator::reference reference;
 
+				reference operator*() const {
+					return m_owner_ptr->at(msev_as_a_size_t(m_index));
+				}
+				reference item() const { return operator*(); }
+				reference previous_item() const {
+					return m_owner_ptr->at(msev_as_a_size_t(m_index - 1));
+				}
+				pointer operator->() const {
+					return std::addressof(m_owner_ptr->at(msev_as_a_size_t(m_index)));
+				}
+				reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
+
 				void reset() { set_to_end_marker(); }
 				bool points_to_an_item() const {
 					if (m_points_to_an_item) { assert((1 <= m_owner_ptr->size()) && (m_index < m_owner_ptr->size())); return true; }
@@ -8497,23 +8509,25 @@ namespace mse {
 					return retval;
 				}
 				mm_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
-				difference_type operator-(const mm_iterator_type& rhs) const {
-					if ((rhs.m_owner_ptr) != ((*this).m_owner_ptr)) { MSE_THROW(msebasic_string_range_error("invalid argument - difference_type operator-(const mm_iterator_type& rhs) const - msebasic_string::mm_iterator_type")); }
+				difference_type operator-(const mm_const_iterator_type& rhs) const {
+					if ((rhs.m_owner_ptr) != ((*this).m_owner_ptr)) { MSE_THROW(msebasic_string_range_error("invalid argument - difference_type operator-(const mm_const_iterator_type& rhs) const - msebasic_string::mm_const_iterator_type")); }
 					auto retval = difference_type((*this).m_index) - difference_type(rhs.m_index);
 					assert(difference_type(m_owner_ptr->size()) >= retval);
 					return retval;
 				}
-				reference operator*() const {
-					return m_owner_ptr->at(msev_as_a_size_t(m_index));
+				bool operator==(const mm_const_iterator_type& _Right_cref) const {
+					if (((*this).m_owner_ptr) != (_Right_cref.m_owner_ptr)) { MSE_THROW(msebasic_string_range_error("invalid argument - mm_const_iterator_type& operator==(const typename base_class::iterator& _Right) - mm_const_iterator_type - msebasic_string")); }
+					return (_Right_cref.m_index == m_index);
 				}
-				reference item() const { return operator*(); }
-				reference previous_item() const {
-					return m_owner_ptr->at(msev_as_a_size_t(m_index - 1));
+				bool operator!=(const mm_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
+				bool operator<(const mm_const_iterator_type& _Right) const {
+					if (((*this).m_owner_ptr) != (_Right.m_owner_ptr)) { MSE_THROW(msebasic_string_range_error("invalid argument - mm_const_iterator_type& operator<(const typename base_class::iterator& _Right) - mm_const_iterator_type - msebasic_string")); }
+					return (m_index < _Right.m_index);
 				}
-				pointer operator->() const {
-					return std::addressof(m_owner_ptr->at(msev_as_a_size_t(m_index)));
-				}
-				reference operator[](difference_type _Off) const { return (*m_owner_ptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
+				bool operator<=(const mm_const_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
+				bool operator>(const mm_const_iterator_type& _Right) const { return (!((*this) <= _Right)); }
+				bool operator>=(const mm_const_iterator_type& _Right) const { return (!((*this) < _Right)); }
+
 				/*
 				mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref)
 				{
@@ -8546,18 +8560,6 @@ namespace mse {
 					}
 					return (*this);
 				}
-				bool operator==(const mm_iterator_type& _Right_cref) const {
-					if (((*this).m_owner_ptr) != (_Right_cref.m_owner_ptr)) { MSE_THROW(msebasic_string_range_error("invalid argument - mm_iterator_type& operator==(const typename base_class::iterator& _Right) - mm_iterator_type - msebasic_string")); }
-					return (_Right_cref.m_index == m_index);
-				}
-				bool operator!=(const mm_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const mm_iterator_type& _Right) const {
-					if (((*this).m_owner_ptr) != (_Right.m_owner_ptr)) { MSE_THROW(msebasic_string_range_error("invalid argument - mm_iterator_type& operator<(const typename base_class::iterator& _Right) - mm_iterator_type - msebasic_string")); }
-					return (m_index < _Right.m_index);
-				}
-				bool operator<=(const mm_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
-				bool operator>(const mm_iterator_type& _Right) const { return (!((*this) <= _Right)); }
-				bool operator>=(const mm_iterator_type& _Right) const { return (!((*this) < _Right)); }
 				void set_to_item_pointer(const mm_iterator_type& _Right_cref) {
 					(*this) = _Right_cref;
 				}
@@ -8582,6 +8584,7 @@ namespace mse {
 					return m_index;
 				}
 				operator mm_const_iterator_type() const {
+					assert(m_owner_ptr);
 					mm_const_iterator_type retval(*m_owner_ptr);
 					retval.set_to_beginning();
 					retval.advance(msev_int(m_index));
@@ -9031,11 +9034,18 @@ namespace mse {
 				mm_iterator_type& ip() const { return item_pointer(); }
 				//const mm_iterator_handle_type& handle() const { return (*m_handle_shptr); }
 				operator cipointer() const {
+					assert(m_owner_ptr);
 					cipointer retval(*m_owner_ptr);
 					retval.const_item_pointer().set_to_beginning();
 					retval.const_item_pointer().advance(msev_int(item_pointer().position()));
 					return retval;
 				}
+
+				reference operator*() const { return item_pointer().operator*(); }
+				reference item() const { return operator*(); }
+				reference previous_item() const { return item_pointer().previous_item(); }
+				pointer operator->() const { return item_pointer().operator->(); }
+				reference operator[](difference_type _Off) const { return item_pointer()[_Off]; }
 
 				void reset() { item_pointer().reset(); }
 				bool points_to_an_item() const { return item_pointer().points_to_an_item(); }
@@ -9060,19 +9070,15 @@ namespace mse {
 				ipointer& operator -=(difference_type n) { item_pointer().operator -=(n); return (*this); }
 				ipointer operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				ipointer operator-(difference_type n) const { return ((*this) + (-n)); }
-				difference_type operator-(const ipointer& _Right_cref) const { return item_pointer() - (_Right_cref.item_pointer()); }
-				reference operator*() const { return item_pointer().operator*(); }
-				reference item() const { return operator*(); }
-				reference previous_item() const { return item_pointer().previous_item(); }
-				pointer operator->() const { return item_pointer().operator->(); }
-				reference operator[](difference_type _Off) const { return item_pointer()[_Off]; }
+				difference_type operator-(const cipointer& _Right_cref) const { return item_pointer() - (_Right_cref.item_pointer()); }
+				bool operator==(const cipointer& _Right_cref) const { return item_pointer().operator==(_Right_cref.item_pointer()); }
+				bool operator!=(const cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
+				bool operator<(const cipointer& _Right) const { return (item_pointer() < _Right.item_pointer()); }
+				bool operator<=(const cipointer& _Right) const { return (item_pointer() <= _Right.item_pointer()); }
+				bool operator>(const cipointer& _Right) const { return (item_pointer() > _Right.item_pointer()); }
+				bool operator>=(const cipointer& _Right) const { return (item_pointer() >= _Right.item_pointer()); }
+
 				ipointer& operator=(const ipointer& _Right_cref) { item_pointer().operator=(_Right_cref.item_pointer()); return (*this); }
-				bool operator==(const ipointer& _Right_cref) const { return item_pointer().operator==(_Right_cref.item_pointer()); }
-				bool operator!=(const ipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const ipointer& _Right) const { return (item_pointer() < _Right.item_pointer()); }
-				bool operator<=(const ipointer& _Right) const { return (item_pointer() <= _Right.item_pointer()); }
-				bool operator>(const ipointer& _Right) const { return (item_pointer() > _Right.item_pointer()); }
-				bool operator>=(const ipointer& _Right) const { return (item_pointer() >= _Right.item_pointer()); }
 				void set_to_item_pointer(const ipointer& _Right_cref) { item_pointer().set_to_item_pointer(_Right_cref.item_pointer()); }
 				msev_size_t position() const { return item_pointer().position(); }
 				auto target_container_ptr() const {
@@ -9683,6 +9689,20 @@ namespace mse {
 				}
 				const ipointer& mvssi() const { return msebasic_string_ipointer(); }
 				ipointer& mvssi() { return msebasic_string_ipointer(); }
+				operator xscope_cipointer() const {
+					assert((*this).target_container_ptr());
+					auto xs_ptr = mse::us::unsafe_make_xscope_pointer_to(*((*this).target_container_ptr()));
+					xscope_cipointer retval(xs_ptr);
+					retval.set_to_beginning();
+					retval.advance(msev_int(position()));
+					return retval;
+				}
+
+				reference operator*() const { return ipointer::operator*(); }
+				reference item() const { return operator*(); }
+				reference previous_item() const { return ipointer::previous_item(); }
+				pointer operator->() const { return ipointer::operator->(); }
+				reference operator[](difference_type _Off) const { return ipointer::operator[](_Off); }
 
 				void reset() { ipointer::reset(); }
 				bool points_to_an_item() const { return ipointer::points_to_an_item(); }
@@ -9707,23 +9727,21 @@ namespace mse {
 				xscope_ipointer& operator -=(difference_type n) { ipointer::operator -=(n); return (*this); }
 				xscope_ipointer operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				xscope_ipointer operator-(difference_type n) const { return ((*this) + (-n)); }
-				difference_type operator-(const xscope_ipointer& _Right_cref) const { return ipointer::operator-(_Right_cref); }
-				reference operator*() const { return ipointer::operator*(); }
-				reference item() const { return operator*(); }
-				reference previous_item() const { return ipointer::previous_item(); }
-				pointer operator->() const { return ipointer::operator->(); }
-				reference operator[](difference_type _Off) const { return ipointer::operator[](_Off); }
+				difference_type operator-(const xscope_cipointer& _Right_cref) const {
+					return (xscope_cipointer(*this) - _Right_cref);
+				}
+				bool operator==(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) == _Right_cref); }
+				bool operator!=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) != _Right_cref); }
+				bool operator<(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) < _Right_cref); }
+				bool operator>(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) > _Right_cref); }
+				bool operator<=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) <= _Right_cref); }
+				bool operator>=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) >= _Right_cref); }
+
 				xscope_ipointer& operator=(const ipointer& _Right_cref) {
 					if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(msebasic_string_range_error("invalid argument - xscope_ipointer& operator=(const xscope_ipointer& _Right_cref) - msebasic_string::xscope_ipointer")); }
 					ipointer::operator=(_Right_cref);
 					return (*this);
 				}
-				bool operator==(const xscope_ipointer& _Right_cref) const { return ipointer::operator==(_Right_cref); }
-				bool operator!=(const xscope_ipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const xscope_ipointer& _Right) const { return ipointer::operator<(_Right); }
-				bool operator<=(const xscope_ipointer& _Right) const { return ipointer::operator<=(_Right); }
-				bool operator>(const xscope_ipointer& _Right) const { return ipointer::operator>(_Right); }
-				bool operator>=(const xscope_ipointer& _Right) const { return ipointer::operator>=(_Right); }
 				void set_to_item_pointer(const xscope_ipointer& _Right_cref) { ipointer::set_to_item_pointer(_Right_cref); }
 				msev_size_t position() const { return ipointer::position(); }
 				auto target_container_ptr() const {

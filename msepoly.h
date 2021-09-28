@@ -1225,6 +1225,9 @@ namespace mse {
 				}
 
 				mse::any m_any_random_access_iterator;
+
+				template <typename _Ty2>
+				friend class TAnyRandomAccessConstIteratorBase;
 			};
 
 			template <typename _Ty>
@@ -1291,6 +1294,7 @@ namespace mse {
 				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
 
 				TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessConstIteratorBase& src) : m_any_random_access_const_iterator(src.m_any_random_access_const_iterator) {}
+				TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessIteratorBase< _Ty>& src) : m_any_random_access_const_iterator(src.m_any_random_access_iterator) {}
 				TAnyRandomAccessConstIteratorBase(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
 
 				template <typename _TRandomAccessConstIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIteratorBase>::value> MSE_IMPL_EIS >

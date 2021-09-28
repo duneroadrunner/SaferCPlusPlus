@@ -909,19 +909,16 @@ namespace mse {
 
 				TRAIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				TRAIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
-				difference_type operator-(const TRAIteratorBase& _Right_cref) const {
-					if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRAIteratorBase")); }
-					return m_index - _Right_cref.m_index;
+
+				difference_type operator-(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
+					return (TRAConstIteratorBase<_TRAContainerPointer>(*this) - _Right_cref);
 				}
-				bool operator ==(const TRAIteratorBase& _Right_cref) const {
-					if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator==() - TRAIteratorBase")); }
-					return (_Right_cref.m_index == m_index);
-				}
-				bool operator !=(const TRAIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
-				bool operator<(const TRAIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-				bool operator>(const TRAIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-				bool operator<=(const TRAIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-				bool operator>=(const TRAIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				bool operator==(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) == _Right_cref); }
+				bool operator!=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) != _Right_cref); }
+				bool operator<(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) < _Right_cref); }
+				bool operator>(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) > _Right_cref); }
+				bool operator<=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) <= _Right_cref); }
+				bool operator>=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) >= _Right_cref); }
 
 				TRAIteratorBase& operator=(const TRAIteratorBase& _Right_cref) {
 					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointerRR>::type(), _Right_cref);
@@ -4836,18 +4833,15 @@ namespace mse {
 
 				TRASectionIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				TRASectionIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
-				difference_type operator-(const TRASectionIteratorBase& _Right_cref) const {
-					if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRASectionIteratorBase")); }
-					return m_index - _Right_cref.m_index;
+				difference_type operator-(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
+					return (TRASectionConstIteratorBase<_TRAIterator>(*this) - _Right_cref);
 				}
-				bool operator ==(const TRASectionIteratorBase& _Right_cref) const {
-					return ((_Right_cref.m_index == m_index) && (_Right_cref.m_count == m_count) && (_Right_cref.m_ra_iterator == m_ra_iterator));
-				}
-				bool operator !=(const TRASectionIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
-				bool operator<(const TRASectionIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-				bool operator>(const TRASectionIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-				bool operator<=(const TRASectionIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-				bool operator>=(const TRASectionIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+				bool operator==(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) == _Right_cref); }
+				bool operator!=(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) != _Right_cref); }
+				bool operator<(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) < _Right_cref); }
+				bool operator>(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) > _Right_cref); }
+				bool operator<=(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) <= _Right_cref); }
+				bool operator>=(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) >= _Right_cref); }
 				TRASectionIteratorBase& operator=(const TRASectionIteratorBase& _Right_cref) {
 					if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionIteratorBase& operator=() - TRASectionIteratorBase")); }
 					m_index = _Right_cref.m_index;

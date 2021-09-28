@@ -433,6 +433,12 @@ namespace mse {
 					return retval;
 				}
 
+				typename _MA::reference operator*() const { return nii_array_reg_ss_iterator_type().operator*(); }
+				typename _MA::reference item() const { return operator*(); }
+				typename _MA::reference previous_item() const { return nii_array_reg_ss_iterator_type().previous_item(); }
+				typename _MA::pointer operator->() const { return nii_array_reg_ss_iterator_type().operator->(); }
+				typename _MA::reference operator[](typename _MA::difference_type _Off) const { return nii_array_reg_ss_iterator_type()[_Off]; }
+
 				void reset() { nii_array_reg_ss_iterator_type().reset(); }
 				bool points_to_an_item() const { return nii_array_reg_ss_iterator_type().points_to_an_item(); }
 				bool points_to_end_marker() const { return nii_array_reg_ss_iterator_type().points_to_end_marker(); }
@@ -456,18 +462,16 @@ namespace mse {
 				iterator& operator -=(difference_type n) { nii_array_reg_ss_iterator_type().operator -=(n); return (*this); }
 				iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				iterator operator-(difference_type n) const { return ((*this) + (-n)); }
-				typename _MA::difference_type operator-(const iterator& _Right_cref) const { return nii_array_reg_ss_iterator_type() - (_Right_cref.nii_array_reg_ss_iterator_type()); }
-				typename _MA::reference operator*() const { return nii_array_reg_ss_iterator_type().operator*(); }
-				typename _MA::reference item() const { return operator*(); }
-				typename _MA::reference previous_item() const { return nii_array_reg_ss_iterator_type().previous_item(); }
-				typename _MA::pointer operator->() const { return nii_array_reg_ss_iterator_type().operator->(); }
-				typename _MA::reference operator[](typename _MA::difference_type _Off) const { return nii_array_reg_ss_iterator_type()[_Off]; }
-				bool operator==(const iterator& _Right_cref) const { return nii_array_reg_ss_iterator_type().operator==(_Right_cref.nii_array_reg_ss_iterator_type()); }
-				bool operator!=(const iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const iterator& _Right) const { return (nii_array_reg_ss_iterator_type() < _Right.nii_array_reg_ss_iterator_type()); }
-				bool operator<=(const iterator& _Right) const { return (nii_array_reg_ss_iterator_type() <= _Right.nii_array_reg_ss_iterator_type()); }
-				bool operator>(const iterator& _Right) const { return (nii_array_reg_ss_iterator_type() > _Right.nii_array_reg_ss_iterator_type()); }
-				bool operator>=(const iterator& _Right) const { return (nii_array_reg_ss_iterator_type() >= _Right.nii_array_reg_ss_iterator_type()); }
+				typename _MA::difference_type operator-(const const_iterator& _Right_cref) const {
+					return (const_iterator(*this) - _Right_cref);
+				}
+				bool operator==(const const_iterator& _Right_cref) const { return (const_iterator(*this) == _Right_cref); }
+				bool operator!=(const const_iterator& _Right_cref) const { return (const_iterator(*this) != _Right_cref); }
+				bool operator<(const const_iterator& _Right_cref) const { return (const_iterator(*this) < _Right_cref); }
+				bool operator>(const const_iterator& _Right_cref) const { return (const_iterator(*this) > _Right_cref); }
+				bool operator<=(const const_iterator& _Right_cref) const { return (const_iterator(*this) <= _Right_cref); }
+				bool operator>=(const const_iterator& _Right_cref) const { return (const_iterator(*this) >= _Right_cref); }
+
 				void set_to_item_pointer(const iterator& _Right_cref) { nii_array_reg_ss_iterator_type().set_to_item_pointer(_Right_cref.nii_array_reg_ss_iterator_type()); }
 				msear_size_t position() const { return nii_array_reg_ss_iterator_type().position(); }
 				auto target_container_ptr() const -> decltype(nii_array_reg_ss_iterator_type().target_container_ptr()) {

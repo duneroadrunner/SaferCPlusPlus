@@ -575,6 +575,12 @@ namespace mse {
 					return retval;
 				}
 
+				typename _MBS::reference operator*() const { return msebasic_string_ss_iterator_type().operator*(); }
+				typename _MBS::reference item() const { return operator*(); }
+				typename _MBS::reference previous_item() const { return msebasic_string_ss_iterator_type().previous_item(); }
+				typename _MBS::pointer operator->() const { return msebasic_string_ss_iterator_type().operator->(); }
+				typename _MBS::reference operator[](typename _MBS::difference_type _Off) const { return (*(*this + _Off)); }
+
 				void reset() { msebasic_string_ss_iterator_type().reset(); }
 				bool points_to_an_item() const { return msebasic_string_ss_iterator_type().points_to_an_item(); }
 				bool points_to_end_marker() const { return msebasic_string_ss_iterator_type().points_to_end_marker(); }
@@ -598,18 +604,16 @@ namespace mse {
 				iterator& operator -=(difference_type n) { msebasic_string_ss_iterator_type().operator -=(n); return (*this); }
 				iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				iterator operator-(difference_type n) const { return ((*this) + (-n)); }
-				typename _MBS::difference_type operator-(const iterator& _Right_cref) const { return msebasic_string_ss_iterator_type() - (_Right_cref.msebasic_string_ss_iterator_type()); }
-				typename _MBS::reference operator*() const { return msebasic_string_ss_iterator_type().operator*(); }
-				typename _MBS::reference item() const { return operator*(); }
-				typename _MBS::reference previous_item() const { return msebasic_string_ss_iterator_type().previous_item(); }
-				typename _MBS::pointer operator->() const { return msebasic_string_ss_iterator_type().operator->(); }
-				typename _MBS::reference operator[](typename _MBS::difference_type _Off) const { return (*(*this + _Off)); }
-				bool operator==(const iterator& _Right_cref) const { return msebasic_string_ss_iterator_type().operator==(_Right_cref.msebasic_string_ss_iterator_type()); }
-				bool operator!=(const iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const iterator& _Right) const { return (msebasic_string_ss_iterator_type() < _Right.msebasic_string_ss_iterator_type()); }
-				bool operator<=(const iterator& _Right) const { return (msebasic_string_ss_iterator_type() <= _Right.msebasic_string_ss_iterator_type()); }
-				bool operator>(const iterator& _Right) const { return (msebasic_string_ss_iterator_type() > _Right.msebasic_string_ss_iterator_type()); }
-				bool operator>=(const iterator& _Right) const { return (msebasic_string_ss_iterator_type() >= _Right.msebasic_string_ss_iterator_type()); }
+				typename _MBS::difference_type operator-(const const_iterator& _Right_cref) const {
+					return (const_iterator(*this) - _Right_cref);
+				}
+				bool operator==(const const_iterator& _Right_cref) const { return (const_iterator(*this) == _Right_cref); }
+				bool operator!=(const const_iterator& _Right_cref) const { return (const_iterator(*this) != _Right_cref); }
+				bool operator<(const const_iterator& _Right_cref) const { return (const_iterator(*this) < _Right_cref); }
+				bool operator>(const const_iterator& _Right_cref) const { return (const_iterator(*this) > _Right_cref); }
+				bool operator<=(const const_iterator& _Right_cref) const { return (const_iterator(*this) <= _Right_cref); }
+				bool operator>=(const const_iterator& _Right_cref) const { return (const_iterator(*this) >= _Right_cref); }
+
 				void set_to_item_pointer(const iterator& _Right_cref) { msebasic_string_ss_iterator_type().set_to_item_pointer(_Right_cref.msebasic_string_ss_iterator_type()); }
 				msev_size_t position() const { return msebasic_string_ss_iterator_type().position(); }
 				auto target_container_ptr() const -> decltype(msebasic_string_ss_iterator_type().target_container_ptr()) {
