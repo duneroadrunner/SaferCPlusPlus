@@ -2932,7 +2932,7 @@ namespace mse {
 				state_mutex_t& state_mutex1()& { return (*this); }
 
 			public:
-				nii_array_base() {}
+				nii_array_base() : base_class(std::array<_Ty, _Size>{}) {}
 				nii_array_base(_MA&& _X) : base_class(MSE_FWD(_X)) {}
 				nii_array_base(const _MA& _X) : base_class(_X) {}
 				nii_array_base(_Myt&& _X) : base_class(MSE_FWD(_X).contained_array()) {}

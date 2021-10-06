@@ -526,11 +526,14 @@ namespace mse {
 			/* Technically, this constructor should only be enabled for 'char' types to support initialization from string literals. */
 			template <size_t _Size2, MSE_IMPL_EIP mse::impl::enable_if_t<(_Size2 <= _Size)> MSE_IMPL_EIS >
 			TNativeArrayReplacement(_Ty const (&arr1)[_Size2]) {
+				typedef mse::impl::remove_const_t<_Ty> _ncTy;
 				for (size_t i = 0; i < _Size2; i += 1) {
-					(*this)[i] = arr1[i];
+					auto nc_ptr = const_cast<_ncTy*>(&((*this)[i]));
+					*nc_ptr = arr1[i];
 				}
 				for (size_t i = _Size2; i < _Size; i += 1) {
-					(*this)[i] = _Ty();
+					auto nc_ptr = const_cast<_ncTy*>(&((*this)[i]));
+					*nc_ptr = _Ty();
 				}
 			}
 
