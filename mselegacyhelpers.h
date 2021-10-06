@@ -528,11 +528,11 @@ namespace mse {
 			TNativeArrayReplacement(_Ty const (&arr1)[_Size2]) {
 				typedef mse::impl::remove_const_t<_Ty> _ncTy;
 				for (size_t i = 0; i < _Size2; i += 1) {
-					auto nc_ptr = const_cast<_ncTy*>(&((*this)[i]));
+					auto nc_ptr = const_cast<_ncTy*>(std::addressof((*this)[i]));
 					*nc_ptr = arr1[i];
 				}
 				for (size_t i = _Size2; i < _Size; i += 1) {
-					auto nc_ptr = const_cast<_ncTy*>(&((*this)[i]));
+					auto nc_ptr = const_cast<_ncTy*>(std::addressof((*this)[i]));
 					*nc_ptr = _Ty();
 				}
 			}
