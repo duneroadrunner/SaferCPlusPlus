@@ -507,12 +507,20 @@ namespace mse {
 			return make_string_vector_iterator(std::forward<Args>(args)...);
 		}
 
+		namespace impl {
+			template <class _Ty1, class _Ty2>
+			struct add_const_if_second_is_const : std::conditional<std::is_const<_Ty2>::value, std::add_const_t<_Ty1>, _Ty1> {};
+
+			template <class _Ty>
+			struct const_preserving_decay : add_const_if_second_is_const<mse::impl::decay_t<_Ty>, _Ty> {};
+			template <class _Ty> using const_preserving_decay_t = typename const_preserving_decay<_Ty>::type;
+		}
 
 		template <typename _udTy, size_t _Size>
-		class TNativeArrayReplacement : public mse::mstd::array<mse::impl::decay_t<_udTy>, _Size> {
+		class TNativeArrayReplacement : public mse::mstd::array<impl::const_preserving_decay_t<_udTy>, _Size> {
 		public:
-			typedef mse::mstd::array<mse::impl::decay_t<_udTy>, _Size> base_class;
-			typedef mse::impl::decay_t<_udTy> _Ty;
+			typedef mse::mstd::array<impl::const_preserving_decay_t<_udTy>, _Size> base_class;
+			typedef impl::const_preserving_decay_t<_udTy> _Ty;
 			using base_class::base_class;
 
 			/* Technically, this constructor should only be enabled for 'char' types to support initialization from string literals. */
