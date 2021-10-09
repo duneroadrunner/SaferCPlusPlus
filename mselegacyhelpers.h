@@ -181,6 +181,9 @@ namespace mse {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 			}
 
+			bool operator==(const TLHNullableAnyPointer& _Right_cref) const { return base_class::operator==(_Right_cref); }
+			bool operator!=(const TLHNullableAnyPointer& _Right_cref) const { return !((*this) == _Right_cref); }
+
 			bool operator==(const std::nullptr_t& _Right_cref) const { return base_class::operator==(_Right_cref); }
 			bool operator!=(const std::nullptr_t& _Right_cref) const { return !((*this) == _Right_cref); }
 			bool operator==(const NULL_t val) const {
@@ -263,7 +266,12 @@ namespace mse {
 			typedef mse::TNullableAnyRandomAccessIterator<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-			MSE_USING(TLHNullableAnyRandomAccessIterator, base_class);
+			//MSE_USING(TLHNullableAnyRandomAccessIterator, base_class);
+			TLHNullableAnyRandomAccessIterator() = default;
+			TLHNullableAnyRandomAccessIterator(const std::nullptr_t& src) : base_class() {}
+			//TLHNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
+			TLHNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
+
 			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator& src) = default;
 
 			TLHNullableAnyRandomAccessIterator(const NULL_t val) : base_class(std::nullptr_t()) {
@@ -274,6 +282,16 @@ namespace mse {
 			TLHNullableAnyRandomAccessIterator(TNativeArrayReplacement<_Ty2, _Size>& val) : base_class(val.begin()) {}
 			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value) || (std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
 			TLHNullableAnyRandomAccessIterator(const TNativeArrayReplacement<_Ty2, _Size>& val) : base_class(val.cbegin()) {}
+
+			template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
+				(!std::is_convertible<_TRandomAccessIterator1, TLHNullableAnyRandomAccessIterator>::value)
+				&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
+				&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
+				&& (!std::is_same<_TRandomAccessIterator1, NULL_t>::value)
+			> MSE_IMPL_EIS >
+			TLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(constructor_helper1(
+				typename HasOrInheritsPlusEqualsOperator<_TRandomAccessIterator1>::type(), random_access_iterator)) {
+			}
 
 			friend void swap(TLHNullableAnyRandomAccessIterator& first, TLHNullableAnyRandomAccessIterator& second) {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
@@ -298,6 +316,36 @@ namespace mse {
 			void async_not_shareable_and_not_passable_tag() const {}
 
 		private:
+
+			template<class T, class EqualTo>
+			struct HasOrInheritsPlusEqualsOperator_impl
+			{
+				template<class U, class V>
+				static auto test(U*) -> decltype(std::declval<U>() += 1, std::declval<V>() += 1, bool(true));
+				template<typename, typename>
+				static auto test(...)->std::false_type;
+
+				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			};
+			template<class T, class EqualTo = T>
+			struct HasOrInheritsPlusEqualsOperator : HasOrInheritsPlusEqualsOperator_impl<
+				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+			template <typename _TRandomAccessIterator1>
+			auto constructor_helper1(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
+				return random_access_iterator;
+			}
+			template <typename _TPointer1>
+			auto constructor_helper1(std::false_type, const _TPointer1& pointer1) {
+				/* For legacy compatibility we're going to support interpreting pointers as iterators to an array of size 1. */
+				auto lh_any_pointer1 = TLHNullableAnyPointer<_Ty>(pointer1);
+				/* mse::nii_array<_Ty, 1> has been designed to be "bit identical" to std::array<_Ty, 1> which should be
+				"bit identical" to _Ty[1] which should be "bit identical" to _Ty, so it should be safe reinterpret a
+				pointer to a _Ty as a pointer to a mse::nii_array<_Ty, 1>.*/
+				auto lh_any_pointer2 = *reinterpret_cast<const TLHNullableAnyPointer<mse::nii_array<_Ty, 1> >*>(std::addressof(lh_any_pointer1));
+				return mse::make_begin_iterator(lh_any_pointer2);
+			}
+
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
 

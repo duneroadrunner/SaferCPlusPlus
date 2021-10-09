@@ -1907,6 +1907,9 @@ void msetl_example2() {
 		/*  legacy helpers  */
 		/********************/
 
+		/* Safe elements and macros that can, as much as possible, act as one-to-one compatible replacements for (unsafe)
+		legacy C language elements. */
+
 		{
 			MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int) iptrwbv1 = MSE_LH_ALLOC_DYN_ARRAY1(MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(int), 2 * sizeof(int));
 			iptrwbv1[0] = 1;

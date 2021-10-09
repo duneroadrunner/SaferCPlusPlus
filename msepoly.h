@@ -2064,7 +2064,17 @@ namespace mse {
 			std::swap(first.m_is_null, second.m_is_null);
 		}
 
-		bool operator==(const std::nullptr_t& _Right_cref) const { return m_is_null; }
+		bool operator==(const TNullableAnyRandomAccessIterator& rhs) const {
+			if (rhs.m_is_null != (*this).m_is_null) {
+				return false;
+			}
+			else if ((*this).m_is_null) {
+				return true;
+			}
+			return base_class::operator==(rhs);
+		}
+		bool operator!=(const TNullableAnyRandomAccessIterator& rhs) const { return !((*this) == rhs); }
+
 		TNullableAnyRandomAccessIterator& operator=(const std::nullptr_t& _Right_cref) {
 			return operator=(TNullableAnyRandomAccessIterator());
 		}
@@ -2122,7 +2132,16 @@ namespace mse {
 			std::swap(first.m_is_null, second.m_is_null);
 		}
 
-		bool operator==(const std::nullptr_t& _Right_cref) const { return m_is_null; }
+		bool operator==(const TXScopeNullableAnyRandomAccessIterator& rhs) const {
+			if (rhs.m_is_null != (*this).m_is_null) {
+				return false;
+			}
+			else if ((*this).m_is_null) {
+				return true;
+			}
+			return base_class::operator==(rhs);
+		}
+		bool operator!=(const TXScopeNullableAnyRandomAccessIterator& rhs) const { return !((*this) == rhs); }
 
 		explicit operator bool() const {
 			return (!m_is_null);
@@ -2165,7 +2184,7 @@ namespace mse {
 			(!std::is_convertible<_TPointer1, TNullableAnyPointer>::value)
 			&& (!std::is_base_of<base_class, _TPointer1>::value)
 			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
-			//&& (!std::is_convertible<_TPointer1, int>::value)
+			//&& (!std::is_convertible<_TPointer1, decltype(NULL)>::value)
 			> MSE_IMPL_EIS >
 		TNullableAnyPointer(const _TPointer1& random_access_iterator) : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
@@ -2176,8 +2195,6 @@ namespace mse {
 			std::swap(first.m_is_null, second.m_is_null);
 		}
 
-		bool operator==(const std::nullptr_t& _Right_cref) const { return m_is_null; }
-		bool operator!=(const std::nullptr_t& _Right_cref) const { return !((*this) == _Right_cref); }
 		TNullableAnyPointer& operator=(const std::nullptr_t& _Right_cref) {
 			return operator=(TNullableAnyPointer());
 		}
@@ -2185,6 +2202,17 @@ namespace mse {
 			swap(*this, _Right);
 			return (*this);
 		}
+
+		bool operator==(const TNullableAnyPointer& rhs) const {
+			if (rhs.m_is_null != (*this).m_is_null) {
+				return false;
+			}
+			else if ((*this).m_is_null) {
+				return true;
+			}
+			return base_class::operator==(rhs);
+		}
+		bool operator!=(const TNullableAnyPointer& rhs) const { return !((*this) == rhs); }
 
 		operator bool() const {
 			return (!m_is_null);
@@ -2236,8 +2264,16 @@ namespace mse {
 			std::swap(first.m_is_null, second.m_is_null);
 		}
 
-		bool operator==(const std::nullptr_t& _Right_cref) const { return m_is_null; }
-		bool operator!=(const std::nullptr_t& _Right_cref) const { return !((*this) == _Right_cref); }
+		bool operator==(const TXScopeNullableAnyPointer& rhs) const {
+			if (rhs.m_is_null != (*this).m_is_null) {
+				return false;
+			}
+			else if ((*this).m_is_null) {
+				return true;
+			}
+			return base_class::operator==(rhs);
+		}
+		bool operator!=(const TXScopeNullableAnyPointer& rhs) const { return !((*this) == rhs); }
 
 		operator bool() const {
 			return (!m_is_null);
