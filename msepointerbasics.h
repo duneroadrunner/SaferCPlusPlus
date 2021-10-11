@@ -92,7 +92,9 @@ MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
 #else // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #ifdef NDEBUG
 /* By default we make scope pointers simply an alias for native pointers in non-debug builds. */
+#ifndef MSE_SCOPEPOINTER_DISABLED
 #define MSE_SCOPEPOINTER_DISABLED
+#endif // !MSE_SCOPEPOINTER_DISABLED
 #endif // NDEBUG
 #endif // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 
