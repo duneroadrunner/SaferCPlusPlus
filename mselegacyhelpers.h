@@ -269,7 +269,7 @@ namespace mse {
 			//MSE_USING(TLHNullableAnyRandomAccessIterator, base_class);
 			TLHNullableAnyRandomAccessIterator() = default;
 			TLHNullableAnyRandomAccessIterator(const std::nullptr_t& src) : base_class() {}
-			//TLHNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
+			TLHNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
 			TLHNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
 
 			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator& src) = default;
@@ -571,6 +571,7 @@ namespace mse {
 			typedef impl::const_preserving_decay_t<_udTy> _Ty;
 			using base_class::base_class;
 
+			TNativeArrayReplacement() {}
 			/* Technically, this constructor should only be enabled for 'char' types to support initialization from string literals. */
 			template <size_t _Size2, MSE_IMPL_EIP mse::impl::enable_if_t<(_Size2 <= _Size)> MSE_IMPL_EIS >
 			TNativeArrayReplacement(_Ty const (&arr1)[_Size2]) {

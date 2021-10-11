@@ -729,17 +729,16 @@ namespace mse {
 	namespace impl {
 		template<class _Ty>
 		class random_access_iterator_base {
-			typedef std::array<_Ty, 0> standard_t;
 		public:
 			using iterator_category = std::random_access_iterator_tag;
-			using value_type = typename standard_t::value_type;
-			//using difference_type = typename standard_t::difference_type;
+			using value_type = _Ty;
+			//using size_type = size_t;
+			//using difference_type = ptrdiff_t;
 			typedef msear_int difference_type;
-			using pointer = typename standard_t::pointer;
-			using reference = typename standard_t::reference;
-			using const_pointer = typename standard_t::const_pointer;
-			using const_reference = typename standard_t::const_reference;
-			//using size_type = typename standard_t::size_type;
+			using pointer = _Ty*;
+			using const_pointer = const _Ty*;
+			using reference = _Ty&;
+			using const_reference = const _Ty&;
 			typedef msear_size_t size_type;
 		};
 		template<class _Ty>
