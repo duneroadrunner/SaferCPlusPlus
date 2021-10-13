@@ -411,7 +411,11 @@ namespace mse {
 					(*m_msevector_cshptr).assert_parent_not_destroyed();
 					return msevector_ss_const_iterator_type().operator->();
 				}
-				typename _MV::const_reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
+				typename _MV::const_reference operator[](typename _MV::difference_type _Off) const {
+					(*m_msevector_cshptr).assert_parent_not_destroyed();
+					return msevector_ss_const_iterator_type().operator[](_Off);
+					//return (*(*this + _Off));
+				}
 				bool operator==(const const_iterator& _Right_cref) const { return msevector_ss_const_iterator_type().operator==(_Right_cref.msevector_ss_const_iterator_type()); }
 				bool operator!=(const const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const const_iterator& _Right) const { return (msevector_ss_const_iterator_type() < _Right.msevector_ss_const_iterator_type()); }
@@ -469,7 +473,11 @@ namespace mse {
 					(*m_msevector_shptr).assert_parent_not_destroyed();
 					return msevector_ss_iterator_type().operator->();
 				}
-				typename _MV::reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
+				typename _MV::reference operator[](typename _MV::difference_type _Off) const {
+					(*m_msevector_shptr).assert_parent_not_destroyed();
+					return msevector_ss_iterator_type().operator[](_Off);
+					//return (*(*this + _Off));
+				}
 
 				void reset() { msevector_ss_iterator_type().reset(); }
 				bool points_to_an_item() const { return msevector_ss_iterator_type().points_to_an_item(); }

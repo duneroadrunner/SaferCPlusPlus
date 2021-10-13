@@ -1172,7 +1172,7 @@ namespace mse {
 				TAnyRandomAccessIteratorBase(_Ty arr[]) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _Ty*>(arr)) {}
 
 				template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIteratorBase>::value> MSE_IMPL_EIS >
-				TAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _TRandomAccessIterator1>(random_access_iterator)) {}
+				TAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_any_random_access_iterator(constructor_helper1(typename std::is_base_of< TAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, _TRandomAccessIterator1>::type(), random_access_iterator)) {}
 
 				friend void swap(TAnyRandomAccessIteratorBase& first, TAnyRandomAccessIteratorBase& second) {
 					std::swap(first.m_any_random_access_iterator, second.m_any_random_access_iterator);
@@ -1212,6 +1212,15 @@ namespace mse {
 
 			protected:
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+				template <typename _TRandomAccessIterator1>
+				auto& constructor_helper1(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
+					return reinterpret_cast<const TAnyRandomAccessIteratorBase&>(random_access_iterator).m_any_random_access_iterator;
+				}
+				template <typename _TRandomAccessIterator1>
+				auto constructor_helper1(std::false_type, const _TRandomAccessIterator1& random_access_iterator) {
+					return TCommonizedRandomAccessIterator<_Ty, _TRandomAccessIterator1>(random_access_iterator);
+				}
 
 				TCommonRandomAccessIteratorInterface<_Ty>* common_random_access_iterator_interface_ptr() {
 					auto retval = static_cast<TCommonRandomAccessIteratorInterface<_Ty>*>(m_any_random_access_iterator.storage_address());
@@ -1298,7 +1307,7 @@ namespace mse {
 				TAnyRandomAccessConstIteratorBase(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
 
 				template <typename _TRandomAccessConstIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIteratorBase>::value> MSE_IMPL_EIS >
-				TAnyRandomAccessConstIteratorBase(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, _TRandomAccessConstIterator1>(random_access_const_iterator)) {}
+				TAnyRandomAccessConstIteratorBase(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_any_random_access_const_iterator(constructor_helper1(typename std::is_base_of< TAnyRandomAccessConstIteratorBase<mse::impl::remove_const_t<_Ty> >, _TRandomAccessConstIterator1>::type(), random_access_const_iterator)) {}
 
 				friend void swap(TAnyRandomAccessConstIteratorBase& first, TAnyRandomAccessConstIteratorBase& second) {
 					std::swap(first.m_any_random_access_const_iterator, second.m_any_random_access_const_iterator);
@@ -1338,6 +1347,15 @@ namespace mse {
 
 			protected:
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+				template <typename _TRandomAccessConstIterator1>
+				auto& constructor_helper1(std::true_type, const _TRandomAccessConstIterator1& random_access_const_iterator) {
+					return reinterpret_cast<const TAnyRandomAccessConstIteratorBase&>(random_access_const_iterator).m_any_random_access_const_iterator;
+				}
+				template <typename _TRandomAccessConstIterator1>
+				auto constructor_helper1(std::false_type, const _TRandomAccessConstIterator1& random_access_const_iterator) {
+					return TCommonizedRandomAccessConstIterator<_Ty, _TRandomAccessConstIterator1>(random_access_const_iterator);
+				}
 
 				TCommonRandomAccessConstIteratorInterface<_Ty>* common_random_access_const_iterator_interface_ptr() {
 					auto retval = static_cast<TCommonRandomAccessConstIteratorInterface<_Ty>*>(m_any_random_access_const_iterator.storage_address());

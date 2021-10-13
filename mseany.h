@@ -201,7 +201,13 @@ namespace mse
 
 		union storage_union
 		{
-			using stack_storage_t = typename std::aligned_storage<2 * sizeof(void*), std::alignment_of<void*>::value>::type;
+#ifdef MSE_DISABLE_SOO_EXTENSIONS1
+#define MSE_IMPL_ANY_SOO_SIZE_FACTOR	1
+#else // MSE_DISABLE_SOO_EXTENSIONS1
+#define MSE_IMPL_ANY_SOO_SIZE_FACTOR	4
+#endif // MSE_DISABLE_SOO_EXTENSIONS1
+
+			using stack_storage_t = typename std::aligned_storage<MSE_IMPL_ANY_SOO_SIZE_FACTOR * 2 * sizeof(void*), std::alignment_of<void*>::value>::type;
 
 			void*               dynamic;
 			stack_storage_t     stack;      // 2 words for e.g. shared_ptr
@@ -321,11 +327,33 @@ namespace mse
 			}
 		};
 
+		template<class T, class EqualTo>
+		struct SupportsStdSwap_impl
+		{
+			template<class U, class V>
+			static auto test(U* u) -> decltype(std::swap(*u, *u), std::declval<V>(), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+		};
+		template<class T, class EqualTo = T>
+		struct SupportsStdSwap : SupportsStdSwap_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
 		/// Whether the type T must be dynamically allocated or can be stored on the stack.
 		template<typename T>
 		struct requires_allocation :
 			std::integral_constant<bool,
-			!(std::is_nothrow_move_constructible<T>::value      // N4562 ?6.3/3 [any.class]
+			!(
+#ifdef MSE_DISABLE_SOO_EXTENSIONS1
+				std::is_nothrow_move_constructible<T>::value      // N4562 ?6.3/3 [any.class]
+#else // MSE_DISABLE_SOO_EXTENSIONS1
+				SupportsStdSwap<T>::value
+				&& std::is_move_constructible<T>::value
+				&& (std::is_move_assignable<T>::value || std::is_copy_assignable<T>::value)
+#endif // MSE_DISABLE_SOO_EXTENSIONS1
 				&& sizeof(T) <= sizeof(storage_union::stack)
 				&& std::alignment_of<T>::value <= std::alignment_of<storage_union::stack_storage_t>::value)>
 		{};

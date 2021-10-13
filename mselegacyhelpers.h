@@ -267,12 +267,12 @@ namespace mse {
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			//MSE_USING(TLHNullableAnyRandomAccessIterator, base_class);
-			TLHNullableAnyRandomAccessIterator() = default;
+			TLHNullableAnyRandomAccessIterator() : base_class() {}
 			TLHNullableAnyRandomAccessIterator(const std::nullptr_t& src) : base_class() {}
 			TLHNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
 			TLHNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
 
-			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator& src) = default;
+			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator& src) : base_class(src) {}
 
 			TLHNullableAnyRandomAccessIterator(const NULL_t val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer/iterator value. */
