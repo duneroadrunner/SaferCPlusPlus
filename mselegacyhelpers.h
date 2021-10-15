@@ -8,10 +8,6 @@
 #ifndef MSELEGACYHELPERS_H_
 #define MSELEGACYHELPERS_H_
 
-#if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_MSTDARRAY_DISABLED)
-#define MSE_LEGACYHELPERS_DISABLED
-#endif /*defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_MSTDARRAY_DISABLED)*/
-
 #ifndef MSE_LEGACYHELPERS_DISABLED
 #include "msepoly.h"
 #include "msefunctional.h"
@@ -43,7 +39,9 @@
 #define MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) (
 #define MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size) )[size]
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
+#define MSE_UNSAFE_LH_LARGE_FIXED_ARRAY_INITIALIZER_HELPER(element_type, size) 
 #define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) element_type *
+#define MSE_LH_ADDRESS_OF_ARRAY_ELEMENT(array1, index) (&(array1[index]))
 
 #define MSE_LH_ALLOC_POINTER1(element_type) (element_type *)malloc(sizeof(element_type))
 #define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) (iterator_type)malloc(num_bytes)
@@ -99,8 +97,9 @@
 #define MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size) 
 #define MSE_LH_FIXED_ARRAY_DECLARATION(element_type, size, name) MSE_LH_FIXED_ARRAY_TYPE_PREFIX element_type MSE_LH_FIXED_ARRAY_TYPE_SUFFIX(size) name MSE_LH_FIXED_ARRAY_TYPE_POST_NAME_SUFFIX(size)
 #define MSE_LH_DYNAMIC_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TStrongVectorIterator< element_type >
+#define MSE_LH_ADDRESS_OF_ARRAY_ELEMENT(array1, index) mse::lh::address_of_array_element_replacement(array1, index)
 
-#define MSE_LH_ALLOC_POINTER1(element_type) mse::lh::allocate<mse::TNullableAnyPointer<element_type> >()
+#define MSE_LH_ALLOC_POINTER1(element_type) mse::lh::allocate<mse::lh::TLHNullableAnyPointer<element_type> >()
 #define MSE_LH_ALLOC_DYN_ARRAY1(iterator_type, num_bytes) mse::lh::allocate_dyn_array1<iterator_type>(num_bytes)
 #define MSE_LH_REALLOC(element_type, ptr, num_bytes) mse::lh::reallocate(ptr, num_bytes)
 #define MSE_LH_FREE(ptr) mse::lh::free(ptr)
@@ -154,6 +153,156 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 
 #define MSE_LH_IF_ENABLED(x) x
 #define MSE_LH_IF_DISABLED(x)
+
+#ifdef MSE_SAFER_SUBSTITUTES_DISABLED
+
+namespace mse {
+	namespace lh {
+		typedef decltype(NULL) NULL_t;
+
+		template <typename _udTy, size_t _Size>
+		using TNativeArrayReplacement = _udTy[_Size];
+
+#define MSE_UNSAFE_LH_LARGE_FIXED_ARRAY_INITIALIZER_HELPER(element_type, size) 
+
+		template <typename _Ty>
+		using TLHNullableAnyPointer = _Ty*;
+
+		template <typename _Ty>
+		using TXScopeLHNullableAnyPointer = _Ty*;
+
+		template <typename _Ty>
+		using TLHNullableAnyRandomAccessIterator = _Ty*;
+
+		template <typename _Ty>
+		using TXScopeLHNullableAnyRandomAccessIterator = _Ty*;
+
+		template <typename _Ty>
+		using TStrongVectorIterator = _Ty*;
+
+		template <class X, class... Args>
+		TStrongVectorIterator<X> make_strong_vector_iterator(Args&&... args) {
+			return TStrongVectorIterator<X>(std::forward<Args>(args)...);
+		}
+
+		template <typename _Ty>
+		using TXScopeStrongVectorIterator = _Ty*;
+
+		template <class X, class... Args>
+		TXScopeStrongVectorIterator<X> make_xscope_strong_vector_iterator(Args&&... args) {
+			return TXScopeStrongVectorIterator<X>(std::forward<Args>(args)...);
+		}
+
+		/* TXScopeStrongVectorIterator<> does not directly convert to mse::rsv::TFParam<mse::TXScopeCSSSXSTERandomAccessIterator<> >.
+		But the following function can be used to obtain a "locking" scope iterator that does. */
+		template <class X>
+		auto make_xscope_locking_vector_iterator(const TXScopeStrongVectorIterator<X>& xs_strong_iter) {
+			return xs_strong_iter;
+		}
+		template <class X>
+		auto make_xscope_locking_vector_iterator(TXScopeStrongVectorIterator<X>&& xs_strong_iter) = delete;
+
+		template <class TArray, class TIndex>
+		auto address_of_array_element_replacement(TArray& array1, TIndex index) {
+			return &(array1[index]);
+		}
+
+		template<class _Fty>
+		using TNativeFunctionPointerReplacement = _Fty*;
+
+		namespace impl {
+			template<class _TPtr>
+			class CAllocF {
+			public:
+				static void free(_TPtr& ptr) {
+					::free(ptr);
+				}
+				static void allocate(_TPtr& ptr, size_t num_bytes) {
+					ptr = _TPtr(::malloc(num_bytes));
+				}
+				static void reallocate(_TPtr& ptr, size_t num_bytes) {
+					ptr = _TPtr(::realloc(ptr, num_bytes));
+				}
+			};
+		}
+
+		template<class _TPointer>
+		_TPointer allocate() {
+			_TPointer ptr;
+			auto num_bytes = sizeof(decltype(*ptr));
+			ptr = _TPointer(::malloc(num_bytes));
+			return ptr;
+		}
+		template<class _TDynArrayIter>
+		_TDynArrayIter allocate_dyn_array1(size_t num_bytes) {
+			_TDynArrayIter ptr;
+			ptr = _TDynArrayIter(::malloc(num_bytes));
+			return ptr;
+		}
+		template<class _TDynArrayIter>
+		_TDynArrayIter reallocate(const _TDynArrayIter& ptr2, size_t num_bytes) {
+			_TDynArrayIter ptr = ptr2;
+			ptr = _TDynArrayIter(::realloc(ptr2, num_bytes));
+			return ptr;
+		}
+		template<class _TDynArrayIter>
+		_TDynArrayIter allocate(_TDynArrayIter& ptr, size_t num_bytes) {
+			ptr = _TDynArrayIter(::malloc(num_bytes));
+			return ptr;
+		}
+		template<class _TDynArrayIter>
+		void free(_TDynArrayIter& ptr) {
+			::free(ptr);
+		}
+
+		template<class _TIter>
+		size_t fread(_TIter ptr, size_t size, size_t count, FILE* stream) {
+			return ::fread(ptr, size, count, stream);
+		}
+		template<class _TIter>
+		size_t fwrite(_TIter ptr, size_t size, size_t count, FILE* stream) {
+			return ::fwrite(ptr, size, count, stream);
+		}
+
+		template<class _TIter, class _TIter2>
+		_TIter memcpy(_TIter destination, _TIter2 source, size_t num_bytes) {
+			return _TIter(::memcpy(destination, source, num_bytes));
+		}
+		template<class _TIter, class _TIter2>
+		int memcmp(_TIter destination, _TIter2 source, size_t num_bytes) {
+			return ::memcmp(destination, source, num_bytes);
+		}
+		template<class _TIter>
+		void memset(_TIter iter, int value, size_t num_bytes) {
+			::memset(iter, value, num_bytes);
+		}
+	}
+	namespace us {
+		namespace lh {
+			template<typename _Ty, typename _Ty2>
+			_Ty unsafe_cast(const _Ty2& x) {
+				return (_Ty)(x);
+			}
+
+			template<typename _Ty>
+			auto make_raw_pointer_from(_Ty&& ptr) {
+				return ptr;
+			}
+			template<typename _Ty>
+			auto make_raw_pointer_from(_Ty& ptr) {
+				return ptr;
+			}
+		}
+	}
+
+	namespace lh {
+
+		/* todo: make distinct xscope and non-xscope versions */
+		typedef void* void_star_replacement;
+	}
+}
+
+#else // MSE_SAFER_SUBSTITUTES_DISABLED
 
 namespace mse {
 	namespace lh {
@@ -385,27 +534,36 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
 
+		template <typename _Ty>
+		using TStrongTargetVector = 
+#ifndef MSE_LEGACYHELPERS_DISABLED
+			mse::stnii_vector<_Ty>
+#else //MSE_LEGACYHELPERS_DISABLED
+			std::vector<_Ty>
+#endif //MSE_LEGACYHELPERS_DISABLED
+			;
+
 		/* This data type was motivated by the need for a direct substitute for native pointers targeting dynamically
 		allocated (native) arrays, which can kind of play a dual role as a reference to the array object and/or as an
 		iterator. */
 		template <typename _Ty>
-		class TStrongVectorIterator : public mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> {
+		class TStrongVectorIterator : public mse::TRAIterator<mse::TRefCountingPointer<TStrongTargetVector<_Ty> > > {
 		public:
-			typedef mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> base_class;
+			typedef mse::TRAIterator<mse::TRefCountingPointer<TStrongTargetVector<_Ty> > > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			TStrongVectorIterator() = default;
 			TStrongVectorIterator(const std::nullptr_t& src) : TStrongVectorIterator() {}
 			TStrongVectorIterator(const TStrongVectorIterator& src) = default;
 			TStrongVectorIterator(TStrongVectorIterator&& src) = default;
-			TStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_Ilist), 0) {}
+			TStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_Ilist), 0) {}
 			TStrongVectorIterator(const base_class& src) : base_class(src) {}
-			TStrongVectorIterator(const mse::TXScopeRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>>& src) : base_class(src) {}
-			explicit TStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N), 0) {}
-			explicit TStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N, _V), 0) {}
+			TStrongVectorIterator(const mse::TXScopeRAIterator<mse::TRefCountingPointer<TStrongTargetVector<_Ty>>>& src) : base_class(src) {}
+			explicit TStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N), 0) {}
+			explicit TStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N, _V), 0) {}
 			/*
 			template <class... Args>
-			TStrongVectorIterator(Args&&... args) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(std::forward<Args>(args)...), 0) {}
+			TStrongVectorIterator(Args&&... args) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(std::forward<Args>(args)...), 0) {}
 			*/
 
 			size_type size() const {
@@ -418,7 +576,7 @@ namespace mse {
 			}
 			void resize(size_type _N, const _Ty& _X = _Ty()) {
 				if (!vector_refcptr()) {
-					base_class::operator=(base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(), 0));
+					base_class::operator=(base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(), 0));
 				}
 
 				//auto old_size = size();
@@ -547,6 +705,11 @@ namespace mse {
 		template <class X>
 		auto make_xscope_locking_vector_iterator(TXScopeStrongVectorIterator<X>&& xs_strong_iter) = delete;
 
+		template <class TArray, class TIndex>
+		auto address_of_array_element_replacement(TArray& array1, TIndex index) {
+			return TLHNullableAnyRandomAccessIterator<mse::impl::remove_reference_t<decltype(*(std::begin(array1) + index))> >(std::begin(array1) + index);
+		}
+
 		/* deprecated aliases */
 		template <typename _Ty>
 		using TIPointerWithBundledVector = TStrongVectorIterator<_Ty>;
@@ -621,9 +784,12 @@ namespace mse {
 
 #ifdef MSE_LEGACYHELPERS_DISABLED
 			TNativeArrayReplacement(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::nii_array<_Ty, _Size>(_Ilist)) {}
+			TNativeArrayReplacement(const base_class& x) : base_class(x) {}
 #endif // MSE_LEGACYHELPERS_DISABLED
 
 		};
+
+#define MSE_UNSAFE_LH_LARGE_FIXED_ARRAY_INITIALIZER_HELPER(element_type, size)  std::array<element_type, size>
 
 		template<class _Fty>
 		class TNativeFunctionPointerReplacement : public mse::mstd::function<_Fty> {
@@ -1245,6 +1411,8 @@ namespace mse {
 		};
 	}
 }
+
+#endif // MSE_SAFER_SUBSTITUTES_DISABLED
 
 #endif /*MSE_LEGACYHELPERS_DISABLED*/
 
