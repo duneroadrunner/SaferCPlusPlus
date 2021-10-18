@@ -168,6 +168,23 @@ namespace mse {
 	namespace impl {
 		template<class... _Types> using void_t = void;
 
+		template<class T, class EqualTo>
+		struct SupportsPreIncrement_msemsevector_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype((++std::declval<U>()), (++std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+		};
+		template<>
+		struct SupportsPreIncrement_msemsevector_impl<void*, void*> : std::false_type {};
+		template<class T, class EqualTo = T>
+		struct SupportsPreIncrement_msemsevector : SupportsPreIncrement_msemsevector_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
 		template<class _Iter>
 		using _mse_Iter_cat_t = typename std::iterator_traits<_Iter>::iterator_category;
 		template<class _Ty, class = void>
@@ -176,7 +193,8 @@ namespace mse {
 		MSE_INLINE_VAR MSE_CONSTEXPR bool _mse_Is_iterator_v<_Ty, void_t<_mse_Iter_cat_t<_Ty> > > = true;
 
 		template<class _Iter>
-		struct _mse_Is_iterator : public std::integral_constant<bool, !std::is_integral<_Iter>::value>
+		struct _mse_Is_iterator : public std::integral_constant<bool, /*(!std::is_integral<_Iter>::value) && */
+				mse::impl::IsDereferenceable_msemsearray<_Iter>::value && mse::impl::SupportsPreIncrement_msemsevector<_Iter>::value>
 		{	// tests for reasonable iterator candidate
 		};
 
@@ -1801,6 +1819,11 @@ namespace mse {
 					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr);
 					retval.set_to_beginning();
 					return retval;
+				}
+
+				template<typename _TVectorPointer>
+				static auto data(const _TVectorPointer& owner_ptr) {
+					return ss_begin(owner_ptr);
 				}
 
 				template<typename _TVectorPointer>

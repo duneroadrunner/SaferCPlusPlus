@@ -561,6 +561,7 @@ namespace mse {
 			static auto test(...)->std::false_type;
 
 			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
 		};
 		template<>
 		struct IsDereferenceable_msemsearray_impl<void*, void*> : std::false_type {};
@@ -3069,6 +3070,11 @@ namespace mse {
 					return_type retval(owner_ptr);
 					retval.set_to_beginning();
 					return retval;
+				}
+
+				template<typename _TArrayPointer>
+				static auto data(const _TArrayPointer& owner_ptr) {
+					return ss_begin(owner_ptr);
 				}
 
 				template<typename _TArrayPointer>

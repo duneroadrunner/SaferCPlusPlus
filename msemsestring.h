@@ -3932,6 +3932,11 @@ namespace mse {
 
 				const_reference at(msev_size_t _Pos) const
 				{	// subscript nonmutable sequence with checking
+					if (contained_basic_string().size() == _Pos) {
+						/* For now we're allowing const access to the terminating null just for convenience in implementing
+						a (memory safe) c_str() method.*/
+						return *(contained_basic_string().c_str() + contained_basic_string().size());
+					}
 					return contained_basic_string().at(msev_as_a_size_t(_Pos));
 				}
 
@@ -4221,6 +4226,15 @@ namespace mse {
 					Tss_const_iterator_type<_TBasicStringPointer> retval(owner_ptr);
 					retval.set_to_beginning();
 					return retval;
+				}
+
+				template<typename _TBasicStringPointer>
+				static auto data(const _TBasicStringPointer& owner_ptr) {
+					return ss_begin(owner_ptr);
+				}
+				template<typename _TBasicStringPointer>
+				static auto c_str(const _TBasicStringPointer& owner_ptr) {
+					return ss_cbegin(owner_ptr);
 				}
 
 				template<typename _TBasicStringPointer>

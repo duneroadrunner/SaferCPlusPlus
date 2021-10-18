@@ -324,6 +324,20 @@ namespace mse {
 			basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, npos, _Al)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, _Count, _Al)) {}
 
+			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
+			basic_string(_Iter iter_of_null_terminated) : basic_string(string_from_iter_of_null_terminated(iter_of_null_terminated)) {}
+			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
+			static auto string_from_iter_of_null_terminated(_Iter iter_of_null_terminated) {
+				_MBS str1;
+				auto ch = *iter_of_null_terminated;
+				while ('\0' != ch) {
+					str1.push_back(ch);
+					++iter_of_null_terminated;
+					ch = *iter_of_null_terminated;
+				}
+				return std::move(str1);
+			}
+
 			basic_string(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr) : m_shptr(std::make_shared<_MBS>(xs_ptr->msebasic_string())) {}
 			basic_string(const mse::TXScopeFixedConstPointer<_MBS>& xs_ptr) : m_shptr(std::make_shared<_MBS>(*xs_ptr)) {}
 			basic_string(const mse::TXScopeFixedConstPointer<mse::nii_basic_string<_Ty, _Traits> >& xs_ptr) : m_shptr(std::make_shared<_MBS>(*xs_ptr)) {}
@@ -332,7 +346,8 @@ namespace mse {
 			basic_string(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(xs_ptr->msebasic_string(), _Roff, _Count, _Al)) {}
 
 #ifdef MSE_HAS_CXX17
-			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
+			template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t</*_Is_string_view_or_section_ish<_TParam1>::value && */
+				(!mse::impl::_mse_Is_iterator<_TParam1>::value)> MSE_IMPL_EIS >
 			basic_string(const _TParam1& _Right) : m_shptr(std::make_shared<_MBS>()) { assign(_Right); }
 
 			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
@@ -474,6 +489,9 @@ namespace mse {
 				return m_shptr->data();
 			}
 			const value_type *data() const _NOEXCEPT {
+				return m_shptr->data();
+			}
+			auto c_str() const _NOEXCEPT {
 				return m_shptr->data();
 			}
 
