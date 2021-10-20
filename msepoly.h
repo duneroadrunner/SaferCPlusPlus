@@ -2204,7 +2204,7 @@ namespace mse {
 			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TPointer1, decltype(NULL)>::value)
 			> MSE_IMPL_EIS >
-		TNullableAnyPointer(const _TPointer1& random_access_iterator) : base_class(random_access_iterator) {
+		TNullableAnyPointer(const _TPointer1& pointer) : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
 
