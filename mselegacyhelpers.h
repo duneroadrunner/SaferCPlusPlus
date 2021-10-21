@@ -672,6 +672,15 @@ namespace mse {
 			TStrongVectorIterator(const mse::TXScopeRAIterator<mse::TRefCountingPointer<TStrongTargetVector<_Ty>>>& src) : base_class(src) {}
 			explicit TStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N), 0) {}
 			explicit TStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N, _V), 0) {}
+			TStrongVectorIterator(const NULL_t val) : TStrongVectorIterator() {
+				/* This constructor is just to support zero being used as a null pointer/iterator value. */
+				assert(0 == val);
+			}
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+			TStrongVectorIterator(_Ty2 val) : TStrongVectorIterator() {
+				/* This constructor is just to support zero being used as a null pointer value. */
+				assert(0 == val);
+			}
 			/*
 			template <class... Args>
 			TStrongVectorIterator(Args&&... args) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(std::forward<Args>(args)...), 0) {}
@@ -702,9 +711,13 @@ namespace mse {
 				*/
 			}
 
-			TStrongVectorIterator& operator=(const std::nullptr_t& _Right_cref) {
-				return operator=(TStrongVectorIterator());
-			}
+			bool operator==(const TStrongVectorIterator& _Right_cref) const { return base_class::operator==(_Right_cref); }
+			bool operator!=(const TStrongVectorIterator& _Right_cref) const { return !((*this) == _Right_cref); }
+			template <typename _Ty2>
+			bool operator==(const _Ty2& _Right_cref) const { return operator==(TStrongVectorIterator(_Right_cref)); }
+			template <typename _Ty2>
+			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TStrongVectorIterator(_Right_cref)); }
+
 			TStrongVectorIterator& operator=(const TStrongVectorIterator& _Right_cref) {
 				base_class::operator=(_Right_cref);
 				return(*this);
@@ -726,6 +739,15 @@ namespace mse {
 			auto vector_refcptr() const { return (*this).target_container_ptr(); }
 		};
 
+		template <typename _Ty>
+		bool operator==(const NULL_t lhs, const TStrongVectorIterator<_Ty>& rhs) { return rhs == lhs; }
+		template <typename _Ty>
+		bool operator!=(const NULL_t lhs, const TStrongVectorIterator<_Ty>& rhs) { return rhs != lhs; }
+		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+		bool operator==(const _Ty2 lhs, const TStrongVectorIterator<_Ty>& rhs) { return rhs == lhs; }
+		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+		bool operator!=(const _Ty2 lhs, const TStrongVectorIterator<_Ty>& rhs) { return rhs != lhs; }
+
 		template <class X, class... Args>
 		TStrongVectorIterator<X> make_strong_vector_iterator(Args&&... args) {
 			return TStrongVectorIterator<X>::make(std::forward<Args>(args)...);
@@ -746,6 +768,15 @@ namespace mse {
 			TXScopeStrongVectorIterator(const mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>>& src) : base_class(src) {}
 			explicit TXScopeStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N), 0) {}
 			explicit TXScopeStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N, _V), 0) {}
+			TXScopeStrongVectorIterator(const NULL_t val) : TXScopeStrongVectorIterator() {
+				/* This constructor is just to support zero being used as a null pointer/iterator value. */
+				assert(0 == val);
+			}
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+			TXScopeStrongVectorIterator(_Ty2 val) : TXScopeStrongVectorIterator() {
+				/* This constructor is just to support zero being used as a null pointer value. */
+				assert(0 == val);
+			}
 			/*
 			template <class... Args>
 			TXScopeStrongVectorIterator(Args&&... args) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(std::forward<Args>(args)...), 0) {}
@@ -776,9 +807,13 @@ namespace mse {
 				*/
 			}
 
-			TXScopeStrongVectorIterator& operator=(const std::nullptr_t& _Right_cref) {
-				return operator=(TXScopeStrongVectorIterator());
-			}
+			bool operator==(const TXScopeStrongVectorIterator& _Right_cref) const { return base_class::operator==(_Right_cref); }
+			bool operator!=(const TXScopeStrongVectorIterator& _Right_cref) const { return !((*this) == _Right_cref); }
+			template <typename _Ty2>
+			bool operator==(const _Ty2& _Right_cref) const { return operator==(TXScopeStrongVectorIterator(_Right_cref)); }
+			template <typename _Ty2>
+			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TXScopeStrongVectorIterator(_Right_cref)); }
+
 			TXScopeStrongVectorIterator& operator=(const TXScopeStrongVectorIterator& _Right_cref) {
 				base_class::operator=(_Right_cref);
 				return(*this);
@@ -799,6 +834,15 @@ namespace mse {
 			auto vector_refcptr() { return (*this).target_container_ptr(); }
 			auto vector_refcptr() const { return (*this).target_container_ptr(); }
 		};
+
+		template <typename _Ty>
+		bool operator==(const NULL_t lhs, const TXScopeStrongVectorIterator<_Ty>& rhs) { return rhs == lhs; }
+		template <typename _Ty>
+		bool operator!=(const NULL_t lhs, const TXScopeStrongVectorIterator<_Ty>& rhs) { return rhs != lhs; }
+		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+		bool operator==(const _Ty2 lhs, const TXScopeStrongVectorIterator<_Ty>& rhs) { return rhs == lhs; }
+		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+		bool operator!=(const _Ty2 lhs, const TXScopeStrongVectorIterator<_Ty>& rhs) { return rhs != lhs; }
 
 		template <class X, class... Args>
 		TXScopeStrongVectorIterator<X> make_xscope_strong_vector_iterator(Args&&... args) {
