@@ -530,8 +530,34 @@ namespace mse {
 		private:
 
 			template <typename _TRandomAccessIterator1>
-			static auto constructor_helper1(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
+			static auto constructor_helper2(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
+				/* The element type of this iterator and the element type of the random_access_iterator parameter are both
+				intergral types of the same size, but not the same type. (Generally, one is signed and the other is
+				not/un-signed.) Here we allow the "reinterpretation" of random_access_iterator as being an iterator that
+				points to elements of type _Ty. This is technically not "type safe", but it doesn't really compromise
+				"memory safety". At some point we may want to make it so that this functionality is only accessible by the
+				unsafe_cast<>() function. */
+				typedef mse::impl::remove_reference_t<decltype(*random_access_iterator)> _Ty2;
+				auto temp = TLHNullableAnyRandomAccessIterator<_Ty2>(random_access_iterator);
+				return reinterpret_cast<TLHNullableAnyRandomAccessIterator&>(temp);
+			}
+			template <typename _TRandomAccessIterator1>
+			static auto constructor_helper2(std::false_type, const _TRandomAccessIterator1& random_access_iterator) {
 				return random_access_iterator;
+			}
+
+			template <typename _TRandomAccessIterator1>
+			static auto constructor_helper1(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
+				typedef mse::impl::remove_reference_t<decltype(*random_access_iterator)> _Ty2;
+				typedef mse::impl::remove_const_t<_Ty> _ncTy;
+				typedef mse::impl::remove_const_t<_Ty2> _ncTy2;
+				typedef typename mse::impl::conjunction<std::is_integral<_Ty>, std::is_integral<_Ty2>
+					, mse::impl::negation< std::is_same<_ncTy, _ncTy2 > >
+					, std::integral_constant<bool, sizeof(_Ty) == sizeof(_Ty2)> >::type res1_t;
+				/* res1_t is std::true_type if the element type of this iterator and the element type of the random_access_iterator
+				parameter are both intergral types of the same size, but not the same type. (Generally, one is signed and the
+				other is not/un-signed.) */
+				return constructor_helper2(res1_t(), random_access_iterator);
 			}
 			template <typename _TPointer1>
 			static auto constructor_helper1(std::false_type, const _TPointer1& pointer1) {
@@ -648,9 +674,9 @@ namespace mse {
 		template <typename _Ty>
 		using TStrongTargetVector = 
 #ifndef MSE_LEGACYHELPERS_DISABLED
-			mse::stnii_vector<_Ty>
+			mse::stnii_vector<mse::impl::remove_const_t<_Ty> >
 #else //MSE_LEGACYHELPERS_DISABLED
-			std::vector<_Ty>
+			std::vector<mse::impl::remove_const_t<_Ty> >
 #endif //MSE_LEGACYHELPERS_DISABLED
 			;
 
