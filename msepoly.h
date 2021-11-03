@@ -325,7 +325,7 @@ namespace mse {
 
 		void async_not_shareable_and_not_passable_tag() const {}
 
-	protected:
+	private:
 		TXScopeAnyPointer<_Ty>& operator=(const TXScopeAnyPointer<_Ty>& _Right_cref) {
 			base_class::operator=(static_cast<const base_class&>(_Right_cref));
 			return (*this);
@@ -404,7 +404,7 @@ namespace mse {
 
 		void async_not_shareable_and_not_passable_tag() const {}
 
-	protected:
+	private:
 		TXScopeAnyConstPointer<_Ty>& operator=(const TXScopeAnyConstPointer<_Ty>& _Right_cref) {
 			base_class::operator=(static_cast<const base_class&>(_Right_cref));
 			return (*this);
@@ -1383,14 +1383,14 @@ namespace mse {
 
 		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeAnyRandomAccessIterator);
 
+		void async_not_shareable_and_not_passable_tag() const {}
+
+	private:
 		TXScopeAnyRandomAccessIterator& operator=(const base_class& _Right) {
 			base_class::operator=(_Right);
 			return (*this);
 		}
 
-		void async_not_shareable_and_not_passable_tag() const {}
-
-	protected:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TAnyRandomAccessIterator<_Ty>;
@@ -1419,14 +1419,14 @@ namespace mse {
 
 		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeAnyRandomAccessConstIterator);
 
+		void async_not_shareable_and_not_passable_tag() const {}
+
+	private:
 		TXScopeAnyRandomAccessConstIterator& operator=(const base_class& _Right) {
 			base_class::operator=(_Right);
 			return (*this);
 		}
 
-		void async_not_shareable_and_not_passable_tag() const {}
-
-	protected:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		friend class TAnyRandomAccessConstIterator<_Ty>;
