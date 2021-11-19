@@ -1365,18 +1365,18 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 
 			class CD {
 			public:
-				static bool second_is_longer(mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::nii_string> > string1_xscpptr
-					, mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::nii_string> > string2_xscpptr) {
+				static bool second_is_longer(const mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::nii_string> > string1_xscpptr
+					, const mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::nii_string> > string2_xscpptr) {
 
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 
-				static bool second_is_longer_any(mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string1_xscpptr
-					, mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string2_xscpptr) {
+				static bool second_is_longer_any(const mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string1_xscpptr
+					, const mse::rsv::TXScopeFParam<mse::TXScopeAnyConstPointer<mse::nii_string> > string2_xscpptr) {
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
 
-				static bool second_is_longer_poly(mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string1_xscpptr
+				static bool second_is_longer_poly(const mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string1_xscpptr
 					, mse::rsv::TXScopeFParam<mse::TXScopePolyConstPointer<mse::nii_string> > string2_xscpptr) {
 					return (string1_xscpptr->length() > string2_xscpptr->length()) ? false : true;
 				}
