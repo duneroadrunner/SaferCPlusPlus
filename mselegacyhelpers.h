@@ -696,7 +696,8 @@ namespace mse {
 			TStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_Ilist), 0) {}
 			TStrongVectorIterator(const base_class& src) : base_class(src) {}
 			TStrongVectorIterator(const mse::TXScopeRAIterator<mse::TRefCountingPointer<TStrongTargetVector<_Ty>>>& src) : base_class(src) {}
-			explicit TStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N), 0) {}
+			/* turns out that size_type and NULL_t could be the same type on some platforms */
+			//explicit TStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N), 0) {}
 			explicit TStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N, _V), 0) {}
 			TStrongVectorIterator(const NULL_t val) : TStrongVectorIterator() {
 				/* This constructor is just to support zero being used as a null pointer/iterator value. */
@@ -1033,7 +1034,8 @@ namespace mse {
 					ptr = mse::lh::TStrongVectorIterator<_Ty>();
 				}
 				static void allocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
-					mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+					mse::lh::TStrongVectorIterator<_Ty> tmp;
+					tmp.resize(num_bytes / sizeof(_Ty));
 					ptr = tmp;
 				}
 				static void reallocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
@@ -1054,7 +1056,8 @@ namespace mse {
 					ptr = mse::lh::TStrongVectorIterator<_Ty>();
 				}
 				static void allocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
-					mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+					mse::lh::TStrongVectorIterator<_Ty> tmp;
+					tmp.resize(num_bytes / sizeof(_Ty));
 					ptr = tmp;
 				}
 				//static void reallocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
@@ -1073,7 +1076,8 @@ namespace mse {
 					ptr = mse::lh::TStrongVectorIterator<_Ty>();
 				}
 				static void allocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
-					mse::lh::TStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
+					mse::lh::TStrongVectorIterator<_Ty> tmp;
+					tmp.resize(num_bytes / sizeof(_Ty));
 					ptr = tmp;
 				}
 				//static void reallocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
