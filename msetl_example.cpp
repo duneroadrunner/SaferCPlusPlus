@@ -142,7 +142,7 @@ public:
 	/* This function demonstrates scope reference objects inheriting the "returnability" trait from the reference objects
 	from which they were derived. */
 	template<class _TPointer1>
-	static auto xscope_string_const_section_to_member_of_CE(_TPointer1 CE_ptr) {
+	static auto xscope_string_const_section_to_member_of_CE(const _TPointer1& CE_ptr) {
 		auto returnable_CE_ptr = mse::rsv::as_a_returnable_fparam(CE_ptr);
 
 		/* "Pointers to members" based on returnable pointers inherit the "returnability". */
@@ -155,7 +155,7 @@ public:
 		return mse::return_value(returnable_string_const_section2);
 	}
 	template<class _TPointer1>
-	static auto nested_xscope_string_const_section_to_member_of_CE(_TPointer1 CE_ptr) {
+	static auto nested_xscope_string_const_section_to_member_of_CE(const _TPointer1& CE_ptr) {
 		auto returnable_CE_ptr = mse::rsv::as_a_returnable_fparam(CE_ptr);
 
 		return mse::return_value(xscope_string_const_section_to_member_of_CE(returnable_CE_ptr));
