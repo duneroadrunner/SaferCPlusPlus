@@ -1543,7 +1543,13 @@ namespace mse {
 				}
 				template<class T1, class T2>
 				static T1 convert(const T2& x) {
-					return convert_helper1<T1>(typename std::is_convertible<T2, T1>::type(), x);
+					static const bool b1 = std::is_convertible<T2, T1>::value;
+					static const bool b2 = std::is_arithmetic<T1>::value;
+					static const bool b3 = std::is_arithmetic<T2>::value;
+					static const bool b4 = (sizeof(T1) >= sizeof(T2));
+					static const bool b5 = (((!b2) && (!b3)) || (b2 && b3 && b4)); /* This is to exclude implicit support of narrowing casts. */
+					static const bool b6 = b1 && b5;
+					return convert_helper1<T1>(typename std::integral_constant<bool, b6>::type(), x);
 				}
 			};
 		}
