@@ -535,6 +535,15 @@ namespace mse {
 		template<typename _Ty>
 		struct is_nonfunction_pointer : is_nonfunction_pointer_helper1<typename std::is_pointer<_Ty>::type, _Ty> {};
 
+		template<>
+		struct is_nonfunction_pointer<void*> : std::is_pointer<void*> {};
+		template<>
+		struct is_nonfunction_pointer<void const *> : std::is_pointer<void const*> {};
+		template<>
+		struct is_nonfunction_pointer<void* const> : std::is_pointer<void* const> {};
+		template<>
+		struct is_nonfunction_pointer<void const * const> : std::is_pointer<void const * const> {};
+
 		template<typename _Ty>
 		struct is_potentially_xscope : std::integral_constant<bool, mse::impl::disjunction<
 			std::is_base_of<mse::us::impl::XScopeTagBase
@@ -1046,7 +1055,9 @@ namespace mse {
 				void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
 				_Ty* raw_pointer() const { return m_ptr; }
 				_Ty* get() const { return m_ptr; }
-				_Ty& operator*() const {
+
+				template<typename _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t < std::is_same<_Ty, _Ty2>::value && (!std::is_same<void*, mse::impl::remove_const_t<_Ty2> >::value)> MSE_IMPL_EIS >
+				_Ty2& operator*() const {
 					assert_initialized();
 #ifndef NDEBUG
 					if (nullptr == m_ptr) {
@@ -1055,7 +1066,9 @@ namespace mse {
 #endif // !NDEBUG
 					return (*m_ptr);
 				}
-				_Ty* operator->() const {
+
+				template<typename _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t < std::is_same<_Ty, _Ty2>::value && (!std::is_same<void*, mse::impl::remove_const_t<_Ty2> >::value)> MSE_IMPL_EIS >
+				_Ty2* operator->() const {
 					assert_initialized();
 #ifndef NDEBUG
 					if (nullptr == m_ptr) {
