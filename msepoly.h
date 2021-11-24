@@ -360,7 +360,11 @@ namespace mse {
 		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TAnyPointer>::value)
 			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
-			> MSE_IMPL_EIS >
+			&& (mse::impl::IsDereferenceable_msemsearray<_TPointer1>::value
+				&& (std::is_base_of<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value
+					|| std::is_same<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value))
+			&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
+		> MSE_IMPL_EIS >
 		TAnyPointer(const _TPointer1& pointer) : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
@@ -2203,6 +2207,10 @@ namespace mse {
 			&& (!std::is_base_of<base_class, _TPointer1>::value)
 			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TPointer1, decltype(NULL)>::value)
+			&& (mse::impl::IsDereferenceable_msemsearray<_TPointer1>::value
+				&& (std::is_base_of<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value
+					|| std::is_same<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value))
+			&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 			> MSE_IMPL_EIS >
 		TNullableAnyPointer(const _TPointer1& pointer) : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();

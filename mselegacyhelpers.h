@@ -340,6 +340,10 @@ namespace mse {
 				&& (!std::is_base_of<base_class, _TPointer1>::value)
 				&& (!std::is_same<_TPointer1, std::nullptr_t>::value)
 				&& (!std::is_same<_TPointer1, NULL_t>::value)
+				&& (mse::impl::IsDereferenceable_msemsearray<_TPointer1>::value
+					&& (std::is_base_of<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value
+						|| std::is_same<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value))
+				&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 			> MSE_IMPL_EIS >
 			TLHNullableAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
@@ -1486,6 +1490,18 @@ namespace mse {
 
 	namespace lh {
 		namespace impl {
+			template<class T>
+			struct NDRegisteredWrapped {
+				typedef mse::TNDRegisteredObj<T> type;
+			};
+			template<>
+			struct NDRegisteredWrapped<std::nullptr_t> {
+				typedef std::nullptr_t type;
+			};
+			template<>
+			struct NDRegisteredWrapped<void> {
+				typedef void type;
+			};
 
 			/* todo: make distinct xscope and non-xscope versions */
 			class explicitly_castable_any : public mse::any {
@@ -1507,8 +1523,12 @@ namespace mse {
 						} \
 					}
 
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1(type, not_used_template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type)
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK(type, template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(template_wrapper<type>)
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(type) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TNDRegisteredObj<type>)
+
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1(type, not_used_template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(type)
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK(type, template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(template_wrapper<type>)
 
 				template<class T>
 				explicit operator T() const {
@@ -1518,38 +1538,177 @@ namespace mse {
 							return convert<T>(mse::any_cast<T>(*this));
 						}
 					}
+					{
+						auto ptr = mse::any_cast<typename NDRegisteredWrapped<T>::type>(this);
+						if (ptr) {
+							return convert<T>(mse::any_cast<typename NDRegisteredWrapped<T>::type>(*this));
+						}
+					}
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(std::nullptr_t);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(void*);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(const char*);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(char*);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(void*);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(const char*);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(char*);
 					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(bool);
 					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::CNDBool);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::CNDSize_t);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(mse::CNDSize_t);
 
-					return mse::any_cast<T>(*this);
+					return conversion_operator_helper1<T>(typename mse::impl::IsDereferenceable_msemsearray<T>::type(), this);
+					//return mse::any_cast<T>(*this);
 				}
 
 			private:
 				template<class T1, class T2>
-				static T1 convert_helper1(std::true_type, const T2& x) {
+				static mse::xscope_optional<T1> convert_helper1(std::true_type, const T2& x) {
 					return T1(x);
 				}
 				template<class T1, class T2>
-				static T1 convert_helper1(std::false_type, const T2& x) {
+				static mse::xscope_optional<T1> convert_helper1(std::false_type, const T2& x) {
+#ifndef NDEBUG
+					std::cout << "\nconvert_helper1<>(std::false_type, ): T1: " << typeid(T1).name() << ", T2: " << typeid(T2).name() << " \n";
+#endif // !NDEBUG
 					MSE_THROW(mse::bad_any_cast());
-					//return T1();
+					return {};
 				}
 				template<class T1, class T2>
 				static T1 convert(const T2& x) {
-					static const bool b1 = std::is_convertible<T2, T1>::value;
+					//static const bool b1 = std::is_convertible<T2, T1>::value;
+					static const bool b1 = std::is_constructible<T1, T2>::value;
 					static const bool b2 = std::is_arithmetic<T1>::value;
 					static const bool b3 = std::is_arithmetic<T2>::value;
 					static const bool b4 = (sizeof(T1) >= sizeof(T2));
 					static const bool b5 = (((!b2) && (!b3)) || (b2 && b3 && b4)); /* This is to exclude implicit support of narrowing casts. */
 					static const bool b6 = b1 && b5;
-					return convert_helper1<T1>(typename std::integral_constant<bool, b6>::type(), x);
+					return convert_helper1<T1>(typename std::integral_constant<bool, b6>::type(), x).value();
+				}
+
+				template<class T1, class T2>
+				static T1 conversion_operator_helper1(std::true_type, T2* ptr1) {
+					typedef mse::impl::remove_reference_t<decltype(*std::declval<T1>())> pointee_t;
+					{
+						typedef mse::TRefCountingPointer<pointee_t> T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::TRefCountingNotNullPointer<pointee_t> T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::TRegisteredPointer<pointee_t> T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::TRegisteredNotNullPointer<pointee_t> T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::lh::TLHNullableAnyPointer<pointee_t> T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::lh::TStrongVectorIterator<pointee_t> T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::lh::TLHNullableAnyRandomAccessIterator<pointee_t> T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef pointee_t* T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+
+					{
+						typedef mse::TRefCountingPointer<pointee_t> const T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::TRefCountingNotNullPointer<pointee_t> const T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::TRegisteredPointer<pointee_t> const T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::TRegisteredNotNullPointer<pointee_t> const T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::lh::TLHNullableAnyPointer<pointee_t> const T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::lh::TStrongVectorIterator<pointee_t> const T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::lh::TLHNullableAnyRandomAccessIterator<pointee_t> const T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef pointee_t* const T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+
+#ifndef NDEBUG
+					std::cout << "\nexplicitly_castable_any::convert_helper1<>(std::true_type, ): T1: " << typeid(T1).name() << ", stored type: " << (*ptr1).type().name() << " \n";
+#endif // !NDEBUG
+					return mse::any_cast<T1>(*ptr1);
+				}
+				template<class T1, class T2>
+				static T1 conversion_operator_helper1(std::false_type, T2* ptr) {
+#ifndef NDEBUG
+					std::cout << "\nexplicitly_castable_any::convert_helper1<>(std::false_type, ): T1: " << typeid(T1).name() << ", stored type: " << (*ptr).type().name() << " \n";
+#endif // !NDEBUG
+					return mse::any_cast<T1>(*ptr);
 				}
 			};
 		}
@@ -1566,7 +1725,7 @@ namespace mse {
 			void_star_replacement(std::nullptr_t) : base_class((void*)(nullptr)), m_is_nullptr(true) {}
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
 				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
-			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(bool(ptr)) {}
+			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(!bool(ptr)) {}
 
 			operator bool() const {
 				return !m_is_nullptr;
@@ -1587,6 +1746,17 @@ namespace mse {
 				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
 			bool operator!=(const T& rhs) const {
 				return !((*this) == rhs);
+			}
+
+			friend void swap(void_star_replacement& first, void_star_replacement& second) {
+				std::swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
+				std::swap(first.m_is_nullptr, second.m_is_nullptr);
+			}
+
+			void_star_replacement& operator=(void_star_replacement _Right) {
+				std::swap(static_cast<base_class&>(*this), static_cast<base_class&>(_Right));
+				std::swap((*this).m_is_nullptr, _Right.m_is_nullptr);
+				return (*this);
 			}
 
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)

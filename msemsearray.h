@@ -1200,7 +1200,7 @@ namespace mse {
 					return m_index - _Right_cref.m_index;
 				}
 				bool operator ==(const TRAConstIteratorBase& _Right_cref) const {
-					if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator==() - TRAConstIteratorBase")); }
+					if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { return false; /*MSE_THROW(msearray_range_error("invalid argument - bool operator==() - TRAConstIteratorBase"));*/ }
 					return (_Right_cref.m_index == m_index);
 				}
 				bool operator !=(const TRAConstIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
