@@ -1441,7 +1441,7 @@ namespace mse {
 
 		template<typename _Ty>
 		auto as_an_fparam(_Ty& param) -> decltype(impl::fparam::as_an_fparam_helper1(typename mse::impl::is_potentially_xscope<_Ty>::type(), param)) {
-			static_assert(std::is_const<_Ty>::value, "fparams are currently required to be of const type (or reference to const type).");
+			//static_assert(std::is_const<_Ty>::value, "fparams are currently required to be of const type (or reference to const type).");
 			return impl::fparam::as_an_fparam_helper1(typename mse::impl::is_potentially_xscope<mse::impl::remove_reference_t<_Ty> >::type(), param);
 		}
 		template<typename _Ty>
@@ -1451,7 +1451,7 @@ namespace mse {
 
 		template<typename _Ty>
 		auto xscope_as_an_fparam(_Ty& param) -> decltype(as_an_fparam(param)) {
-			static_assert(std::is_const<_Ty>::value, "fparams are currently required to be of const type (or reference to const type).");
+			//static_assert(std::is_const<_Ty>::value, "fparams are currently required to be of const type (or reference to const type).");
 			return as_an_fparam(param);
 		}
 		template<typename _Ty>

@@ -96,7 +96,7 @@ public:
 	return one of their function parameters, potentially of the scope reference variety which would otherwise be
 	rejected (with a compile error) as an unsafe return value. */
 	template<class _TString1Pointer, class _TString2Pointer>
-	static auto longest(const _TString1Pointer& string1_ptr, const _TString2Pointer& string2_ptr) {
+	static auto longest(const _TString1Pointer string1_ptr, const _TString2Pointer string2_ptr) {
 		auto l_string1_ptr = mse::rsv::as_a_returnable_fparam(string1_ptr);
 		auto l_string2_ptr = mse::rsv::as_a_returnable_fparam(string2_ptr);
 
@@ -117,7 +117,7 @@ public:
 	}
 	/* This function will be used to demonstrate nested function calls (safely) returning scope pointer/references. */
 	template<class _TString1Pointer, class _TString2Pointer>
-	static auto nested_longest(const _TString1Pointer& string1_ptr, const _TString2Pointer& string2_ptr) {
+	static auto nested_longest(const _TString1Pointer string1_ptr, const _TString2Pointer string2_ptr) {
 		auto l_string1_ptr = mse::rsv::as_a_returnable_fparam(string1_ptr);
 		auto l_string2_ptr = mse::rsv::as_a_returnable_fparam(string2_ptr);
 
@@ -142,7 +142,7 @@ public:
 	/* This function demonstrates scope reference objects inheriting the "returnability" trait from the reference objects
 	from which they were derived. */
 	template<class _TPointer1>
-	static auto xscope_string_const_section_to_member_of_CE(const _TPointer1& CE_ptr) {
+	static auto xscope_string_const_section_to_member_of_CE(const _TPointer1 CE_ptr) {
 		auto returnable_CE_ptr = mse::rsv::as_a_returnable_fparam(CE_ptr);
 
 		/* "Pointers to members" based on returnable pointers inherit the "returnability". */
@@ -161,7 +161,7 @@ public:
 		return mse::return_value(xscope_string_const_section_to_member_of_CE(returnable_CE_ptr));
 	}
 
-	/* This function will be used to demonstrate using rsv::as_an_fparam() to enable template functions to accept scope 
+	/* This function will be used to demonstrate using rsv::as_an_fparam() to enable template functions to accept scope
 	pointers to temporary objects. */
 	template<class _TPointer1, class _TPointer2>
 	static bool second_is_longer(_TPointer1&& string1_xscpptr, _TPointer2&& string2_xscpptr) {
