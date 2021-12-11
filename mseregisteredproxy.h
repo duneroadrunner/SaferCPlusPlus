@@ -59,6 +59,24 @@ namespace mse {
 	template<typename _Ty> class TNDRegisteredProxyFixedConstPointer;
 
 	template<typename _Ty>
+	auto ndregistered_proxy_ptr(_Ty&& _X) {
+		return _X.mse_registered_proxy_ptr();
+	}
+	template<typename _Ty>
+	auto ndregistered_proxy_ptr(const _Ty& _X) {
+		return _X.mse_registered_proxy_ptr();
+	}
+
+	template<typename _Ty>
+	auto ndregistered_proxy_nnptr(_Ty&& _X) {
+		return _X.mse_registered_proxy_nnptr();
+	}
+	template<typename _Ty>
+	auto ndregistered_proxy_nnptr(const _Ty& _X) {
+		return _X.mse_registered_proxy_nnptr();
+	}
+
+	template<typename _Ty>
 	auto ndregistered_proxy_fptr(_Ty&& _X) {
 		return _X.mse_registered_proxy_fptr();
 	}
@@ -444,6 +462,7 @@ namespace mse {
 		template<class _Ty2>
 		TNDXScopeRegisteredProxyObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
+		TNDRegisteredProxyPointer<_TROFLy> mse_registered_proxy_ptr() const { return TNDRegisteredProxyFixedPointer<_TROFLy>(this); }
 		TNDRegisteredProxyNotNullPointer<_TROFLy> mse_registered_proxy_nnptr() const { return TNDRegisteredProxyFixedPointer<_TROFLy>(this); }
 		TNDRegisteredProxyFixedPointer<_TROFLy> mse_registered_proxy_fptr() const { return TNDRegisteredProxyFixedPointer<_TROFLy>(this); }
 

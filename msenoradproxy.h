@@ -58,6 +58,24 @@ namespace mse {
 	template<typename _Ty> class TNDNoradProxyFixedConstPointer;
 
 	template<typename _Ty>
+	auto ndnorad_proxy_ptr(_Ty&& _X) {
+		return _X.mse_norad_proxy_ptr();
+	}
+	template<typename _Ty>
+	auto ndnorad_proxy_ptr(const _Ty& _X) {
+		return _X.mse_norad_proxy_ptr();
+	}
+
+	template<typename _Ty>
+	auto ndnorad_proxy_nnptr(_Ty&& _X) {
+		return _X.mse_norad_proxy_nnptr();
+	}
+	template<typename _Ty>
+	auto ndnorad_proxy_nnptr(const _Ty& _X) {
+		return _X.mse_norad_proxy_nnptr();
+	}
+
+	template<typename _Ty>
 	auto ndnorad_proxy_fptr(_Ty&& _X) {
 		return _X.mse_norad_proxy_fptr();
 	}
@@ -433,6 +451,7 @@ namespace mse {
 		template<class _Ty2>
 		TNDXScopeNoradProxyObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
+		TNDNoradProxyPointer<_TROFLy> mse_norad_proxy_ptr() const { return TNDNoradProxyFixedPointer<_TROFLy>(this); }
 		TNDNoradProxyNotNullPointer<_TROFLy> mse_norad_proxy_nnptr() const { return TNDNoradProxyFixedPointer<_TROFLy>(this); }
 		TNDNoradProxyFixedPointer<_TROFLy> mse_norad_proxy_fptr() const { return TNDNoradProxyFixedPointer<_TROFLy>(this); }
 
