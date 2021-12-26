@@ -5608,7 +5608,7 @@ namespace mse {
 	/* We're forward declaring this function here because it is used by the us::impl::TRandomAccessConstSectionBase<> class that follows.
 	Note that this function has other overloads and bretheren that do not need to be forward declared. */
 	template <typename _TRALoneParam> auto make_xscope_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+		typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param));
 
 	namespace us {
 		namespace impl {
@@ -6814,18 +6814,18 @@ namespace mse {
 
 	template <typename _TRALoneParam>
 	auto make_xscope_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param)) {
+		typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param)) {
 
 		return mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param);
 	}
 
 	template <typename _TRALoneParam, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRALoneParam)>
 	auto make_xscope_random_access_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), MSE_FWD(param))) {
+		typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), MSE_FWD(param))) {
 
 		return mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), MSE_FWD(param));
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), MSE_FWD(param));
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
@@ -6865,12 +6865,12 @@ namespace mse {
 	template <typename _TRALoneParam>
 	auto make_xscope_random_access_section(const _TRALoneParam& param) {
 		return mse::impl::ra_section::make_xscope_random_access_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param);
 	}
 	template <typename _TRALoneParam, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRALoneParam)>
 	auto make_xscope_random_access_section(_TRALoneParam&& param) {
 		return mse::impl::ra_section::make_xscope_random_access_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), MSE_FWD(param));
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), MSE_FWD(param));
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
@@ -6958,10 +6958,10 @@ namespace mse {
 			->impl::ra_section::mkxsracsh1_ReturnType<_Ty>;
 		template <typename _TRALoneParam>
 		friend auto make_xscope_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param));
 		template <typename _TRALoneParam, class>
 		friend auto make_xscope_random_access_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_random_access_const_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), MSE_FWD(param)));
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), MSE_FWD(param)));
 	};
 
 	namespace rsv {
@@ -6978,7 +6978,7 @@ namespace mse {
 			TXScopeRandomAccessConstSectionFParam(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 			template <typename _TRALoneParam>
 			TXScopeRandomAccessConstSectionFParam(const _TRALoneParam& param) : base_class(construction_helper1(typename
-				std::conditional<mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
+				std::conditional<mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::value
 				|| mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedRandomAccessConstSectionToRValue>::value
 				, std::true_type, std::false_type>::type(), param)) {
 			}
@@ -7002,7 +7002,7 @@ namespace mse {
 
 		private:
 			template <typename _TRAContainer>
-			static mse::TXScopeFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
+			static mse::TXScopeFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::rsv::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
 				return mse::rsv::TXScopeFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
 			}
 			static mse::TXScopeRandomAccessConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>& caged_xscpsection) {

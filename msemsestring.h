@@ -1179,9 +1179,9 @@ namespace mse {
 		}
 	}
 	template <typename _TRALoneParam> auto make_xscope_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
-		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+		typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param));
 	template <typename _TRALoneParam, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRALoneParam)> auto make_xscope_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
-		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), MSE_FWD(param)));
+		typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), MSE_FWD(param)));
 
 	template <typename _TRASection, typename _TRAConstSection, class _Traits>
 	class TStringSectionBase : public _TRASection, public mse::us::impl::StringSectionTagBase {
@@ -1879,15 +1879,15 @@ namespace mse {
 	}
 	template <typename _TRALoneParam>
 	auto make_xscope_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
-		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param)) {
+		typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param)) {
 		return mse::impl::ra_section::make_xscope_string_const_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param);
 	}
 	template <typename _TRALoneParam, class>
 	auto make_xscope_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
-		typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), MSE_FWD(param))) {
+		typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), MSE_FWD(param))) {
 		return mse::impl::ra_section::make_xscope_string_const_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), MSE_FWD(param));
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), MSE_FWD(param));
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
@@ -1923,7 +1923,7 @@ namespace mse {
 	template <typename _TRALoneParam>
 	auto make_xscope_string_section(const _TRALoneParam& param) {
 		return mse::impl::ra_section::make_xscope_string_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param);
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param);
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
@@ -2086,10 +2086,10 @@ namespace mse {
 			->impl::ra_section::mkxsscsh1_ReturnType<_Ty>;
 		template <typename _TRALoneParam>
 		friend auto make_xscope_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), param));
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param));
 		template <typename _TRALoneParam, class>
 		friend auto make_xscope_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_string_const_section_helper1(
-			typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type(), MSE_FWD(param)));
+			typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), MSE_FWD(param)));
 
 		/* For now, "nrp string sections" are also using this class rather than creating an "nrp" specific one. So we need to
 		friend their associated elements too. */
@@ -2120,7 +2120,7 @@ namespace mse {
 			TXScopeStringConstSectionFParam(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 			template <typename _TRALoneParam>
 			TXScopeStringConstSectionFParam(const _TRALoneParam& param) : base_class(construction_helper1(typename
-				std::conditional<mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
+				std::conditional<mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::value
 				// || mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedStringConstSectionToRValue>::value
 				|| std::is_base_of<mse::us::impl::CagedStringSectionTagBase, _TRALoneParam>::value
 				, std::true_type, std::false_type>::type(), param)) {
@@ -2142,7 +2142,7 @@ namespace mse {
 
 		private:
 			template <typename _TRAContainer>
-			static mse::TXScopeFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
+			static mse::TXScopeFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::rsv::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
 				return mse::rsv::TXScopeFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
 			}
 			static mse::TXScopeStringConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>& caged_xscpsection) {
@@ -2848,7 +2848,7 @@ namespace mse {
 			TXScopeNRPStringConstSectionFParam(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 			template <typename _TRALoneParam>
 			TXScopeNRPStringConstSectionFParam(const _TRALoneParam& param) : base_class(construction_helper1(typename
-				std::conditional<mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
+				std::conditional<mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::value
 				// || mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedStringConstSectionToRValue>::value
 				|| std::is_base_of<mse::us::impl::CagedStringSectionTagBase, _TRALoneParam>::value
 				, std::true_type, std::false_type>::type(), param)) {
@@ -2870,7 +2870,7 @@ namespace mse {
 
 		private:
 			template <typename _TRAContainer>
-			static mse::TXScopeFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
+			static mse::TXScopeFixedConstPointer<_TRAContainer> construction_helper1(std::true_type, const mse::rsv::TXScopeCagedItemFixedConstPointerToRValue<_TRAContainer>& caged_xscpptr) {
 				return mse::rsv::TXScopeFixedConstPointerFParam<_TRAContainer>(caged_xscpptr);
 			}
 			static mse::TXScopeNRPStringConstSection<_TRAIterator> construction_helper1(std::true_type, const mse::TXScopeCagedStringConstSectionToRValue<_TRAIterator>& caged_xscpsection) {

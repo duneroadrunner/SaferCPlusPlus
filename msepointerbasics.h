@@ -421,12 +421,25 @@ namespace mse {
 			template <template <typename...> class Template, typename Type>
 			constexpr bool is_instance_of_v = is_instance_of<Template, Type>::value;
 		}
-
 		/* determines if a given type is an instantiation of a given template */
 		template<typename Type, template<typename...> class Template>
 		struct is_unqualified_instantiation_of : ns_is_instantiation_of::is_instance_of<Template, Type> { };
 		template<typename Type, template<typename...> class Template>
 		struct is_instantiation_of : is_unqualified_instantiation_of<typename std::remove_cv<Type>::type, Template> { };
+
+		namespace ns_is_instantiation_of_template_with_type_and_size_t_params {
+			template <template <typename _Ty, size_t Size> class Template, typename Type>
+			struct is_instance_of : std::false_type {};
+			template <template <typename _Ty, size_t Size> class Template, typename _Ty, size_t Size>
+			struct is_instance_of<Template, Template<_Ty, Size>> : std::true_type {};
+			template <template <typename _Ty, size_t Size> class Template, typename Type>
+			constexpr bool is_instance_of_template_with_type_and_size_t_params_v = is_instance_of<Template, Type>::value;
+		}
+		/* determines if a given type is an instantiation of a given template */
+		template<typename Type, template<typename _Ty, size_t Size> class Template>
+		struct is_unqualified_instantiation_of_template_with_type_and_size_t_params : ns_is_instantiation_of_template_with_type_and_size_t_params::is_instance_of<Template, Type> { };
+		template<typename Type, template<typename _Ty, size_t Size> class Template>
+		struct is_instantiation_of_template_with_type_and_size_t_params : is_unqualified_instantiation_of_template_with_type_and_size_t_params<typename std::remove_cv<Type>::type, Template> { };
 
 		template<class...> struct conjunction : std::true_type { };
 		template<class B1> struct conjunction<B1> : B1 { };

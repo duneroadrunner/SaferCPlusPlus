@@ -493,7 +493,7 @@ namespace mse {
 			template<typename _TRALoneParam>
 			TFParam(_TRALoneParam&& src) : base_class(constructor_helper1(
 #ifndef MSE_SCOPEPOINTER_DISABLED
-				typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type()
+				typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type()
 #else //!MSE_SCOPEPOINTER_DISABLED
 				std::false_type()
 #endif //!MSE_SCOPEPOINTER_DISABLED
@@ -1021,7 +1021,7 @@ namespace mse {
 			template<typename _TRALoneParam>
 			TFParam(_TRALoneParam&& src) : base_class(constructor_helper1(
 #ifndef MSE_SCOPEPOINTER_DISABLED
-				typename mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::type()
+				typename mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::type()
 #else //!MSE_SCOPEPOINTER_DISABLED
 				std::false_type()
 #endif //!MSE_SCOPEPOINTER_DISABLED
@@ -1617,8 +1617,8 @@ namespace mse {
 			TFParam(_TRALoneParam&& src) : base_class(constructor_helper1(
 #ifndef MSE_SCOPEPOINTER_DISABLED
 				mse::impl::conditional_t<
-				mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
-				|| mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedRandomAccessConstSectionToRValue>::value
+				mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::value
+				|| mse::impl::is_instantiation_of<_TRALoneParam, TXScopeCagedRandomAccessConstSectionToRValue>::value
 				, std::true_type, std::false_type>()
 #else //!MSE_SCOPEPOINTER_DISABLED
 				std::false_type()
@@ -1732,7 +1732,7 @@ namespace mse {
 			TFParam(_TRALoneParam&& src) : base_class(constructor_helper1(
 #ifndef MSE_SCOPEPOINTER_DISABLED
 				mse::impl::conditional_t<
-				mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedItemFixedConstPointerToRValue>::value
+				mse::rsv::impl::is_instantiation_of_TXScopeCagedItemFixedConstPointerToRValue<_TRALoneParam>::value
 				|| std::is_base_of<mse::us::impl::CagedStringSectionTagBase, _TRALoneParam>::value
 				//|| mse::impl::is_instantiation_of<_TRALoneParam, mse::TXScopeCagedStringConstSectionToRValue>::value
 				, std::true_type, std::false_type>()
