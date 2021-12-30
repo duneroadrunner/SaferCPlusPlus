@@ -1468,11 +1468,12 @@ namespace mse {
 #define MSE_LIFETIME_NOTES_TYPE(...) mse::rsv::ltn::lifetime_notes<__VA_ARGS__ >
 #define MSE_LIFETIME_NOTES_PARAM(...) MSE_LIFETIME_NOTES_TYPE(__VA_ARGS__) = {}
 
-			typedef size_t parameter_index_t;
+			typedef size_t parameter_ordinal_t;
+#define MSE_IMPLICIT_THIS_PARAM_ORDINAL 0
 			typedef size_t parameter_lifetime_label_t;
 #define MSE_LIFETIME_LABEL(x) x
 
-			template<parameter_index_t index, parameter_lifetime_label_t lifetime_label>
+			template<parameter_ordinal_t param_ordinal, parameter_lifetime_label_t lifetime_label>
 			class pll {};
 #define MSE_PLL(x, y) mse::rsv::ltn::pll<x, y>
 
