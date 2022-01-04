@@ -20,7 +20,7 @@
 
 #ifdef _MSC_VER
 #pragma warning( push )  
-#pragma warning( disable : 4100 4456 4189 4127 )
+#pragma warning( disable : 4100 4456 4189 4127 4702 )
 #endif /*_MSC_VER*/
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
