@@ -142,7 +142,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_NULL_POINTER nullptr
 #define MSE_LH_VOID_STAR mse::lh::void_star_replacement
 
-#define MSE_LH_CAST(type, value) ((type)(value))
+#define MSE_LH_CAST(type, value) ((type const &)(value))
 #define MSE_LH_UNSAFE_CAST(type, value) mse::us::lh::unsafe_cast<type>(value)
 #define MSE_LH_UNSAFE_MAKE_POINTER_TO(target) MSE_LH_POINTER_TYPE(mse::us::unsafe_make_any_pointer_to(target))
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_TO(target) std::addressof(target)
@@ -281,7 +281,7 @@ namespace mse {
 		namespace lh {
 			template<typename _Ty, typename _Ty2>
 			_Ty unsafe_cast(const _Ty2& x) {
-				return (_Ty)(x);
+				return (_Ty const &)(x);
 			}
 
 			template<typename _Ty>
@@ -1427,7 +1427,7 @@ namespace mse {
 
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper3(std::false_type, const _Ty2& x) {
-						return (_Ty)(x);
+						return (_Ty const &)(x);
 					}
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper3(std::true_type, const _Ty2& x) {
@@ -1441,7 +1441,7 @@ namespace mse {
 					}
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper2(std::true_type, const _Ty2& x) {
-						return reinterpret_cast<const _Ty&>(x);
+						return reinterpret_cast<_Ty const &>(x);
 					}
 				}
 			}
@@ -1502,6 +1502,18 @@ namespace mse {
 			struct NDRegisteredWrapped<void> {
 				typedef void type;
 			};
+			template<class T>
+			struct NDNoradWrapped {
+				typedef mse::TNDNoradObj<T> type;
+			};
+			template<>
+			struct NDNoradWrapped<std::nullptr_t> {
+				typedef std::nullptr_t type;
+			};
+			template<>
+			struct NDNoradWrapped<void> {
+				typedef void type;
+			};
 
 			/* todo: make distinct xscope and non-xscope versions */
 			class explicitly_castable_any : public mse::any {
@@ -1525,6 +1537,7 @@ namespace mse {
 
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(type) \
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TNDNoradObj<type>) \
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TNDRegisteredObj<type>)
 
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1(type, not_used_template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(type)
@@ -1536,6 +1549,12 @@ namespace mse {
 						auto ptr = mse::any_cast<T>(this);
 						if (ptr) {
 							return convert<T>(mse::any_cast<T>(*this));
+						}
+					}
+					{
+						auto ptr = mse::any_cast<typename NDNoradWrapped<T>::type>(this);
+						if (ptr) {
+							return convert<T>(mse::any_cast<typename NDNoradWrapped<T>::type>(*this));
 						}
 					}
 					{
@@ -1599,6 +1618,20 @@ namespace mse {
 						}
 					}
 					{
+						typedef mse::TNoradPointer<pointee_t> T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::TNoradNotNullPointer<pointee_t> T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
 						typedef mse::TRegisteredPointer<pointee_t> T;
 						auto ptr = mse::any_cast<T>(ptr1);
 						if (ptr) {
@@ -1650,6 +1683,20 @@ namespace mse {
 					}
 					{
 						typedef mse::TRefCountingNotNullPointer<pointee_t> const T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::TNoradPointer<pointee_t> const T;
+						auto ptr = mse::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T1>(mse::any_cast<T>(*ptr));
+						}
+					}
+					{
+						typedef mse::TNoradNotNullPointer<pointee_t> const T;
 						auto ptr = mse::any_cast<T>(ptr1);
 						if (ptr) {
 							return convert<T1>(mse::any_cast<T>(*ptr));
