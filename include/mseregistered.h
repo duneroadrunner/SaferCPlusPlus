@@ -415,9 +415,6 @@ namespace mse {
 		return (*this);
 		}
 		*/
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const { return TNDRegisteredPointer<_Ty>::operator _Ty*(); }
-		MSE_DEPRECATED explicit operator TNDRegisteredObj<_Ty>*() const { return TNDRegisteredPointer<_Ty>::operator TNDRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredNotNullPointer(TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredPointer<_Ty>(ptr) {}
@@ -454,9 +451,6 @@ namespace mse {
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredNotNullConstPointer() {}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDRegisteredConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TNDRegisteredObj<_Ty>*() const { return TNDRegisteredConstPointer<_Ty>::operator const TNDRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredNotNullConstPointer(const TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredConstPointer<_Ty>(ptr) {}
@@ -508,10 +502,6 @@ namespace mse {
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredFixedPointer() {}
 
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const { return TNDRegisteredNotNullPointer<_Ty>::operator _Ty*(); }
-		MSE_DEPRECATED explicit operator TNDRegisteredObj<_Ty>*() const { return TNDRegisteredNotNullPointer<_Ty>::operator TNDRegisteredObj<_Ty>*(); }
-
 	private:
 		TNDRegisteredFixedPointer(TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredNotNullPointer<_Ty>(ptr) {}
 		TNDRegisteredFixedPointer<_Ty>& operator=(const TNDRegisteredFixedPointer<_Ty>& _Right_cref) = delete;
@@ -544,9 +534,6 @@ namespace mse {
 		TNDRegisteredFixedConstPointer(const TNDRegisteredNotNullConstPointer<_Ty2>& src_cref) : TNDRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDRegisteredFixedConstPointer() {}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDRegisteredNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TNDRegisteredObj<_Ty>*() const { return TNDRegisteredNotNullConstPointer<_Ty>::operator const TNDRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDRegisteredFixedConstPointer(const TNDRegisteredObj<_Ty>* ptr) : TNDRegisteredNotNullConstPointer<_Ty>(ptr) {}
@@ -927,7 +914,11 @@ namespace mse {
 		TRegisteredObj<_TRRWy>& get() const { return *_ptr; }
 
 		template< class... ArgTypes >
-		typename std::result_of<TRegisteredObj<_TRRWy>&(ArgTypes&&...)>::type
+#ifdef MSE_HAS_CXX17
+		constexpr std::invoke_result_t<TRegisteredObj<_TRRWy>&, ArgTypes...>
+#else /* MSE_HAS_CXX17 */
+		typename std::result_of<TRegisteredObj<_TRRWy>& (ArgTypes&&...)>::type
+#endif /* MSE_HAS_CXX17 */
 			operator() (ArgTypes&&... args) const {
 #if defined(GPP_COMPATIBLE) || defined(CLANG_COMPATIBLE)
 			return __invoke(get(), std::forward<ArgTypes>(args)...);

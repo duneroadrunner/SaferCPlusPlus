@@ -462,11 +462,6 @@ namespace mse {
 				return *this;
 			}
 
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-#ifndef MSE_SCOPEPOINTER_DISABLED
-			MSE_DEPRECATED explicit operator const _Ty* () const { return base_class::operator const _Ty * (); }
-#endif // !MSE_SCOPEPOINTER_DISABLED
-			MSE_DEPRECATED explicit operator const TStaticImmutableObj<_Ty>*() const { return base_class::operator const TStaticImmutableObj<_Ty>*(); }
 			TStaticImmutableNotNullConstPointer(const typename base_class::base_class& ptr) : base_class(ptr) {}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -486,11 +481,6 @@ namespace mse {
 			//TStaticImmutableFixedConstPointer(const TStaticImmutableFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const base_class*>(this)); }
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-#ifndef MSE_SCOPEPOINTER_DISABLED
-			MSE_DEPRECATED explicit operator const _Ty* () const { return base_class::operator const _Ty * (); }
-#endif // !MSE_SCOPEPOINTER_DISABLED
-			MSE_DEPRECATED explicit operator const TStaticImmutableObj<_Ty>*() const { return base_class::operator const TStaticImmutableObj<_Ty>*(); }
 			void static_tag() const {}
 			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 

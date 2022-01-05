@@ -322,9 +322,6 @@ namespace mse {
 			return (*this);
 		}
 		operator bool() const { return (*static_cast<const TXScopeAtomicPointer<_Ty>*>(this)); }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const { return TXScopeAtomicPointer<_Ty>::operator _Ty*(); }
-		MSE_DEPRECATED explicit operator TXScopeAtomicObj<_Ty>*() const { return TXScopeAtomicPointer<_Ty>::operator TXScopeAtomicObj<_Ty>*(); }
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -345,9 +342,6 @@ namespace mse {
 		//TXScopeAtomicNotNullConstPointer(const TXScopeAtomicNotNullPointer<_Ty2>& src_cref) : TXScopeAtomicConstPointer<_Ty>(src_cref) {}
 		TXScopeAtomicNotNullConstPointer(const TXScopeAtomicObj<_Ty>& scpobj_cref) : TXScopeAtomicConstPointer<_Ty>(scpobj_cref) {}
 		operator bool() const { return (*static_cast<const TXScopeAtomicConstPointer<_Ty>*>(this)); }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TXScopeAtomicConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TXScopeAtomicObj<_Ty>*() const { return TXScopeAtomicConstPointer<_Ty>::operator const TXScopeAtomicObj<_Ty>*(); }
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -364,9 +358,6 @@ namespace mse {
 		//TXScopeAtomicFixedPointer(const TXScopeAtomicFixedPointer<_Ty2>& src_cref) : TXScopeAtomicNotNullPointer<_Ty>(src_cref) {}
 		~TXScopeAtomicFixedPointer() {}
 		operator bool() const { return (*static_cast<const TXScopeAtomicNotNullPointer<_Ty>*>(this)); }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const { return TXScopeAtomicNotNullPointer<_Ty>::operator _Ty*(); }
-		MSE_DEPRECATED explicit operator TXScopeAtomicObj<_Ty>*() const { return TXScopeAtomicNotNullPointer<_Ty>::operator TXScopeAtomicObj<_Ty>*(); }
 		void xscope_tag() const {}
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 
@@ -400,9 +391,6 @@ namespace mse {
 		//TXScopeAtomicFixedConstPointer(const TXScopeAtomicFixedPointer<_Ty2>& src_cref) : TXScopeAtomicNotNullConstPointer<_Ty>(src_cref) {}
 		~TXScopeAtomicFixedConstPointer() {}
 		operator bool() const { return (*static_cast<const TXScopeAtomicNotNullConstPointer<_Ty>*>(this)); }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TXScopeAtomicNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TXScopeAtomicObj<_Ty>*() const { return TXScopeAtomicNotNullConstPointer<_Ty>::operator const TXScopeAtomicObj<_Ty>*(); }
 		void xscope_tag() const {}
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 

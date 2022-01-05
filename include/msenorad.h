@@ -467,10 +467,6 @@ namespace mse {
 					return (*this).m_ptr;
 				}
 
-				/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-				MSE_DEPRECATED explicit operator _Ty*() const { return TGNoradPointer<_Ty, _TRefCounter>::operator _Ty*(); }
-				MSE_DEPRECATED explicit operator TGNoradObj<_Ty, _TRefCounter>*() const { return TGNoradPointer<_Ty, _TRefCounter>::operator TGNoradObj<_Ty, _TRefCounter>*(); }
-
 			private:
 				TGNoradNotNullPointer(TGNoradObj<_Ty, _TRefCounter>* ptr) : TGNoradPointer<_Ty, _TRefCounter>(ptr) {}
 
@@ -518,10 +514,6 @@ namespace mse {
 					//if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
 					return (*this).m_ptr;
 				}
-
-				/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-				MSE_DEPRECATED explicit operator const _Ty*() const { return TGNoradConstPointer<_Ty, _TRefCounter>::operator const _Ty*(); }
-				MSE_DEPRECATED explicit operator const TGNoradObj<_Ty, _TRefCounter>*() const { return TGNoradConstPointer<_Ty, _TRefCounter>::operator const TGNoradObj<_Ty, _TRefCounter>*(); }
 
 			private:
 				TGNoradNotNullConstPointer(const TGNoradObj<_Ty, _TRefCounter>* ptr) : TGNoradConstPointer<_Ty, _TRefCounter>(ptr) {}
@@ -576,10 +568,6 @@ namespace mse {
 
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TGNoradFixedPointer() {}
 
-				/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-				MSE_DEPRECATED explicit operator _Ty*() const { return TGNoradNotNullPointer<_Ty, _TRefCounter>::operator _Ty*(); }
-				MSE_DEPRECATED explicit operator TGNoradObj<_Ty, _TRefCounter>*() const { return TGNoradNotNullPointer<_Ty, _TRefCounter>::operator TGNoradObj<_Ty, _TRefCounter>*(); }
-
 			private:
 				TGNoradFixedPointer(TGNoradObj<_Ty, _TRefCounter>* ptr) : TGNoradNotNullPointer<_Ty, _TRefCounter>(ptr) {}
 				TGNoradFixedPointer<_Ty, _TRefCounter>& operator=(const TGNoradFixedPointer<_Ty, _TRefCounter>& _Right_cref) = delete;
@@ -618,9 +606,6 @@ namespace mse {
 				TGNoradFixedConstPointer(TGNoradNotNullConstPointer<_Ty, _TRefCounter>&& src_ref) : TGNoradNotNullConstPointer<_Ty, _TRefCounter>(MSE_FWD(src_ref)) {}
 
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TGNoradFixedConstPointer() {}
-				/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-				MSE_DEPRECATED explicit operator const _Ty*() const { return TGNoradNotNullConstPointer<_Ty, _TRefCounter>::operator const _Ty*(); }
-				MSE_DEPRECATED explicit operator const TGNoradObj<_Ty, _TRefCounter>*() const { return TGNoradNotNullConstPointer<_Ty, _TRefCounter>::operator const TGNoradObj<_Ty, _TRefCounter>*(); }
 
 			private:
 				TGNoradFixedConstPointer(const TGNoradObj<_Ty, _TRefCounter>* ptr) : TGNoradNotNullConstPointer<_Ty, _TRefCounter>(ptr) {}
@@ -1155,10 +1140,6 @@ namespace mse {
 			return (*this).m_ptr;
 		}
 
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const { return TNDNoradPointer<_Ty>::operator _Ty*(); }
-		MSE_DEPRECATED explicit operator TNDNoradObj<_Ty>*() const { return TNDNoradPointer<_Ty>::operator TNDNoradObj<_Ty>*(); }
-
 	private:
 		TNDNoradNotNullPointer(TNDNoradObj<_Ty>* ptr) : TNDNoradPointer<_Ty>(ptr) {}
 
@@ -1206,10 +1187,6 @@ namespace mse {
 			//if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
 			return (*this).m_ptr;
 		}
-
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDNoradConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TNDNoradObj<_Ty>*() const { return TNDNoradConstPointer<_Ty>::operator const TNDNoradObj<_Ty>*(); }
 
 	private:
 		TNDNoradNotNullConstPointer(const TNDNoradObj<_Ty>* ptr) : TNDNoradConstPointer<_Ty>(ptr) {}
@@ -1264,10 +1241,6 @@ namespace mse {
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradFixedPointer() {}
 
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const { return TNDNoradNotNullPointer<_Ty>::operator _Ty*(); }
-		MSE_DEPRECATED explicit operator TNDNoradObj<_Ty>*() const { return TNDNoradNotNullPointer<_Ty>::operator TNDNoradObj<_Ty>*(); }
-
 	private:
 		TNDNoradFixedPointer(TNDNoradObj<_Ty>* ptr) : TNDNoradNotNullPointer<_Ty>(ptr) {}
 		TNDNoradFixedPointer<_Ty>& operator=(const TNDNoradFixedPointer<_Ty>& _Right_cref) = delete;
@@ -1306,9 +1279,6 @@ namespace mse {
 		TNDNoradFixedConstPointer(TNDNoradNotNullConstPointer<_Ty>&& src_ref) : TNDNoradNotNullConstPointer<_Ty>(MSE_FWD(src_ref)) {}
 
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TNDNoradFixedConstPointer() {}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDNoradNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TNDNoradObj<_Ty>*() const { return TNDNoradNotNullConstPointer<_Ty>::operator const TNDNoradObj<_Ty>*(); }
 
 	private:
 		TNDNoradFixedConstPointer(const TNDNoradObj<_Ty>* ptr) : TNDNoradNotNullConstPointer<_Ty>(ptr) {}

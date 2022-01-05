@@ -442,9 +442,6 @@ namespace mse {
 			return (*this);
 		}
 		*/
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const { return TNDCRegisteredPointer<_Ty>::operator _Ty*(); }
-		MSE_DEPRECATED explicit operator TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredPointer<_Ty>::operator TNDCRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDCRegisteredNotNullPointer(TNDCRegisteredObj<_Ty>* ptr) : TNDCRegisteredPointer<_Ty>(ptr) {}
@@ -481,9 +478,6 @@ namespace mse {
 		TNDCRegisteredNotNullConstPointer(const TNDCRegisteredNotNullConstPointer<_Ty2>& src_cref) : TNDCRegisteredConstPointer<_Ty>(src_cref) {}
 
 		virtual ~TNDCRegisteredNotNullConstPointer() {}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDCRegisteredConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredConstPointer<_Ty>::operator const TNDCRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDCRegisteredNotNullConstPointer(const TNDCRegisteredObj<_Ty>* ptr) : TNDCRegisteredConstPointer<_Ty>(ptr) {}
@@ -535,10 +529,6 @@ namespace mse {
 
 		virtual ~TNDCRegisteredFixedPointer() {}
 
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const { return TNDCRegisteredNotNullPointer<_Ty>::operator _Ty*(); }
-		MSE_DEPRECATED explicit operator TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredNotNullPointer<_Ty>::operator TNDCRegisteredObj<_Ty>*(); }
-
 	private:
 		TNDCRegisteredFixedPointer(TNDCRegisteredObj<_Ty>* ptr) : TNDCRegisteredNotNullPointer<_Ty>(ptr) {}
 		TNDCRegisteredFixedPointer<_Ty>& operator=(const TNDCRegisteredFixedPointer<_Ty>& _Right_cref) = delete;
@@ -571,9 +561,6 @@ namespace mse {
 		TNDCRegisteredFixedConstPointer(const TNDCRegisteredNotNullConstPointer<_Ty2>& src_cref) : TNDCRegisteredNotNullConstPointer<_Ty>(src_cref) {}
 
 		virtual ~TNDCRegisteredFixedConstPointer() {}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const { return TNDCRegisteredNotNullConstPointer<_Ty>::operator const _Ty*(); }
-		MSE_DEPRECATED explicit operator const TNDCRegisteredObj<_Ty>*() const { return TNDCRegisteredNotNullConstPointer<_Ty>::operator const TNDCRegisteredObj<_Ty>*(); }
 
 	private:
 		TNDCRegisteredFixedConstPointer(const TNDCRegisteredObj<_Ty>* ptr) : TNDCRegisteredNotNullConstPointer<_Ty>(ptr) {}
@@ -911,20 +898,6 @@ namespace mse {
 
 	/* end of template specializations */
 
-#if defined(MSE_REGISTEREDPOINTER_DISABLED)
-	/* Omit definition of make_pointer_to_member() as it would clash with the one already defined in mseregistered.h. */
-#define MSE_CREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER
-#endif // defined(MSE_REGISTEREDPOINTER_DISABLED)
-#if !defined(MSE_CREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER) && defined(MSEREGISTERED_H_)
-	template<class _TTargetType, class _Ty>
-	TSyncWeakFixedPointer<_TTargetType, TCRegisteredPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TCRegisteredPointer<_Ty> &lease_pointer) {
-		return TSyncWeakFixedPointer<_TTargetType, TCRegisteredPointer<_Ty>>::make(target, lease_pointer);
-	}
-	template<class _TTargetType, class _Ty>
-	TSyncWeakFixedPointer<_TTargetType, TCRegisteredConstPointer<_Ty>> make_pointer_to_member(_TTargetType& target, const TCRegisteredConstPointer<_Ty> &lease_pointer) {
-		return TSyncWeakFixedPointer<_TTargetType, TCRegisteredConstPointer<_Ty>>::make(target, lease_pointer);
-	}
-#endif // !defined(MSE_CREGISTERED_OMIT_MAKE_POINTER_TO_MEMBER) && defined(MSEREGISTERED_H_)
 
 	/* shorter aliases */
 	template<typename _Ty> using crp = TCRegisteredPointer<_Ty>;

@@ -15,115 +15,115 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="mseprimitives.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msemsevector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msetl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msevector_test.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msemstdvector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mseivector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mseregistered.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mserefcounting.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msescope.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mseasyncshared.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msepoly.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msemsearray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msemstdarray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mseany.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mseoptional.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msepointerbasics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mselegacyhelpers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msemsestring.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msemstdstring.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msetl_example2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msealgorithm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msetl_example_defs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msecregistered.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msenorad.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msethreadlocal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msestaticimmutable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msescopeatomic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msetuple.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msetl_example3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mseregisteredproxy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msenoradproxy.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="msefunctional.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="msetl_example.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="msetl_example2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="msetl_example3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="LICENSE_1_0.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="examples\msetl_example\msetl_example.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\msetl_example\msetl_example2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="examples\msetl_example\msetl_example3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="examples\msetl_example\msetl_example_defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\msetl_example\msetl_example2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\msetl_example\msetl_example3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="examples\msetl_example\msevector_test.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msealgorithm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mseany.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mseasyncshared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msecregistered.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msefunctional.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mseivector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mselegacyhelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msemsearray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msemsestring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msemsevector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msemstdarray.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msemstdstring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msemstdvector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msenorad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msenoradproxy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mseoptional.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msepointerbasics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msepoly.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mseprimitives.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mserefcounting.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mseregistered.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mseregisteredproxy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msescope.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msescopeatomic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msestaticimmutable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msethreadlocal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msetl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\msetuple.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

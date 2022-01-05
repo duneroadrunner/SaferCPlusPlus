@@ -444,9 +444,6 @@ namespace mse {
 				return (*this);
 			}
 			operator bool() const { return (*static_cast<const TXScopeObjPointer<_Ty, lt_info1>*>(this)); }
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator _Ty* () const { return TXScopeObjPointer<_Ty, lt_info1>::operator _Ty * (); }
-			MSE_DEPRECATED explicit operator TXScopeObj<_Ty>* () const { return TXScopeObjPointer<_Ty, lt_info1>::operator TXScopeObj<_Ty> * (); }
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -467,9 +464,6 @@ namespace mse {
 			//TXScopeObjNotNullConstPointer(const TXScopeObjNotNullPointer<_Ty2>& src_cref) : TXScopeObjConstPointer<_Ty, lt_info1>(src_cref) {}
 			TXScopeObjNotNullConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : TXScopeObjConstPointer<_Ty, lt_info1>(scpobj_cref) {}
 			operator bool() const { return (*static_cast<const TXScopeObjConstPointer<_Ty, lt_info1>*>(this)); }
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator const _Ty* () const { return TXScopeObjConstPointer<_Ty, lt_info1>::operator const _Ty * (); }
-			MSE_DEPRECATED explicit operator const TXScopeObj<_Ty>* () const { return TXScopeObjConstPointer<_Ty, lt_info1>::operator const TXScopeObj<_Ty> * (); }
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -486,9 +480,6 @@ namespace mse {
 			//TXScopeObjFixedPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : TXScopeObjNotNullPointer<_Ty>(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedPointer() {}
 			operator bool() const { return (*static_cast<const TXScopeObjNotNullPointer<_Ty>*>(this)); }
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator _Ty* () const { return TXScopeObjNotNullPointer<_Ty>::operator _Ty * (); }
-			MSE_DEPRECATED explicit operator TXScopeObj<_Ty>* () const { return TXScopeObjNotNullPointer<_Ty>::operator TXScopeObj<_Ty> * (); }
 			void xscope_tag() const {}
 
 		private:
@@ -521,9 +512,6 @@ namespace mse {
 			//TXScopeObjFixedConstPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : TXScopeObjNotNullConstPointer<_Ty>(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const TXScopeObjNotNullConstPointer<_Ty>*>(this)); }
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator const _Ty* () const { return TXScopeObjNotNullConstPointer<_Ty>::operator const _Ty * (); }
-			MSE_DEPRECATED explicit operator const TXScopeObj<_Ty>* () const { return TXScopeObjNotNullConstPointer<_Ty>::operator const TXScopeObj<_Ty> * (); }
 			void xscope_tag() const {}
 
 		private:
@@ -2348,78 +2336,7 @@ namespace mse {
 	}
 
 
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const rsv::TXScopeFixedPointer<_Ty> &lease_pointer) {
-		return rsv::TXScopeFixedPointer<_TTargetType>(std::addressof(target));
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType& target, const rsv::TXScopeFixedConstPointer<_Ty> &lease_pointer) {
-		return rsv::TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const rsv::TXScopeFixedPointer<_Ty> &lease_pointer) {
-		return rsv::TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const rsv::TXScopeFixedConstPointer<_Ty> &lease_pointer) {
-		return rsv::TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
-	}
-
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const rsv::TXScopeObjFixedPointer<_Ty> &lease_pointer) {
-		return rsv::TXScopeFixedPointer<_TTargetType>(std::addressof(target));
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_xscope_pointer_to_member(const _TTargetType& target, const rsv::TXScopeObjFixedConstPointer<_Ty> &lease_pointer) {
-		return rsv::TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const rsv::TXScopeObjFixedPointer<_Ty> &lease_pointer) {
-		return rsv::TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const rsv::TXScopeObjFixedConstPointer<_Ty> &lease_pointer) {
-		return rsv::TXScopeFixedConstPointer<_TTargetType>(std::addressof(target));
-	}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
 #ifndef MSE_SCOPE_DISABLE_MAKE_POINTER_TO_MEMBER
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedPointer<_TTargetType> make_pointer_to_member(_TTargetType& target, const rsv::TXScopeFixedPointer<_Ty> &lease_pointer) {
-		return make_xscope_pointer_to_member(target, lease_pointer);
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_pointer_to_member(const _TTargetType& target, const rsv::TXScopeFixedConstPointer<_Ty> &lease_pointer) {
-		return make_xscope_pointer_to_member(target, lease_pointer);
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const rsv::TXScopeFixedPointer<_Ty> &lease_pointer) {
-		return make_xscope_const_pointer_to_member(target, lease_pointer);
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const rsv::TXScopeFixedConstPointer<_Ty> &lease_pointer) {
-		return make_xscope_const_pointer_to_member(target, lease_pointer);
-	}
-
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedPointer<_TTargetType> make_pointer_to_member(_TTargetType& target, const rsv::TXScopeObjFixedPointer<_Ty> &lease_pointer) {
-		return make_xscope_pointer_to_member(target, lease_pointer);
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_pointer_to_member(const _TTargetType& target, const rsv::TXScopeObjFixedConstPointer<_Ty> &lease_pointer) {
-		return make_xscope_pointer_to_member(target, lease_pointer);
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const rsv::TXScopeObjFixedPointer<_Ty> &lease_pointer) {
-		return make_xscope_const_pointer_to_member(target, lease_pointer);
-	}
-	template<class _TTargetType, class _Ty>
-	MSE_DEPRECATED rsv::TXScopeFixedConstPointer<_TTargetType> make_const_pointer_to_member(const _TTargetType& target, const rsv::TXScopeObjFixedConstPointer<_Ty> &lease_pointer) {
-		return make_xscope_const_pointer_to_member(target, lease_pointer);
-	}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
 	namespace impl {

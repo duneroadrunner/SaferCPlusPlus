@@ -403,14 +403,14 @@ namespace mse {
 			typedef typename _MV::cipointer::reference reference;
 
 			xscope_cipointer(const mse::TXScopeObjFixedConstPointer<ivector>& owner_ptr)
-				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+				: m_xscope_cipointer(mse::rsv::TXScopeFixedConstPointer<_MV>(std::addressof(_MV_cref(*((*owner_ptr).m_shptr))))) {}
 			xscope_cipointer(const mse::TXScopeObjFixedPointer<ivector>& owner_ptr)
-				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+				: m_xscope_cipointer(mse::rsv::TXScopeFixedConstPointer<_MV>(std::addressof(_MV_cref(*((*owner_ptr).m_shptr))))) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 			xscope_cipointer(const mse::TXScopeFixedConstPointer<ivector>& owner_ptr)
-				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+				: m_xscope_cipointer(mse::rsv::TXScopeFixedConstPointer<_MV>(std::addressof(_MV_cref(*((*owner_ptr).m_shptr))))) {}
 			xscope_cipointer(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
-				: m_xscope_cipointer(mse::make_xscope_const_pointer_to_member(_MV_cref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+				: m_xscope_cipointer(mse::rsv::TXScopeFixedConstPointer<_MV>(std::addressof(_MV_cref(*((*owner_ptr).m_shptr))))) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 			xscope_cipointer(const xscope_cipointer& src_cref) : m_xscope_cipointer(src_cref.m_xscope_cipointer) {}
@@ -510,10 +510,10 @@ namespace mse {
 			typedef typename _MV::ipointer::reference reference;
 
 			xscope_ipointer(const mse::TXScopeObjFixedPointer<ivector>& owner_ptr)
-				: m_xscope_ipointer(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+				: m_xscope_ipointer(mse::rsv::TXScopeFixedPointer<_MV>(std::addressof(_MV_cref(*((*owner_ptr).m_shptr))))) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 			xscope_ipointer(const mse::TXScopeFixedPointer<ivector>& owner_ptr)
-				: m_xscope_ipointer(mse::make_xscope_pointer_to_member(_MV_ref(*((*owner_ptr).m_shptr)), owner_ptr)) {}
+				: m_xscope_ipointer(mse::rsv::TXScopeFixedPointer<_MV>(std::addressof(_MV_cref(*((*owner_ptr).m_shptr))))) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 			xscope_ipointer(const xscope_ipointer& src_cref) : m_xscope_ipointer(src_cref.m_xscope_ipointer) {}

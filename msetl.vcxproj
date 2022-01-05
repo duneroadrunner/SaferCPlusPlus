@@ -148,6 +148,7 @@
       <EnablePREfast>false</EnablePREfast>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,6 +167,7 @@
       <EnablePREfast>false</EnablePREfast>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -185,6 +187,7 @@
       <EnablePREfast>false</EnablePREfast>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -207,6 +210,7 @@
       <EnablePREfast>false</EnablePREfast>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -229,6 +233,7 @@
       <EnablePREfast>false</EnablePREfast>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -252,6 +257,7 @@
       <EnablePREfast>false</EnablePREfast>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -261,46 +267,46 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="msealgorithm.h" />
-    <ClInclude Include="mseany.h" />
-    <ClInclude Include="mseasyncshared.h" />
-    <ClInclude Include="msecregistered.h" />
-    <ClInclude Include="msefunctional.h" />
-    <ClInclude Include="mseivector.h" />
-    <ClInclude Include="mselegacyhelpers.h" />
-    <ClInclude Include="msemsearray.h" />
-    <ClInclude Include="msemsestring.h" />
-    <ClInclude Include="msemsevector.h" />
-    <ClInclude Include="msemstdarray.h" />
-    <ClInclude Include="msemstdstring.h" />
-    <ClInclude Include="msemstdvector.h" />
-    <ClInclude Include="msenorad.h" />
-    <ClInclude Include="msenoradproxy.h" />
-    <ClInclude Include="mseoptional.h" />
-    <ClInclude Include="msepointerbasics.h" />
-    <ClInclude Include="msepoly.h" />
-    <ClInclude Include="mseprimitives.h" />
-    <ClInclude Include="mserefcounting.h" />
-    <ClInclude Include="mseregistered.h" />
-    <ClInclude Include="mseregisteredproxy.h" />
-    <ClInclude Include="msescope.h" />
-    <ClInclude Include="msescopeatomic.h" />
-    <ClInclude Include="msestaticimmutable.h" />
-    <ClInclude Include="msethreadlocal.h" />
-    <ClInclude Include="msetl.h" />
-    <ClInclude Include="msetl_example2.h" />
-    <ClInclude Include="msetl_example3.h" />
-    <ClInclude Include="msetl_example_defs.h" />
-    <ClInclude Include="msetuple.h" />
-    <ClInclude Include="msevector_test.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="msetl_example.cpp" />
-    <ClCompile Include="msetl_example2.cpp" />
-    <ClCompile Include="msetl_example3.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="LICENSE_1_0.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="examples\msetl_example\msetl_example.cpp" />
+    <ClCompile Include="examples\msetl_example\msetl_example2.cpp" />
+    <ClCompile Include="examples\msetl_example\msetl_example3.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="examples\msetl_example\msetl_example2.h" />
+    <ClInclude Include="examples\msetl_example\msetl_example3.h" />
+    <ClInclude Include="examples\msetl_example\msetl_example_defs.h" />
+    <ClInclude Include="examples\msetl_example\msevector_test.h" />
+    <ClInclude Include="include\msealgorithm.h" />
+    <ClInclude Include="include\mseany.h" />
+    <ClInclude Include="include\mseasyncshared.h" />
+    <ClInclude Include="include\msecregistered.h" />
+    <ClInclude Include="include\msefunctional.h" />
+    <ClInclude Include="include\mseivector.h" />
+    <ClInclude Include="include\mselegacyhelpers.h" />
+    <ClInclude Include="include\msemsearray.h" />
+    <ClInclude Include="include\msemsestring.h" />
+    <ClInclude Include="include\msemsevector.h" />
+    <ClInclude Include="include\msemstdarray.h" />
+    <ClInclude Include="include\msemstdstring.h" />
+    <ClInclude Include="include\msemstdvector.h" />
+    <ClInclude Include="include\msenorad.h" />
+    <ClInclude Include="include\msenoradproxy.h" />
+    <ClInclude Include="include\mseoptional.h" />
+    <ClInclude Include="include\msepointerbasics.h" />
+    <ClInclude Include="include\msepoly.h" />
+    <ClInclude Include="include\mseprimitives.h" />
+    <ClInclude Include="include\mserefcounting.h" />
+    <ClInclude Include="include\mseregistered.h" />
+    <ClInclude Include="include\mseregisteredproxy.h" />
+    <ClInclude Include="include\msescope.h" />
+    <ClInclude Include="include\msescopeatomic.h" />
+    <ClInclude Include="include\msestaticimmutable.h" />
+    <ClInclude Include="include\msethreadlocal.h" />
+    <ClInclude Include="include\msetl.h" />
+    <ClInclude Include="include\msetuple.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
