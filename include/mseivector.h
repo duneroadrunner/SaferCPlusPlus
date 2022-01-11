@@ -15,6 +15,9 @@
 #pragma push_macro("_NOEXCEPT")
 #pragma push_macro("_NOEXCEPT_OP")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+#ifdef MSE_HAS_CXX20
+#include <compare>
+#endif // MSE_HAS_CXX20
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
@@ -114,6 +117,8 @@ namespace mse {
 		class xscope_cipointer;
 		class xscope_ipointer;
 
+		class ipointer;
+
 		class cipointer : public _MV::random_access_const_iterator_base, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 		public:
 			typedef typename _MV::mm_const_iterator_type::iterator_category iterator_category;
@@ -125,6 +130,7 @@ namespace mse {
 
 			cipointer(const _Myt& owner_cref) : m_msevector_cshptr(owner_cref.m_shptr), m_cipointer(*(owner_cref.m_shptr)) {}
 			cipointer(const cipointer& src_cref) : m_msevector_cshptr(src_cref.m_msevector_cshptr), m_cipointer(src_cref.m_cipointer) {}
+			cipointer(const ipointer& src_cref) : m_msevector_cshptr(src_cref.m_msevector_shptr), m_cipointer(src_cref.m_ipointer) {}
 			~cipointer() {}
 			const typename _MV::cipointer& msevector_cipointer() const { return m_cipointer; }
 			typename _MV::cipointer& msevector_cipointer() { return m_cipointer; }
@@ -161,11 +167,15 @@ namespace mse {
 			typename _MV::const_pointer operator->() const { return msevector_cipointer().operator->(); }
 			typename _MV::const_reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
 			bool operator==(const cipointer& _Right_cref) const { return msevector_cipointer().operator==(_Right_cref.msevector_cipointer()); }
+#ifndef MSE_HAS_CXX20
 			bool operator!=(const cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
 			bool operator<(const cipointer& _Right) const { return (msevector_cipointer() < _Right.msevector_cipointer()); }
 			bool operator<=(const cipointer& _Right) const { return (msevector_cipointer() <= _Right.msevector_cipointer()); }
 			bool operator>(const cipointer& _Right) const { return (msevector_cipointer() > _Right.msevector_cipointer()); }
 			bool operator>=(const cipointer& _Right) const { return (msevector_cipointer() >= _Right.msevector_cipointer()); }
+#else // !MSE_HAS_CXX20
+			std::strong_ordering operator<=>(const cipointer& _Right) const { return (msevector_cipointer() <=> _Right.msevector_cipointer()); }
+#endif // !MSE_HAS_CXX20
 			void set_to_const_item_pointer(const cipointer& _Right_cref) { msevector_cipointer().set_to_const_item_pointer(_Right_cref.msevector_cipointer()); }
 			msev_size_t position() const { return msevector_cipointer().position(); }
 			auto target_container_ptr() const -> decltype(msevector_cipointer().target_container_ptr()) {
@@ -196,6 +206,7 @@ namespace mse {
 			typename _MV::ipointer& msevector_ipointer() { return m_ipointer; }
 			const typename _MV::ipointer& mvip() const { return msevector_ipointer(); }
 			typename _MV::ipointer& mvip() { return msevector_ipointer(); }
+			/*
 			operator cipointer() const {
 				cipointer retval(m_msevector_shptr);
 				assert(m_msevector_shptr);
@@ -203,6 +214,7 @@ namespace mse {
 				retval.advance(msev_int(msevector_ipointer().position()));
 				return retval;
 			}
+			*/
 
 			typename _MV::reference operator*() const { return msevector_ipointer().operator*(); }
 			typename _MV::reference item() const { return operator*(); }
@@ -236,12 +248,17 @@ namespace mse {
 			typename _MV::difference_type operator-(const cipointer& _Right_cref) const {
 				return (cipointer(*this) - _Right_cref);
 			}
+#ifndef MSE_HAS_CXX20
 			bool operator==(const cipointer& _Right_cref) const { return (cipointer(*this) == _Right_cref); }
 			bool operator!=(const cipointer& _Right_cref) const { return (cipointer(*this) != _Right_cref); }
 			bool operator<(const cipointer& _Right_cref) const { return (cipointer(*this) < _Right_cref); }
 			bool operator>(const cipointer& _Right_cref) const { return (cipointer(*this) > _Right_cref); }
 			bool operator<=(const cipointer& _Right_cref) const { return (cipointer(*this) <= _Right_cref); }
 			bool operator>=(const cipointer& _Right_cref) const { return (cipointer(*this) >= _Right_cref); }
+#else // !MSE_HAS_CXX20
+			bool operator==(const ipointer& _Right_cref) const { return (cipointer(*this) == _Right_cref); }
+			std::strong_ordering operator<=>(const ipointer& _Right_cref) const { return (cipointer(*this) <=> _Right_cref); }
+#endif // !MSE_HAS_CXX20
 
 			void set_to_item_pointer(const ipointer& _Right_cref) { msevector_ipointer().set_to_item_pointer(_Right_cref.msevector_ipointer()); }
 			auto target_container_ptr() const -> decltype(msevector_ipointer().target_container_ptr()) {
@@ -253,6 +270,7 @@ namespace mse {
 			std::shared_ptr<_MV> m_msevector_shptr;
 			/* m_ipointer needs to be declared after m_msevector_shptr so that it's destructor will be called first. */
 			typename _MV::ipointer m_ipointer;
+			friend class cipointer;
 			friend class /*_Myt*/ivector<_Ty, _A>;
 		};
 		typedef cipointer const_iterator;
@@ -627,7 +645,6 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		};
 
-
 		void async_not_shareable_and_not_passable_tag() const {}
 
 	private:
@@ -646,6 +663,7 @@ namespace mse {
 		->ivector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
 
+#ifndef MSE_HAS_CXX20
 	template<class _Ty, class _Alloc> inline bool operator!=(const ivector<_Ty, _Alloc>& _Left,
 		const ivector<_Ty, _Alloc>& _Right) {	// test for ivector inequality
 			return (!(_Left == _Right));
@@ -665,6 +683,7 @@ namespace mse {
 		const ivector<_Ty, _Alloc>& _Right) {	// test if _Left >= _Right for ivectors
 			return (!(_Left < _Right));
 		}
+#endif // !MSE_HAS_CXX20
 
 	/* For each (scope) vector instance, only one instance of xscope_structure_lock_guard may exist at any one
 	time. While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to

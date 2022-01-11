@@ -806,6 +806,14 @@ namespace mse {
 			bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
 				return ((*m_shptr) < (*(_Right.m_shptr)));
 			}
+#ifndef MSE_HAS_CXX20
+			bool operator!=(const _Myt& _Right_cref) const { return !((*this) == _Right_cref); }
+			bool operator>(const _Myt& _Right_cref) const { return (_Right_cref < (*this)); }
+			bool operator<=(const _Myt& _Right_cref) const { return !((*this) > _Right_cref); }
+			bool operator>=(const _Myt& _Right_cref) const { return !((*this) < _Right_cref); }
+#else // !MSE_HAS_CXX20
+			std::strong_ordering operator<=>(const _Myt& _Right_cref) const = delete;
+#endif // !MSE_HAS_CXX20
 
 
 			basic_string& append(mse::TXScopeFixedConstPointer<basic_string> xs_ptr) {

@@ -1236,14 +1236,6 @@ namespace mse {
 				, TXScopeRandomAccessConstSection<_TRAIterator2> >(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).equal(sv);
 		}
-		template<typename _TRAParam>
-		bool operator==(const _TRAParam& ra_param) const {
-			return equal(ra_param);
-		}
-		template<typename _TRAParam>
-		bool operator!=(const _TRAParam& ra_param) const {
-			return !((*this) == ra_param);
-		}
 
 		template<typename _TRAParam>
 		bool lexicographical_compare(const _TRAParam& ra_param) const {
@@ -1265,20 +1257,52 @@ namespace mse {
 			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
-		template<typename _TRAParam>
+
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringSectionBase const *>::value)> MSE_IMPL_EIS>
+		bool operator==(const _TRAParam& ra_param) const {
+			return equal(ra_param);
+		}
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringSectionBase const *>::value)> MSE_IMPL_EIS>
+		bool operator!=(const _TRAParam& ra_param) const {
+			return !((*this) == ra_param);
+		}
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringSectionBase const *>::value)> MSE_IMPL_EIS>
 		bool operator<(const _TRAParam& ra_param) const {
 			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return lexicographical_compare(sv);
 		}
-		template<typename _TRAParam>
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringSectionBase const *>::value)> MSE_IMPL_EIS>
 		bool operator>(const _TRAParam& ra_param) const {
 			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return sv.lexicographical_compare(*this);
 		}
-		template<typename _TRAParam>
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringSectionBase const *>::value)> MSE_IMPL_EIS>
 		bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
-		template<typename _TRAParam>
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringSectionBase const *>::value)> MSE_IMPL_EIS>
 		bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
+
+		bool operator==(const TStringSectionBase& _Right_cref) const {
+			return equal(_Right_cref);
+		}
+#ifndef MSE_HAS_CXX20
+		bool operator!=(const TStringSectionBase& _Right_cref) const {
+			return !((*this) == _Right_cref);
+		}
+		bool operator<(const TStringSectionBase& _Right_cref) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
+			return lexicographical_compare(sv);
+				}
+		bool operator>(const TStringSectionBase& _Right_cref) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
+			return sv.lexicographical_compare(*this);
+		}
+		bool operator<=(const TStringSectionBase& _Right_cref) const { return !((*this) > _Right_cref); }
+		bool operator>=(const TStringSectionBase& _Right_cref) const { return !((*this) < _Right_cref); }
+#else // !MSE_HAS_CXX20
+		std::strong_ordering operator<=>(const TStringSectionBase& _Right_cref) const {
+			return base_class::operator<=>(_Right_cref);
+		}
+#endif // !MSE_HAS_CXX20
 
 		int compare(const TStringConstSectionBase<_TRASection, _TRAConstSection>& sv) const _NOEXCEPT {
 			return base_class::compare(sv);
@@ -1574,14 +1598,6 @@ namespace mse {
 				, TXScopeRandomAccessConstSection<_TRAIterator2> >(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).equal(sv);
 		}
-		template<typename _TRAParam>
-		bool operator==(const _TRAParam& ra_param) const {
-			return equal(ra_param);
-		}
-		template<typename _TRAParam>
-		bool operator!=(const _TRAParam& ra_param) const {
-			return !((*this) == ra_param);
-		}
 
 		template<typename _TRAParam>
 		bool lexicographical_compare(const _TRAParam& ra_param) const {
@@ -1603,20 +1619,52 @@ namespace mse {
 			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(s), n2);
 			return subsection(pos1, n1).lexicographical_compare(sv);
 		}
-		template<typename _TRAParam>
+
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringConstSectionBase const *>::value)> MSE_IMPL_EIS>
+		bool operator==(const _TRAParam& ra_param) const {
+			return equal(ra_param);
+		}
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringConstSectionBase const *>::value)> MSE_IMPL_EIS>
+		bool operator!=(const _TRAParam& ra_param) const {
+			return !((*this) == ra_param);
+		}
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringConstSectionBase const *>::value)> MSE_IMPL_EIS>
 		bool operator<(const _TRAParam& ra_param) const {
 			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return lexicographical_compare(sv);
 		}
-		template<typename _TRAParam>
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringConstSectionBase const *>::value)> MSE_IMPL_EIS>
 		bool operator>(const _TRAParam& ra_param) const {
 			auto sv = mse::make_xscope_string_const_section(mse::rsv::as_an_fparam(ra_param));
 			return sv.lexicographical_compare(*this);
 		}
-		template<typename _TRAParam>
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringConstSectionBase const *>::value)> MSE_IMPL_EIS>
 		bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
-		template<typename _TRAParam>
+		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringConstSectionBase const *>::value)> MSE_IMPL_EIS>
 		bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
+
+		bool operator==(const TStringConstSectionBase& _Right_cref) const {
+			return equal(_Right_cref);
+		}
+#ifndef MSE_HAS_CXX20
+		bool operator!=(const TStringConstSectionBase& _Right_cref) const {
+			return !((*this) == _Right_cref);
+		}
+		bool operator<(const TStringConstSectionBase& _Right_cref) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
+			return lexicographical_compare(sv);
+				}
+		bool operator>(const TStringConstSectionBase& _Right_cref) const {
+			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
+			return sv.lexicographical_compare(*this);
+		}
+		bool operator<=(const TStringConstSectionBase& _Right_cref) const { return !((*this) > _Right_cref); }
+		bool operator>=(const TStringConstSectionBase& _Right_cref) const { return !((*this) < _Right_cref); }
+#else // !MSE_HAS_CXX20
+		std::strong_ordering operator<=>(const TStringConstSectionBase& _Right_cref) const {
+			return base_class::operator<=>(_Right_cref);
+		}
+#endif // !MSE_HAS_CXX20
 
 		int compare(const TStringConstSectionBase& sv) const _NOEXCEPT {
 			return base_class::compare(sv);
@@ -4530,6 +4578,14 @@ namespace mse {
 				bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
 					return (contained_basic_string() < _Right.contained_basic_string());
 				}
+#ifndef MSE_HAS_CXX20
+				bool operator!=(const _Myt& _Right_cref) const { return !((*this) == _Right_cref); }
+				bool operator>(const _Myt& _Right_cref) const { return (_Right_cref < (*this)); }
+				bool operator<=(const _Myt& _Right_cref) const { return !((*this) > _Right_cref); }
+				bool operator>=(const _Myt& _Right_cref) const { return !((*this) < _Right_cref); }
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const _Myt& _Right_cref) const = delete;
+#endif // !MSE_HAS_CXX20
 
 
 				gnii_basic_string& append(mse::TXScopeFixedConstPointer<gnii_basic_string> xs_ptr) {

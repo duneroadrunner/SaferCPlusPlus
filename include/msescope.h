@@ -67,7 +67,7 @@ namespace mse {
 	}
 
 	namespace impl {
-		template<typename _Ty> class TScopeID {};
+		class TScopeID {};
 
 		template <typename _Ty> struct is_potentially_not_structure_locking_reference : std::integral_constant<bool,
 			(!std::is_base_of<mse::us::impl::StructureLockingObjectTagBase, mse::impl::remove_reference_t<_Ty> >::value)> {};
@@ -239,9 +239,9 @@ namespace mse {
 			};
 
 			template<typename _Ty, lifetime_info1_t lt_info1 = no_lifetime_info1>
-			class TXScopeObjPointerBase : public mse::us::impl::TPointerForLegacy<TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> {
+			class TXScopeObjPointerBase : public mse::us::impl::TPointer<TXScopeObjBase<_Ty>, mse::impl::TScopeID> {
 			public:
-				typedef mse::us::impl::TPointerForLegacy<TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> base_class;
+				typedef mse::us::impl::TPointer<TXScopeObjBase<_Ty>, mse::impl::TScopeID> base_class;
 				TXScopeObjPointerBase(const TXScopeObjPointerBase&) = default;
 				TXScopeObjPointerBase(TXScopeObjPointerBase&&) = default;
 				TXScopeObjPointerBase(rsv::TXScopeObj<_Ty, lt_info1>& scpobj_ref) : base_class(&(static_cast<TXScopeObjBase<_Ty>&>(scpobj_ref))) {}
@@ -255,9 +255,9 @@ namespace mse {
 			};
 
 			template<typename _Ty, lifetime_info1_t lt_info1 = no_lifetime_info1>
-			class TXScopeObjConstPointerBase : public mse::us::impl::TPointerForLegacy<const TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> {
+			class TXScopeObjConstPointerBase : public mse::us::impl::TPointer<const TXScopeObjBase<_Ty>, mse::impl::TScopeID> {
 			public:
-				typedef mse::us::impl::TPointerForLegacy<const TXScopeObjBase<_Ty>, mse::impl::TScopeID<const _Ty>> base_class;
+				typedef mse::us::impl::TPointer<const TXScopeObjBase<_Ty>, mse::impl::TScopeID> base_class;
 				TXScopeObjConstPointerBase(const TXScopeObjConstPointerBase&) = default;
 				TXScopeObjConstPointerBase(TXScopeObjConstPointerBase&&) = default;
 				TXScopeObjConstPointerBase(const TXScopeObjPointerBase<_Ty, lt_info1>& src_cref) : base_class(src_cref) {}
@@ -271,8 +271,10 @@ namespace mse {
 				}
 			};
 
-			template<typename _Ty> using TXScopeItemPointerBase = mse::us::impl::TPointerForLegacy<_Ty, mse::impl::TScopeID<const _Ty>>;
-			template<typename _Ty> using TXScopeItemConstPointerBase = mse::us::impl::TPointerForLegacy<const _Ty, mse::impl::TScopeID<const _Ty>>;
+			//template<typename _Ty> using TXScopeItemPointerBase = mse::us::impl::TPointerForLegacy<_Ty, mse::impl::TScopeID>;
+			//template<typename _Ty> using TXScopeItemConstPointerBase = mse::us::impl::TPointerForLegacy<const _Ty, mse::impl::TScopeID>;
+			template<typename _Ty> using TXScopeItemPointerBase = mse::us::impl::TPointer<_Ty, mse::impl::TScopeID>;
+			template<typename _Ty> using TXScopeItemConstPointerBase = mse::us::impl::TPointer<const _Ty, mse::impl::TScopeID>;
 
 #endif // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 

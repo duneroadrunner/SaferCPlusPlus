@@ -362,6 +362,8 @@ namespace mse {
 			typedef Tvector_xscope_const_iterator<_Ty, _A> xscope_const_iterator;
 			typedef Tvector_xscope_iterator<_Ty, _A> xscope_iterator;
 
+			class iterator;
+
 			class const_iterator : public _MV::random_access_const_iterator_base {
 			public:
 				typedef typename _MV::random_access_const_iterator_base base_class;
@@ -371,6 +373,7 @@ namespace mse {
 				const_iterator(const const_iterator& src_cref) : m_msevector_cshptr(src_cref.m_msevector_cshptr) {
 					(*this) = src_cref;
 				}
+				const_iterator(const iterator& src_cref) : m_msevector_cshptr(src_cref.m_msevector_shptr), m_ss_const_iterator(src_cref.m_ss_iterator) {}
 				~const_iterator() {}
 				const typename _MV::ss_const_iterator_type& msevector_ss_const_iterator_type() const { return m_ss_const_iterator; }
 				typename _MV::ss_const_iterator_type& msevector_ss_const_iterator_type() { return m_ss_const_iterator; }
@@ -417,11 +420,15 @@ namespace mse {
 					//return (*(*this + _Off));
 				}
 				bool operator==(const const_iterator& _Right_cref) const { return msevector_ss_const_iterator_type().operator==(_Right_cref.msevector_ss_const_iterator_type()); }
+#ifndef MSE_HAS_CXX20
 				bool operator!=(const const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const const_iterator& _Right) const { return (msevector_ss_const_iterator_type() < _Right.msevector_ss_const_iterator_type()); }
 				bool operator<=(const const_iterator& _Right) const { return (msevector_ss_const_iterator_type() <= _Right.msevector_ss_const_iterator_type()); }
 				bool operator>(const const_iterator& _Right) const { return (msevector_ss_const_iterator_type() > _Right.msevector_ss_const_iterator_type()); }
 				bool operator>=(const const_iterator& _Right) const { return (msevector_ss_const_iterator_type() >= _Right.msevector_ss_const_iterator_type()); }
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const const_iterator& _Right) const { return (msevector_ss_const_iterator_type() <=> _Right.msevector_ss_const_iterator_type()); }
+#endif // !MSE_HAS_CXX20
 				void set_to_const_item_pointer(const const_iterator& _Right_cref) { msevector_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msevector_ss_const_iterator_type()); }
 				msev_size_t position() const { return msevector_ss_const_iterator_type().position(); }
 				auto target_container_ptr() const -> decltype(msevector_ss_const_iterator_type().target_container_ptr()) {
@@ -454,6 +461,7 @@ namespace mse {
 				typename _MV::ss_iterator_type& msevector_ss_iterator_type() { return m_ss_iterator; }
 				const typename _MV::ss_iterator_type& mvssi() const { return msevector_ss_iterator_type(); }
 				typename _MV::ss_iterator_type& mvssi() { return msevector_ss_iterator_type(); }
+				/*
 				operator const_iterator() const {
 					const_iterator retval(m_msevector_shptr);
 					if (m_msevector_shptr) {
@@ -462,6 +470,7 @@ namespace mse {
 					}
 					return retval;
 				}
+				*/
 
 				typename _MV::reference operator*() const {
 					(*m_msevector_shptr).assert_parent_not_destroyed();
@@ -505,12 +514,17 @@ namespace mse {
 				typename _MV::difference_type operator-(const const_iterator& _Right_cref) const {
 					return (const_iterator(*this) - _Right_cref);
 				}
+#ifndef MSE_HAS_CXX20
 				bool operator==(const const_iterator& _Right_cref) const { return (const_iterator(*this) == _Right_cref); }
 				bool operator!=(const const_iterator& _Right_cref) const { return (const_iterator(*this) != _Right_cref); }
 				bool operator<(const const_iterator& _Right_cref) const { return (const_iterator(*this) < _Right_cref); }
 				bool operator>(const const_iterator& _Right_cref) const { return (const_iterator(*this) > _Right_cref); }
 				bool operator<=(const const_iterator& _Right_cref) const { return (const_iterator(*this) <= _Right_cref); }
 				bool operator>=(const const_iterator& _Right_cref) const { return (const_iterator(*this) >= _Right_cref); }
+#else // !MSE_HAS_CXX20
+				bool operator==(const iterator& _Right_cref) const { return (const_iterator(*this) == _Right_cref); }
+				std::strong_ordering operator<=>(const iterator& _Right_cref) const { return (const_iterator(*this) <=> _Right_cref); }
+#endif // !MSE_HAS_CXX20
 
 				void set_to_item_pointer(const iterator& _Right_cref) { msevector_ss_iterator_type().set_to_item_pointer(_Right_cref.msevector_ss_iterator_type()); }
 				msev_size_t position() const { return msevector_ss_iterator_type().position(); }
@@ -524,6 +538,7 @@ namespace mse {
 				typename _MV::ss_iterator_type m_ss_iterator;
 
 				friend class /*_Myt*/vector<_Ty, _A>;
+				friend class const_iterator;
 				//friend /*class*/ xscope_const_iterator;
 				//friend /*class*/ xscope_iterator;
 			};
@@ -666,6 +681,14 @@ namespace mse {
 			bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for vectors
 				return ((*m_shptr) < (*(_Right.m_shptr)));
 			}
+#ifndef MSE_HAS_CXX20
+			bool operator!=(const _Myt& _Right_cref) const { return !((*this) == _Right_cref); }
+			bool operator>(const _Myt& _Right_cref) const { return (_Right_cref < (*this)); }
+			bool operator<=(const _Myt& _Right_cref) const { return !((*this) > _Right_cref); }
+			bool operator>=(const _Myt& _Right_cref) const { return !((*this) < _Right_cref); }
+#else // !MSE_HAS_CXX20
+			std::strong_ordering operator<=>(const _Myt& _Right_cref) const = delete;
+#endif // !MSE_HAS_CXX20
 
 			void async_not_shareable_tag() const {}
 			/* this array should be safely passable iff the element type is safely passable */
@@ -695,6 +718,7 @@ namespace mse {
 			->vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
 
+#ifndef MSE_HAS_CXX20
 		template<class _Ty, class _Alloc> inline bool operator!=(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test for vector inequality
 			return (!(_Left == _Right));
 		}
@@ -707,6 +731,7 @@ namespace mse {
 		template<class _Ty, class _Alloc> inline bool operator>=(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test if _Left >= _Right for vectors
 			return (!(_Left < _Right));
 		}
+#endif // !MSE_HAS_CXX20
 
 		namespace ns_vector {
 

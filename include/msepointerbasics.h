@@ -20,11 +20,17 @@
 
 #if __cplusplus >= 201703L
 #define MSE_HAS_CXX17
+#if __cplusplus > 201703L
+#define MSE_HAS_CXX20
+#endif // __cplusplus > 201703L
 #endif // __cplusplus >= 201703L
 /*compiler specific defines*/
 #ifdef _MSC_VER
 #if _MSVC_LANG >= 201703L || (defined(_HAS_CXX17) && (_HAS_CXX17 >= 1))
 #define MSE_HAS_CXX17
+#if _MSVC_LANG > 201703L || (defined(_HAS_CXX20) && (_HAS_CXX20 >= 1))
+#define MSE_HAS_CXX20
+#endif // _MSVC_LANG > 201703L || (defined(_HAS_CXX20) && (_HAS_CXX20 >= 1))
 #endif // _MSVC_LANG >= 201703L || (defined(_HAS_CXX17) && (_HAS_CXX17 >= 1))
 #if (1700 > _MSC_VER)
 #define MSVC2010_COMPATIBLE 1
@@ -498,9 +504,9 @@ namespace mse {
 			class ContainsNonOwningScopeReferenceTagBase {};
 			class XScopeContainsNonOwningScopeReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase, public XScopeTagBase {};
 
-			template<typename _Ty, typename _TID/* = TPointerID<_Ty>*/>
+			template<typename _Ty, typename _TID/* = TPointerID*/>
 			class TPointer;
-			template<typename _Ty, typename _TID/* = TPointerID<_Ty>*/>
+			template<typename _Ty, typename _TID/* = TPointerID*/>
 			class TPointerForLegacy;
 		}
 	}
@@ -972,18 +978,17 @@ namespace mse {
 
 	namespace us {
 		namespace impl {
-			template<typename _Ty>
 			class TPointerID {};
 
 			/* TPointer is just a wrapper for native pointers that can act as a base class. */
-			template<typename _Ty, typename _TID = TPointerID<_Ty>>
+			template<typename _Ty, typename _TID = TPointerID>
 			class TPointer : public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 			public:
 				TPointer() : m_ptr(nullptr) {}
 				TPointer(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
 				TPointer(const TPointer<_Ty, _TID>& src) : m_ptr(src.m_ptr) { note_value_assignment(); }
 				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
-				TPointer(const TPointer<_Ty2, TPointerID<_Ty2> >& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
+				TPointer(const TPointer<_Ty2, _TID >& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TPointer() {}
 
 				void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
@@ -1018,15 +1023,17 @@ namespace mse {
 					return (*this);
 				}
 				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
-				TPointer<_Ty, _TID>& operator=(const TPointer<_Ty2, TPointerID<_Ty2> >& _Right_cref) {
+				TPointer<_Ty, _TID>& operator=(const TPointer<_Ty2, _TID >& _Right_cref) {
 					note_value_assignment();
 					m_ptr = _Right_cref.m_ptr;
 					return (*this);
 				}
-				bool operator==(const _Ty* _Right_cref) const { assert_initialized(); return (_Right_cref == m_ptr); }
-				bool operator!=(const _Ty* _Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref)); }
-				bool operator==(const TPointer<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (_Right_cref == m_ptr); }
-				bool operator!=(const TPointer<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref)); }
+				bool operator==(const TPointer<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (_Right_cref.m_ptr == m_ptr); }
+#ifndef MSE_HAS_CXX20
+				//bool operator==(const _Ty* _Right_cref) const { assert_initialized(); return (_Right_cref == m_ptr); }
+				bool operator!=(const _Ty* _Right_cref) const { /*assert_initialized();*/ return (!(m_ptr == _Right_cref)); }
+				bool operator!=(const TPointer<_Ty, _TID>& _Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref.m_ptr)); }
+#endif // !MSE_HAS_CXX20
 
 				bool operator!() const { assert_initialized(); return (!m_ptr); }
 				operator bool() const {
@@ -1056,7 +1063,7 @@ namespace mse {
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 			};
 
-			template<typename _Ty, typename _TID = TPointerID<_Ty>>
+			template<typename _Ty, typename _TID = TPointerID>
 			class TPointerForLegacy : public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 			public:
 				TPointerForLegacy() : m_ptr(nullptr) {}
@@ -1090,21 +1097,27 @@ namespace mse {
 #endif // !NDEBUG
 					return m_ptr;
 				}
-				TPointerForLegacy<_Ty, _TID>& operator=(_Ty* ptr) {
+				TPointerForLegacy& operator=(_Ty* ptr) {
 					note_value_assignment();
 					m_ptr = ptr;
 					return (*this);
 				}
+#ifndef MSE_HAS_CXX20
+				/* With C++20, resolultion of the "==" operator seems to use the (implicit) "operator _Ty*() const" to cast
+				to raw pointer, then use the raw pointer's "==" operator. */
 				bool operator==(const _Ty* _Right_cref) const { assert_initialized(); return (_Right_cref == m_ptr); }
 				bool operator!=(const _Ty* _Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref)); }
-				bool operator==(const TPointerForLegacy<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (m_ptr == _Right_cref); }
-				bool operator!=(const TPointerForLegacy<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref)); }
+				bool operator==(const TPointerForLegacy& _Right_cref) const { /*assert_initialized();*/ return (m_ptr == _Right_cref); }
+				bool operator!=(const TPointerForLegacy& _Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref)); }
+#endif // !MSE_HAS_CXX20
 
 				bool operator!() const { assert_initialized(); return (!m_ptr); }
+#ifndef MSE_HAS_CXX20
 				operator bool() const {
 					assert_initialized();
 					return (m_ptr != nullptr);
 				}
+#endif // !MSE_HAS_CXX20
 
 				operator _Ty*() const {
 					assert_initialized();
@@ -1374,17 +1387,20 @@ namespace mse {
 		}
 
 		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
-		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
 		bool operator==(const TSyncWeakFixedPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
-		bool operator!=(const TSyncWeakFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
-		bool operator==(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const;
-		bool operator!=(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const;
+#ifndef MSE_HAS_CXX20
+		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator!=(const TSyncWeakFixedPointer& _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator==(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>& _Right_cref) const;
+		bool operator!=(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>& _Right_cref) const;
+#endif // !MSE_HAS_CXX20
 
 		bool operator!() const { return (!m_target_pointer); }
 		operator bool() const {
 			return (m_target_pointer != nullptr);
 		}
 
+#if 0
 		explicit operator _TTargetType*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_target_pointer) {
@@ -1393,6 +1409,8 @@ namespace mse {
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_target_pointer;
 		}
+#endif // 0
+
 		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
 
 		template <class _TTargetType2, class _TLeasePointerType2>
@@ -1436,15 +1454,18 @@ namespace mse {
 		}
 
 		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
-		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
 		bool operator==(const TSyncWeakFixedConstPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
-		bool operator!=(const TSyncWeakFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+#ifndef MSE_HAS_CXX20
+		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool operator!=(const TSyncWeakFixedConstPointer& _Right_cref) const { return (!((*this) == _Right_cref)); }
+#endif // !MSE_HAS_CXX20
 
 		bool operator!() const { return (!m_target_pointer); }
 		operator bool() const {
 			return (m_target_pointer != nullptr);
 		}
 
+#if 0
 		explicit operator const _TTargetType*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 			if (nullptr == m_target_pointer) {
@@ -1453,6 +1474,8 @@ namespace mse {
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
 			return m_target_pointer;
 		}
+#endif // 0
+
 		_TLeasePointerType lease_pointer() const { return (*this).m_lease_pointer; }
 
 		template <class _TTargetType2, class _TLeasePointerType2>
@@ -1469,10 +1492,12 @@ namespace mse {
 		_TLeasePointerType m_lease_pointer;
 	};
 
+#ifndef MSE_HAS_CXX20
 	template <class _TTargetType, class _TLeasePointerType>
 	bool TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator==(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
 	template <class _TTargetType, class _TLeasePointerType>
 	bool TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator!=(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
+#endif // !MSE_HAS_CXX20
 
 	namespace impl {
 		template<class _Ty, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_Ty, _Ty2>::value> MSE_IMPL_EIS >
@@ -1631,17 +1656,20 @@ namespace mse {
 			}
 
 			bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
-			bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
 			bool operator==(const TStrongFixedPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
-			bool operator!=(const TStrongFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
-			bool operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const;
-			bool operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const;
+#ifndef MSE_HAS_CXX20
+			bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+			bool operator!=(const TStrongFixedPointer& _Right_cref) const { return (!((*this) == _Right_cref)); }
+			bool operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType>& _Right_cref) const;
+			bool operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType>& _Right_cref) const;
+#endif // !MSE_HAS_CXX20
 
 			bool operator!() const { return (!m_target_pointer); }
 			operator bool() const {
 				return (m_target_pointer != nullptr);
 			}
 
+#if 0
 			explicit operator _TTargetType*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 				if (nullptr == m_target_pointer) {
@@ -1650,6 +1678,8 @@ namespace mse {
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
 				return m_target_pointer;
 			}
+#endif // 0
+
 			_TLeaseType lease() const { return (*this).m_lease; }
 
 			template <class _TTargetType2, class _TLeaseType2>
@@ -1706,15 +1736,18 @@ namespace mse {
 			}
 
 			bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
-			bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
 			bool operator==(const TStrongFixedConstPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
-			bool operator!=(const TStrongFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
+#ifndef MSE_HAS_CXX20
+			bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
+			bool operator!=(const TStrongFixedConstPointer& _Right_cref) const { return (!((*this) == _Right_cref)); }
+#endif // !MSE_HAS_CXX20
 
 			bool operator!() const { return (!m_target_pointer); }
 			operator bool() const {
 				return (m_target_pointer != nullptr);
 			}
 
+#if 0
 			explicit operator const _TTargetType*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 				if (nullptr == m_target_pointer) {
@@ -1723,6 +1756,8 @@ namespace mse {
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
 				return m_target_pointer;
 			}
+#endif // 0
+
 			_TLeaseType lease() const { return (*this).m_lease; }
 
 			template <class _TTargetType2, class _TLeaseType2>
@@ -1755,23 +1790,13 @@ namespace mse {
 			return TStrongFixedConstPointer<_TTargetType, mse::impl::remove_reference_t<_TLeaseType> >::make(target, MSE_FWD(lease));
 		}
 
+#ifndef MSE_HAS_CXX20
 		template <class _TTargetType, class _TLeaseType>
-		bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
+		bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType>& _Right_cref) const { return (_Right_cref == m_target_pointer); }
 		template <class _TTargetType, class _TLeaseType>
-		bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
+		bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType>& _Right_cref) const { return (!((*this) == _Right_cref)); }
+#endif // !MSE_HAS_CXX20
 	}
-	template <class _TTargetType, class _TLeaseType>
-	using TStrongFixedPointer MSE_DEPRECATED = us::TStrongFixedPointer<_TTargetType, _TLeaseType>;
-	template <class _TTargetType, class _TLeaseType>
-	using TStrongFixedConstPointer MSE_DEPRECATED = us::TStrongFixedConstPointer<_TTargetType, _TLeaseType>;
-	template <class _TTargetType, class _TLeaseType>
-	MSE_DEPRECATED auto make_strong(_TTargetType& target, const _TLeaseType& lease) { return us::make_strong(target, lease); }
-	template <class _TTargetType, class _TLeaseType>
-	MSE_DEPRECATED auto make_strong(_TTargetType& target, _TLeaseType&& lease) { return us::make_strong(target, MSE_FWD(lease)); }
-	template <class _TTargetType, class _TLeaseType>
-	MSE_DEPRECATED auto make_const_strong(_TTargetType& target, const _TLeaseType& lease) { return us::make_const_strong(target, lease); }
-	template <class _TTargetType, class _TLeaseType>
-	MSE_DEPRECATED auto make_const_strong(_TTargetType& target, _TLeaseType&& lease) { return us::make_const_strong(target, MSE_FWD(lease)); }
 }
 
 namespace std {

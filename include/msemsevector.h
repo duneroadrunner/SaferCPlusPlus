@@ -39,6 +39,9 @@
 #include <climits>       // ULONG_MAX
 #include <stdexcept>
 #include <atomic>
+#ifdef MSE_HAS_CXX20
+#include <compare>
+#endif // MSE_HAS_CXX20
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_MSTDVECTOR_DISABLED
@@ -2120,6 +2123,14 @@ namespace mse {
 
 					return (contained_vector() < _Right.contained_vector());
 				}
+#ifndef MSE_HAS_CXX20
+				bool operator!=(const _Myt& _Right_cref) const { return !((*this) == _Right_cref); }
+				bool operator>(const _Myt& _Right_cref) const { return (_Right_cref < (*this)); }
+				bool operator<=(const _Myt& _Right_cref) const { return !((*this) > _Right_cref); }
+				bool operator>=(const _Myt& _Right_cref) const { return !((*this) < _Right_cref); }
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const _Myt& _Right_cref) const = delete;
+#endif // !MSE_HAS_CXX20
 
 				template<class _Ty2, class _Traits2>
 				std::basic_ostream<_Ty2, _Traits2>& write_bytes(std::basic_ostream<_Ty2, _Traits2>& _Ostr, size_type byte_count, const size_type byte_start_offset = 0) const {
@@ -4225,6 +4236,8 @@ namespace mse {
 				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(_Myt);
 			};
 
+			class mm_iterator_type;
+
 			/* mm_const_iterator_type acts much like a list iterator. */
 			class mm_const_iterator_type : public random_access_const_iterator_base {
 			public:
@@ -4238,6 +4251,8 @@ namespace mse {
 				typedef typename base_class::const_iterator::reference reference;
 				typedef typename base_class::const_reference const_reference;
 
+				mm_const_iterator_type(const mm_iterator_type& src) : m_points_to_an_item(src.m_points_to_an_item)
+					, m_index(src.m_index), m_owner_cptr(src.m_owner_cptr) {}
 				void reset() { set_to_end_marker(); }
 				bool points_to_an_item() const {
 					if (m_points_to_an_item) { assert((1 <= m_owner_cptr->size()) && (m_index < m_owner_cptr->size())); return true; }
@@ -4370,14 +4385,21 @@ namespace mse {
 					if (((*this).m_owner_cptr) != (_Right_cref.m_owner_cptr)) { MSE_THROW(msevector_range_error("invalid argument - mm_const_iterator_type& operator==(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
 					return (_Right_cref.m_index == m_index);
 				}
+#ifndef MSE_HAS_CXX20
 				bool operator!=(const mm_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const mm_const_iterator_type& _Right) const {
-					if (((*this).m_owner_cptr) != (_Right.m_owner_cptr)) { MSE_THROW(msevector_range_error("invalid argument - mm_const_iterator_type& operator<(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
+					if (((*this).m_owner_cptr) != (_Right.m_owner_cptr)) { MSE_THROW(msevector_range_error("invalid argument - bool operator<(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
 					return (m_index < _Right.m_index);
 				}
 				bool operator<=(const mm_const_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
 				bool operator>(const mm_const_iterator_type& _Right) const { return (!((*this) <= _Right)); }
 				bool operator>=(const mm_const_iterator_type& _Right) const { return (!((*this) < _Right)); }
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const mm_const_iterator_type& _Right) const {
+					if (((*this).m_owner_cptr) != (_Right.m_owner_cptr)) { MSE_THROW(msevector_range_error("invalid argument - std::strong_ordering operator<=>(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msevector")); }
+					return (m_index <=> _Right.m_index);
+				}
+#endif // !MSE_HAS_CXX20
 				void set_to_const_item_pointer(const mm_const_iterator_type& _Right_cref) {
 					(*this) = _Right_cref;
 				}
@@ -4526,12 +4548,17 @@ namespace mse {
 				difference_type operator-(const mm_const_iterator_type& _Right_cref) const {
 					return (mm_const_iterator_type(*this) - _Right_cref);
 				}
+#ifndef MSE_HAS_CXX20
 				bool operator==(const mm_const_iterator_type& _Right_cref) const { return (mm_const_iterator_type(*this) == _Right_cref); }
 				bool operator!=(const mm_const_iterator_type& _Right_cref) const { return (mm_const_iterator_type(*this) != _Right_cref); }
 				bool operator<(const mm_const_iterator_type& _Right_cref) const { return (mm_const_iterator_type(*this) < _Right_cref); }
 				bool operator>(const mm_const_iterator_type& _Right_cref) const { return (mm_const_iterator_type(*this) > _Right_cref); }
 				bool operator<=(const mm_const_iterator_type& _Right_cref) const { return (mm_const_iterator_type(*this) <= _Right_cref); }
 				bool operator>=(const mm_const_iterator_type& _Right_cref) const { return (mm_const_iterator_type(*this) >= _Right_cref); }
+#else // !MSE_HAS_CXX20
+				bool operator==(const mm_iterator_type& _Right_cref) const { return (mm_const_iterator_type(*this) == _Right_cref); }
+				std::strong_ordering operator<=>(const iterator& _Right_cref) const { return (const_iterator(*this) <=> _Right_cref); }
+#endif // !MSE_HAS_CXX20
 
 				/*
 				mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref)
@@ -4589,6 +4616,7 @@ namespace mse {
 				msev_size_t position() const {
 					return m_index;
 				}
+				/*
 				operator mm_const_iterator_type() const {
 					assert(m_owner_ptr);
 					mm_const_iterator_type retval(*m_owner_ptr);
@@ -4596,6 +4624,7 @@ namespace mse {
 					retval.advance(msev_int(m_index));
 					return retval;
 				}
+				*/
 				void async_not_shareable_and_not_passable_tag() const {}
 
 				/* We actually want to make this constructor private, but doing so seems to break std::make_shared<mm_iterator_type>.  */
@@ -4608,6 +4637,7 @@ namespace mse {
 				msev_bool m_points_to_an_item = false;
 				msev_size_t m_index = 0;
 				_Myt* m_owner_ptr = nullptr;
+				friend class mm_const_iterator_type;
 				friend class mm_iterator_set_type;
 				friend class /*_Myt*/msevector<_Ty, _A, _TStateMutex>;
 			};
@@ -4992,11 +5022,15 @@ namespace mse {
 				const_reference operator[](difference_type _Off) const { return const_item_pointer()[_Off]; }
 				cipointer& operator=(const cipointer& _Right_cref) { const_item_pointer().operator=(_Right_cref.const_item_pointer()); return (*this); }
 				bool operator==(const cipointer& _Right_cref) const { return const_item_pointer().operator==(_Right_cref.const_item_pointer()); }
+#ifndef MSE_HAS_CXX20
 				bool operator!=(const cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const cipointer& _Right) const { return (const_item_pointer() < _Right.const_item_pointer()); }
 				bool operator<=(const cipointer& _Right) const { return (const_item_pointer() <= _Right.const_item_pointer()); }
 				bool operator>(const cipointer& _Right) const { return (const_item_pointer() > _Right.const_item_pointer()); }
 				bool operator>=(const cipointer& _Right) const { return (const_item_pointer() >= _Right.const_item_pointer()); }
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const cipointer& _Right) const { return (const_item_pointer() <=> _Right.const_item_pointer()); }
+#endif // !MSE_HAS_CXX20
 				void set_to_const_item_pointer(const cipointer& _Right_cref) { const_item_pointer().set_to_const_item_pointer(_Right_cref.const_item_pointer()); }
 				msev_size_t position() const { return const_item_pointer().position(); }
 				auto target_container_ptr() const {
@@ -5072,12 +5106,17 @@ namespace mse {
 				difference_type operator-(const cipointer& _Right_cref) const {
 					return (cipointer(*this) - _Right_cref);
 				}
+#ifndef MSE_HAS_CXX20
 				bool operator==(const cipointer& _Right_cref) const { return (cipointer(*this) == _Right_cref); }
 				bool operator!=(const cipointer& _Right_cref) const { return (cipointer(*this) != _Right_cref); }
 				bool operator<(const cipointer& _Right_cref) const { return (cipointer(*this) < _Right_cref); }
 				bool operator>(const cipointer& _Right_cref) const { return (cipointer(*this) > _Right_cref); }
 				bool operator<=(const cipointer& _Right_cref) const { return (cipointer(*this) <= _Right_cref); }
 				bool operator>=(const cipointer& _Right_cref) const { return (cipointer(*this) >= _Right_cref); }
+#else // !MSE_HAS_CXX20
+				bool operator==(const ipointer& _Right_cref) const { return (cipointer(*this) == _Right_cref); }
+				std::strong_ordering operator<=>(const ipointer& _Right_cref) const { return (cipointer(*this) <=> _Right_cref); }
+#endif // !MSE_HAS_CXX20
 
 				ipointer& operator=(const ipointer& _Right_cref) { item_pointer().operator=(_Right_cref.item_pointer()); return (*this); }
 				void set_to_item_pointer(const ipointer& _Right_cref) { item_pointer().set_to_item_pointer(_Right_cref.item_pointer()); }

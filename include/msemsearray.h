@@ -50,6 +50,9 @@
 //include <variant>
 #include <string_view>
 #endif // MSE_HAS_CXX17
+#ifdef MSE_HAS_CXX20
+#include <compare>
+#endif // MSE_HAS_CXX20
 
 #ifdef MSE_TRASECTIONSPLITTERXWP_NDEBUG
 #else // MSE_TRASECTIONSPLITTERXWP_NDEBUG
@@ -913,12 +916,17 @@ namespace mse {
 				difference_type operator-(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const {
 					return (TRAConstIteratorBase<_TRAContainerPointer>(*this) - _Right_cref);
 				}
-				bool operator==(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) == _Right_cref); }
+#ifndef MSE_HAS_CXX20
+				bool operator==(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) == TRAConstIteratorBase<_TRAContainerPointer>(_Right_cref)); }
 				bool operator!=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) != _Right_cref); }
 				bool operator<(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) < _Right_cref); }
 				bool operator>(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) > _Right_cref); }
 				bool operator<=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) <= _Right_cref); }
 				bool operator>=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) >= _Right_cref); }
+#else // !MSE_HAS_CXX20
+				bool operator==(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) == TRAConstIteratorBase<_TRAContainerPointer>(_Right_cref)); }
+				std::strong_ordering operator<=>(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) <=> TRAConstIteratorBase<_TRAContainerPointer>(_Right_cref)); };
+#endif // !MSE_HAS_CXX20
 
 				TRAIteratorBase& operator=(const TRAIteratorBase& _Right_cref) {
 					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointerRR>::type(), _Right_cref);
@@ -1203,11 +1211,18 @@ namespace mse {
 					if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { return false; /*MSE_THROW(msearray_range_error("invalid argument - bool operator==() - TRAConstIteratorBase"));*/ }
 					return (_Right_cref.m_index == m_index);
 				}
+#ifndef MSE_HAS_CXX20
 				bool operator !=(const TRAConstIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
 				bool operator<(const TRAConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
 				bool operator>(const TRAConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
 				bool operator<=(const TRAConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
 				bool operator>=(const TRAConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const TRAConstIteratorBase& _Right_cref) const {
+					if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - operator<=>() - TRAConstIteratorBase")); }
+					return (m_index <=> _Right_cref.m_index);
+				}
+#endif // !MSE_HAS_CXX20
 
 				TRAConstIteratorBase& operator=(const TRAConstIteratorBase& _Right_cref) {
 					assignment_helper1(typename mse::impl::HasOrInheritsAssignmentOperator_msemsearray<_TRAContainerPointerRR>::type(), _Right_cref);
@@ -3191,9 +3206,13 @@ namespace mse {
 				bool operator==(const _Myt& _Right) const {	// test for array equality
 					return (_Right.contained_array() == contained_array());
 				}
+#ifndef MSE_HAS_CXX20
 				bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for arrays
 					return (contained_array() < _Right.contained_array());
 				}
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const _Myt& _Right) const { return (contained_array() <=> _Right.contained_array()); }
+#endif // !MSE_HAS_CXX20
 
 				template<class _Ty2, class _Traits2>
 				std::basic_ostream<_Ty2, _Traits2>& write_bytes(std::basic_ostream<_Ty2, _Traits2>& _Ostr, size_type byte_count, const size_type byte_start_offset = 0) const {
@@ -3331,6 +3350,14 @@ namespace mse {
 		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for arrays
 			return base_class::operator<(_Right);
 		}
+#ifndef MSE_HAS_CXX20
+		bool operator!=(const _Myt& _Right_cref) const { return !((*this) == _Right_cref); }
+		bool operator>(const _Myt& _Right_cref) const { return (_Right_cref < (*this)); }
+		bool operator<=(const _Myt& _Right_cref) const { return !((*this) > _Right_cref); }
+		bool operator>=(const _Myt& _Right_cref) const { return !((*this) < _Right_cref); }
+#else // !MSE_HAS_CXX20
+		std::strong_ordering operator<=>(const _Myt& _Right_cref) const { return base_class::operator<=>(_Right_cref); }
+#endif // !MSE_HAS_CXX20
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
 
@@ -4841,12 +4868,17 @@ namespace mse {
 				difference_type operator-(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
 					return (TRASectionConstIteratorBase<_TRAIterator>(*this) - _Right_cref);
 				}
+#ifndef MSE_HAS_CXX20
 				bool operator==(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) == _Right_cref); }
 				bool operator!=(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) != _Right_cref); }
 				bool operator<(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) < _Right_cref); }
 				bool operator>(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) > _Right_cref); }
 				bool operator<=(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) <= _Right_cref); }
 				bool operator>=(const TRASectionConstIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) >= _Right_cref); }
+#else // !MSE_HAS_CXX20
+				bool operator==(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) == _Right_cref); }
+				std::strong_ordering operator<=>(const TRASectionIteratorBase<_TRAIterator>& _Right_cref) const { return (TRASectionConstIteratorBase<_TRAIterator>(*this) <=> TRASectionConstIteratorBase<_TRAIterator>(_Right_cref)); }
+#endif // !MSE_HAS_CXX20
 				TRASectionIteratorBase& operator=(const TRASectionIteratorBase& _Right_cref) {
 					if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionIteratorBase& operator=() - TRASectionIteratorBase")); }
 					m_index = _Right_cref.m_index;
@@ -5028,11 +5060,18 @@ namespace mse {
 				bool operator ==(const TRASectionConstIteratorBase& _Right_cref) const {
 					return ((_Right_cref.m_index == m_index) && (_Right_cref.m_count == m_count) && (_Right_cref.m_ra_iterator == m_ra_iterator));
 				}
+#ifndef MSE_HAS_CXX20
 				bool operator !=(const TRASectionConstIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
 				bool operator<(const TRASectionConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
 				bool operator>(const TRASectionConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
 				bool operator<=(const TRASectionConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
 				bool operator>=(const TRASectionConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const TRASectionConstIteratorBase& _Right_cref) const {
+					if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - operator<=>() - TRASectionConstIteratorBase")); }
+					return (m_index <=> _Right_cref.m_index);
+				}
+#endif // !MSE_HAS_CXX20
 				TRASectionConstIteratorBase& operator=(const TRASectionConstIteratorBase& _Right_cref) {
 					if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionConstIteratorBase& operator=() - TRASectionConstIteratorBase")); }
 					m_index = _Right_cref.m_index;
@@ -5702,14 +5741,6 @@ namespace mse {
 					auto sv = us::impl::TRandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
 					return subsection(pos1, n1).equal(sv);
 				}
-				template<typename _TRAParam>
-				bool operator==(const _TRAParam& ra_param) const {
-					return equal(ra_param);
-				}
-				template<typename _TRAParam>
-				bool operator!=(const _TRAParam& ra_param) const {
-					return !((*this) == ra_param);
-				}
 
 				template<typename _TRAParam>
 				bool lexicographical_compare(const _TRAParam& ra_param) const {
@@ -5731,20 +5762,61 @@ namespace mse {
 					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(s), n2);
 					return subsection(pos1, n1).lexicographical_compare(sv);
 				}
-				template<typename _TRAParam>
+
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const *>::value)> MSE_IMPL_EIS>
+				bool operator==(const _TRAParam& ra_param) const {
+					return equal(ra_param);
+				}
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const *>::value)> MSE_IMPL_EIS>
+				bool operator!=(const _TRAParam& ra_param) const {
+					return !((*this) == ra_param);
+				}
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const *>::value)> MSE_IMPL_EIS>
 				bool operator<(const _TRAParam& ra_param) const {
 					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 					return lexicographical_compare(sv);
 				}
-				template<typename _TRAParam>
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const *>::value)> MSE_IMPL_EIS>
 				bool operator>(const _TRAParam& ra_param) const {
 					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 					return sv.lexicographical_compare(*this);
 				}
-				template<typename _TRAParam>
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const *>::value)> MSE_IMPL_EIS>
 				bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
-				template<typename _TRAParam>
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const *>::value)> MSE_IMPL_EIS>
 				bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
+
+				bool operator==(const TRandomAccessConstSectionBase& _Right_cref) const {
+					return equal(_Right_cref);
+				}
+#ifndef MSE_HAS_CXX20
+				bool operator!=(const TRandomAccessConstSectionBase& _Right_cref) const {
+					return !((*this) == _Right_cref);
+				}
+				bool operator<(const TRandomAccessConstSectionBase& _Right_cref) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
+					return lexicographical_compare(sv);
+				}
+				bool operator>(const TRandomAccessConstSectionBase& _Right_cref) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
+					return sv.lexicographical_compare(*this);
+				}
+				bool operator<=(const TRandomAccessConstSectionBase& _Right_cref) const { return !((*this) > _Right_cref); }
+				bool operator>=(const TRandomAccessConstSectionBase& _Right_cref) const { return !((*this) < _Right_cref); }
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const TRandomAccessConstSectionBase& _Right_cref) const {
+					signed char res = 0;
+					if (!equal(_Right_cref)) {
+						if (lexicographical_compare(_Right_cref)) {
+							res = -1;
+						}
+						else {
+							res = 1;
+						}
+					}
+					return (res <=> 0); /* that's the right order, right? */
+				}
+#endif // !MSE_HAS_CXX20
 
 				template <typename _TRAIterator2>
 				size_type copy(_TRAIterator2 target_iter, size_type n, size_type pos = 0) const {
@@ -6259,14 +6331,6 @@ namespace mse {
 					auto sv = us::impl::TRandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
 					return subsection(pos1, n1).equal(sv);
 				}
-				template<typename _TRAParam>
-				bool operator==(const _TRAParam& ra_param) const {
-					return equal(ra_param);
-				}
-				template<typename _TRAParam>
-				bool operator!=(const _TRAParam& ra_param) const {
-					return !((*this) == ra_param);
-				}
 
 				template<typename _TRAParam>
 				bool lexicographical_compare(const _TRAParam& ra_param) const {
@@ -6288,20 +6352,61 @@ namespace mse {
 					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(s), n2);
 					return subsection(pos1, n1).lexicographical_compare(sv);
 				}
-				template<typename _TRAParam>
+
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const *>::value)> MSE_IMPL_EIS>
+				bool operator==(const _TRAParam& ra_param) const {
+					return equal(ra_param);
+				}
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const *>::value)> MSE_IMPL_EIS>
+				bool operator!=(const _TRAParam& ra_param) const {
+					return !((*this) == ra_param);
+				}
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const *>::value)> MSE_IMPL_EIS>
 				bool operator<(const _TRAParam& ra_param) const {
 					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 					return lexicographical_compare(sv);
 				}
-				template<typename _TRAParam>
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const *>::value)> MSE_IMPL_EIS>
 				bool operator>(const _TRAParam& ra_param) const {
 					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 					return sv.lexicographical_compare(*this);
 				}
-				template<typename _TRAParam>
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const *>::value)> MSE_IMPL_EIS>
 				bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
-				template<typename _TRAParam>
+				template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const *>::value)> MSE_IMPL_EIS>
 				bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
+
+				bool operator==(const TRandomAccessSectionBase& _Right_cref) const {
+					return equal(_Right_cref);
+				}
+#ifndef MSE_HAS_CXX20
+				bool operator!=(const TRandomAccessSectionBase& _Right_cref) const {
+					return !((*this) == _Right_cref);
+				}
+				bool operator<(const TRandomAccessSectionBase& _Right_cref) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
+					return lexicographical_compare(sv);
+				}
+				bool operator>(const TRandomAccessSectionBase& _Right_cref) const {
+					auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
+					return sv.lexicographical_compare(*this);
+				}
+				bool operator<=(const TRandomAccessSectionBase& _Right_cref) const { return !((*this) > _Right_cref); }
+				bool operator>=(const TRandomAccessSectionBase& _Right_cref) const { return !((*this) < _Right_cref); }
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const TRandomAccessSectionBase& _Right_cref) const {
+					signed char res = 0;
+					if (!equal(_Right_cref)) {
+						if (lexicographical_compare(_Right_cref)) {
+							res = -1;
+						}
+						else {
+							res = 1;
+						}
+					}
+					return (res <=> 0); /* that's the right order, right? */
+				}
+#endif // !MSE_HAS_CXX20
 
 				int compare(const us::impl::TRandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
 					size_type rlen = std::min(size(), sv.size());

@@ -60,7 +60,7 @@ namespace mse {
 #define MSE_SCOPE_ATOMIC_USING(Derived, Base) MSE_USING(Derived, Base)
 
 	namespace impl {
-		template<typename _Ty> class TScopeAtomicID {};
+		class TScopeAtomicID {};
 	}
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
@@ -160,9 +160,9 @@ namespace mse {
 			};
 
 			template<typename _Ty>
-			class TXScopeAtomicPointerBase : public mse::us::impl::TPointerForLegacy<std::atomic<_Ty>, mse::impl::TScopeAtomicID<const std::atomic<_Ty> >> {
+			class TXScopeAtomicPointerBase : public mse::us::impl::TPointer<std::atomic<_Ty>, mse::impl::TScopeAtomicID> {
 			public:
-				typedef mse::us::impl::TPointerForLegacy<std::atomic<_Ty>, mse::impl::TScopeAtomicID<const std::atomic<_Ty> >> base_class;
+				typedef mse::us::impl::TPointer<std::atomic<_Ty>, mse::impl::TScopeAtomicID> base_class;
 				TXScopeAtomicPointerBase(const TXScopeAtomicPointerBase&) = default;
 				TXScopeAtomicPointerBase(TXScopeAtomicPointerBase&&) = default;
 				TXScopeAtomicPointerBase(TXScopeAtomicObj<_Ty>& scpobj_ref) : base_class(&(static_cast<TXScopeAtomicObjBase<_Ty>&>(scpobj_ref))) {}
@@ -176,9 +176,9 @@ namespace mse {
 			};
 
 			template<typename _Ty>
-			class TXScopeAtomicConstPointerBase : public mse::us::impl::TPointerForLegacy<const std::atomic<_Ty>, mse::impl::TScopeAtomicID<const std::atomic<_Ty> >> {
+			class TXScopeAtomicConstPointerBase : public mse::us::impl::TPointer<const std::atomic<_Ty>, mse::impl::TScopeAtomicID> {
 			public:
-				typedef mse::us::impl::TPointerForLegacy<const std::atomic<_Ty>, mse::impl::TScopeAtomicID<const std::atomic<_Ty> >> base_class;
+				typedef mse::us::impl::TPointer<const std::atomic<_Ty>, mse::impl::TScopeAtomicID> base_class;
 				TXScopeAtomicConstPointerBase(const TXScopeAtomicConstPointerBase&) = default;
 				TXScopeAtomicConstPointerBase(TXScopeAtomicConstPointerBase&&) = default;
 				TXScopeAtomicConstPointerBase(const TXScopeAtomicPointerBase<_Ty>& src_cref) : base_class(src_cref) {}
@@ -192,8 +192,8 @@ namespace mse {
 				}
 			};
 
-			template<typename _Ty> using TXScopeAtomicItemPointerBase = mse::us::impl::TPointerForLegacy<std::atomic<_Ty>, mse::impl::TScopeAtomicID<const std::atomic<_Ty> >>;
-			template<typename _Ty> using TXScopeAtomicItemConstPointerBase = mse::us::impl::TPointerForLegacy<const std::atomic<_Ty>, mse::impl::TScopeAtomicID<const std::atomic<_Ty> >>;
+			template<typename _Ty> using TXScopeAtomicItemPointerBase = mse::us::impl::TPointer<std::atomic<_Ty>, mse::impl::TScopeAtomicID>;
+			template<typename _Ty> using TXScopeAtomicItemConstPointerBase = mse::us::impl::TPointer<const std::atomic<_Ty>, mse::impl::TScopeAtomicID>;
 
 #endif // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 
@@ -1045,11 +1045,11 @@ namespace mse {
 						assert(false);
 					}
 
-					mse::us::impl::TPointerForLegacy<std::atomic<shareable_A_t> > pfl_ptr1 = &a;
+					mse::us::impl::TPointer<std::atomic<shareable_A_t> > pfl_ptr1 = &a;
 					if (!(pfl_ptr1 != nullptr)) {
 						assert(false);
 					}
-					mse::us::impl::TPointerForLegacy<std::atomic<shareable_A_t> > pfl_ptr2 = nullptr;
+					mse::us::impl::TPointer<std::atomic<shareable_A_t> > pfl_ptr2 = nullptr;
 					if (!(pfl_ptr1 != pfl_ptr2)) {
 						assert(false);
 					}
