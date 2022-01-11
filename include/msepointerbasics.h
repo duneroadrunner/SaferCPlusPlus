@@ -68,6 +68,9 @@
 #endif // __cpp_exceptions >= 199711
 
 #endif /*ndef MSEPRIMITIVES_H*/
+#ifdef MSE_HAS_CXX20
+#include <compare>
+#endif // MSE_HAS_CXX20
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_POINTERBASICS_DISABLED

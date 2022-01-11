@@ -15,9 +15,6 @@
 #pragma push_macro("_NOEXCEPT")
 #pragma push_macro("_NOEXCEPT_OP")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
-#ifdef MSE_HAS_CXX20
-#include <compare>
-#endif // MSE_HAS_CXX20
 
 #ifdef MSE_CUSTOM_THROW_DEFINITION
 #define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)

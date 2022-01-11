@@ -39,9 +39,6 @@
 #include <climits>       // ULONG_MAX
 #include <stdexcept>
 #include <atomic>
-#ifdef MSE_HAS_CXX20
-#include <compare>
-#endif // MSE_HAS_CXX20
 
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 #define MSE_MSTDVECTOR_DISABLED

@@ -50,6 +50,10 @@
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
 
+#ifdef MSE_HAS_CXX20
+#include <compare>
+#endif // MSE_HAS_CXX20
+
 #if __cpp_exceptions >= 199711
 #define MSE_TRY try
 #define MSE_CATCH(x) catch(x)
