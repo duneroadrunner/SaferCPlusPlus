@@ -271,8 +271,6 @@ namespace mse {
 				}
 			};
 
-			//template<typename _Ty> using TXScopeItemPointerBase = mse::us::impl::TPointerForLegacy<_Ty, mse::impl::TScopeID>;
-			//template<typename _Ty> using TXScopeItemConstPointerBase = mse::us::impl::TPointerForLegacy<const _Ty, mse::impl::TScopeID>;
 			template<typename _Ty> using TXScopeItemPointerBase = mse::us::impl::TPointer<_Ty, mse::impl::TScopeID>;
 			template<typename _Ty> using TXScopeItemConstPointerBase = mse::us::impl::TPointer<const _Ty, mse::impl::TScopeID>;
 

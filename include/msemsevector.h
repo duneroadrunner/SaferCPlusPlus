@@ -5670,11 +5670,15 @@ namespace mse {
 					return operator=(cipointer(_Right_cref));
 				}
 				bool operator==(const xscope_cipointer& _Right_cref) const { return cipointer::operator==(_Right_cref); }
+#ifndef MSE_HAS_CXX20
 				bool operator!=(const xscope_cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
 				bool operator<(const xscope_cipointer& _Right) const { return cipointer::operator<(_Right); }
 				bool operator<=(const xscope_cipointer& _Right) const { return cipointer::operator<=(_Right); }
 				bool operator>(const xscope_cipointer& _Right) const { return cipointer::operator>(_Right); }
 				bool operator>=(const xscope_cipointer& _Right) const { return cipointer::operator>=(_Right); }
+#else // !MSE_HAS_CXX20
+				std::strong_ordering operator<=>(const xscope_cipointer& _Right) const { return cipointer::operator<=>(_Right); }
+#endif // !MSE_HAS_CXX20
 				void set_to_const_item_pointer(const xscope_cipointer& _Right_cref) { cipointer::set_to_item_pointer(_Right_cref); }
 				msev_size_t position() const { return cipointer::position(); }
 				auto target_container_ptr() const {
@@ -5747,12 +5751,17 @@ namespace mse {
 				difference_type operator-(const xscope_cipointer& _Right_cref) const {
 					return (xscope_cipointer(*this) - _Right_cref);
 				}
+#ifndef MSE_HAS_CXX20
 				bool operator==(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) == _Right_cref); }
 				bool operator!=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) != _Right_cref); }
 				bool operator<(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) < _Right_cref); }
 				bool operator>(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) > _Right_cref); }
 				bool operator<=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) <= _Right_cref); }
 				bool operator>=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) >= _Right_cref); }
+#else // !MSE_HAS_CXX20
+				bool operator==(const xscope_ipointer& _Right_cref) const { return (xscope_cipointer(*this) == xscope_cipointer(_Right_cref)); }
+				std::strong_ordering operator<=>(const xscope_ipointer& _Right_cref) const { return (xscope_cipointer(*this) <=> xscope_cipointer(_Right_cref)); }
+#endif // !MSE_HAS_CXX20
 
 				xscope_ipointer& operator=(const ipointer& _Right_cref) {
 					if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(msevector_range_error("invalid argument - xscope_ipointer& operator=(const xscope_ipointer& _Right_cref) - msevector::xscope_ipointer")); }

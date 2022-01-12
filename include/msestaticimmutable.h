@@ -302,7 +302,7 @@ namespace mse {
 		namespace impl {
 			namespace static_immutable {
 
-				template<typename _Ty> class TStaticImmutableID {};
+				class TStaticImmutableID {};
 
 				/* Objects of static duration are still prone to being accessed after destruction, and therefore still
 				need appropriate safety mechanisms. However, in the case where the object has a trivial destructor,
@@ -321,7 +321,7 @@ namespace mse {
 
 				template<typename _Ty>
 				using TStaticImmutableConstPointerBaseBase = mse::impl::conditional_t<use_unchecked_base_type<_Ty>::value
-					, mse::us::impl::TPointerForLegacy<const _Ty, TStaticImmutableID<const _Ty>>, mse::rsv::impl::cts::TCheckedThreadSafeConstPointer<const _Ty>>;
+					, mse::us::impl::TPointer<const _Ty, TStaticImmutableID>, mse::rsv::impl::cts::TCheckedThreadSafeConstPointer<const _Ty>>;
 
 				template<typename _TROz>
 				class TStaticImmutableObjBase : public TStaticImmutableObjBaseBase<_TROz> {

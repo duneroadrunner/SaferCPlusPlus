@@ -1150,6 +1150,7 @@ namespace mse {
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 			};
 
+			/*
 			template<typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_integral<_Ty>::value &&
 				(std::is_same<TPointerForLegacy<_Ty>, TPointerForLegacy<_Tz> >::value || std::is_same<TPointerForLegacy<mse::impl::remove_const_t<_Ty> >, TPointerForLegacy<_Tz> >::value)> MSE_IMPL_EIS >
 			_Ty& raw_reference_to(TPointerForLegacy<_Tz>& x) {
@@ -1160,6 +1161,7 @@ namespace mse {
 			template<typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_integral<_Ty>::value &&
 				(std::is_same<TPointerForLegacy<_Ty>, TPointerForLegacy<_Tz> >::value || std::is_same<TPointerForLegacy<mse::impl::remove_const_t<_Ty> >, TPointerForLegacy<_Tz> >::value)> MSE_IMPL_EIS >
 				_Ty* raw_pointer_to(TPointerForLegacy<_Tz>& x) { return std::addressof(raw_reference_to(x)); }
+			*/
 		}
 	}
 

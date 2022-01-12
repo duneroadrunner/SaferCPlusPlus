@@ -85,7 +85,7 @@ namespace mse {
 		namespace impl {
 			namespace ns_thread_local {
 
-				template<typename _Ty> class TThreadLocalID {};
+				class TThreadLocalID {};
 
 				/* Objects of thread_local duration are still prone to being accessed after destruction, and therefore still
 				need appropriate safety mechanisms. However, in the case where the object has a trivial destructor,
@@ -104,11 +104,11 @@ namespace mse {
 
 				template<typename _Ty>
 				using TThreadLocalConstPointerBaseBase = mse::impl::conditional_t<use_unchecked_base_type<_Ty>::value
-					, mse::us::impl::TPointerForLegacy<const _Ty, TThreadLocalID<const _Ty>>, mse::TNDNoradConstPointer<_Ty>>;
+					, mse::us::impl::TPointer<const _Ty, TThreadLocalID>, mse::TNDNoradConstPointer<_Ty>>;
 
 				template<typename _Ty>
 				using TThreadLocalPointerBaseBase = mse::impl::conditional_t<use_unchecked_base_type<_Ty>::value
-					, mse::us::impl::TPointerForLegacy<_Ty, TThreadLocalID<_Ty>>, mse::TNDNoradPointer<_Ty>>;
+					, mse::us::impl::TPointer<_Ty, TThreadLocalID>, mse::TNDNoradPointer<_Ty>>;
 
 				template<typename _TROz>
 				class TThreadLocalObjBase : public TThreadLocalObjBaseBase<_TROz> {

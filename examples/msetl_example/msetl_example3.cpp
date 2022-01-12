@@ -374,7 +374,7 @@ void msetl_example3() {
 
 			MSE_DECLARE_STATIC_IMMUTABLE(size_t) num_sections = 10;
 			MSE_DECLARE_STATIC_IMMUTABLE(size_t) section_size = 5;
-			const size_t num_elements = num_sections * section_size;
+			const size_t num_elements = size_t(num_sections * section_size);
 
 			typedef mse::nii_vector<mse::nii_string> async_shareable_vector1_t;
 			typedef mse::mstd::vector<mse::nii_string> nonshareable_vector1_t;
@@ -438,7 +438,7 @@ void msetl_example3() {
 				/* First we create a list of a the sizes of each section. We'll use a vector here, but any iteratable container will work. */
 				mse::mstd::vector<size_t> section_sizes;
 				for (size_t i = 0; i < num_sections; i += 1) {
-					section_sizes.push_back(section_size);
+					section_sizes.push_back(size_t(section_size));
 				}
 
 				/* Just as before, TAsyncRASectionSplitter<> will generate a new access requester for each section. */
@@ -671,7 +671,7 @@ void msetl_example3() {
 
 			MSE_DECLARE_STATIC_IMMUTABLE(size_t) num_sections = 10;
 			MSE_DECLARE_STATIC_IMMUTABLE(size_t) section_size = 5;
-			const size_t num_elements = num_sections * section_size;
+			const size_t num_elements = size_t(num_sections * section_size);
 
 			typedef mse::nii_vector<mse::nii_string> async_shareable_vector1_t;
 			typedef mse::mstd::vector<mse::nii_string> nonshareable_vector1_t;
@@ -745,7 +745,7 @@ void msetl_example3() {
 				/* First we create a list of a the sizes of each section. We'll use a vector here, but any iteratable container will work. */
 				mse::mstd::vector<size_t> section_sizes;
 				for (size_t i = 0; i < num_sections; i += 1) {
-					section_sizes.push_back(section_size);
+					section_sizes.push_back(size_t(section_size));
 				}
 
 				/* This time (for demonstration purposes) we'll use TXScopeAsyncACORASectionSplitter<> to generate a new
