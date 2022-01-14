@@ -16,8 +16,6 @@
 #include <unordered_set>
 #include <functional>
 
-#ifndef MSEPRIMITIVES_H
-
 #if __cplusplus >= 201703L
 #define MSE_HAS_CXX17
 #if __cplusplus > 201703L
@@ -67,7 +65,6 @@
 #define MSE_CUSTOM_THROW_DEFINITION(x) exit(-11)
 #endif // __cpp_exceptions >= 199711
 
-#endif /*ndef MSEPRIMITIVES_H*/
 #ifdef MSE_HAS_CXX20
 #include <compare>
 #endif // MSE_HAS_CXX20
@@ -1149,19 +1146,6 @@ namespace mse {
 				void assert_initialized() const {}
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 			};
-
-			/*
-			template<typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_integral<_Ty>::value &&
-				(std::is_same<TPointerForLegacy<_Ty>, TPointerForLegacy<_Tz> >::value || std::is_same<TPointerForLegacy<mse::impl::remove_const_t<_Ty> >, TPointerForLegacy<_Tz> >::value)> MSE_IMPL_EIS >
-			_Ty& raw_reference_to(TPointerForLegacy<_Tz>& x) {
-				typedef _Ty& _Ty_ref;
-				return _Ty_ref(x);
-			}
-
-			template<typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_integral<_Ty>::value &&
-				(std::is_same<TPointerForLegacy<_Ty>, TPointerForLegacy<_Tz> >::value || std::is_same<TPointerForLegacy<mse::impl::remove_const_t<_Ty> >, TPointerForLegacy<_Tz> >::value)> MSE_IMPL_EIS >
-				_Ty* raw_pointer_to(TPointerForLegacy<_Tz>& x) { return std::addressof(raw_reference_to(x)); }
-			*/
 		}
 	}
 

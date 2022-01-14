@@ -924,8 +924,15 @@ namespace mse {
 				bool operator<=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) <= _Right_cref); }
 				bool operator>=(const TRAConstIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) >= _Right_cref); }
 #else // !MSE_HAS_CXX20
-				bool operator==(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) == TRAConstIteratorBase<_TRAContainerPointer>(_Right_cref)); }
-				std::strong_ordering operator<=>(const TRAIteratorBase<_TRAContainerPointer>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) <=> TRAConstIteratorBase<_TRAContainerPointer>(_Right_cref)); };
+				bool operator==(const TRAIteratorBase& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) == TRAConstIteratorBase<_TRAContainerPointer>(_Right_cref)); }
+				/* This templated version prevents certain "ambiguous operator call" compile errors due to the compiler reversing the operator arguments. */
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<_Ty2, _TRAContainerPointer>::value)> MSE_IMPL_EIS >
+				bool operator==(const TRAIteratorBase<_Ty2>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) == TRAConstIteratorBase<_TRAContainerPointer>(TRAIteratorBase(_Right_cref))); }
+
+				std::strong_ordering operator<=>(const TRAIteratorBase& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) <=> TRAConstIteratorBase<_TRAContainerPointer>(_Right_cref)); };
+				/* This templated version prevents certain "ambiguous operator call" compile errors due to the compiler reversing the operator arguments. */
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<_Ty2, _TRAContainerPointer>::value)> MSE_IMPL_EIS >
+				std::strong_ordering operator<=>(const TRAIteratorBase<_Ty2>& _Right_cref) const { return (TRAConstIteratorBase<_TRAContainerPointer>(*this) <=> TRAConstIteratorBase<_TRAContainerPointer>(TRAIteratorBase(_Right_cref))); };
 #endif // !MSE_HAS_CXX20
 
 				TRAIteratorBase& operator=(const TRAIteratorBase& _Right_cref) {
@@ -1155,7 +1162,7 @@ namespace mse {
 				TRAConstIteratorBase(const TRAConstIteratorBase& src) = default;
 				TRAConstIteratorBase(TRAConstIteratorBase&& src) = default;
 				TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointerRR>& src) : m_index(src.m_index), m_ra_container_pointer(src.m_ra_container_pointer) {}
-				TRAConstIteratorBase(const TRAIteratorBase<_TRAContainerPointerRR>&& src) : m_index(src.m_index), m_ra_container_pointer(MSE_FWD(src).m_ra_container_pointer) {}
+				TRAConstIteratorBase(TRAIteratorBase<_TRAContainerPointerRR>&& src) : m_index(src.m_index), m_ra_container_pointer(MSE_FWD(src).m_ra_container_pointer) {}
 				//TRAConstIteratorBase(const _TRAContainerPointerRR& ra_container_pointer, size_type index = 0) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(ra_container_pointer) {}
 				//TRAConstIteratorBase(_TRAContainerPointerRR&& ra_container_pointer, size_type index = 0) : m_index(difference_type(mse::msear_as_a_size_t(index))), m_ra_container_pointer(MSE_FWD(ra_container_pointer)) {}
 
@@ -1211,6 +1218,12 @@ namespace mse {
 					if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { return false; /*MSE_THROW(msearray_range_error("invalid argument - bool operator==() - TRAConstIteratorBase"));*/ }
 					return (_Right_cref.m_index == m_index);
 				}
+				/* This templated version prevents certain "ambiguous operator call" compile errors due to the compiler reversing the operator arguments. */
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<_Ty2, _TRAContainerPointer>::value)> MSE_IMPL_EIS >
+				bool operator==(const TRAConstIteratorBase<_Ty2>& _Right_cref) const {
+					if (!(TRAConstIteratorBase(_Right_cref).m_ra_container_pointer == m_ra_container_pointer)) { return false; /*MSE_THROW(msearray_range_error("invalid argument - bool operator==() - TRAConstIteratorBase"));*/ }
+					return (TRAConstIteratorBase(_Right_cref).m_index == m_index);
+				}
 #ifndef MSE_HAS_CXX20
 				bool operator !=(const TRAConstIteratorBase& _Right_cref) const { return !((*this) == _Right_cref); }
 				bool operator<(const TRAConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
@@ -1221,6 +1234,12 @@ namespace mse {
 				std::strong_ordering operator<=>(const TRAConstIteratorBase& _Right_cref) const {
 					if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - operator<=>() - TRAConstIteratorBase")); }
 					return (m_index <=> _Right_cref.m_index);
+				}
+				/* This templated version prevents certain "ambiguous operator call" compile errors due to the compiler reversing the operator arguments. */
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<_Ty2, _TRAContainerPointer>::value)> MSE_IMPL_EIS >
+				std::strong_ordering operator<=>(const TRAConstIteratorBase<_Ty2>& _Right_cref) const {
+					if (!(TRAConstIteratorBase(_Right_cref).m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - operator<=>() - TRAConstIteratorBase")); }
+					return (m_index <=> TRAConstIteratorBase(_Right_cref).m_index);
 				}
 #endif // !MSE_HAS_CXX20
 

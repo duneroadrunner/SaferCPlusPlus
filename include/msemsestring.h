@@ -514,7 +514,8 @@ namespace mse {
 				//static _LIBCPP_CONSTEXPR const size_type npos = -1; // size_type(-1);
 				static _LIBCPP_CONSTEXPR const size_type npos = size_type(-1);
 
-				static_assert(std::is_pod<value_type>::value, "Character type of basic_string_view must be a POD");
+				//static_assert(std::is_pod<value_type>::value, "Character type of basic_string_view must be a POD");
+				static_assert(std::is_standard_layout<value_type>::value&& std::is_trivial<value_type>::value, "Character type of basic_string_view must be a POD");
 				static_assert((std::is_same<_CharT, typename traits_type::char_type>::value),
 					"traits_type::char_type must be the same type as CharT");
 
