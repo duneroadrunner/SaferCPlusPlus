@@ -2092,25 +2092,25 @@ namespace mse {
 	template<class _Ty, class _TMemberObjectPointer>
 	static auto make_pointer_to_member_v2(const TAsyncSharedV2ReadWritePointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedPointer<_TTarget, TAsyncSharedV2ReadWritePointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	static auto make_const_pointer_to_member_v2(const TAsyncSharedV2ReadWriteConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TAsyncSharedV2ReadWriteConstPointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	static auto make_const_pointer_to_member_v2(const TAsyncSharedV2ReadOnlyConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TAsyncSharedV2ReadOnlyConstPointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	static auto make_const_pointer_to_member_v2(const TAsyncSharedV2ImmutableFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TAsyncSharedV2ImmutableFixedPointer<_Ty> >::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 #endif // defined(MSEPOINTERBASICS_H)
@@ -2326,7 +2326,7 @@ namespace mse {
 
 		typedef TRandomAccessSection<TRAIterator<decltype(std::declval<mse::TAsyncSharedV2ReadWriteAccessRequester<splitter_ra_section_t> >().writelock_ptr())> > rw_ra_section_t;
 		rw_ra_section_t writelock_ra_section() {
-			return rw_ra_section_t(TRAIterator<decltype(m_splitter_ra_section_access_requester.writelock_ptr())>(m_splitter_ra_section_access_requester.writelock_ptr()), m_count);
+			return rw_ra_section_t(TRAIterator<decltype(m_splitter_ra_section_access_requester.writelock_ptr())>(m_splitter_ra_section_access_requester.writelock_ptr(), 0), m_count);
 		}
 		mse::mstd::optional<rw_ra_section_t> try_writelock_ra_section() {
 			auto maybe_wl_ptr = m_splitter_ra_section_access_requester.try_writelock_ptr();
@@ -2422,7 +2422,7 @@ namespace mse {
 			size_t cummulative_size = 0;
 			size_t count = 0;
 			//auto section_begin_it = m_access_lease_obj_shptr->cref()->begin();
-			auto section_begin_it = ra_iterator_t(std::addressof(*(m_access_lease_obj_shptr->cref())));
+			auto section_begin_it = ra_iterator_t(std::addressof(*(m_access_lease_obj_shptr->cref())), 0);
 
 			for (const auto& section_size : section_sizes) {
 				if (0 > section_size) { MSE_THROW(std::range_error("invalid section size - TXScopeAsyncRASectionSplitterXWP() - TXScopeAsyncRASectionSplitterXWP")); }
@@ -2500,7 +2500,7 @@ namespace mse {
 			: m_access_lease_obj_shptr(std::make_shared<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> >(std::forward<exclusive_writelock_ptr_t>(exclusive_writelock_ptr))) {
 			size_t cummulative_size = 0;
 			//auto section_begin_it = m_access_lease_obj_shptr->cref()->begin();
-			auto section_begin_it = ra_iterator_t(std::addressof(*(m_access_lease_obj_shptr->cref())));
+			auto section_begin_it = ra_iterator_t(std::addressof(*(m_access_lease_obj_shptr->cref())), 0);
 			for (const auto& section_size : section_sizes) {
 				if (0 > section_size) { MSE_THROW(std::range_error("invalid section size - TAsyncRASectionSplitterXWP() - TAsyncRASectionSplitterXWP")); }
 				auto section_size_szt = mse::msev_as_a_size_t(section_size);

@@ -194,7 +194,7 @@ namespace mse {
 
 		template<class _Iter>
 		struct _mse_Is_iterator : public std::integral_constant<bool, /*(!std::is_integral<_Iter>::value) && */
-				mse::impl::IsDereferenceable_msemsearray<_Iter>::value && mse::impl::SupportsPreIncrement_msemsevector<_Iter>::value>
+				mse::impl::IsDereferenceable_pb<_Iter>::value && mse::impl::SupportsPreIncrement_msemsevector<_Iter>::value>
 		{	// tests for reasonable iterator candidate
 		};
 
@@ -532,8 +532,8 @@ namespace mse {
 				template<class _TVectorConstPointer2 = _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TVectorConstPointer2, _TVectorConstPointer>::value) && (std::is_default_constructible<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
 				Tgnii_vector_ss_const_iterator_type() {}
 
-				Tgnii_vector_ss_const_iterator_type(const _TVectorConstPointer& owner_cptr) : base_class(owner_cptr) {}
-				Tgnii_vector_ss_const_iterator_type(_TVectorConstPointer&& owner_cptr) : base_class(MSE_FWD(owner_cptr)) {}
+				Tgnii_vector_ss_const_iterator_type(const _TVectorConstPointer& owner_cptr, size_type index) : base_class(owner_cptr, index) {}
+				Tgnii_vector_ss_const_iterator_type(_TVectorConstPointer&& owner_cptr, size_type index) : base_class(MSE_FWD(owner_cptr), index) {}
 
 				Tgnii_vector_ss_const_iterator_type(Tgnii_vector_ss_const_iterator_type&& src) = default;
 				Tgnii_vector_ss_const_iterator_type(const Tgnii_vector_ss_const_iterator_type& src) = default;
@@ -586,8 +586,8 @@ namespace mse {
 				template<class _TVectorPointer2 = _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TVectorPointer2, _TVectorPointer>::value) && (std::is_default_constructible<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				Tgnii_vector_ss_iterator_type() {}
 
-				Tgnii_vector_ss_iterator_type(const _TVectorPointer& owner_ptr) : base_class(owner_ptr) {}
-				Tgnii_vector_ss_iterator_type(_TVectorPointer&& owner_ptr) : base_class(MSE_FWD(owner_ptr)) {}
+				Tgnii_vector_ss_iterator_type(const _TVectorPointer& owner_ptr, size_type index) : base_class(owner_ptr, index) {}
+				Tgnii_vector_ss_iterator_type(_TVectorPointer&& owner_ptr, size_type index) : base_class(MSE_FWD(owner_ptr), index) {}
 
 				Tgnii_vector_ss_iterator_type(Tgnii_vector_ss_iterator_type&& src) = default;
 				Tgnii_vector_ss_iterator_type(const Tgnii_vector_ss_iterator_type& src) = default;
@@ -763,11 +763,11 @@ namespace mse {
 				/* Normally we would just use the macro for inheriting assignment operators, but here we need to exclude any
 				that handle Tgnii_vector_xscope_cslsstrong_iterator_type<>s, because that class needs to be handled a bit
 				differently. */
-				template<class _Ty2mse_uao, class _Tbase_class2 = base_class, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_Tbase_class2>::value \
+				template<class _Ty2mse_uao, class _Tbase_class2 = base_class, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_pb<_Tbase_class2>::value \
 					&& (!std::is_same<Tgnii_vector_xscope_cslsstrong_iterator_type<_TVector>, mse::impl::remove_reference_t<_Ty2mse_uao> >::value) \
 					&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_Tbase_class2, _Ty2mse_uao>::value) || std::is_same<_Tbase_class2, mse::impl::remove_reference_t<_Ty2mse_uao> >::value)> MSE_IMPL_EIS > \
 				auto& operator=(_Ty2mse_uao&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); } \
-				template<class _Ty2mse_uao, class _Tbase_class2 = base_class, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_Tbase_class2>::value \
+				template<class _Ty2mse_uao, class _Tbase_class2 = base_class, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_pb<_Tbase_class2>::value \
 					&& (!std::is_same<Tgnii_vector_xscope_cslsstrong_iterator_type<_TVector>, mse::impl::remove_reference_t<_Ty2mse_uao> >::value) \
 					&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_Tbase_class2, _Ty2mse_uao>::value) || std::is_same<_Tbase_class2, mse::impl::remove_reference_t<_Ty2mse_uao> >::value)> MSE_IMPL_EIS > \
 				auto& operator=(const _Ty2mse_uao& _X) { base_class::operator=(_X); return (*this); }
@@ -1324,7 +1324,7 @@ namespace mse {
 					/* If you get a compile error here: User-defined copy constructors are potentially dangerous. We can ensure safety by
 					"structure locking" the source vector, but some vector types (like nii_vector<>) do not support being locked through a
 					const reference, so this (const reference) copy constructor is not supported for those vectors. */
-					mse::impl::T_valid_if_true_type_msepointerbasics<typename mse::impl::disjunction<std::is_trivially_copy_constructible<_Ty>, std::is_same<TConstLockableIndicator, gnii_vector_const_lockable_tag> >::type>(); /*m_debug_size = size();*/ }
+					mse::impl::T_valid_if_true_type_pb<typename mse::impl::disjunction<std::is_trivially_copy_constructible<_Ty>, std::is_same<TConstLockableIndicator, gnii_vector_const_lockable_tag> >::type>(); /*m_debug_size = size();*/ }
 				typedef typename std_vector::const_iterator _It;
 				/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
 				gnii_vector(_It _F, _It _L, const _A& _Al = _A()) : base_class(_F, _L, _Al) { /*m_debug_size = size();*/ }
@@ -1359,7 +1359,7 @@ namespace mse {
 					/* If you get a compile error here: User-defined copy constructors are potentially dangerous. We can ensure safety by
 					"structure locking" the source vector, but some vector types (like nii_vector<>) do not support being locked through a
 					const reference, so this (const reference) copy assignment operator is not supported for those vectors. */
-					mse::impl::T_valid_if_true_type_msepointerbasics<typename mse::impl::disjunction<mse::impl::conjunction<std::is_trivially_copy_constructible<_Ty>, std::is_trivially_move_constructible<_Ty>, std::is_trivially_destructible<_Ty> >
+					mse::impl::T_valid_if_true_type_pb<typename mse::impl::disjunction<mse::impl::conjunction<std::is_trivially_copy_constructible<_Ty>, std::is_trivially_move_constructible<_Ty>, std::is_trivially_destructible<_Ty> >
 						, std::is_same<TConstLockableIndicator, gnii_vector_const_lockable_tag> >::type>();
 					noop_or_structure_no_change_guard<typename mse::impl::conjunction<std::is_trivially_copy_constructible<_Ty>, std::is_trivially_move_constructible<_Ty>, std::is_trivially_destructible<_Ty> >::type, decltype(_X.m_structure_change_mutex)> lock(_X.m_structure_change_mutex);
 					contained_vector().operator=(_X.contained_vector());
@@ -1585,32 +1585,32 @@ namespace mse {
 				which is in turn used by mstd::vector<>. */
 
 				ss_iterator_type ss_begin() {	// return std_vector::iterator for beginning of mutable sequence
-					ss_iterator_type retval(this);
+					ss_iterator_type retval(this, 0);
 					retval.set_to_beginning();
 					return retval;
 				}
 				ss_const_iterator_type ss_begin() const {	// return std_vector::iterator for beginning of nonmutable sequence
-					ss_const_iterator_type retval(this);
+					ss_const_iterator_type retval(this, 0);
 					retval.set_to_beginning();
 					return retval;
 				}
 				ss_iterator_type ss_end() {	// return std_vector::iterator for end of mutable sequence
-					ss_iterator_type retval(this);
+					ss_iterator_type retval(this, 0);
 					retval.set_to_end_marker();
 					return retval;
 				}
 				ss_const_iterator_type ss_end() const {	// return std_vector::iterator for end of nonmutable sequence
-					ss_const_iterator_type retval(this);
+					ss_const_iterator_type retval(this, 0);
 					retval.set_to_end_marker();
 					return retval;
 				}
 				ss_const_iterator_type ss_cbegin() const {	// return std_vector::iterator for beginning of nonmutable sequence
-					ss_const_iterator_type retval(this);
+					ss_const_iterator_type retval(this, 0);
 					retval.set_to_beginning();
 					return retval;
 				}
 				ss_const_iterator_type ss_cend() const {	// return std_vector::iterator for end of nonmutable sequence
-					ss_const_iterator_type retval(this);
+					ss_const_iterator_type retval(this, 0);
 					retval.set_to_end_marker();
 					return retval;
 				}
@@ -1798,7 +1798,7 @@ namespace mse {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 						, Tss_const_iterator_type<_TVectorPointer>, Tss_iterator_type<_TVectorPointer> > return_type;
-					return_type retval(owner_ptr);
+					return_type retval(owner_ptr, 0);
 					retval.set_to_beginning();
 					return retval;
 				}
@@ -1808,7 +1808,7 @@ namespace mse {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 						, Tss_const_iterator_type<_TVectorPointer>, Tss_iterator_type<_TVectorPointer> > return_type;
-					return_type retval(owner_ptr);
+					return_type retval(owner_ptr, 0);
 					retval.set_to_end_marker();
 					return retval;
 				}
@@ -1816,7 +1816,7 @@ namespace mse {
 				template<typename _TVectorPointer>
 				static auto ss_cbegin(const _TVectorPointer& owner_ptr) {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
-					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr);
+					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr, 0);
 					retval.set_to_beginning();
 					return retval;
 				}
@@ -1829,7 +1829,7 @@ namespace mse {
 				template<typename _TVectorPointer>
 				static auto ss_cend(const _TVectorPointer& owner_ptr) {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
-					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr);
+					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr, 0);
 					retval.set_to_end_marker();
 					return retval;
 				}
@@ -2099,7 +2099,7 @@ namespace mse {
 					/* If you get a compile error here: User-defined comparison operators are potentially dangerous. We can ensure safety by
 					"structure locking" the source vector, but some vector types (like nii_vector<>) do not support being locked through a
 					const reference, so this (const reference) comparison operator is not supported for those vectors. */
-					mse::impl::T_valid_if_true_type_msepointerbasics<typename std::is_same<TConstLockableIndicator, gnii_vector_const_lockable_tag>::type>();
+					mse::impl::T_valid_if_true_type_pb<typename std::is_same<TConstLockableIndicator, gnii_vector_const_lockable_tag>::type>();
 					structure_no_change_guard<decltype(_Right.m_structure_change_mutex)> lock1(_Right.m_structure_change_mutex);
 					structure_no_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 
@@ -2114,7 +2114,7 @@ namespace mse {
 					/* If you get a compile error here: User-defined comparison operators are potentially dangerous. We can ensure safety by
 					"structure locking" the source vector, but some vector types (like nii_vector<>) do not support being locked through a
 					const reference, so this (const reference) comparison operator is not supported for those vectors. */
-					mse::impl::T_valid_if_true_type_msepointerbasics<typename std::is_same<TConstLockableIndicator, gnii_vector_const_lockable_tag>::type>();
+					mse::impl::T_valid_if_true_type_pb<typename std::is_same<TConstLockableIndicator, gnii_vector_const_lockable_tag>::type>();
 					structure_no_change_guard<decltype(_Right.m_structure_change_mutex)> lock1(_Right.m_structure_change_mutex);
 					structure_no_change_guard<decltype(m_structure_change_mutex)> lock2(m_structure_change_mutex);
 
@@ -3019,7 +3019,7 @@ namespace mse {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 						, Tss_const_iterator_type<_TVectorPointer>, Tss_iterator_type<_TVectorPointer> > return_type;
-					return_type retval(owner_ptr);
+					return_type retval(owner_ptr, 0);
 					retval.set_to_beginning();
 					return retval;
 				}
@@ -3029,7 +3029,7 @@ namespace mse {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 						, Tss_const_iterator_type<_TVectorPointer>, Tss_iterator_type<_TVectorPointer> > return_type;
-					return_type retval(owner_ptr);
+					return_type retval(owner_ptr, 0);
 					retval.set_to_end_marker();
 					return retval;
 				}
@@ -3037,7 +3037,7 @@ namespace mse {
 				template<typename _TVectorPointer>
 				static auto ss_cbegin(const _TVectorPointer& owner_ptr) {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
-					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr);
+					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr, 0);
 					retval.set_to_beginning();
 					return retval;
 				}
@@ -3045,7 +3045,7 @@ namespace mse {
 				template<typename _TVectorPointer>
 				static auto ss_cend(const _TVectorPointer& owner_ptr) {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
-					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr);
+					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr, 0);
 					retval.set_to_end_marker();
 					return retval;
 				}

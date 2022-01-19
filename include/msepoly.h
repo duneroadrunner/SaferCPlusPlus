@@ -320,6 +320,7 @@ namespace mse {
 		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
 			&& (!std::is_base_of<us::impl::TAnyConstPointerBase<_Ty>, _TPointer1>::value)
+			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			> MSE_IMPL_EIS >
 			TXScopeAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
@@ -360,9 +361,8 @@ namespace mse {
 		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TAnyPointer>::value)
 			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
-			&& (mse::impl::IsDereferenceable_msemsearray<_TPointer1>::value
-				&& (std::is_base_of<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value
-					|| std::is_same<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value))
+			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
+			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 		> MSE_IMPL_EIS >
 		TAnyPointer(const _TPointer1& pointer) : base_class(pointer) {
@@ -398,13 +398,16 @@ namespace mse {
 	public:
 		typedef us::impl::TAnyConstPointerBase<_Ty> base_class;
 		TXScopeAnyConstPointer(const us::impl::TAnyConstPointerBase<_Ty>& src) : base_class(src) {}
+		/*
 		TXScopeAnyConstPointer(const us::impl::TAnyPointerBase<_Ty>& src) : base_class(src) {}
 
 		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, us::impl::TAnyConstPointerBase<_Ty>>::value)
 			&& (!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
+			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			> MSE_IMPL_EIS >
-			TXScopeAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
+		TXScopeAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
+		*/
 
 		void async_not_shareable_and_not_passable_tag() const {}
 
@@ -443,6 +446,7 @@ namespace mse {
 		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TAnyConstPointer>::value)
 			&& (!std::is_convertible<_TPointer1, TAnyPointer<_Ty>>::value)
+			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			> MSE_IMPL_EIS >
 		TAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
@@ -1806,7 +1810,7 @@ namespace mse {
 
 		template<typename _Ty, typename _TRALoneParam>
 		void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly() {
-			T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper<_Ty, _TRALoneParam>(typename IsDereferenceable_msemsearray<_TRALoneParam>::type());
+			T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper<_Ty, _TRALoneParam>(typename IsDereferenceable_pb<_TRALoneParam>::type());
 		}
 
 		template<typename _Ty, typename _TRALoneParam>
@@ -2122,7 +2126,9 @@ namespace mse {
 			}
 			return base_class::operator==(rhs);
 		}
+#ifndef MSE_HAS_CXX20
 		bool operator!=(const TNullableAnyRandomAccessIterator& rhs) const { return !((*this) == rhs); }
+#endif // !MSE_HAS_CXX20
 
 		TNullableAnyRandomAccessIterator& operator=(const std::nullptr_t& _Right_cref) {
 			return operator=(TNullableAnyRandomAccessIterator());
@@ -2190,7 +2196,9 @@ namespace mse {
 			}
 			return base_class::operator==(rhs);
 		}
+#ifndef MSE_HAS_CXX20
 		bool operator!=(const TXScopeNullableAnyRandomAccessIterator& rhs) const { return !((*this) == rhs); }
+#endif // !MSE_HAS_CXX20
 
 		explicit operator bool() const {
 			return (!m_is_null);
@@ -2233,10 +2241,7 @@ namespace mse {
 			(!std::is_convertible<_TPointer1, TNullableAnyPointer>::value)
 			&& (!std::is_base_of<base_class, _TPointer1>::value)
 			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
-			//&& (!std::is_convertible<_TPointer1, decltype(NULL)>::value)
-			&& (mse::impl::IsDereferenceable_msemsearray<_TPointer1>::value
-				&& (std::is_base_of<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value
-					|| std::is_same<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value))
+			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 			> MSE_IMPL_EIS >
 		TNullableAnyPointer(const _TPointer1& pointer) : base_class(pointer) {
@@ -2248,9 +2253,6 @@ namespace mse {
 			std::swap(first.m_is_null, second.m_is_null);
 		}
 
-		TNullableAnyPointer& operator=(const std::nullptr_t& _Right_cref) {
-			return operator=(TNullableAnyPointer());
-		}
 		TNullableAnyPointer& operator=(TNullableAnyPointer _Right) {
 			swap(*this, _Right);
 			return (*this);
@@ -2265,7 +2267,10 @@ namespace mse {
 			}
 			return base_class::operator==(rhs);
 		}
+#ifndef MSE_HAS_CXX20
 		bool operator!=(const TNullableAnyPointer& rhs) const { return !((*this) == rhs); }
+#endif // !MSE_HAS_CXX20
+
 
 		operator bool() const {
 			return (!m_is_null);
@@ -2326,7 +2331,9 @@ namespace mse {
 			}
 			return base_class::operator==(rhs);
 		}
+#ifndef MSE_HAS_CXX20
 		bool operator!=(const TXScopeNullableAnyPointer& rhs) const { return !((*this) == rhs); }
+#endif // !MSE_HAS_CXX20
 
 		operator bool() const {
 			return (!m_is_null);

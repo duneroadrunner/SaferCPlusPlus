@@ -146,7 +146,7 @@
       <SDLCheck>true</SDLCheck>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnablePREfast>false</EnablePREfast>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -165,7 +165,7 @@
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnablePREfast>false</EnablePREfast>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -185,7 +185,7 @@
       <SDLCheck>true</SDLCheck>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnablePREfast>false</EnablePREfast>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -208,7 +208,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnablePREfast>false</EnablePREfast>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -231,7 +231,7 @@
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnablePREfast>false</EnablePREfast>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -255,7 +255,7 @@
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <EnablePREfast>false</EnablePREfast>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\usr\dev\msetl\SaferCPlusPlus\msetl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>

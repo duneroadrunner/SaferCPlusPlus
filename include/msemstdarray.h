@@ -381,16 +381,9 @@ namespace mse {
 				typename _MA::const_reference previous_item() const { return nii_array_reg_ss_const_iterator_type().previous_item(); }
 				typename _MA::const_pointer operator->() const { return nii_array_reg_ss_const_iterator_type().operator->(); }
 				typename _MA::const_reference operator[](typename _MA::difference_type _Off) const { return nii_array_reg_ss_const_iterator_type()[_Off]; }
-				bool operator==(const const_iterator& _Right_cref) const { return nii_array_reg_ss_const_iterator_type().operator==(_Right_cref.nii_array_reg_ss_const_iterator_type()); }
-#ifndef MSE_HAS_CXX20
-				bool operator!=(const const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const const_iterator& _Right) const { return (nii_array_reg_ss_const_iterator_type() < _Right.nii_array_reg_ss_const_iterator_type()); }
-				bool operator<=(const const_iterator& _Right) const { return (nii_array_reg_ss_const_iterator_type() <= _Right.nii_array_reg_ss_const_iterator_type()); }
-				bool operator>(const const_iterator& _Right) const { return (nii_array_reg_ss_const_iterator_type() > _Right.nii_array_reg_ss_const_iterator_type()); }
-				bool operator>=(const const_iterator& _Right) const { return (nii_array_reg_ss_const_iterator_type() >= _Right.nii_array_reg_ss_const_iterator_type()); }
-#else // !MSE_HAS_CXX20
-				std::strong_ordering operator<=>(const const_iterator& _Right_cref) const { return nii_array_reg_ss_const_iterator_type() <=> _Right_cref.nii_array_reg_ss_const_iterator_type(); }
-#endif // !MSE_HAS_CXX20
+				friend bool operator==(const const_iterator& _Left_cref, const const_iterator& _Right_cref) { return (_Left_cref.nii_array_reg_ss_const_iterator_type() == _Right_cref.nii_array_reg_ss_const_iterator_type()); }
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(const_iterator)
+
 				void set_to_const_item_pointer(const const_iterator& _Right_cref) { nii_array_reg_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.nii_array_reg_ss_const_iterator_type()); }
 				msear_size_t position() const { return nii_array_reg_ss_const_iterator_type().position(); }
 				auto target_container_ptr() const -> decltype(nii_array_reg_ss_const_iterator_type().target_container_ptr()) {

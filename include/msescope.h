@@ -1392,7 +1392,7 @@ namespace mse {
 				You are attempting to use an lvalue "scope pointer to a temporary". (Currently) only rvalue
 				"scope pointer to a temporary"s are supported.
 				*/
-				mse::impl::T_valid_if_same_msepointerbasics<_Ty2, void>();
+				mse::impl::T_valid_if_same_pb<_Ty2, void>();
 			}
 			TXScopeFixedPointerFParam& operator=(const TXScopeFixedPointerFParam& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1439,7 +1439,7 @@ namespace mse {
 				You are attempting to use an lvalue "scope pointer to a temporary". (Currently) only rvalue
 				"scope pointer to a temporary"s are supported.
 				*/
-				mse::impl::T_valid_if_same_msepointerbasics<_Ty2, void>();
+				mse::impl::T_valid_if_same_pb<_Ty2, void>();
 			}
 			TXScopeFixedConstPointerFParam& operator=(const TXScopeFixedConstPointerFParam& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -2350,28 +2350,28 @@ namespace mse {
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_pointer_to_member_v2(const rsv::TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> impl::make_xscope_pointer_to_member_v2_return_type1<_Ty, _TMemberObjectPointer> {
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemPointerBase<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> >(
 			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_pointer_to_member_v2(const rsv::TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> rsv::TXScopeFixedConstPointer<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > > {
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemConstPointerBase<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > >(
 			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_const_pointer_to_member_v2(const rsv::TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> rsv::TXScopeFixedConstPointer<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > > {
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemConstPointerBase<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > >(
 			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_const_pointer_to_member_v2(const rsv::TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> rsv::TXScopeFixedConstPointer<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > > {
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return mse::us::impl::TXScopeItemConstPointerBase<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > >(
 			mse::us::make_xscope_strong((*lease_pointer).*member_object_ptr, lease_pointer));
 	}
@@ -2379,7 +2379,7 @@ namespace mse {
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_pointer_to_member_v2(const rsv::TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> impl::make_xscope_pointer_to_member_v2_return_type1<_Ty, _TMemberObjectPointer> {
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		/* Originally, this function itself was a friend of rsv::TXScopeFixedPointer<>, but that seemed to confuse msvc2017 (but not
 		g++ or clang) in some cases. */
 		//typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
@@ -2389,7 +2389,7 @@ namespace mse {
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_pointer_to_member_v2(const rsv::TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> rsv::TXScopeFixedConstPointer<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > > {
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		/* Originally, this function itself was a friend of rsv::TXScopeFixedConstPointer<>, but that seemed to confuse msvc2017 (but not
 		g++ or clang) in some cases. */
 		//typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
@@ -2399,7 +2399,7 @@ namespace mse {
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_const_pointer_to_member_v2(const rsv::TXScopeFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> rsv::TXScopeFixedConstPointer<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > > {
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		/* Originally, this function itself was a friend of rsv::TXScopeFixedConstPointer<>, but that seemed to confuse msvc2017 (but not
 		g++ or clang) in some cases. */
 		//typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
@@ -2409,7 +2409,7 @@ namespace mse {
 	template<class _Ty, class _TMemberObjectPointer>
 	auto make_xscope_const_pointer_to_member_v2(const rsv::TXScopeFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr)
 		-> rsv::TXScopeFixedConstPointer<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> > > {
-		mse::impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		/* Originally, this function itself was a friend of rsv::TXScopeFixedConstPointer<>, but that seemed to confuse msvc2017 (but not
 		g++ or clang) in some cases. */
 		//typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;

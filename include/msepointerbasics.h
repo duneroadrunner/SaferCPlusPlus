@@ -264,15 +264,15 @@ namespace mse {
 
 	namespace impl {
 		template<bool _Val>
-		struct Cat_base_msepointerbasics : std::integral_constant<bool, _Val> {	// base class for type predicates
+		struct Cat_base_pb : std::integral_constant<bool, _Val> {	// base class for type predicates
 		};
 
 		template<class _Ty, class... _Args>
-		struct is_a_pair_with_the_first_a_base_of_the_second : impl::Cat_base_msepointerbasics<false> {};
+		struct is_a_pair_with_the_first_a_base_of_the_second : impl::Cat_base_pb<false> {};
 		template<class _Ty, class _Tz>
-		struct is_a_pair_with_the_first_a_base_of_the_second<_Ty, _Tz> : impl::Cat_base_msepointerbasics<std::is_base_of<mse::impl::remove_reference_t<_Ty>, mse::impl::remove_reference_t<_Tz> >::value> {};
+		struct is_a_pair_with_the_first_a_base_of_the_second<_Ty, _Tz> : impl::Cat_base_pb<std::is_base_of<mse::impl::remove_reference_t<_Ty>, mse::impl::remove_reference_t<_Tz> >::value> {};
 		template<class _Ty>
-		struct is_a_pair_with_the_first_a_base_of_the_second<_Ty> : impl::Cat_base_msepointerbasics<false> {};
+		struct is_a_pair_with_the_first_a_base_of_the_second<_Ty> : impl::Cat_base_pb<false> {};
 
 		template<typename A, typename B>
 		using disable_if_is_a_pair_with_the_first_a_base_of_the_second_t =
@@ -339,7 +339,7 @@ namespace mse {
 
 	namespace impl {
 		template<class T, class EqualTo>
-		struct HasOrInheritsAssignmentOperator_msepointerbasics_impl
+		struct HasOrInheritsAssignmentOperator_pb_impl
 		{
 			template<class U, class V>
 			static auto test(U* u) -> decltype(*u = *u, std::declval<V>(), bool(true));
@@ -350,15 +350,15 @@ namespace mse {
 			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
 		};
 		template<class T, class EqualTo = T>
-		struct HasOrInheritsAssignmentOperator_msepointerbasics : HasOrInheritsAssignmentOperator_msepointerbasics_impl<
+		struct HasOrInheritsAssignmentOperator_pb : HasOrInheritsAssignmentOperator_pb_impl<
 			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 	}
 
 #define MSE_USING_ASSIGNMENT_OPERATOR(Base) \
-	template<class _Ty2mse_uao, class _TBase2 = Base, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value \
+	template<class _Ty2mse_uao, class _TBase2 = Base, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_pb<_TBase2>::value \
 		&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_TBase2, _Ty2mse_uao>::value) || std::is_same<_TBase2, mse::impl::remove_reference_t<_Ty2mse_uao> >::value)> MSE_IMPL_EIS > \
 	auto& operator=(_Ty2mse_uao&& _X) { Base::operator=(MSE_FWD(_X)); return (*this); } \
-	template<class _Ty2mse_uao, class _TBase2 = Base, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_msepointerbasics<_TBase2>::value \
+	template<class _Ty2mse_uao, class _TBase2 = Base, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::HasOrInheritsAssignmentOperator_pb<_TBase2>::value \
 		&& ((!mse::impl::is_a_pair_with_the_first_a_base_of_the_second<_TBase2, _Ty2mse_uao>::value) || std::is_same<_TBase2, _Ty2mse_uao>::value)> MSE_IMPL_EIS > \
 	auto& operator=(const _Ty2mse_uao& _X) { Base::operator=(_X); return (*this); }
 
@@ -412,6 +412,38 @@ namespace mse {
 	auto new_alias_function(Args&&...args) { \
 		return existing_function(std::forward<Args>(args)...); \
 	}
+
+
+#define MSE_IMPL_OPERATOR_DELEGATING_DECLARATION(operator_name, this_type, delegate_type) \
+	friend bool operator operator_name (const this_type& _Left_cref, const this_type& _Right_cref) { \
+		typedef delegate_type const& delegate_cref_t; \
+		return (delegate_cref_t(_Left_cref) operator_name delegate_cref_t(_Right_cref)); \
+	}
+
+#define MSE_IMPL_EQUALITY_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type) \
+	MSE_IMPL_OPERATOR_DELEGATING_DECLARATION(==, this_type, delegate_type)
+
+#define MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type) \
+	friend bool operator!=(const this_type& _Left_cref, const this_type& _Right_cref) { return !((_Left_cref) == (_Right_cref)); }
+
+#ifndef MSE_HAS_CXX20
+
+#define MSE_IMPL_EQUALITY_COMPARISON_OPERATOR_DELEGATING_DECLARATIONS(this_type, delegate_type) \
+	MSE_IMPL_EQUALITY_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type) \
+	MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type)
+
+#define MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(this_type) \
+	MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type)
+
+#else // !MSE_HAS_CXX20
+
+#define MSE_IMPL_EQUALITY_COMPARISON_OPERATOR_DELEGATING_DECLARATIONS(this_type, delegate_type) \
+	MSE_IMPL_EQUALITY_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type)
+
+#define MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(this_type)
+
+#endif // !MSE_HAS_CXX20
+
 
 	namespace impl {
 		template<typename _TPointer>
@@ -539,6 +571,26 @@ namespace mse {
 	}
 
 	namespace impl {
+		template<class T, class EqualTo>
+		struct IsDereferenceable_pb_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype((*std::declval<U>()), (*std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...)->std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+		};
+		template<>
+		struct IsDereferenceable_pb_impl<void*, void*> : std::false_type {};
+		template<class T, class EqualTo = T>
+		struct IsDereferenceable_pb : IsDereferenceable_pb_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(IsDereferenceable_pb<_Ty>::value)> MSE_IMPL_EIS >
+		void T_valid_if_is_dereferenceable() {}
+
 		template <typename T> struct is_unqualified_shared_ptr : std::false_type {};
 		template <typename T> struct is_unqualified_shared_ptr<std::shared_ptr<T> > : std::true_type {};
 		template <typename T> struct is_shared_ptr : is_unqualified_shared_ptr<typename std::remove_cv<T>::type> {};
@@ -1332,19 +1384,19 @@ namespace mse {
 
 	namespace impl {
 		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_pointer<_Ty>::value)> MSE_IMPL_EIS >
-		void T_valid_if_not_raw_pointer_msepointerbasics() {}
+		void T_valid_if_not_raw_pointer_pb() {}
 	}
 
 	template<typename _Ty>
 	auto pointer_to(const _Ty& _X) {
-		impl::T_valid_if_not_raw_pointer_msepointerbasics<decltype(&_X)>();
+		impl::T_valid_if_not_raw_pointer_pb<decltype(&_X)>();
 		return &_X;
 	}
 
 	template<typename _Ty>
 	auto pointer_to(_Ty&& _X) -> decltype(&std::forward<_Ty>(_X)) {
 		const _Ty& X2 = _X;
-		impl::T_valid_if_not_raw_pointer_msepointerbasics<decltype(&X2)>();
+		impl::T_valid_if_not_raw_pointer_pb<decltype(&X2)>();
 		return &std::forward<_Ty>(_X);
 	}
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
@@ -1490,19 +1542,19 @@ namespace mse {
 
 	namespace impl {
 		template<class _Ty, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_Ty, _Ty2>::value> MSE_IMPL_EIS >
-		static void T_valid_if_same_msepointerbasics() {}
+		static void T_valid_if_same_pb() {}
 		template<class _Ty, class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_Ty, std::true_type>::value> MSE_IMPL_EIS >
-		static void T_valid_if_true_type_msepointerbasics() {}
+		static void T_valid_if_true_type_pb() {}
 		template<class _TLeasePointer, class _TMemberObjectPointer>
-		static void make_pointer_to_member_v2_checks_msepointerbasics(const _TLeasePointer &/*lease_pointer*/, const _TMemberObjectPointer& member_object_ptr) {
+		static void make_pointer_to_member_v2_checks_pb(const _TLeasePointer &/*lease_pointer*/, const _TMemberObjectPointer& member_object_ptr) {
 			/* Check for possible problematic parameters. */
-			if (!member_object_ptr) { MSE_THROW(std::logic_error("null member_object_ptr - make_pointer_to_member_v2_checks_msepointerbasics()")); }
+			if (!member_object_ptr) { MSE_THROW(std::logic_error("null member_object_ptr - make_pointer_to_member_v2_checks_pb()")); }
 			/*
 			typedef mse::impl::remove_reference_t<decltype(*lease_pointer)> _TLeaseTarget;
 			typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 			_TTarget _TLeaseTarget::* l_member_object_ptr = member_object_ptr;
 			typedef mse::impl::remove_reference_t<decltype(l_member_object_ptr)> _TMemberObjectPointer2;
-			T_valid_if_same_msepointerbasics<const _TMemberObjectPointer2, const _TMemberObjectPointer>();
+			T_valid_if_same_pb<const _TMemberObjectPointer2, const _TMemberObjectPointer>();
 			*/
 		}
 	}
@@ -1510,14 +1562,14 @@ namespace mse {
 	static auto make_pointer_to_member_v2(const _TLeasePointer &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		impl::T_valid_if_not_an_xscope_type(lease_pointer);
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
-		impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return mse::TSyncWeakFixedPointer<_TTarget, _TLeasePointer>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _TLeasePointer, class _TMemberObjectPointer>
 	static auto make_const_pointer_to_member_v2(const _TLeasePointer &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		impl::T_valid_if_not_an_xscope_type(lease_pointer);
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
-		impl::make_pointer_to_member_v2_checks_msepointerbasics(lease_pointer, member_object_ptr);
+		impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return mse::TSyncWeakFixedConstPointer<_TTarget, _TLeasePointer>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 }
@@ -1618,7 +1670,7 @@ namespace mse {
 		};
 
 		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _Ty>::value)> MSE_IMPL_EIS >
-		void T_valid_if_exclusive_pointer_msepointerbasics() {}
+		void T_valid_if_exclusive_pointer_pb() {}
 	}
 
 	namespace us {

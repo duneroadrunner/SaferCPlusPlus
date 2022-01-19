@@ -163,16 +163,9 @@ namespace mse {
 			typename _MV::const_reference previous_item() const { return msevector_cipointer().previous_item(); }
 			typename _MV::const_pointer operator->() const { return msevector_cipointer().operator->(); }
 			typename _MV::const_reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
-			bool operator==(const cipointer& _Right_cref) const { return msevector_cipointer().operator==(_Right_cref.msevector_cipointer()); }
-#ifndef MSE_HAS_CXX20
-			bool operator!=(const cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
-			bool operator<(const cipointer& _Right) const { return (msevector_cipointer() < _Right.msevector_cipointer()); }
-			bool operator<=(const cipointer& _Right) const { return (msevector_cipointer() <= _Right.msevector_cipointer()); }
-			bool operator>(const cipointer& _Right) const { return (msevector_cipointer() > _Right.msevector_cipointer()); }
-			bool operator>=(const cipointer& _Right) const { return (msevector_cipointer() >= _Right.msevector_cipointer()); }
-#else // !MSE_HAS_CXX20
-			std::strong_ordering operator<=>(const cipointer& _Right) const { return (msevector_cipointer() <=> _Right.msevector_cipointer()); }
-#endif // !MSE_HAS_CXX20
+			friend bool operator==(const cipointer& _Left_cref, const cipointer& _Right_cref) { return (_Left_cref.msevector_cipointer()) == (_Right_cref.msevector_cipointer()); }
+			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(cipointer)
+
 			void set_to_const_item_pointer(const cipointer& _Right_cref) { msevector_cipointer().set_to_const_item_pointer(_Right_cref.msevector_cipointer()); }
 			msev_size_t position() const { return msevector_cipointer().position(); }
 			auto target_container_ptr() const -> decltype(msevector_cipointer().target_container_ptr()) {
@@ -245,17 +238,7 @@ namespace mse {
 			typename _MV::difference_type operator-(const cipointer& _Right_cref) const {
 				return (cipointer(*this) - _Right_cref);
 			}
-#ifndef MSE_HAS_CXX20
-			bool operator==(const cipointer& _Right_cref) const { return (cipointer(*this) == _Right_cref); }
-			bool operator!=(const cipointer& _Right_cref) const { return (cipointer(*this) != _Right_cref); }
-			bool operator<(const cipointer& _Right_cref) const { return (cipointer(*this) < _Right_cref); }
-			bool operator>(const cipointer& _Right_cref) const { return (cipointer(*this) > _Right_cref); }
-			bool operator<=(const cipointer& _Right_cref) const { return (cipointer(*this) <= _Right_cref); }
-			bool operator>=(const cipointer& _Right_cref) const { return (cipointer(*this) >= _Right_cref); }
-#else // !MSE_HAS_CXX20
-			bool operator==(const ipointer& _Right_cref) const { return (cipointer(*this) == cipointer(_Right_cref)); }
-			std::strong_ordering operator<=>(const ipointer& _Right_cref) const { return (cipointer(*this) <=> cipointer(_Right_cref)); }
-#endif // !MSE_HAS_CXX20
+			MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(ipointer, cipointer)
 
 			void set_to_item_pointer(const ipointer& _Right_cref) { msevector_ipointer().set_to_item_pointer(_Right_cref.msevector_ipointer()); }
 			auto target_container_ptr() const -> decltype(msevector_ipointer().target_container_ptr()) {
@@ -497,16 +480,9 @@ namespace mse {
 				(*this) += _Right_cref.position();
 				return (*this);
 			}
-			bool operator==(const xscope_cipointer& _Right_cref) const { return msevector_cipointer().operator==(_Right_cref.msevector_cipointer()); }
-#ifndef MSE_HAS_CXX20
-			bool operator!=(const xscope_cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
-			bool operator<(const xscope_cipointer& _Right) const { return (msevector_cipointer() < _Right.msevector_cipointer()); }
-			bool operator<=(const xscope_cipointer& _Right) const { return (msevector_cipointer() <= _Right.msevector_cipointer()); }
-			bool operator>(const xscope_cipointer& _Right) const { return (msevector_cipointer() > _Right.msevector_cipointer()); }
-			bool operator>=(const xscope_cipointer& _Right) const { return (msevector_cipointer() >= _Right.msevector_cipointer()); }
-#else // !MSE_HAS_CXX20
-			std::strong_ordering operator<=>(const xscope_cipointer& _Right) const { return (msevector_cipointer() <=> _Right.msevector_cipointer()); }
-#endif // !MSE_HAS_CXX20
+			friend bool operator==(const xscope_cipointer& _Left_cref, const xscope_cipointer& _Right_cref) { return (_Left_cref.msevector_cipointer()) == (_Right_cref.msevector_cipointer()); }
+			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(xscope_cipointer)
+
 			void set_to_const_item_pointer(const xscope_cipointer& _Right_cref) { msevector_cipointer().set_to_const_item_pointer(_Right_cref.msevector_cipointer()); }
 			msear_size_t position() const { return msevector_cipointer().position(); }
 			auto target_container_ptr() const -> decltype(msevector_cipointer().target_container_ptr()) {
@@ -578,17 +554,7 @@ namespace mse {
 			typename _MV::difference_type operator-(const xscope_cipointer& _Right_cref) const {
 				return (xscope_cipointer(*this) - _Right_cref);
 			}
-#ifndef MSE_HAS_CXX20
-			bool operator==(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) == _Right_cref); }
-			bool operator!=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) != _Right_cref); }
-			bool operator<(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) < _Right_cref); }
-			bool operator>(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) > _Right_cref); }
-			bool operator<=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) <= _Right_cref); }
-			bool operator>=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) >= _Right_cref); }
-#else // !MSE_HAS_CXX20
-			bool operator==(const xscope_ipointer& _Right_cref) const { return (xscope_cipointer(*this) == xscope_cipointer(_Right_cref)); }
-			std::strong_ordering operator<=>(const xscope_ipointer& _Right_cref) const { return (xscope_cipointer(*this) <=> xscope_cipointer(_Right_cref)); }
-#endif // !MSE_HAS_CXX20
+			MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(xscope_ipointer, xscope_cipointer)
 
 			xscope_ipointer& operator=(const xscope_ipointer& _Right_cref) {
 				msevector_ipointer().operator=(_Right_cref.msevector_ipointer());
@@ -668,28 +634,6 @@ namespace mse {
 	ivector(_Iter, _Iter, _Alloc = _Alloc())
 		->ivector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
-
-#ifndef MSE_HAS_CXX20
-	template<class _Ty, class _Alloc> inline bool operator!=(const ivector<_Ty, _Alloc>& _Left,
-		const ivector<_Ty, _Alloc>& _Right) {	// test for ivector inequality
-			return (!(_Left == _Right));
-		}
-
-	template<class _Ty, class _Alloc> inline bool operator>(const ivector<_Ty, _Alloc>& _Left,
-		const ivector<_Ty, _Alloc>& _Right) {	// test if _Left > _Right for ivectors
-			return (_Right < _Left);
-		}
-
-	template<class _Ty, class _Alloc> inline bool operator<=(const ivector<_Ty, _Alloc>& _Left,
-		const ivector<_Ty, _Alloc>& _Right) {	// test if _Left <= _Right for ivectors
-			return (!(_Right < _Left));
-		}
-
-	template<class _Ty, class _Alloc> inline bool operator>=(const ivector<_Ty, _Alloc>& _Left,
-		const ivector<_Ty, _Alloc>& _Right) {	// test if _Left >= _Right for ivectors
-			return (!(_Left < _Right));
-		}
-#endif // !MSE_HAS_CXX20
 
 	/* For each (scope) vector instance, only one instance of xscope_structure_lock_guard may exist at any one
 	time. While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to

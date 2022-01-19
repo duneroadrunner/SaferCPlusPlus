@@ -23,6 +23,15 @@
 #pragma warning( disable : 4100 4456 4189 4127 4702 )
 #endif /*_MSC_VER*/
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion-null"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma push_macro("MSE_THROW")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
@@ -318,6 +327,7 @@ namespace mse {
 		public:
 			typedef mse::TNullableAnyPointer<_Ty> base_class;
 			TLHNullableAnyPointer(const TLHNullableAnyPointer& src) = default;
+#if 0
 			TLHNullableAnyPointer(const NULL_t val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
@@ -327,6 +337,7 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
+#endif // 0
 			template <size_t _Size>
 			TLHNullableAnyPointer(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
 			template <size_t _Size>
@@ -340,7 +351,7 @@ namespace mse {
 				&& (!std::is_base_of<base_class, _TPointer1>::value)
 				&& (!std::is_same<_TPointer1, std::nullptr_t>::value)
 				&& (!std::is_same<_TPointer1, NULL_t>::value)
-				&& (mse::impl::IsDereferenceable_msemsearray<_TPointer1>::value
+				&& (mse::impl::IsDereferenceable_pb<_TPointer1>::value
 					&& (std::is_base_of<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value
 						|| std::is_same<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value))
 				&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
@@ -362,11 +373,6 @@ namespace mse {
 				base_class::operator=(_Right_cref);
 				return (*this);
 			}
-			template <typename _Ty2>
-			TLHNullableAnyPointer& operator=(const _Ty2& _Right_cref) {
-				operator=(TLHNullableAnyPointer(_Right_cref));
-				return (*this);
-			}
 
 			operator bool() const {
 				return base_class::operator bool();
@@ -378,20 +384,19 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
 
-		template <typename _Ty>
-		bool operator==(const NULL_t lhs, const TLHNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }
-		template <typename _Ty>
-		bool operator!=(const NULL_t lhs, const TLHNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
-		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+#ifndef MSE_HAS_CXX20
+		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 		bool operator==(const _Ty2 lhs, const TLHNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }
-		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 		bool operator!=(const _Ty2 lhs, const TLHNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
+#endif // !MSE_HAS_CXX20
 
 		template <typename _Ty>
 		class TXScopeLHNullableAnyPointer : public mse::TXScopeNullableAnyPointer<_Ty> {
 		public:
 			typedef mse::TXScopeNullableAnyPointer<_Ty> base_class;
 			TXScopeLHNullableAnyPointer(const TXScopeLHNullableAnyPointer& src) = default;
+#if 0
 			TXScopeLHNullableAnyPointer(const NULL_t val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
@@ -401,6 +406,7 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
+#endif // 0
 			template <size_t _Size>
 			TXScopeLHNullableAnyPointer(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
 			template <size_t _Size>
@@ -438,14 +444,12 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
 
-		template <typename _Ty>
-		bool operator==(const NULL_t lhs, const TXScopeLHNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }
-		template <typename _Ty>
-		bool operator!=(const NULL_t lhs, const TXScopeLHNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
-		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+#ifndef MSE_HAS_CXX20
+		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 		bool operator==(const _Ty2 lhs, const TXScopeLHNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }
-		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 		bool operator!=(const _Ty2 lhs, const TXScopeLHNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
+#endif // !MSE_HAS_CXX20
 
 		template <typename _Ty>
 		class TXScopeLHNullableAnyRandomAccessIterator;
@@ -503,11 +507,13 @@ namespace mse {
 				base_class::operator=(_Right_cref);
 				return (*this);
 			}
+			/*
 			template <typename _Ty2>
 			TLHNullableAnyRandomAccessIterator& operator=(const _Ty2& _Right_cref) {
 				operator=(TLHNullableAnyRandomAccessIterator(_Right_cref));
 				return (*this);
 			}
+			*/
 
 			explicit operator bool() const {
 				return base_class::operator bool();
@@ -703,10 +709,12 @@ namespace mse {
 			/* turns out that size_type and NULL_t could be the same type on some platforms */
 			//explicit TStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N), 0) {}
 			explicit TStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N, _V), 0) {}
+#if 0
 			TStrongVectorIterator(const NULL_t val) : TStrongVectorIterator() {
 				/* This constructor is just to support zero being used as a null pointer/iterator value. */
 				assert(0 == val);
 			}
+#endif // 0
 			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 			TStrongVectorIterator(_Ty2 val) : TStrongVectorIterator() {
 				/* This constructor is just to support zero being used as a null pointer value. */
@@ -799,6 +807,7 @@ namespace mse {
 			TXScopeStrongVectorIterator(const mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>>& src) : base_class(src) {}
 			explicit TXScopeStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N), 0) {}
 			explicit TXScopeStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N, _V), 0) {}
+#if 0
 			TXScopeStrongVectorIterator(const NULL_t val) : TXScopeStrongVectorIterator() {
 				/* This constructor is just to support zero being used as a null pointer/iterator value. */
 				assert(0 == val);
@@ -808,6 +817,7 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
+#endif // 0
 			/*
 			template <class... Args>
 			TXScopeStrongVectorIterator(Args&&... args) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(std::forward<Args>(args)...), 0) {}
@@ -1571,7 +1581,7 @@ namespace mse {
 					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(mse::CNDSize_t);
 
-					return conversion_operator_helper1<T>(typename mse::impl::IsDereferenceable_msemsearray<T>::type(), this);
+					return conversion_operator_helper1<T>(typename mse::impl::IsDereferenceable_pb<T>::type(), this);
 					//return mse::any_cast<T>(*this);
 				}
 
@@ -1771,7 +1781,7 @@ namespace mse {
 			//void_star_replacement(void_star_replacement&&) = default;
 			void_star_replacement(std::nullptr_t) : base_class((void*)(nullptr)), m_is_nullptr(true) {}
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
-				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
+				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
 			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(!bool(ptr)) {}
 
 			operator bool() const {
@@ -1782,7 +1792,7 @@ namespace mse {
 				return !bool(*this);
 			}
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
-				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
+				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
 			bool operator==(const T& rhs) const {
 				if (!rhs) {
 					return !bool(*this);
@@ -1790,7 +1800,7 @@ namespace mse {
 				return T(*this) == rhs;
 			}
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
-				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
+				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
 			bool operator!=(const T& rhs) const {
 				return !((*this) == rhs);
 			}
@@ -1807,7 +1817,7 @@ namespace mse {
 			}
 
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
-				&& ((mse::impl::IsDereferenceable_msemsearray<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
+				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
 			operator T() const {
 				//return base_class::operator T();
 				const base_class& bc_cref = *this;
@@ -1823,6 +1833,18 @@ namespace mse {
 #endif // MSE_SAFER_SUBSTITUTES_DISABLED
 
 #endif /*MSE_LEGACYHELPERS_DISABLED*/
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+
+/* Here we're suppressing this "NULL to integral conversion" warning in any file that includes this header as we
+intentionally use this (implicit) conversion in the interface of lh::TLHNullableAnyRandomAccessIterator<>. */
+#pragma GCC diagnostic ignored "-Wconversion-null"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma pop_macro("MSE_THROW")

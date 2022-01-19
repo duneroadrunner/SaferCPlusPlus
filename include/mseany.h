@@ -576,6 +576,34 @@ namespace mse {
 		}
 	}
 
+	namespace impl {
+		template<typename _Tz, typename _TPointer, typename _TTarget>
+		struct target_can_be_referenced_as_helper1 : std::false_type {};
+		template<typename _TPointer, typename _TTarget>
+		struct target_can_be_referenced_as_helper1<std::true_type, _TPointer, _TTarget> : std::is_convertible<mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())> *, _TTarget*> {};
+
+		template<typename _TPointer, typename _TTarget>
+		struct target_can_be_referenced_as : target_can_be_referenced_as_helper1<typename mse::impl::IsDereferenceable_pb<_TPointer>::type, _TPointer, _TTarget> {};
+	}
+
+#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20) && !defined(MSE_MSC_CONFORMANCE_MODE)
+/* Jan 2022: The microsoft compiler seems to default to "permissive" mode (/permissive+) for C++17 and lower. When
+compiling in "conformance" mode (/permissive-) with C++17 and lower, you should define the MSE_MSC_CONFORMANCE_MODE
+preprocessor symbol. */
+#define MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20) && !defined(MSE_MSC_CONFORMANCE_MODE)
+
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) mse::impl::IsDereferenceable_pb<x>::value
+#define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) mse::impl::target_can_be_referenced_as<pointer_t, target_t>::value
+#else // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+/* Jan 2022: The microsoft compiler in "permissive" mode (/permissive+) seems to have some strange behavior (that
+results in "ambiguous overload" compile errors when we attempt to filter for "dereferenceability" (i.e. require
+the type to be some sort of pointer). So we substitute it with a simpler (and looser) criteria. */
+#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) ((!std::is_same<decltype(NULL), x>::value) && (!std::is_same<decltype(0), x>::value))
+#define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(pointer_t)
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+
 	namespace us {
 		namespace impl {
 
@@ -618,8 +646,9 @@ namespace mse {
 				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
 					&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
+					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
 					> MSE_IMPL_EIS >
-					TAnyPointerBaseV1(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
+				TAnyPointerBaseV1(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
 
 				_Ty& operator*() const {
 					return (*(*common_pointer_interface_ptr()));
@@ -627,18 +656,46 @@ namespace mse {
 				_Ty* operator->() const {
 					return std::addressof(*(*common_pointer_interface_ptr()));
 				}
+				operator bool() const {
+					return bool(*common_pointer_interface_ptr());
+				}
+
 				template <typename _Ty2>
-				bool operator ==(const _Ty2& _Right_cref) const {
+				bool operator==(const _Ty2& _Right_cref) const {
+					if (!bool(*this)) {
+						if (!bool(_Right_cref)) {
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
 					/* Note that both underlying stored pointers are dereferenced here and we may be relying on the intrinsic
 					safety of those pointers to ensure the safety of the dereference operations. */
 					return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
 				}
 				template <typename _Ty2>
-				bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
-
-				operator bool() const {
-					return bool(*common_pointer_interface_ptr());
+				bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
+#ifndef MSE_HAS_CXX20
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
+					(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
+					&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
+					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+				> MSE_IMPL_EIS >
+				friend bool operator==(const _TPointer1& _Left_cref, const TAnyPointerBaseV1& _Right_cref) {
+					return _Right_cref.operator==(_Left_cref);
 				}
+				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
+					(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
+					&& (!std::is_base_of<TAnyConstPointerBase<_Ty>, _TPointer1>::value)
+					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+					> MSE_IMPL_EIS >
+				friend bool operator!=(const _TPointer1& _Left_cref, const TAnyPointerBaseV1& _Right_cref) {
+					return !(_Right_cref.operator==(_Left_cref));
+				}
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#endif // !MSE_HAS_CXX20
 
 			protected:
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -698,8 +755,9 @@ namespace mse {
 				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
 					&& (!std::is_convertible<TAnyPointerBaseV1<_Ty>, _TPointer1>::value)
+					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
 					> MSE_IMPL_EIS >
-					TAnyConstPointerBaseV1(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
+				TAnyConstPointerBaseV1(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
 
 				const _Ty& operator*() const {
 					return (*(*common_pointer_interface_const_ptr()));
@@ -710,14 +768,43 @@ namespace mse {
 				operator bool() const {
 					return bool(*common_pointer_interface_const_ptr());
 				}
+
 				template <typename _Ty2>
 				bool operator ==(const _Ty2& _Right_cref) const {
+					if (!bool(*this)) {
+						if (!bool(_Right_cref)) {
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
 					/* Note that both underlying stored pointers are dereferenced here and we may be relying on the intrinsic
 					safety of those pointers to ensure the safety of the dereference operations. */
 					return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
 				}
 				template <typename _Ty2>
 				bool operator !=(const _Ty2& _Right_cref) const { return !((*this) == _Right_cref); }
+#ifndef MSE_HAS_CXX20
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
+					(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
+					&& (!std::is_convertible<TAnyPointerBaseV1<_Ty>, _TPointer1>::value)
+					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+					> MSE_IMPL_EIS >
+				friend bool operator==(const _TPointer1& _Left_cref, const TAnyConstPointerBaseV1& _Right_cref) {
+					return _Right_cref.operator==(_Left_cref);
+				}
+				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
+					(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
+					&& (!std::is_convertible<TAnyPointerBaseV1<_Ty>, _TPointer1>::value)
+					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+					> MSE_IMPL_EIS >
+				friend bool operator!=(const _TPointer1& _Left_cref, const TAnyConstPointerBaseV1& _Right_cref) {
+					return !(_Right_cref.operator==(_Left_cref));
+				}
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#endif // !MSE_HAS_CXX20
 
 			protected:
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
