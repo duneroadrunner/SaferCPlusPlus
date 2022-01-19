@@ -1,4 +1,4 @@
-Aug 2021
+Jan 2022
 
 ### Overview
 
@@ -24,10 +24,10 @@ And the library also addresses the data race issue, where the Core Guidelines do
 
 To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
-Elements in this library are currently based on the C++17 version of their counterpart APIs. Note that parts of the library documentation were written before it was clear that a viable lifetime checker might be forthcoming and should be interpreted accordingly. 
+Elements in this library are currently based on the C++17 version of their counterpart APIs. (C++14 is still supported.)
 
 #### Supported platforms
-Tested with msvc2019(v16.5.4) (Windows 10), g++9.3.0 and clang++10.0.0 (Ubuntu 20.04). Versions of g++ prior to version 5 are not supported. Last tested with Apple clang++ version 12.0.0 (macOS Catalina v10.15.7) on Aug 18, 2021. Apple clang++ is not currently a regular test target. Some (generally "less commonly used") features are not available with Apple clang++ (for example, some uses of `std::tie`).
+Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and clang++12.0.0 (Ubuntu 20.04). Versions of g++ prior to version 5 are not supported. Last tested with Apple clang++ version 12.0.0 (macOS Catalina v10.15.7) on Aug 18, 2021. Apple clang++ is not currently a regular test target. Some (generally "less commonly used") features are not available with Apple clang++ (for example, some uses of `std::tie`). With the microsoft compiler, compiling in "conformance" mode (/permissive-) (which is not the default when using C++17 or lower) is recommended.
 
 
 ### Table of contents
@@ -165,9 +165,9 @@ And note that the safe components of this library can be adopted completely incr
 
 Using this (header-only) library generally involves copying the include files you want to use into your project, and that's it. Outside of the standard library, there are no other dependencies.  
 
-Building the example: For those using msvc, project and solution files are included. Otherwise, just create a new project and add all the `.cpp` and `.h` files.
+Building the example: For those using msvc, project files are included. Otherwise, just create a new project and add all the `.cpp` and `.h` files.
 
-A couple of notes about compiling: With g++ and clang++, you'll need to enable thread support (-pthread). With 64-bit builds in msvc you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section. Also related: [Versioning and deployment philosophy](README2.md#versioning-and-deployment-philosophy).
+A couple of notes about compiling: With g++ and clang++, you'll need to enable thread support (-pthread). With the microsoft compiler, compiling in "conformance" mode (/permissive-) (which is not the default when using C++17 or lower) is recommended. With 64-bit builds you may get a "[fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj](https://msdn.microsoft.com/en-us/library/8578y171(v=vs.140).aspx)". Just [add](https://msdn.microsoft.com/en-us/library/ms173499.aspx) the "/bigobj" compile flag. For more help you can try the [questions and comments](#questions-and-comments) section. Also related: [Versioning and deployment philosophy](README2.md#versioning-and-deployment-philosophy).
 
 ### SaferCPlusPlus versus Clang/LLVM Sanitizers
 
