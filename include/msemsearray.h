@@ -4500,12 +4500,30 @@ namespace mse {
 		namespace iterator {
 
 			template <typename _TRAPointer>
+			auto xscope_begin_iter_from_ptr_helper5(std::true_type, const _TRAPointer& ptr) {
+				return mse::make_xscope(std::begin(*ptr));
+			}
+			template <typename _TRAPointer>
+			std::nullptr_t xscope_begin_iter_from_ptr_helper5(std::false_type, const _TRAPointer& ptr) {
+				return nullptr;
+			}
+			template <typename _TRAPointer>
+			auto xscope_begin_iter_from_ptr_helper4(std::true_type, const _TRAPointer& ptr) {
+				return mse::TXScopeRAIterator<_TRAPointer>(ptr, 0);
+			}
+			template <typename _TRAPointer>
+			auto xscope_begin_iter_from_ptr_helper4(std::false_type, const _TRAPointer& ptr) {
+				typedef mse::impl::remove_reference_t<decltype(*ptr)> container_t;
+				return xscope_begin_iter_from_ptr_helper5(typename mse::impl::SupportsStdBegin_msemsearray<container_t>::type(), ptr);
+			}
+			template <typename _TRAPointer>
 			auto xscope_begin_iter_from_ptr_helper3(std::true_type, const _TRAPointer& ptr) {
 				return (*ptr).xscope_ss_begin(ptr);
 			}
 			template <typename _TRAPointer>
 			auto xscope_begin_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
-				return mse::TXScopeRAIterator<_TRAPointer>(ptr, 0);
+				typedef mse::impl::remove_reference_t<decltype(*ptr)> container_t;
+				return xscope_begin_iter_from_ptr_helper4(typename mse::impl::is_random_access_container<container_t>::type(), ptr);
 			}
 			template <typename _TXSRAPointer>
 			auto xscope_begin_iter_from_ptr_helper2(std::true_type, const _TXSRAPointer& xsptr) {
@@ -4538,10 +4556,16 @@ namespace mse {
 				return xscope_begin_iter_from_ptr_helper2(typename mse::impl::is_convertible_to_nonowning_scope_or_indeterminate_pointer<_TRAPointer>::type(), ptr);
 			}
 			template<class _TRALoneParam>
-			auto xscope_begin_iter_from_lone_param(const _TRALoneParam& param) {
+			auto xscope_begin_iter_from_lvalue_lone_param(const _TRALoneParam& param) {
 				typedef mse::impl::remove_reference_t<_TRALoneParam> _TRALoneParamRR;
 				return mse::impl::iterator::xscope_begin_iter_from_lone_param2(
 					typename mse::impl::IsDereferenceable_pb<_TRALoneParamRR>::type(), param);
+			}
+			template<class _TRALoneParam>
+			auto xscope_begin_iter_from_rvalue_lone_param(_TRALoneParam&& param) {
+				typedef mse::impl::remove_reference_t<_TRALoneParam> _TRALoneParamRR;
+				return mse::impl::iterator::xscope_begin_iter_from_lone_param2(
+					typename mse::impl::IsDereferenceable_pb<_TRALoneParamRR>::type(), MSE_FWD(param));
 			}
 		}
 
@@ -4573,7 +4597,6 @@ namespace mse {
 			}
 			template <typename _TRAPointer>
 			auto begin_const_iter_from_ptr_helper4(std::false_type, const _TRAPointer& ptr) {
-				//return std::cbegin(*ptr);
 				typedef mse::impl::remove_reference_t<decltype(*ptr)> container_t;
 				return begin_const_iter_from_ptr_helper5(typename mse::impl::SupportsStdBegin_msemsearray<container_t>::type(), ptr);
 			}
@@ -4630,12 +4653,30 @@ namespace mse {
 		namespace iterator {
 
 			template <typename _TRAPointer>
+			auto xscope_begin_const_iter_from_ptr_helper5(std::true_type, const _TRAPointer& ptr) {
+				return mse::make_xscope(std::cbegin(*ptr));
+			}
+			template <typename _TRAPointer>
+			std::nullptr_t xscope_begin_const_iter_from_ptr_helper5(std::false_type, const _TRAPointer& ptr) {
+				return nullptr;
+			}
+			template <typename _TRAPointer>
+			auto xscope_begin_const_iter_from_ptr_helper4(std::true_type, const _TRAPointer& ptr) {
+				return mse::TXScopeRAConstIterator<_TRAPointer>(ptr, 0);
+			}
+			template <typename _TRAPointer>
+			auto xscope_begin_const_iter_from_ptr_helper4(std::false_type, const _TRAPointer& ptr) {
+				typedef mse::impl::remove_reference_t<decltype(*ptr)> container_t;
+				return xscope_begin_const_iter_from_ptr_helper5(typename mse::impl::SupportsStdBegin_msemsearray<container_t>::type(), ptr);
+			}
+			template <typename _TRAPointer>
 			auto xscope_begin_const_iter_from_ptr_helper3(std::true_type, const _TRAPointer& ptr) {
 				return (*ptr).xscope_ss_cbegin(ptr);
 			}
 			template <typename _TRAPointer>
 			auto xscope_begin_const_iter_from_ptr_helper3(std::false_type, const _TRAPointer& ptr) {
-				return mse::TXScopeRAConstIterator<_TRAPointer>(ptr, 0);
+				typedef mse::impl::remove_reference_t<decltype(*ptr)> container_t;
+				return xscope_begin_const_iter_from_ptr_helper4(typename mse::impl::is_random_access_container<container_t>::type(), ptr);
 			}
 			template <typename _TXSRAPointer>
 			auto xscope_begin_const_iter_from_ptr_helper2(std::true_type, const _TXSRAPointer& xsptr) {
@@ -4680,11 +4721,140 @@ namespace mse {
 					typename mse::impl::IsDereferenceable_pb<_TRALoneParamRR>::type(), MSE_FWD(param));
 			}
 		}
-
 	}
 
-	MSE_IMPL_FUNCTION_ALIAS_DECLARATION(make_xscope_const_iterator, impl::iterator::xscope_begin_const_iter_from_lone_param);
-	MSE_IMPL_FUNCTION_ALIAS_DECLARATION(make_xscope_iterator, impl::iterator::xscope_begin_iter_from_lone_param);
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_const_iterator(const _TContainerPointer& param) {
+		return mse::impl::iterator::xscope_begin_const_iter_from_lone_param(param);
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_const_iterator(_TContainerPointer&& param) {
+		return mse::impl::iterator::xscope_begin_const_iter_from_lone_param(MSE_FWD(param));
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_iterator(const _TContainerPointer& param) {
+		return mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(param);
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_iterator(_TContainerPointer&& param) {
+		return mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(MSE_FWD(param));
+	}
+
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_begin_const_iterator(const _TContainerPointer& param) {
+		return mse::impl::iterator::xscope_begin_const_iter_from_lone_param(param);
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_begin_const_iterator(_TContainerPointer&& param) {
+		return mse::impl::iterator::xscope_begin_const_iter_from_lone_param(MSE_FWD(param));
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_begin_iterator(const _TContainerPointer& param) {
+		return mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(param);
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_begin_iterator(_TContainerPointer&& param) {
+		return mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(MSE_FWD(param));
+	}
+
+	namespace impl {
+		template<class _TContainerPointer>
+		auto make_xscope_end_const_iterator_helper1(std::true_type, const _TContainerPointer& param) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_const_iterator(param))>::type difference_type;
+			return mse::make_xscope_begin_const_iterator(param) + difference_type(mse::container_size(param) - 0);
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_const_iterator_helper1(std::true_type, _TContainerPointer&& param) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_const_iterator(param))>::type difference_type;
+			return mse::make_xscope_begin_const_iterator(MSE_FWD(param)) + difference_type(mse::container_size(param) - 0);
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_const_iterator_helper1(std::false_type, const _TContainerPointer& param) {
+			return mse::make_xscope(std::cend(*param));
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_const_iterator_helper02(std::true_type, const _TContainerPointer& param) {
+			typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
+			return mse::impl::make_xscope_end_const_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), param);
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_const_iterator_helper02(std::true_type, _TContainerPointer&& param) {
+			typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
+			return mse::impl::make_xscope_end_const_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), MSE_FWD(param));
+		}
+		template<class _TContainer>
+		auto make_xscope_end_const_iterator_helper02(std::false_type, _TContainer& param) {
+			return mse::make_xscope(std::end(param));
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_const_iterator_helper01(_TContainerPointer& param) {
+			return mse::impl::make_xscope_end_const_iterator_helper02(typename mse::impl::IsDereferenceable_pb<_TContainerPointer>::type(), param);
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_const_iterator_helper01(_TContainerPointer&& param) {
+			return mse::impl::make_xscope_end_const_iterator_helper02(typename mse::impl::IsDereferenceable_pb<_TContainerPointer>::type(), MSE_FWD(param));
+		}
+
+		template<class _TContainerPointer>
+		auto make_xscope_end_iterator_from_rvalue_helper01(_TContainerPointer&& param);
+
+		template<class _TContainerPointer>
+		auto make_xscope_end_iterator_helper1(std::true_type, const _TContainerPointer& param) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_iterator(param))>::type difference_type;
+			return mse::make_xscope_begin_iterator(param) + difference_type(mse::container_size(param) - 0);
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_iterator_helper1(std::true_type, _TContainerPointer&& param) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_iterator(MSE_FWD(param)))>::type difference_type;
+			return mse::make_xscope_begin_iterator(MSE_FWD(param)) + difference_type(mse::container_size(param) - 0);
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_iterator_helper1(std::false_type, const _TContainerPointer& param) {
+			return mse::make_xscope(std::end(*param));
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_iterator_helper02(std::true_type, const _TContainerPointer& param) {
+			typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
+			return mse::impl::make_xscope_end_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), param);
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_iterator_helper02(std::true_type, _TContainerPointer&& param) {
+			typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
+			return mse::impl::make_xscope_end_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), MSE_FWD(param));
+		}
+		template<class _TContainer>
+		auto make_xscope_end_iterator_helper02(std::false_type, const _TContainer& param) {
+			return mse::make_xscope(std::end(param));
+		}
+		template<class _TContainer>
+		auto make_xscope_end_iterator_helper02(std::false_type, _TContainer&& param) {
+			return mse::make_xscope(std::end(param));
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_iterator_from_lvalue_helper01(_TContainerPointer& param) {
+			return mse::impl::make_xscope_end_iterator_helper02(typename mse::impl::IsDereferenceable_pb<_TContainerPointer>::type(), param);
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_iterator_from_rvalue_helper01(_TContainerPointer&& param) {
+			return mse::impl::make_xscope_end_iterator_helper02(typename mse::impl::IsDereferenceable_pb<_TContainerPointer>::type(), MSE_FWD(param));
+		}
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_end_const_iterator(const _TContainerPointer& param) {
+		return mse::impl::make_xscope_end_const_iterator_helper01(param);
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_end_const_iterator(_TContainerPointer&& param) {
+		return mse::impl::make_xscope_end_const_iterator_helper01(MSE_FWD(param));
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_end_iterator(const _TContainerPointer& param) {
+		return mse::impl::make_xscope_end_iterator_from_lvalue_helper01(param);
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_xscope_end_iterator(_TContainerPointer&& param) {
+		return mse::impl::make_xscope_end_iterator_from_rvalue_helper01(MSE_FWD(param));
+	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
 	//MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_const_iterator)
@@ -4723,7 +4893,6 @@ namespace mse {
 		return mse::rsv::as_a_returnable_fparam(make_xscope_const_iterator(std::forward<_Ty>(param), std::forward<_Args>(_Ax)...));
 	}
 
-
 	/* We had iterators in mind with these overloads of operator+ and operator-. */
 	template <typename _Ty, typename _Tz>
 	auto operator+(const rsv::TReturnableFParam<_Ty>& y, const _Tz& z) {
@@ -4736,81 +4905,91 @@ namespace mse {
 		return rsv::as_a_returnable_fparam(param_base_ref - z);
 	}
 
-	MSE_IMPL_FUNCTION_ALIAS_DECLARATION(make_xscope_begin_const_iterator, make_xscope_const_iterator);
-	MSE_IMPL_FUNCTION_ALIAS_DECLARATION(make_xscope_begin_iterator, make_xscope_iterator);
 
-#define MSE_IMPL_MAKE_END_ITERATOR_FUNCTION_DECLARATION1(make_end_const_iterator_function, make_begin_const_iterator_function) \
-	template<class _TArrayPointer> \
-	auto make_end_const_iterator_function(const _TArrayPointer& owner_ptr) { \
-		typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_const_iterator_function(owner_ptr))>::type difference_type; \
-		return mse::make_begin_const_iterator_function(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0); \
-	} \
-	template<class _TArrayPointer> \
-	auto make_end_const_iterator_function(_TArrayPointer&& owner_ptr) { \
-		typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_const_iterator(MSE_FWD(owner_ptr)))>::type difference_type; \
-		return mse::make_begin_const_iterator_function(MSE_FWD(owner_ptr)) + difference_type(mse::container_size(owner_ptr) - 0); \
-	}
-
-	MSE_IMPL_MAKE_END_ITERATOR_FUNCTION_DECLARATION1(make_xscope_end_const_iterator, make_xscope_begin_const_iterator);
-	MSE_IMPL_MAKE_END_ITERATOR_FUNCTION_DECLARATION1(make_xscope_end_iterator, make_xscope_begin_iterator);
-
-	template<class _TArrayPointer>
-	auto make_const_iterator(const _TArrayPointer& param) {
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_const_iterator(const _TContainerPointer& param) {
 		return mse::impl::iterator::begin_const_iter_from_lone_param(param);
 	}
-
-	template<class _TRALoneParam>
-	auto make_iterator(const _TRALoneParam& param) {
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_const_iterator(_TContainerPointer&& param) {
+		return mse::impl::iterator::begin_const_iter_from_lone_param(MSE_FWD(param));
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_iterator(const _TContainerPointer& param) {
 		return mse::impl::iterator::begin_iter_from_lone_param(param);
 	}
-	template<class _TRALoneParam>
-	auto make_iterator(_TRALoneParam&& param) {
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_iterator(_TContainerPointer&& param) {
 		return mse::impl::iterator::begin_iter_from_lone_param(MSE_FWD(param));
 	}
 
-	MSE_IMPL_FUNCTION_ALIAS_DECLARATION(make_begin_const_iterator, make_const_iterator);
-	MSE_IMPL_FUNCTION_ALIAS_DECLARATION(make_begin_iterator, make_iterator);
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_begin_const_iterator(const _TContainerPointer& param) {
+		return mse::impl::iterator::begin_const_iter_from_lone_param(param);
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_begin_const_iterator(_TContainerPointer&& param) {
+		return mse::impl::iterator::begin_const_iter_from_lone_param(MSE_FWD(param));
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_begin_iterator(const _TContainerPointer& param) {
+		return mse::impl::iterator::begin_iter_from_lone_param(param);
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_begin_iterator(_TContainerPointer&& param) {
+		return mse::impl::iterator::begin_iter_from_lone_param(MSE_FWD(param));
+	}
 
 	namespace impl {
-		template<class _TArrayPointer>
-		auto make_end_const_iterator_helper1(std::true_type, const _TArrayPointer& owner_ptr) {
-			typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_const_iterator(owner_ptr))>::type difference_type;
-			return mse::make_begin_const_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
+		template<class _TContainerPointer>
+		auto make_end_const_iterator_helper1(std::true_type, const _TContainerPointer& param) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_const_iterator(param))>::type difference_type;
+			return mse::make_begin_const_iterator(param) + difference_type(mse::container_size(param) - 0);
 		}
-		template<class _TArrayPointer>
-		auto make_end_const_iterator_helper1(std::false_type, const _TArrayPointer& owner_ptr) {
-			return std::cend(*owner_ptr);
+		template<class _TContainerPointer>
+		auto make_end_const_iterator_helper1(std::true_type, _TContainerPointer&& param) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_const_iterator(param))>::type difference_type;
+			return mse::make_begin_const_iterator(MSE_FWD(param)) + difference_type(mse::container_size(param) - 0);
+		}
+		template<class _TContainerPointer>
+		auto make_end_const_iterator_helper1(std::false_type, const _TContainerPointer& param) {
+			return std::cend(*param);
 		}
 
-		template<class _TArrayPointer>
-		auto make_end_iterator_helper1(std::true_type, _TArrayPointer& owner_ptr) {
-			typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(owner_ptr))>::type difference_type;
-			return mse::make_begin_iterator(owner_ptr) + difference_type(mse::container_size(owner_ptr) - 0);
+		template<class _TContainerPointer>
+		auto make_end_iterator_helper1(std::true_type, _TContainerPointer& param) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(param))>::type difference_type;
+			return mse::make_begin_iterator(param) + difference_type(mse::container_size(param) - 0);
 		}
-		template<class _TArrayPointer>
-		auto make_end_iterator_helper1(std::true_type, _TArrayPointer&& owner_ptr) {
-			typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(MSE_FWD(owner_ptr)))>::type difference_type;
-			return mse::make_begin_iterator(MSE_FWD(owner_ptr)) + difference_type(mse::container_size(owner_ptr) - 0);
+		template<class _TContainerPointer>
+		auto make_end_iterator_helper1(std::true_type, _TContainerPointer&& param) {
+			typedef typename mse::difference_type_of_iterator<decltype(mse::make_begin_iterator(MSE_FWD(param)))>::type difference_type;
+			return mse::make_begin_iterator(MSE_FWD(param)) + difference_type(mse::container_size(param) - 0);
 		}
-		template<class _TArrayPointer>
-		auto make_end_iterator_helper1(std::false_type, _TArrayPointer& owner_ptr) {
-			return std::end(*owner_ptr);
+		template<class _TContainerPointer>
+		auto make_end_iterator_helper1(std::false_type, _TContainerPointer& param) {
+			return std::end(*param);
 		}
 	}
-	template<class _TArrayPointer>
-	auto make_end_const_iterator(const _TArrayPointer& owner_ptr) {
-		typedef mse::impl::remove_reference_t<decltype(*owner_ptr)> container_t;
-		return mse::impl::make_end_const_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), owner_ptr);
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_end_const_iterator(const _TContainerPointer& param) {
+		typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
+		return mse::impl::make_end_const_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), param);
 	}
-	template<class _TArrayPointer>
-	auto make_end_iterator(_TArrayPointer& owner_ptr) {
-		typedef mse::impl::remove_reference_t<decltype(*owner_ptr)> container_t;
-		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), owner_ptr);
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_end_const_iterator(_TContainerPointer&& param) {
+		typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
+		return mse::impl::make_end_const_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), MSE_FWD(param));
 	}
-	template<class _TArrayPointer>
-	auto make_end_iterator(_TArrayPointer&& owner_ptr) {
-		typedef mse::impl::remove_reference_t<decltype(*owner_ptr)> container_t;
-		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), MSE_FWD(owner_ptr));
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_end_iterator(_TContainerPointer& param) {
+		typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
+		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), param);
+	}
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	auto make_end_iterator(_TContainerPointer&& param) {
+		typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
+		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), MSE_FWD(param));
 	}
 
 
