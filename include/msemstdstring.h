@@ -552,12 +552,8 @@ namespace mse {
 					return msebasic_string_ss_const_iterator_type().operator[](_Off);
 					//return (*(*this + _Off));
 				}
-				bool operator==(const const_iterator& _Right_cref) const { return msebasic_string_ss_const_iterator_type().operator==(_Right_cref.msebasic_string_ss_const_iterator_type()); }
-				bool operator!=(const const_iterator& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const const_iterator& _Right) const { return (msebasic_string_ss_const_iterator_type() < _Right.msebasic_string_ss_const_iterator_type()); }
-				bool operator<=(const const_iterator& _Right) const { return (msebasic_string_ss_const_iterator_type() <= _Right.msebasic_string_ss_const_iterator_type()); }
-				bool operator>(const const_iterator& _Right) const { return (msebasic_string_ss_const_iterator_type() > _Right.msebasic_string_ss_const_iterator_type()); }
-				bool operator>=(const const_iterator& _Right) const { return (msebasic_string_ss_const_iterator_type() >= _Right.msebasic_string_ss_const_iterator_type()); }
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(const_iterator)
+
 				void set_to_const_item_pointer(const const_iterator& _Right_cref) { msebasic_string_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msebasic_string_ss_const_iterator_type()); }
 				msev_size_t position() const { return msebasic_string_ss_const_iterator_type().position(); }
 				auto target_container_ptr() const -> decltype(msebasic_string_ss_const_iterator_type().target_container_ptr()) {
@@ -803,18 +799,13 @@ namespace mse {
 			bool operator==(const _Myt& _Right) const {	// test for basic_string equality
 				return ((*(_Right.m_shptr)) == (*m_shptr));
 			}
-			bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
+#ifndef MSE_HAS_CXX20
+			bool operator<(const _Myt& _Right) const {	// test if _Left < _Right
 				return ((*m_shptr) < (*(_Right.m_shptr)));
 			}
-#ifndef MSE_HAS_CXX20
-			bool operator!=(const _Myt& _Right_cref) const { return !((*this) == _Right_cref); }
-			bool operator>(const _Myt& _Right_cref) const { return (_Right_cref < (*this)); }
-			bool operator<=(const _Myt& _Right_cref) const { return !((*this) > _Right_cref); }
-			bool operator>=(const _Myt& _Right_cref) const { return !((*this) < _Right_cref); }
 #else // !MSE_HAS_CXX20
-			std::strong_ordering operator<=>(const _Myt& _Right_cref) const = delete;
+			std::strong_ordering operator<=>(const _Myt& _Right) const { return ((*m_shptr) <=> (*(_Right.m_shptr))); }
 #endif // !MSE_HAS_CXX20
-
 
 			basic_string& append(mse::TXScopeFixedConstPointer<basic_string> xs_ptr) {
 				msebasic_string().append(xs_ptr->msebasic_string());
@@ -1455,6 +1446,7 @@ namespace mse {
 			return impl::bs::out_to_stream(_Ostr, _Str);
 		}
 
+#ifndef MSE_HAS_CXX20
 		template<class _Ty, class _Traits, class _Alloc> inline bool operator!=(const basic_string<_Ty, _Traits, _Alloc>& _Left, const basic_string<_Ty, _Traits, _Alloc>& _Right) {	// test for basic_string inequality
 			return (!(_Left == _Right));
 		}
@@ -1467,6 +1459,7 @@ namespace mse {
 		template<class _Ty, class _Traits, class _Alloc> inline bool operator>=(const basic_string<_Ty, _Traits, _Alloc>& _Left, const basic_string<_Ty, _Traits, _Alloc>& _Right) {	// test if _Left >= _Right for basic_strings
 			return (!(_Left < _Right));
 		}
+#endif // !MSE_HAS_CXX20
 
 		template<class _Elem, class _Traits, class _Alloc>
 		inline basic_string<_Elem, _Traits, _Alloc> operator+(const basic_string<_Elem, _Traits, _Alloc>& _Left,

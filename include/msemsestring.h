@@ -1282,28 +1282,7 @@ namespace mse {
 		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringSectionBase const *>::value)> MSE_IMPL_EIS>
 		bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
 
-		bool operator==(const TStringSectionBase& _Right_cref) const {
-			return equal(_Right_cref);
-		}
-#ifndef MSE_HAS_CXX20
-		bool operator!=(const TStringSectionBase& _Right_cref) const {
-			return !((*this) == _Right_cref);
-		}
-		bool operator<(const TStringSectionBase& _Right_cref) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
-			return lexicographical_compare(sv);
-				}
-		bool operator>(const TStringSectionBase& _Right_cref) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
-			return sv.lexicographical_compare(*this);
-		}
-		bool operator<=(const TStringSectionBase& _Right_cref) const { return !((*this) > _Right_cref); }
-		bool operator>=(const TStringSectionBase& _Right_cref) const { return !((*this) < _Right_cref); }
-#else // !MSE_HAS_CXX20
-		std::strong_ordering operator<=>(const TStringSectionBase& _Right_cref) const {
-			return base_class::operator<=>(_Right_cref);
-		}
-#endif // !MSE_HAS_CXX20
+		MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(TStringSectionBase, base_class)
 
 		int compare(const TStringConstSectionBase<_TRASection, _TRAConstSection>& sv) const _NOEXCEPT {
 			return base_class::compare(sv);
@@ -1644,28 +1623,7 @@ namespace mse {
 		template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TStringConstSectionBase const *>::value)> MSE_IMPL_EIS>
 		bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
 
-		bool operator==(const TStringConstSectionBase& _Right_cref) const {
-			return equal(_Right_cref);
-		}
-#ifndef MSE_HAS_CXX20
-		bool operator!=(const TStringConstSectionBase& _Right_cref) const {
-			return !((*this) == _Right_cref);
-		}
-		bool operator<(const TStringConstSectionBase& _Right_cref) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
-			return lexicographical_compare(sv);
-				}
-		bool operator>(const TStringConstSectionBase& _Right_cref) const {
-			auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
-			return sv.lexicographical_compare(*this);
-		}
-		bool operator<=(const TStringConstSectionBase& _Right_cref) const { return !((*this) > _Right_cref); }
-		bool operator>=(const TStringConstSectionBase& _Right_cref) const { return !((*this) < _Right_cref); }
-#else // !MSE_HAS_CXX20
-		std::strong_ordering operator<=>(const TStringConstSectionBase& _Right_cref) const {
-			return base_class::operator<=>(_Right_cref);
-		}
-#endif // !MSE_HAS_CXX20
+		MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(TStringConstSectionBase, base_class)
 
 		int compare(const TStringConstSectionBase& sv) const _NOEXCEPT {
 			return base_class::compare(sv);
@@ -4572,22 +4530,19 @@ namespace mse {
 					return erase(this_ptr, xscope_const_iterator(start), xscope_const_iterator(end));
 				}
 
-
-				bool operator==(const _Myt& _Right) const {	// test for basic_string equality
-					return (_Right.contained_basic_string() == contained_basic_string());
+				friend bool operator==(const _Myt& _Left, const _Myt& _Right) {
+					return (_Left.contained_basic_string() == _Right.contained_basic_string());
 				}
-				bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
-					return (contained_basic_string() < _Right.contained_basic_string());
-				}
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt)
 #ifndef MSE_HAS_CXX20
-				bool operator!=(const _Myt& _Right_cref) const { return !((*this) == _Right_cref); }
-				bool operator>(const _Myt& _Right_cref) const { return (_Right_cref < (*this)); }
-				bool operator<=(const _Myt& _Right_cref) const { return !((*this) > _Right_cref); }
-				bool operator>=(const _Myt& _Right_cref) const { return !((*this) < _Right_cref); }
+					friend bool operator<(const _Myt& _Left, const _Myt& _Right) {
+					return (_Left.contained_basic_string() < _Right.contained_basic_string());
+				}
 #else // !MSE_HAS_CXX20
-				std::strong_ordering operator<=>(const _Myt& _Right_cref) const = delete;
+					friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) {
+					return (_Left.contained_basic_string() <=> _Right.contained_basic_string());
+				}
 #endif // !MSE_HAS_CXX20
-
 
 				gnii_basic_string& append(mse::TXScopeFixedConstPointer<gnii_basic_string> xs_ptr) {
 					structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
@@ -5453,31 +5408,6 @@ namespace mse {
 			std::basic_ostream<_Ty, _Traits>& operator<<(std::basic_ostream<_Ty, _Traits>& _Ostr, const gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Str) {
 				return mse::us::impl::impl::ns_gnii_basic_string::out_to_stream(_Ostr, _Str);
 			}
-
-			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex, template<typename> class _TTXScopeConstIterator = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type>
-			inline bool operator!=(const gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Left,
-				const gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) {	// test for basic_string inequality
-				return (!(_Left == _Right));
-			}
-
-			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex, template<typename> class _TTXScopeConstIterator = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type>
-			inline bool operator>(const gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Left,
-				const gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) {	// test if _Left > _Right for basic_strings
-				return (_Right < _Left);
-			}
-
-			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex, template<typename> class _TTXScopeConstIterator = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type>
-			inline bool operator<=(const gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Left,
-				const gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) {	// test if _Left <= _Right for basic_strings
-				return (!(_Right < _Left));
-			}
-
-			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex, template<typename> class _TTXScopeConstIterator = mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type>
-			inline bool operator>=(const gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Left,
-				const gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) {	// test if _Left >= _Right for basic_strings
-				return (!(_Left < _Right));
-			}
-
 
 			template<class _Elem, class _Traits, class _Alloc, class _TStateMutex, template<typename> class _TTXScopeConstIterator>
 			inline gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex, _TTXScopeConstIterator> operator+(const gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex, _TTXScopeConstIterator>& _Left,
@@ -6534,13 +6464,19 @@ namespace mse {
 				typedef TXScopeCSSSXSRAConstIterator<_Myt> xscope_const_iterator;
 				typedef TXScopeCSSSXSRAIterator<_Myt> xscope_iterator;
 
-				bool operator==(const _Myt& _Right) const {	// test for basic_string equality
-					return (_Right.contained_basic_string() == contained_basic_string());
+				friend bool operator==(const _Myt& _Left, const _Myt& _Right) {
+					return (_Left.contained_basic_string() == _Right.contained_basic_string());
 				}
-				bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
-					return (contained_basic_string() < _Right.contained_basic_string());
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt)
+#ifndef MSE_HAS_CXX20
+				friend bool operator<(const _Myt& _Left, const _Myt& _Right) {
+					return (_Left.contained_basic_string() < _Right.contained_basic_string());
 				}
-
+#else // !MSE_HAS_CXX20
+				friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) {
+					return (_Left.contained_basic_string() <=> _Right.contained_basic_string());
+				}
+#endif // !MSE_HAS_CXX20
 
 				int compare(mse::TXScopeFixedConstPointer<fixed_nii_basic_string_base> xs_ptr) const _NOEXCEPT {
 					return contained_basic_string().compare((*xs_ptr).contained_basic_string());
@@ -7104,12 +7040,7 @@ namespace mse {
 		typedef TXScopeCSSSXSRAConstIterator<_Myt> xscope_const_iterator;
 		typedef TXScopeCSSSXSRAIterator<_Myt> xscope_iterator;
 
-		bool operator==(const _Myt& _Right) const {	// test for basic_string equality
-			return base_class::operator==(_Right);
-		}
-		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
-			return base_class::operator<(_Right);
-		}
+		MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(_Myt, base_class)
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
 
@@ -7304,12 +7235,7 @@ namespace mse {
 		typedef TXScopeCSSSXSRAConstIterator<_Myt> xscope_const_iterator;
 		typedef TXScopeCSSSXSRAIterator<_Myt> xscope_iterator;
 
-		bool operator==(const _Myt& _Right) const {	// test for basic_string equality
-			return base_class::operator==(_Right);
-		}
-		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for basic_strings
-			return base_class::operator<(_Right);
-		}
+		MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(_Myt, base_class)
 
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
 
@@ -8379,6 +8305,8 @@ namespace mse {
 					assert(difference_type(m_owner_cptr->size()) >= retval);
 					return retval;
 				}
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(mm_const_iterator_type)
+
 				const_reference operator*() const {
 					return m_owner_cptr->at(msev_as_a_size_t(m_index));
 				}
@@ -8390,26 +8318,6 @@ namespace mse {
 					return std::addressof(m_owner_cptr->at(msev_as_a_size_t(m_index)));
 				}
 				const_reference operator[](difference_type _Off) const { return (*m_owner_cptr).at(msev_as_a_size_t(difference_type(m_index) + _Off)); }
-				/*
-				mm_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref)
-				{
-				msev_int d = std::distance<typename base_class::iterator>(m_owner_cptr->cbegin(), _Right_cref);
-				if ((0 <= d) && (m_owner_cptr->size() >= d)) {
-				if (m_owner_cptr->size() == d) {
-				assert(m_owner_cptr->cend() == _Right_cref);
-				m_points_to_an_item = false;
-				} else {
-				m_points_to_an_item = true;
-				}
-				m_index = msev_size_t(d);
-				base_class::const_iterator::operator=(_Right_cref);
-				}
-				else {
-				MSE_THROW(msebasic_string_range_error("doesn't seem to be a valid assignment value - mm_const_iterator_type& operator=(const typename base_class::const_iterator& _Right_cref) - mm_const_iterator_type - msebasic_string"));
-				}
-				return (*this);
-				}
-				*/
 				mm_const_iterator_type& operator=(const mm_const_iterator_type& _Right_cref)
 				{
 					if (((*this).m_owner_cptr) == (_Right_cref.m_owner_cptr)) {
@@ -8422,18 +8330,6 @@ namespace mse {
 					}
 					return (*this);
 				}
-				bool operator==(const mm_const_iterator_type& _Right_cref) const {
-					if (((*this).m_owner_cptr) != (_Right_cref.m_owner_cptr)) { MSE_THROW(msebasic_string_range_error("invalid argument - mm_const_iterator_type& operator==(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msebasic_string")); }
-					return (_Right_cref.m_index == m_index);
-				}
-				bool operator!=(const mm_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const mm_const_iterator_type& _Right) const {
-					if (((*this).m_owner_cptr) != (_Right.m_owner_cptr)) { MSE_THROW(msebasic_string_range_error("invalid argument - mm_const_iterator_type& operator<(const mm_const_iterator_type& _Right) - mm_const_iterator_type - msebasic_string")); }
-					return (m_index < _Right.m_index);
-				}
-				bool operator<=(const mm_const_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
-				bool operator>(const mm_const_iterator_type& _Right) const { return (!((*this) <= _Right)); }
-				bool operator>=(const mm_const_iterator_type& _Right) const { return (!((*this) < _Right)); }
 				void set_to_const_item_pointer(const mm_const_iterator_type& _Right_cref) {
 					(*this) = _Right_cref;
 				}
@@ -8586,39 +8482,8 @@ namespace mse {
 					assert(difference_type(m_owner_ptr->size()) >= retval);
 					return retval;
 				}
-				bool operator==(const mm_const_iterator_type& _Right_cref) const {
-					if (((*this).m_owner_ptr) != (_Right_cref.m_owner_ptr)) { MSE_THROW(msebasic_string_range_error("invalid argument - mm_const_iterator_type& operator==(const typename base_class::iterator& _Right) - mm_const_iterator_type - msebasic_string")); }
-					return (_Right_cref.m_index == m_index);
-				}
-				bool operator!=(const mm_const_iterator_type& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const mm_const_iterator_type& _Right) const {
-					if (((*this).m_owner_ptr) != (_Right.m_owner_ptr)) { MSE_THROW(msebasic_string_range_error("invalid argument - mm_const_iterator_type& operator<(const typename base_class::iterator& _Right) - mm_const_iterator_type - msebasic_string")); }
-					return (m_index < _Right.m_index);
-				}
-				bool operator<=(const mm_const_iterator_type& _Right) const { return (((*this) < _Right) || (_Right == (*this))); }
-				bool operator>(const mm_const_iterator_type& _Right) const { return (!((*this) <= _Right)); }
-				bool operator>=(const mm_const_iterator_type& _Right) const { return (!((*this) < _Right)); }
+				MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(mm_iterator_type, mm_const_iterator_type)
 
-				/*
-				mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref)
-				{
-				msev_int d = std::distance<typename base_class::iterator>(m_owner_ptr->begin(), _Right_cref);
-				if ((0 <= d) && (m_owner_ptr->size() >= d)) {
-				if (m_owner_ptr->size() == d) {
-				assert(m_owner_ptr->end() == _Right_cref);
-				m_points_to_an_item = false;
-				} else {
-				m_points_to_an_item = true;
-				}
-				m_index = msev_size_t(d);
-				base_class::iterator::operator=(_Right_cref);
-				}
-				else {
-				MSE_THROW(msebasic_string_range_error("doesn't seem to be a valid assignment value - mm_iterator_type& operator=(const typename base_class::iterator& _Right_cref) - mm_const_iterator_type - msebasic_string"));
-				}
-				return (*this);
-				}
-				*/
 				mm_iterator_type& operator=(const mm_iterator_type& _Right_cref)
 				{
 					if (((*this).m_owner_ptr) == (_Right_cref.m_owner_ptr)) {
@@ -9057,18 +8922,14 @@ namespace mse {
 				cipointer operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				cipointer operator-(difference_type n) const { return ((*this) + (-n)); }
 				difference_type operator-(const cipointer& _Right_cref) const { return const_item_pointer() - (_Right_cref.const_item_pointer()); }
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(cipointer)
+
 				const_reference operator*() const { return const_item_pointer().operator*(); }
 				const_reference item() const { return operator*(); }
 				const_reference previous_item() const { return const_item_pointer().previous_item(); }
 				const_pointer operator->() const { return const_item_pointer().operator->(); }
 				const_reference operator[](difference_type _Off) const { return const_item_pointer()[_Off]; }
 				cipointer& operator=(const cipointer& _Right_cref) { const_item_pointer().operator=(_Right_cref.const_item_pointer()); return (*this); }
-				bool operator==(const cipointer& _Right_cref) const { return const_item_pointer().operator==(_Right_cref.const_item_pointer()); }
-				bool operator!=(const cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const cipointer& _Right) const { return (const_item_pointer() < _Right.const_item_pointer()); }
-				bool operator<=(const cipointer& _Right) const { return (const_item_pointer() <= _Right.const_item_pointer()); }
-				bool operator>(const cipointer& _Right) const { return (const_item_pointer() > _Right.const_item_pointer()); }
-				bool operator>=(const cipointer& _Right) const { return (const_item_pointer() >= _Right.const_item_pointer()); }
 				void set_to_const_item_pointer(const cipointer& _Right_cref) { const_item_pointer().set_to_const_item_pointer(_Right_cref.const_item_pointer()); }
 				msev_size_t position() const { return const_item_pointer().position(); }
 				auto target_container_ptr() const {
@@ -9142,12 +9003,7 @@ namespace mse {
 				ipointer operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				ipointer operator-(difference_type n) const { return ((*this) + (-n)); }
 				difference_type operator-(const cipointer& _Right_cref) const { return item_pointer() - (_Right_cref.item_pointer()); }
-				bool operator==(const cipointer& _Right_cref) const { return item_pointer().operator==(_Right_cref.item_pointer()); }
-				bool operator!=(const cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const cipointer& _Right) const { return (item_pointer() < _Right.item_pointer()); }
-				bool operator<=(const cipointer& _Right) const { return (item_pointer() <= _Right.item_pointer()); }
-				bool operator>(const cipointer& _Right) const { return (item_pointer() > _Right.item_pointer()); }
-				bool operator>=(const cipointer& _Right) const { return (item_pointer() >= _Right.item_pointer()); }
+				MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(ipointer, cipointer)
 
 				ipointer& operator=(const ipointer& _Right_cref) { item_pointer().operator=(_Right_cref.item_pointer()); return (*this); }
 				void set_to_item_pointer(const ipointer& _Right_cref) { item_pointer().set_to_item_pointer(_Right_cref.item_pointer()); }
@@ -9709,6 +9565,8 @@ namespace mse {
 				xscope_cipointer operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 				xscope_cipointer operator-(difference_type n) const { return ((*this) + (-n)); }
 				difference_type operator-(const xscope_cipointer& _Right_cref) const { return cipointer::operator-(_Right_cref); }
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(xscope_cipointer)
+
 				const_reference operator*() const { return cipointer::operator*(); }
 				const_reference item() const { return operator*(); }
 				const_reference previous_item() const { return cipointer::previous_item(); }
@@ -9723,12 +9581,6 @@ namespace mse {
 					if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(msebasic_string_range_error("invalid argument - xscope_cipointer& operator=(const ipointer& _Right_cref) - msebasic_string::xscope_cipointer")); }
 					return operator=(cipointer(_Right_cref));
 				}
-				bool operator==(const xscope_cipointer& _Right_cref) const { return cipointer::operator==(_Right_cref); }
-				bool operator!=(const xscope_cipointer& _Right_cref) const { return (!(_Right_cref == (*this))); }
-				bool operator<(const xscope_cipointer& _Right) const { return cipointer::operator<(_Right); }
-				bool operator<=(const xscope_cipointer& _Right) const { return cipointer::operator<=(_Right); }
-				bool operator>(const xscope_cipointer& _Right) const { return cipointer::operator>(_Right); }
-				bool operator>=(const xscope_cipointer& _Right) const { return cipointer::operator>=(_Right); }
 				void set_to_const_item_pointer(const xscope_cipointer& _Right_cref) { cipointer::set_to_item_pointer(_Right_cref); }
 				msev_size_t position() const { return cipointer::position(); }
 				auto target_container_ptr() const {
@@ -9801,12 +9653,7 @@ namespace mse {
 				difference_type operator-(const xscope_cipointer& _Right_cref) const {
 					return (xscope_cipointer(*this) - _Right_cref);
 				}
-				bool operator==(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) == _Right_cref); }
-				bool operator!=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) != _Right_cref); }
-				bool operator<(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) < _Right_cref); }
-				bool operator>(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) > _Right_cref); }
-				bool operator<=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) <= _Right_cref); }
-				bool operator>=(const xscope_cipointer& _Right_cref) const { return (xscope_cipointer(*this) >= _Right_cref); }
+				MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(xscope_ipointer, xscope_cipointer)
 
 				xscope_ipointer& operator=(const ipointer& _Right_cref) {
 					if ((&(*_Right_cref.target_container_ptr())) != (&(*(*this).target_container_ptr()))) { MSE_THROW(msebasic_string_range_error("invalid argument - xscope_ipointer& operator=(const xscope_ipointer& _Right_cref) - msebasic_string::xscope_ipointer")); }

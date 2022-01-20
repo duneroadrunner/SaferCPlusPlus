@@ -564,6 +564,15 @@ namespace mse {
 		}
 	}
 
+	namespace us {
+		namespace impl {
+			namespace ns_ra_section {
+				class RandomAccessSectionTagBase {};
+				class RandomAccessConstSectionTagBase {};
+			}
+		}
+	}
+
 	namespace impl {
 
 		template<class T, class EqualTo>
@@ -672,7 +681,9 @@ namespace mse {
 		void T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray() {}
 
 		template <typename _Ty> struct is_random_access_container : std::integral_constant<bool,
-			(is_contiguous_sequence_container<_Ty>::value) || (has_random_access_implicit_iterators<_Ty>::value)> {};
+			(is_contiguous_sequence_container<_Ty>::value) || (has_random_access_implicit_iterators<_Ty>::value)
+			|| (std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, _Ty>::value)
+			|| (std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, _Ty>::value)> {};
 
 
 #if defined(MSE_MSTDARRAY_DISABLED) || defined(MSE_MSTDVECTOR_DISABLED)
@@ -801,10 +812,13 @@ namespace mse {
 #define MSE_IMPL_GREATER_THAN_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type) \
 	MSE_IMPL_OPERATOR_DELEGATING_DECLARATION(>, this_type, delegate_type)
 
+#define MSE_IMPL_EQUALITY_OPERATOR_DECLARATION(this_type) \
+	friend bool operator==(const this_type& _Left_cref, const this_type& _Right_cref) { return (0 == ((_Left_cref) - (_Right_cref))); }
 #define MSE_IMPL_LESS_THAN_OPERATOR_DECLARATION(this_type) \
 	friend bool operator<(const this_type& _Left_cref, const this_type& _Right_cref) { return (0 > ((_Left_cref) - (_Right_cref))); }
+
 #define MSE_IMPL_GREATER_THAN_OPERATOR_DECLARATION(this_type) \
-	friend bool operator>(const this_type& _Left_cref, const this_type& _Right_cref) { return (0 < ((_Left_cref) - (_Right_cref))); }
+	friend bool operator>(const this_type& _Left_cref, const this_type& _Right_cref) { return ((_Right_cref) < (_Left_cref)); }
 #define MSE_IMPL_GREATER_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(this_type) \
 	friend bool operator>=(const this_type& _Left_cref, const this_type& _Right_cref) { return !((_Left_cref) < (_Right_cref)); }
 #define MSE_IMPL_LESS_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(this_type) \
@@ -814,7 +828,7 @@ namespace mse {
 
 #define MSE_IMPL_ORDERING_COMPARISON_OPERATOR_DELEGATING_DECLARATIONS(this_type, delegate_type) \
 	MSE_IMPL_LESS_THAN_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type) \
-	MSE_IMPL_GREATER_THAN_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type) \
+	MSE_IMPL_GREATER_THAN_OPERATOR_DECLARATION(this_type) \
 	MSE_IMPL_GREATER_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(this_type) \
 	MSE_IMPL_LESS_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(this_type)
 
@@ -823,9 +837,16 @@ namespace mse {
 	MSE_IMPL_EQUALITY_COMPARISON_OPERATOR_DELEGATING_DECLARATIONS(this_type, delegate_type) \
 	MSE_IMPL_ORDERING_COMPARISON_OPERATOR_DELEGATING_DECLARATIONS(this_type, delegate_type)
 
-#define MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(this_type) \
+#define MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(this_type) \
+	MSE_IMPL_EQUALITY_OPERATOR_DECLARATION(this_type) \
 	MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type) \
 	MSE_IMPL_LESS_THAN_OPERATOR_DECLARATION(this_type) \
+	MSE_IMPL_GREATER_THAN_OPERATOR_DECLARATION(this_type) \
+	MSE_IMPL_GREATER_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(this_type) \
+	MSE_IMPL_LESS_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(this_type)
+
+#define MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(this_type) \
+	MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type) \
 	MSE_IMPL_GREATER_THAN_OPERATOR_DECLARATION(this_type) \
 	MSE_IMPL_GREATER_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(this_type) \
 	MSE_IMPL_LESS_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(this_type)
@@ -843,8 +864,11 @@ namespace mse {
 	MSE_IMPL_EQUALITY_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type) \
 	MSE_IMPL_SPACESHIP_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type)
 
-#define MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(this_type) \
+#define MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(this_type) \
+	MSE_IMPL_EQUALITY_OPERATOR_DECLARATION(this_type) \
 	MSE_IMPL_SPACESHIP_OPERATOR_DECLARATION(this_type)
+
+#define MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(this_type)
 
 #endif // !MSE_HAS_CXX20
 
@@ -1272,11 +1296,7 @@ namespace mse {
 						if (!(_Right_cref.m_ra_container_pointer == m_ra_container_pointer)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TRAConstIteratorBase")); }
 						return m_index - _Right_cref.m_index;
 					}
-					friend bool operator==(const TRAConstIteratorBase& _Left_cref, const TRAConstIteratorBase& _Right_cref) {
-						if (!(_Right_cref.m_ra_container_pointer == _Left_cref.m_ra_container_pointer)) { return false; /*MSE_THROW(msearray_range_error("invalid argument - bool operator==() - TRAConstIteratorBase"));*/ }
-						return (_Right_cref.m_index == _Left_cref.m_index);
-					}
-					MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(TRAConstIteratorBase)
+					MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(TRAConstIteratorBase)
 
 					/* These template overloads seem to prevent some "overloads have similar conversions" compile errors that would
 					otherwise occur (due to the fact that different instantiations of this template are implicitly constructible
@@ -5239,10 +5259,7 @@ namespace mse {
 					return m_index - _Right_cref.m_index;
 				}
 
-				bool operator ==(const TRASectionConstIteratorBase& _Right_cref) const {
-					return ((_Right_cref.m_index == m_index) && (_Right_cref.m_count == m_count) && (_Right_cref.m_ra_iterator == m_ra_iterator));
-				}
-				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(TRASectionConstIteratorBase)
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(TRASectionConstIteratorBase)
 
 				TRASectionConstIteratorBase& operator=(const TRASectionConstIteratorBase& _Right_cref) {
 					if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TRASectionConstIteratorBase& operator=() - TRASectionConstIteratorBase")); }
@@ -5536,15 +5553,6 @@ namespace mse {
 		template <typename _TRAIterator> class TXScopeRandomAccessConstSectionFParam;
 	}
 
-	namespace us {
-		namespace impl {
-			namespace ns_ra_section {
-				class RandomAccessSectionTagBase {};
-				class RandomAccessConstSectionTagBase {};
-			}
-		}
-	}
-
 #define MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class) \
 	MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class); \
 	static const size_t npos = size_t(-1);
@@ -5662,7 +5670,8 @@ namespace mse {
 			template <typename _TRALoneParam>
 			static auto s_count_from_lone_param2(std::false_type, const _TRALoneParam& param) {
 				/* The parameter is not a "random access section". */
-				return s_count_from_lone_param3(typename mse::impl::SupportsStdBegin_msemsearray<_TRALoneParam>::type(), param);
+				return s_count_from_lone_param3(typename mse::impl::conjunction<mse::impl::is_random_access_container<_TRALoneParam>
+						, mse::impl::HasOrInheritsSizeMethod_msemsearray<_TRALoneParam> >::type(), param);
 			}
 			template <typename _TRALoneParam>
 			static auto s_count_from_lone_param2(std::true_type, const _TRALoneParam& native_array) {
@@ -5865,6 +5874,11 @@ namespace mse {
 					TRandomAccessConstSectionBase(const TRandomAccessSectionBase<_TRAIterator>& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
 					TRandomAccessConstSectionBase(const _TRAIterator& start_iter, size_type count) : m_count(count), m_start_iter(start_iter) {}
 
+					template <typename _TRAIterator2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_convertible<_TRAIterator2, _TRAIterator>::value)> MSE_IMPL_EIS>
+					TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase<_TRAIterator2>& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
+					template <typename _TRAIterator2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_convertible<_TRAIterator2, _TRAIterator>::value)> MSE_IMPL_EIS>
+					TRandomAccessConstSectionBase(const TRandomAccessSectionBase<_TRAIterator2>& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
+
 					template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
 					explicit TRandomAccessConstSectionBase(const _TRALoneParam& param)
 						/* _TRALoneParam being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
@@ -5983,18 +5997,12 @@ namespace mse {
 					bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
 
 					friend bool operator==(const TRandomAccessConstSectionBase& _Left_cref, const TRandomAccessConstSectionBase& _Right_cref) { return _Left_cref.equal(_Right_cref); }
+					MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TRandomAccessConstSectionBase)
 #ifndef MSE_HAS_CXX20
-					MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(TRandomAccessConstSectionBase)
-						friend bool operator<(const TRandomAccessConstSectionBase& _Left_cref, const TRandomAccessConstSectionBase& _Right_cref) {
+					friend bool operator<(const TRandomAccessConstSectionBase& _Left_cref, const TRandomAccessConstSectionBase& _Right_cref) {
 						auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
 						return _Left_cref.lexicographical_compare(sv);
 					}
-					friend bool operator>(const TRandomAccessConstSectionBase& _Left_cref, const TRandomAccessConstSectionBase& _Right_cref) {
-						auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
-						return sv.lexicographical_compare(_Left_cref);
-					}
-					MSE_IMPL_GREATER_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(TRandomAccessConstSectionBase)
-						MSE_IMPL_LESS_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(TRandomAccessConstSectionBase)
 #else // !MSE_HAS_CXX20
 					friend std::strong_ordering operator<=>(const TRandomAccessConstSectionBase& _Left_cref, const TRandomAccessConstSectionBase& _Right_cref) {
 						signed char res = 0;
@@ -6279,6 +6287,7 @@ namespace mse {
 					helper" (static) member functions, instead of duplicating them here, and those functions will need access to
 					the private data members of this class. */
 					template<typename _TRAIterator1> friend class TRandomAccessSectionBase;
+					template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
 					friend struct mse::impl::ra_const_section_helpers;
 					friend struct mse::impl::ra_section_helpers;
 				};
@@ -6454,6 +6463,10 @@ namespace mse {
 					//TRandomAccessSectionBase(const TRandomAccessSectionBase& src) = default;
 					TRandomAccessSectionBase(const TRandomAccessSectionBase& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
 					TRandomAccessSectionBase(const _TRAIterator& start_iter, size_type count) : m_count(count), m_start_iter(start_iter) {}
+
+					template <typename _TRAIterator2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_convertible<_TRAIterator2, _TRAIterator>::value)> MSE_IMPL_EIS>
+					TRandomAccessSectionBase(const TRandomAccessSectionBase<_TRAIterator2>& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
+
 					template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
 					explicit TRandomAccessSectionBase(const _TRALoneParam& param)
 						: m_count(s_count_from_lone_param(param)), m_start_iter(s_xscope_iter_from_lone_param(param)) {}
@@ -6571,6 +6584,29 @@ namespace mse {
 					bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
 
 					MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(TRandomAccessSectionBase, TRandomAccessConstSectionBase<_TRAIterator>)
+#if 0
+					friend bool operator==(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) { return _Left_cref.equal(_Right_cref); }
+					MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TRandomAccessSectionBase)
+#ifndef MSE_HAS_CXX20
+						friend bool operator<(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) {
+						auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
+						return _Left_cref.lexicographical_compare(sv);
+					}
+#else // !MSE_HAS_CXX20
+						friend std::strong_ordering operator<=>(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) {
+						signed char res = 0;
+						if (!_Left_cref.equal(_Right_cref)) {
+							if (_Left_cref.lexicographical_compare(_Right_cref)) {
+								res = -1;
+							}
+							else {
+								res = 1;
+							}
+						}
+						return (res <=> 0); /* that's the right order, right? */
+					}
+#endif // !MSE_HAS_CXX20
+#endif // 0
 
 					int compare(const us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
 						size_type rlen = std::min(size(), sv.size());

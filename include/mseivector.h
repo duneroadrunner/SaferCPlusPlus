@@ -163,8 +163,7 @@ namespace mse {
 			typename _MV::const_reference previous_item() const { return msevector_cipointer().previous_item(); }
 			typename _MV::const_pointer operator->() const { return msevector_cipointer().operator->(); }
 			typename _MV::const_reference operator[](typename _MV::difference_type _Off) const { return (*(*this + _Off)); }
-			friend bool operator==(const cipointer& _Left_cref, const cipointer& _Right_cref) { return (_Left_cref.msevector_cipointer()) == (_Right_cref.msevector_cipointer()); }
-			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(cipointer)
+			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(cipointer)
 
 			void set_to_const_item_pointer(const cipointer& _Right_cref) { msevector_cipointer().set_to_const_item_pointer(_Right_cref.msevector_cipointer()); }
 			msev_size_t position() const { return msevector_cipointer().position(); }
@@ -382,9 +381,13 @@ namespace mse {
 		bool operator==(const _Myt& _Right) const {	// test for ivector equality
 			return ((*(_Right.m_shptr)) == (*m_shptr));
 		}
-		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for ivectors
+#ifndef MSE_HAS_CXX20
+		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right
 			return ((*m_shptr) < (*(_Right.m_shptr)));
 		}
+#else // !MSE_HAS_CXX20
+		std::strong_ordering operator<=>(const _Myt& _Right) const { return ((*m_shptr) <=> (*(_Right.m_shptr))); }
+#endif // !MSE_HAS_CXX20
 
 		/* These static functions are just used to obtain a (base class) reference to an
 		object of a (possibly) derived class. */
@@ -480,8 +483,7 @@ namespace mse {
 				(*this) += _Right_cref.position();
 				return (*this);
 			}
-			friend bool operator==(const xscope_cipointer& _Left_cref, const xscope_cipointer& _Right_cref) { return (_Left_cref.msevector_cipointer()) == (_Right_cref.msevector_cipointer()); }
-			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(xscope_cipointer)
+			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(xscope_cipointer)
 
 			void set_to_const_item_pointer(const xscope_cipointer& _Right_cref) { msevector_cipointer().set_to_const_item_pointer(_Right_cref.msevector_cipointer()); }
 			msear_size_t position() const { return msevector_cipointer().position(); }
@@ -634,6 +636,21 @@ namespace mse {
 	ivector(_Iter, _Iter, _Alloc = _Alloc())
 		->ivector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
+
+#ifndef MSE_HAS_CXX20
+	template<class _Ty, class _Alloc> inline bool operator!=(const ivector<_Ty, _Alloc>& _Left, const ivector<_Ty, _Alloc>& _Right) {	// test for ivector inequality
+		return (!(_Left == _Right));
+	}
+	template<class _Ty, class _Alloc> inline bool operator>(const ivector<_Ty, _Alloc>& _Left, const ivector<_Ty, _Alloc>& _Right) {	// test if _Left > _Right for ivectors
+		return (_Right < _Left);
+	}
+	template<class _Ty, class _Alloc> inline bool operator<=(const ivector<_Ty, _Alloc>& _Left, const ivector<_Ty, _Alloc>& _Right) {	// test if _Left <= _Right for ivectors
+		return (!(_Right < _Left));
+	}
+	template<class _Ty, class _Alloc> inline bool operator>=(const ivector<_Ty, _Alloc>& _Left, const ivector<_Ty, _Alloc>& _Right) {	// test if _Left >= _Right for ivectors
+		return (!(_Left < _Right));
+	}
+#endif // !MSE_HAS_CXX20
 
 	/* For each (scope) vector instance, only one instance of xscope_structure_lock_guard may exist at any one
 	time. While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to

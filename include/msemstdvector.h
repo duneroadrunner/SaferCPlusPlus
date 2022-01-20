@@ -419,8 +419,7 @@ namespace mse {
 					return msevector_ss_const_iterator_type().operator[](_Off);
 					//return (*(*this + _Off));
 				}
-				friend bool operator==(const const_iterator& _Left_cref, const const_iterator& _Right_cref) { return (_Left_cref.msevector_ss_const_iterator_type() == _Right_cref.msevector_ss_const_iterator_type()); }
-				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(const_iterator)
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(const_iterator)
 
 				void set_to_const_item_pointer(const const_iterator& _Right_cref) { msevector_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.msevector_ss_const_iterator_type()); }
 				msev_size_t position() const { return msevector_ss_const_iterator_type().position(); }
@@ -671,16 +670,12 @@ namespace mse {
 			bool operator==(const _Myt& _Right) const {	// test for vector equality
 				return ((*(_Right.m_shptr)) == (*m_shptr));
 			}
-			bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for vectors
+#ifndef MSE_HAS_CXX20
+			bool operator<(const _Myt& _Right) const {	// test if _Left < _Right
 				return ((*m_shptr) < (*(_Right.m_shptr)));
 			}
-#ifndef MSE_HAS_CXX20
-			bool operator!=(const _Myt& _Right_cref) const { return !((*this) == _Right_cref); }
-			bool operator>(const _Myt& _Right_cref) const { return (_Right_cref < (*this)); }
-			bool operator<=(const _Myt& _Right_cref) const { return !((*this) > _Right_cref); }
-			bool operator>=(const _Myt& _Right_cref) const { return !((*this) < _Right_cref); }
 #else // !MSE_HAS_CXX20
-			std::strong_ordering operator<=>(const _Myt& _Right_cref) const = delete;
+			std::strong_ordering operator<=>(const _Myt& _Right) const { return ((*m_shptr) <=> (*(_Right.m_shptr))); }
 #endif // !MSE_HAS_CXX20
 
 			void async_not_shareable_tag() const {}

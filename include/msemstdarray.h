@@ -381,8 +381,7 @@ namespace mse {
 				typename _MA::const_reference previous_item() const { return nii_array_reg_ss_const_iterator_type().previous_item(); }
 				typename _MA::const_pointer operator->() const { return nii_array_reg_ss_const_iterator_type().operator->(); }
 				typename _MA::const_reference operator[](typename _MA::difference_type _Off) const { return nii_array_reg_ss_const_iterator_type()[_Off]; }
-				friend bool operator==(const const_iterator& _Left_cref, const const_iterator& _Right_cref) { return (_Left_cref.nii_array_reg_ss_const_iterator_type() == _Right_cref.nii_array_reg_ss_const_iterator_type()); }
-				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS(const_iterator)
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(const_iterator)
 
 				void set_to_const_item_pointer(const const_iterator& _Right_cref) { nii_array_reg_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.nii_array_reg_ss_const_iterator_type()); }
 				msear_size_t position() const { return nii_array_reg_ss_const_iterator_type().position(); }
@@ -464,17 +463,7 @@ namespace mse {
 				typename _MA::difference_type operator-(const const_iterator& _Right_cref) const {
 					return (const_iterator(*this) - _Right_cref);
 				}
-#ifndef MSE_HAS_CXX20
-				bool operator==(const const_iterator& _Right_cref) const { return (const_iterator(*this) == _Right_cref); }
-				bool operator<(const const_iterator& _Right_cref) const { return (const_iterator(*this) < _Right_cref); }
-				bool operator!=(const const_iterator& _Right_cref) const { return (const_iterator(*this) != _Right_cref); }
-				bool operator>(const const_iterator& _Right_cref) const { return (const_iterator(*this) > _Right_cref); }
-				bool operator<=(const const_iterator& _Right_cref) const { return (const_iterator(*this) <= _Right_cref); }
-				bool operator>=(const const_iterator& _Right_cref) const { return (const_iterator(*this) >= _Right_cref); }
-#else // !MSE_HAS_CXX20
-				bool operator==(const iterator& _Right_cref) const { return (const_iterator(*this) == _Right_cref); }
-				std::strong_ordering operator<=>(const iterator& _Right_cref) const { return (const_iterator(*this) <=> _Right_cref); }
-#endif // !MSE_HAS_CXX20
+				MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(iterator, const_iterator)
 
 				void set_to_item_pointer(const iterator& _Right_cref) { nii_array_reg_ss_iterator_type().set_to_item_pointer(_Right_cref.nii_array_reg_ss_iterator_type()); }
 				msear_size_t position() const { return nii_array_reg_ss_iterator_type().position(); }
@@ -547,15 +536,18 @@ namespace mse {
 			}
 
 
-			bool operator==(const _Myt& _Right) const {	// test for array equality
-				return (_Right.contained_array() == contained_array());
+			friend bool operator==(const _Myt& _Left, const _Myt& _Right) {
+				return (_Left.contained_array() == _Right.contained_array());
 			}
+			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt)
 #ifndef MSE_HAS_CXX20
-			bool operator<(const _Myt& _Right) const {	// test if _Left < _Right for arrays
-				return (contained_array() < _Right.contained_array());
+			friend bool operator<(const _Myt& _Left, const _Myt& _Right) {
+				return (_Left.contained_array() < _Right.contained_array());
 			}
 #else // !MSE_HAS_CXX20
-			std::strong_ordering operator<=>(const _Myt& _Right) const { return (contained_array() <=> _Right.contained_array()); }
+			friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) {
+				return (_Left.contained_array() <=> _Right.contained_array());
+			}
 #endif // !MSE_HAS_CXX20
 
 			void async_not_shareable_tag() const {}
@@ -598,28 +590,6 @@ namespace mse {
 			array(_First, _Rest...)
 			->array<typename mse::impl::_mse_Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
 #endif /* MSE_HAS_CXX17 */
-
-#ifndef MSE_HAS_CXX20
-		template<class _Ty, size_t _Size> inline bool operator!=(const array<_Ty, _Size>& _Left,
-			const array<_Ty, _Size>& _Right) {	// test for array inequality
-			return (!(_Left == _Right));
-		}
-
-		template<class _Ty, size_t _Size> inline bool operator>(const array<_Ty, _Size>& _Left,
-			const array<_Ty, _Size>& _Right) {	// test if _Left > _Right for arrays
-			return (_Right < _Left);
-		}
-
-		template<class _Ty, size_t _Size> inline bool operator<=(const array<_Ty, _Size>& _Left,
-			const array<_Ty, _Size>& _Right) {	// test if _Left <= _Right for arrays
-			return (!(_Right < _Left));
-		}
-
-		template<class _Ty, size_t _Size> inline bool operator>=(const array<_Ty, _Size>& _Left,
-			const array<_Ty, _Size>& _Right) {	// test if _Left >= _Right for arrays
-			return (!(_Left < _Right));
-		}
-#endif // !MSE_HAS_CXX20
 
 		template<class _TArray> using xscope_array_const_iterator = typename _TArray::xscope_const_iterator;
 		template<class _TArray> using xscope_array_iterator = typename _TArray::xscope_iterator;
