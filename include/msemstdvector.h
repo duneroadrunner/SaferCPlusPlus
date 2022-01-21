@@ -506,17 +506,7 @@ namespace mse {
 				typename _MV::difference_type operator-(const const_iterator& _Right_cref) const {
 					return (const_iterator(*this) - _Right_cref);
 				}
-#ifndef MSE_HAS_CXX20
-				bool operator==(const const_iterator& _Right_cref) const { return (const_iterator(*this) == _Right_cref); }
-				bool operator!=(const const_iterator& _Right_cref) const { return (const_iterator(*this) != _Right_cref); }
-				bool operator<(const const_iterator& _Right_cref) const { return (const_iterator(*this) < _Right_cref); }
-				bool operator>(const const_iterator& _Right_cref) const { return (const_iterator(*this) > _Right_cref); }
-				bool operator<=(const const_iterator& _Right_cref) const { return (const_iterator(*this) <= _Right_cref); }
-				bool operator>=(const const_iterator& _Right_cref) const { return (const_iterator(*this) >= _Right_cref); }
-#else // !MSE_HAS_CXX20
-				bool operator==(const iterator& _Right_cref) const { return (const_iterator(*this) == _Right_cref); }
-				std::strong_ordering operator<=>(const iterator& _Right_cref) const { return (const_iterator(*this) <=> _Right_cref); }
-#endif // !MSE_HAS_CXX20
+				MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(iterator, const_iterator)
 
 				void set_to_item_pointer(const iterator& _Right_cref) { msevector_ss_iterator_type().set_to_item_pointer(_Right_cref.msevector_ss_iterator_type()); }
 				msev_size_t position() const { return msevector_ss_iterator_type().position(); }
@@ -667,15 +657,13 @@ namespace mse {
 				auto end = last; end.set_to_next();
 				return erase_inclusive(first, end);
 			}
-			bool operator==(const _Myt& _Right) const {	// test for vector equality
-				return ((*(_Right.m_shptr)) == (*m_shptr));
-			}
+
+			friend bool operator==(const _Myt& _Left, const _Myt& _Right) { return ((*(_Left.m_shptr)) == (*(_Right.m_shptr))); }
+			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt)
 #ifndef MSE_HAS_CXX20
-			bool operator<(const _Myt& _Right) const {	// test if _Left < _Right
-				return ((*m_shptr) < (*(_Right.m_shptr)));
-			}
+			friend bool operator<(const _Myt& _Left, const _Myt& _Right) { return ((*(_Left.m_shptr)) < (*(_Right.m_shptr))); }
 #else // !MSE_HAS_CXX20
-			std::strong_ordering operator<=>(const _Myt& _Right) const { return ((*m_shptr) <=> (*(_Right.m_shptr))); }
+			friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) { return ((*(_Left.m_shptr)) <=> (*(_Right.m_shptr))); }
 #endif // !MSE_HAS_CXX20
 
 			void async_not_shareable_tag() const {}
@@ -705,21 +693,6 @@ namespace mse {
 		vector(_Iter, _Iter, _Alloc = _Alloc())
 			->vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
-
-#ifndef MSE_HAS_CXX20
-		template<class _Ty, class _Alloc> inline bool operator!=(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test for vector inequality
-			return (!(_Left == _Right));
-		}
-		template<class _Ty, class _Alloc> inline bool operator>(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test if _Left > _Right for vectors
-			return (_Right < _Left);
-		}
-		template<class _Ty, class _Alloc> inline bool operator<=(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test if _Left <= _Right for vectors
-			return (!(_Right < _Left));
-		}
-		template<class _Ty, class _Alloc> inline bool operator>=(const vector<_Ty, _Alloc>& _Left, const vector<_Ty, _Alloc>& _Right) {	// test if _Left >= _Right for vectors
-			return (!(_Left < _Right));
-		}
-#endif // !MSE_HAS_CXX20
 
 		namespace ns_vector {
 
@@ -761,7 +734,6 @@ namespace mse {
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
-
 		}
 
 		/* For each (scope) vector instance, only one instance of xscope_structure_lock_guard may exist at any one

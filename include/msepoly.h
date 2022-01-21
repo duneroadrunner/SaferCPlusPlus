@@ -1216,17 +1216,8 @@ namespace mse {
 				difference_type operator-(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const {
 					return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) - _Right_cref);
 				}
-#ifndef MSE_HAS_CXX20
-				bool operator==(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) == _Right_cref); }
-				bool operator!=(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) != _Right_cref); }
-				bool operator<(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) < _Right_cref); }
-				bool operator>(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) > _Right_cref); }
-				bool operator<=(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) <= _Right_cref); }
-				bool operator>=(const TAnyRandomAccessConstIteratorBase<_Ty>& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) >= _Right_cref); }
-#else // !MSE_HAS_CXX20
-				bool operator==(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) == TAnyRandomAccessConstIteratorBase<_Ty>(_Right_cref)); }
-				std::strong_ordering operator<=>(const TAnyRandomAccessIteratorBase& _Right_cref) const { return (TAnyRandomAccessConstIteratorBase<_Ty>(*this) <=> TAnyRandomAccessConstIteratorBase<_Ty>(_Right_cref)); }
-#endif // !MSE_HAS_CXX20
+				MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(TAnyRandomAccessIteratorBase, TAnyRandomAccessConstIteratorBase<_Ty>)
+
 				TAnyRandomAccessIteratorBase& operator=(TAnyRandomAccessIteratorBase _Right) {
 					swap(*this, _Right);
 					return (*this);
@@ -1363,18 +1354,8 @@ namespace mse {
 				difference_type operator-(const TAnyRandomAccessConstIteratorBase& _Right_cref) const {
 					return (*common_random_access_const_iterator_interface_ptr()) - (*(_Right_cref.common_random_access_const_iterator_interface_ptr()));
 				}
-				bool operator==(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 == operator-(_Right_cref)); }
-#ifndef MSE_HAS_CXX20
-				bool operator!=(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return !(operator==(_Right_cref)); }
-				bool operator<(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-				bool operator>(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 > operator-(_Right_cref)); }
-				bool operator<=(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-				bool operator>=(const TAnyRandomAccessConstIteratorBase& _Right_cref) const { return (0 >= operator-(_Right_cref)); }
-#else // !MSE_HAS_CXX20
-				std::strong_ordering operator<=>(const TAnyRandomAccessConstIteratorBase& _Right_cref) const {
-					return (*common_random_access_const_iterator_interface_ptr()) <=> (*(_Right_cref.common_random_access_const_iterator_interface_ptr()));
-				}
-#endif // !MSE_HAS_CXX20
+				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(TAnyRandomAccessConstIteratorBase)
+
 				TAnyRandomAccessConstIteratorBase& operator=(TAnyRandomAccessConstIteratorBase _Right) {
 					swap(*this, _Right);
 					return (*this);

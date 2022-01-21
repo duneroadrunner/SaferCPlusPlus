@@ -535,19 +535,12 @@ namespace mse {
 				return (rend());
 			}
 
-
-			friend bool operator==(const _Myt& _Left, const _Myt& _Right) {
-				return (_Left.contained_array() == _Right.contained_array());
-			}
+			friend bool operator==(const _Myt& _Left, const _Myt& _Right) { return (_Left.contained_array() == _Right.contained_array()); }
 			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt)
 #ifndef MSE_HAS_CXX20
-			friend bool operator<(const _Myt& _Left, const _Myt& _Right) {
-				return (_Left.contained_array() < _Right.contained_array());
-			}
+			friend bool operator<(const _Myt& _Left, const _Myt& _Right) { return (_Left.contained_array() < _Right.contained_array()); }
 #else // !MSE_HAS_CXX20
-			friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) {
-				return (_Left.contained_array() <=> _Right.contained_array());
-			}
+			friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) { return (_Left.contained_array() <=> _Right.contained_array()); }
 #endif // !MSE_HAS_CXX20
 
 			void async_not_shareable_tag() const {}

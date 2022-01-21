@@ -4535,11 +4535,11 @@ namespace mse {
 				}
 				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt)
 #ifndef MSE_HAS_CXX20
-					friend bool operator<(const _Myt& _Left, const _Myt& _Right) {
+				friend bool operator<(const _Myt& _Left, const _Myt& _Right) {
 					return (_Left.contained_basic_string() < _Right.contained_basic_string());
 				}
 #else // !MSE_HAS_CXX20
-					friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) {
+				friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) {
 					return (_Left.contained_basic_string() <=> _Right.contained_basic_string());
 				}
 #endif // !MSE_HAS_CXX20

@@ -163,7 +163,7 @@ namespace mse {
 			}
 			return *this;
 		}
-		bool operator<(const TRefCountingPointer& r) const {
+		MSE_DEPRECATED bool operator<(const TRefCountingPointer& r) const {
 			return get() < r.get();
 		}
 		bool operator==(const TRefCountingPointer& r) const {
@@ -192,7 +192,7 @@ namespace mse {
 			}
 			return *this;
 		}
-		template <class Y> bool operator<(const TRefCountingPointer<Y>& r) const {
+		template <class Y> MSE_DEPRECATED bool operator<(const TRefCountingPointer<Y>& r) const {
 			return get() < r.get();
 		}
 		template <class Y> bool operator==(const TRefCountingPointer<Y>& r) const {
@@ -411,7 +411,7 @@ namespace mse {
 			}
 			return *this;
 		}
-		bool operator<(const TRefCountingConstPointer& r) const {
+		MSE_DEPRECATED bool operator<(const TRefCountingConstPointer& r) const {
 			return get() < r.get();
 		}
 		bool operator==(const TRefCountingConstPointer& r) const {
@@ -440,7 +440,7 @@ namespace mse {
 			}
 			return *this;
 		}
-		template <class Y> bool operator<(const TRefCountingConstPointer<Y>& r) const {
+		template <class Y> MSE_DEPRECATED bool operator<(const TRefCountingConstPointer<Y>& r) const {
 			return get() < r.get();
 		}
 		template <class Y> bool operator==(const TRefCountingConstPointer<Y>& r) const {

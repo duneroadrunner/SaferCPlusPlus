@@ -6588,12 +6588,12 @@ namespace mse {
 					friend bool operator==(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) { return _Left_cref.equal(_Right_cref); }
 					MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TRandomAccessSectionBase)
 #ifndef MSE_HAS_CXX20
-						friend bool operator<(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) {
+					friend bool operator<(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) {
 						auto sv = mse::make_xscope_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
 						return _Left_cref.lexicographical_compare(sv);
 					}
 #else // !MSE_HAS_CXX20
-						friend std::strong_ordering operator<=>(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) {
+					friend std::strong_ordering operator<=>(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) {
 						signed char res = 0;
 						if (!_Left_cref.equal(_Right_cref)) {
 							if (_Left_cref.lexicographical_compare(_Right_cref)) {

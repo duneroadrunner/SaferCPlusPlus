@@ -378,15 +378,13 @@ namespace mse {
 			auto end = last; end.set_to_next();
 			return erase_inclusive(first, end);
 		}
-		bool operator==(const _Myt& _Right) const {	// test for ivector equality
-			return ((*(_Right.m_shptr)) == (*m_shptr));
-		}
+
+		friend bool operator==(const _Myt& _Left, const _Myt& _Right) { return ((*(_Left.m_shptr)) == (*(_Right.m_shptr))); }
+		MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt)
 #ifndef MSE_HAS_CXX20
-		bool operator<(const _Myt& _Right) const {	// test if _Left < _Right
-			return ((*m_shptr) < (*(_Right.m_shptr)));
-		}
+		friend bool operator<(const _Myt& _Left, const _Myt& _Right) { return ((*(_Left.m_shptr)) < (*(_Right.m_shptr))); }
 #else // !MSE_HAS_CXX20
-		std::strong_ordering operator<=>(const _Myt& _Right) const { return ((*m_shptr) <=> (*(_Right.m_shptr))); }
+		friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) { return ((*(_Left.m_shptr)) <=> (*(_Right.m_shptr))); }
 #endif // !MSE_HAS_CXX20
 
 		/* These static functions are just used to obtain a (base class) reference to an
@@ -636,21 +634,6 @@ namespace mse {
 	ivector(_Iter, _Iter, _Alloc = _Alloc())
 		->ivector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
-
-#ifndef MSE_HAS_CXX20
-	template<class _Ty, class _Alloc> inline bool operator!=(const ivector<_Ty, _Alloc>& _Left, const ivector<_Ty, _Alloc>& _Right) {	// test for ivector inequality
-		return (!(_Left == _Right));
-	}
-	template<class _Ty, class _Alloc> inline bool operator>(const ivector<_Ty, _Alloc>& _Left, const ivector<_Ty, _Alloc>& _Right) {	// test if _Left > _Right for ivectors
-		return (_Right < _Left);
-	}
-	template<class _Ty, class _Alloc> inline bool operator<=(const ivector<_Ty, _Alloc>& _Left, const ivector<_Ty, _Alloc>& _Right) {	// test if _Left <= _Right for ivectors
-		return (!(_Right < _Left));
-	}
-	template<class _Ty, class _Alloc> inline bool operator>=(const ivector<_Ty, _Alloc>& _Left, const ivector<_Ty, _Alloc>& _Right) {	// test if _Left >= _Right for ivectors
-		return (!(_Left < _Right));
-	}
-#endif // !MSE_HAS_CXX20
 
 	/* For each (scope) vector instance, only one instance of xscope_structure_lock_guard may exist at any one
 	time. While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
