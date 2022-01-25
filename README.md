@@ -3563,12 +3563,12 @@ usage example:
         auto xs_mstd_vec1_iter1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
         auto res4 = B::foo2(xs_mstd_vec1_iter1);
 
-        auto xs_mstd_vec1_begin_citer1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
-        mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter1 = xs_mstd_vec1_begin_citer1;
-        auto xs_mstd_vec1_end_citer1 = mse::make_xscope_end_iterator(&xs_mstd_vec1);
-        mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter2 = xs_mstd_vec1_end_citer1;
+        auto xs_mstd_vec1_begin_iter1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
+        mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter1 = xs_mstd_vec1_begin_iter1;
+        auto xs_mstd_vec1_end_iter1 = mse::make_xscope_end_iterator(&xs_mstd_vec1);
+        mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter2 = xs_mstd_vec1_end_iter1;
         auto res5 = xs_te_iter2 - xs_te_iter1;
-        xs_te_iter1 = xs_te_iter2;
+        xs_te_iter2 = xs_te_iter1;
 
         {
             auto std_array1 = mse::make_xscope(std::array<int, 4>{ 1, 2, 3, 4 });
