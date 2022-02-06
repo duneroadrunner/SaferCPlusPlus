@@ -7326,7 +7326,11 @@ namespace mse {
 		typedef typename base_class::reverse_iterator reverse_iterator;
 		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
 
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		xscope_borrowing_fixed_nii_basic_string(xscope_borrowing_fixed_nii_basic_string&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 		xscope_borrowing_fixed_nii_basic_string(xscope_borrowing_fixed_nii_basic_string&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
 		xscope_borrowing_fixed_nii_basic_string(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : m_src_ref(*src_xs_ptr) {
 			(*this).contained_basic_string() = std::move(m_src_ref);
@@ -7343,21 +7347,25 @@ namespace mse {
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
 
 	private:
-#ifdef MSE_HAS_CXX17
 		xscope_borrowing_fixed_nii_basic_string(const xscope_borrowing_fixed_nii_basic_string&) = delete;
-#endif // MSE_HAS_CXX17
 
 		_TLender& m_src_ref;
 	};
 
+#ifdef MSE_HAS_CXX17
+	/* deduction guides */
 	template<class _TLender>
-	auto make_xscope_borrowing_fixed_nii_basic_string(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) -> xscope_borrowing_fixed_nii_basic_string<_TLender> {
-		return xscope_borrowing_fixed_nii_basic_string<_TLender>(src_xs_ptr);
+	xscope_borrowing_fixed_nii_basic_string(mse::TXScopeFixedPointer<_TLender>)->xscope_borrowing_fixed_nii_basic_string<_TLender>;
+#endif /* MSE_HAS_CXX17 */
+
+	template<class _TLender>
+	auto make_xscope_borrowing_fixed_nii_basic_string(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) {
+		return mse::TXScopeObj<xscope_borrowing_fixed_nii_basic_string<_TLender> >(src_xs_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TLender>
-	auto make_xscope_borrowing_fixed_nii_basic_string(_TLender* src_xs_ptr) -> xscope_borrowing_fixed_nii_basic_string<_TLender> {
-		return xscope_borrowing_fixed_nii_basic_string<_TLender>(src_xs_ptr);
+	auto make_xscope_borrowing_fixed_nii_basic_string(_TLender* src_xs_ptr) {
+		return mse::TXScopeObj<xscope_borrowing_fixed_nii_basic_string<_TLender> >(src_xs_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 

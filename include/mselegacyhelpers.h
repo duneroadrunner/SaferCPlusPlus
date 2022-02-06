@@ -1526,9 +1526,9 @@ namespace mse {
 			};
 
 			/* todo: make distinct xscope and non-xscope versions */
-			class explicitly_castable_any : public mse::any {
+			class explicitly_castable_any : public mse::us::impl::ns_any::any {
 			public:
-				typedef mse::any base_class;
+				typedef mse::us::impl::ns_any::any base_class;
 				//using base_class::base_class;
 
 				explicitly_castable_any() = default;
@@ -1539,9 +1539,9 @@ namespace mse {
 
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type) \
 					{ \
-						auto ptr = mse::any_cast<type>(this); \
+						auto ptr = mse::us::impl::ns_any::any_cast<type>(this); \
 						if (ptr) { \
-							return convert<T>(mse::any_cast<type>(*this)); \
+							return convert<T>(mse::us::impl::ns_any::any_cast<type>(*this)); \
 						} \
 					}
 
@@ -1556,21 +1556,21 @@ namespace mse {
 				template<class T>
 				explicit operator T() const {
 					{
-						auto ptr = mse::any_cast<T>(this);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(this);
 						if (ptr) {
-							return convert<T>(mse::any_cast<T>(*this));
+							return convert<T>(mse::us::impl::ns_any::any_cast<T>(*this));
 						}
 					}
 					{
-						auto ptr = mse::any_cast<typename NDNoradWrapped<T>::type>(this);
+						auto ptr = mse::us::impl::ns_any::any_cast<typename NDNoradWrapped<T>::type>(this);
 						if (ptr) {
-							return convert<T>(mse::any_cast<typename NDNoradWrapped<T>::type>(*this));
+							return convert<T>(mse::us::impl::ns_any::any_cast<typename NDNoradWrapped<T>::type>(*this));
 						}
 					}
 					{
-						auto ptr = mse::any_cast<typename NDRegisteredWrapped<T>::type>(this);
+						auto ptr = mse::us::impl::ns_any::any_cast<typename NDRegisteredWrapped<T>::type>(this);
 						if (ptr) {
-							return convert<T>(mse::any_cast<typename NDRegisteredWrapped<T>::type>(*this));
+							return convert<T>(mse::us::impl::ns_any::any_cast<typename NDRegisteredWrapped<T>::type>(*this));
 						}
 					}
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(std::nullptr_t);
@@ -1582,7 +1582,7 @@ namespace mse {
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(mse::CNDSize_t);
 
 					return conversion_operator_helper1<T>(typename mse::impl::IsDereferenceable_pb<T>::type(), this);
-					//return mse::any_cast<T>(*this);
+					//return mse::us::impl::ns_any::any_cast<T>(*this);
 				}
 
 			private:
@@ -1595,7 +1595,7 @@ namespace mse {
 #ifndef NDEBUG
 					std::cout << "\nconvert_helper1<>(std::false_type, ): T1: " << typeid(T1).name() << ", T2: " << typeid(T2).name() << " \n";
 #endif // !NDEBUG
-					MSE_THROW(mse::bad_any_cast());
+					MSE_THROW(mse::us::impl::ns_any::bad_any_cast());
 					return {};
 				}
 				template<class T1, class T2>
@@ -1615,157 +1615,157 @@ namespace mse {
 					typedef mse::impl::remove_reference_t<decltype(*std::declval<T1>())> pointee_t;
 					{
 						typedef mse::TRefCountingPointer<pointee_t> T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::TRefCountingNotNullPointer<pointee_t> T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::TNoradPointer<pointee_t> T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::TNoradNotNullPointer<pointee_t> T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::TRegisteredPointer<pointee_t> T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::TRegisteredNotNullPointer<pointee_t> T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::lh::TLHNullableAnyPointer<pointee_t> T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::lh::TStrongVectorIterator<pointee_t> T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::lh::TLHNullableAnyRandomAccessIterator<pointee_t> T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef pointee_t* T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 
 					{
 						typedef mse::TRefCountingPointer<pointee_t> const T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::TRefCountingNotNullPointer<pointee_t> const T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::TNoradPointer<pointee_t> const T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::TNoradNotNullPointer<pointee_t> const T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::TRegisteredPointer<pointee_t> const T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::TRegisteredNotNullPointer<pointee_t> const T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::lh::TLHNullableAnyPointer<pointee_t> const T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::lh::TStrongVectorIterator<pointee_t> const T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef mse::lh::TLHNullableAnyRandomAccessIterator<pointee_t> const T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 					{
 						typedef pointee_t* const T;
-						auto ptr = mse::any_cast<T>(ptr1);
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
 						if (ptr) {
-							return convert<T1>(mse::any_cast<T>(*ptr));
+							return convert<T1>(mse::us::impl::ns_any::any_cast<T>(*ptr));
 						}
 					}
 
 #ifndef NDEBUG
 					std::cout << "\nexplicitly_castable_any::convert_helper1<>(std::true_type, ): T1: " << typeid(T1).name() << ", stored type: " << (*ptr1).type().name() << " \n";
 #endif // !NDEBUG
-					return mse::any_cast<T1>(*ptr1);
+					return mse::us::impl::ns_any::any_cast<T1>(*ptr1);
 				}
 				template<class T1, class T2>
 				static T1 conversion_operator_helper1(std::false_type, T2* ptr) {
 #ifndef NDEBUG
 					std::cout << "\nexplicitly_castable_any::convert_helper1<>(std::false_type, ): T1: " << typeid(T1).name() << ", stored type: " << (*ptr).type().name() << " \n";
 #endif // !NDEBUG
-					return mse::any_cast<T1>(*ptr);
+					return mse::us::impl::ns_any::any_cast<T1>(*ptr);
 				}
 			};
 		}

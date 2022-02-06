@@ -1246,7 +1246,7 @@ namespace mse {
 					return retval;
 				}
 
-				mse::any m_any_random_access_iterator;
+				mse::us::impl::ns_any::any m_any_random_access_iterator;
 
 				template <typename _Ty2>
 				friend class TAnyRandomAccessConstIteratorBase;
@@ -1384,7 +1384,7 @@ namespace mse {
 					return retval;
 				}
 
-				mse::any m_any_random_access_const_iterator;
+				mse::us::impl::ns_any::any m_any_random_access_const_iterator;
 			};
 		}
 	}

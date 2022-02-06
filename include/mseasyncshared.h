@@ -2156,6 +2156,10 @@ namespace mse {
 		friend class TXScopeAsyncSplitterRASectionReadWriteAccessRequester;
 		template<class _Ty, class _TAccessMutex/* = non_thread_safe_recursive_shared_timed_mutex*/>
 		friend class mse::us::impl::TAccessControlledObjBase;
+		template<class _Ty, class _TAccessMutex>
+		friend class mse::us::impl::ns_aco::TUnCopyableACOGuardedWrapper;
+		template<class _Ty, class _TAccessMutex>
+		friend class mse::us::impl::ns_aco::TACOGuardedWrapper;
 	};
 
 	template <typename _TRAIterator>

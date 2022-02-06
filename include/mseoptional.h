@@ -11,10 +11,10 @@
 # ifndef MSEOPTIONAL_H_
 # define MSEOPTIONAL_H_
 
+#include "msepointerbasics.h"
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 #include "msescope.h"
 #endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
-#include "msepointerbasics.h"
 
 #include <atomic>
 
@@ -1811,7 +1811,7 @@ namespace mse {
 					const _MO& contained_optional() const& { access_guard{ m_access_mutex }; return (*this); }
 					const _MO& contained_optional() const&& { access_guard{ m_access_mutex }; return (*this); }
 					_MO& contained_optional()& { access_guard{ m_access_mutex }; return (*this); }
-					auto contained_optional()&& {
+					auto contained_optional()&& -> decltype(mse::us::impl::as_ref<base_class>(std::move(*this))) {
 						access_guard{ m_access_mutex };
 						/* We're making sure that the optional is not "structure locked", because in that case it might not be
 						safe to to allow the contained optional to be moved from (when made movable with std::move()). */
@@ -1822,7 +1822,9 @@ namespace mse {
 					const _MO& unchecked_contained_optional() const& { return (*this); }
 					const _MO& unchecked_contained_optional() const&& { return (*this); }
 					_MO& unchecked_contained_optional()& { return (*this); }
-					auto unchecked_contained_optional()&& { return mse::us::impl::as_ref<base_class>(std::move(*this)); }
+					auto unchecked_contained_optional()&& -> decltype(mse::us::impl::as_ref<base_class>(std::move(*this))) {
+						return mse::us::impl::as_ref<base_class>(std::move(*this));
+					}
 
 				public:
 					using base_class::base_class;
@@ -3063,7 +3065,7 @@ namespace mse {
 					const _MO& contained_optional() const& { return (*this); }
 					const _MO& contained_optional() const&& { return (*this); }
 					_MO& contained_optional()& { return (*this); }
-					auto contained_optional()&& {
+					auto contained_optional()&& -> decltype(mse::us::impl::as_ref<base_class>(std::move(*this))) {
 						return mse::us::impl::as_ref<base_class>(std::move(*this));
 					}
 
@@ -3592,50 +3594,70 @@ namespace mse {
 		return xscope_fixed_optional<X&>(v.get());
 	}
 
+#ifdef MSE_HAS_CXX17
+#else // MSE_HAS_CXX17
+	/* The xscope_borrowing_fixed_* types "should" be unmoveable (as well as uncopyable). But since C++14 doesn't
+	have guaranteed copy elision, moveability is required for the make_xscope_borrowing_fixed_*() functions to work. . */
+#define MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+#endif // MSE_HAS_CXX17
+
 	template <class _TLender, class T = mse::impl::target_type<_TLender> >
 	class xscope_borrowing_fixed_optional {
 	public:
-		xscope_borrowing_fixed_optional(xscope_borrowing_fixed_optional&&) = default;
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		xscope_borrowing_fixed_optional(xscope_borrowing_fixed_optional&&) = delete;
+#define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ref(*src_xs_ptr)
+		~xscope_borrowing_fixed_optional() {
+			src_ref().access_unlock(); src_ref().structure_change_unlock();
+		}
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		xscope_borrowing_fixed_optional(xscope_borrowing_fixed_optional&& src) : m_src_ptr(MSE_FWD(src).m_src_ptr) {
+			src.m_src_ptr = nullptr;
+		}
+#define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))
+		~xscope_borrowing_fixed_optional() {
+			if (m_src_ptr) {
+				src_ref().access_unlock(); src_ref().structure_change_unlock();
+			}
+		}
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
-		xscope_borrowing_fixed_optional(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : m_src_ref(*src_xs_ptr) {
-			m_src_ref.structure_change_lock(); m_src_ref.access_lock();
+		xscope_borrowing_fixed_optional(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF {
+			src_ref().structure_change_lock(); src_ref().access_lock();
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		xscope_borrowing_fixed_optional(_TLender* src_xs_ptr) : m_src_ref(*src_xs_ptr) {
-			m_src_ref.structure_change_lock(); m_src_ref.access_lock();
+		xscope_borrowing_fixed_optional(_TLender* src_xs_ptr) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF {
+			src_ref().structure_change_lock(); src_ref().access_lock();
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-		~xscope_borrowing_fixed_optional() {
-			m_src_ref.access_unlock(); m_src_ref.structure_change_unlock();
-		}
 
 		constexpr explicit operator bool() const noexcept {
-			return bool(m_src_ref.unchecked_contained_optional());
+			return bool(src_ref().unchecked_contained_optional());
 		}
 		_NODISCARD constexpr bool has_value() const noexcept {
-			return m_src_ref.unchecked_contained_optional().has_value();
+			return src_ref().unchecked_contained_optional().has_value();
 		}
 
 		_NODISCARD constexpr const T& value() const& {
-			return m_src_ref.unchecked_contained_optional().value();
+			return src_ref().unchecked_contained_optional().value();
 		}
 		_NODISCARD constexpr T& value()& {
-			return m_src_ref.unchecked_contained_optional().value();
+			return src_ref().unchecked_contained_optional().value();
 		}
 		_NODISCARD constexpr T&& value()&& {
-			return std::move(MSE_FWD(m_src_ref.unchecked_contained_optional()).value());
+			return std::move(MSE_FWD(src_ref().unchecked_contained_optional()).value());
 		}
 		_NODISCARD constexpr const T&& value() const&& {
-			return std::move(MSE_FWD(m_src_ref.unchecked_contained_optional()).value());
+			return std::move(MSE_FWD(src_ref().unchecked_contained_optional()).value());
 		}
 
 		template <class _Ty2>
 		_NODISCARD constexpr T value_or(_Ty2&& _Right) const& {
-			return m_src_ref.unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
+			return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
 		}
 		template <class _Ty2>
 		_NODISCARD constexpr T value_or(_Ty2&& _Right)&& {
-			return m_src_ref.unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
+			return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
 		}
 
 		_NODISCARD constexpr const T* operator->() const& {
@@ -3662,21 +3684,33 @@ namespace mse {
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
 
 	private:
-#ifdef MSE_HAS_CXX17
 		xscope_borrowing_fixed_optional(const xscope_borrowing_fixed_optional&) = delete;
-#endif // MSE_HAS_CXX17
 
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 		_TLender& m_src_ref;
+		auto& src_ref() const { return m_src_ref; }
+		auto& src_ref() { return m_src_ref; }
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		_TLender* m_src_ptr = nullptr;
+		auto& src_ref() const { assert(m_src_ptr); return *m_src_ptr; }
+		auto& src_ref() { assert(m_src_ptr); return *m_src_ptr; }
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 	};
 
+#ifdef MSE_HAS_CXX17
+	/* deduction guides */
 	template<class _TLender>
-	auto make_xscope_borrowing_fixed_optional(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) -> xscope_borrowing_fixed_optional<_TLender> {
-		return xscope_borrowing_fixed_optional<_TLender>(src_xs_ptr);
+	xscope_borrowing_fixed_optional(mse::TXScopeFixedPointer<_TLender>)->xscope_borrowing_fixed_optional<_TLender>;
+#endif /* MSE_HAS_CXX17 */
+
+	template<class _TLender>
+	auto make_xscope_borrowing_fixed_optional(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) -> mse::TXScopeObj<xscope_borrowing_fixed_optional<_TLender> > {
+		return mse::TXScopeObj<xscope_borrowing_fixed_optional<_TLender> >(src_xs_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TLender>
-	auto make_xscope_borrowing_fixed_optional(_TLender* src_xs_ptr) -> xscope_borrowing_fixed_optional<_TLender> {
-		return xscope_borrowing_fixed_optional<_TLender>(src_xs_ptr);
+	auto make_xscope_borrowing_fixed_optional(_TLender* src_xs_ptr) -> mse::TXScopeObj<xscope_borrowing_fixed_optional<_TLender> > {
+		return mse::TXScopeObj<xscope_borrowing_fixed_optional<_TLender> >(src_xs_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 }
@@ -3838,6 +3872,10 @@ namespace mse {
 					return m_obj_ptr;
 				}
 
+				friend bool operator==(const TAccessControlledPointerBase& _Left_cref, const TAccessControlledPointerBase& _Right_cref) {
+					return (_Left_cref.m_obj_ptr == _Right_cref.m_obj_ptr);
+				}
+
 			private:
 				typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
 				TAccessControlledPointerBase(_Ty& obj_ref, _TWrappedAccessMutex& mutex_ref) : m_obj_ptr(std::addressof(obj_ref)), m_mutex_ptr(&mutex_ref), m_write_lock(mutex_ref) {}
@@ -3984,6 +4022,10 @@ namespace mse {
 				const _Ty* operator->() const {
 					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointerBase")); }
 					return m_obj_ptr;
+				}
+
+				friend bool operator==(const TAccessControlledConstPointerBase& _Left_cref, const TAccessControlledConstPointerBase& _Right_cref) {
+					return (_Left_cref.m_obj_ptr == _Right_cref.m_obj_ptr);
 				}
 
 			private:
@@ -4275,7 +4317,8 @@ namespace mse {
 				class TACOGuardedWrapper {
 				public:
 					typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
-					TACOGuardedWrapper(_Ty&& obj) : m_obj(MSE_FWD(obj)) {}
+					template <class... Args>
+					TACOGuardedWrapper(Args&&... args) : m_obj(std::forward<Args>(args)...) {}
 					TACOGuardedWrapper(TACOGuardedWrapper&& src) : m_obj(CWriteLockedSrc<TACOGuardedWrapper>(MSE_FWD(src)).ref().m_obj) {}
 					TACOGuardedWrapper(const TACOGuardedWrapper& src) : m_obj(CReadLockedSrcRefHolder<TACOGuardedWrapper>(src).ref().m_obj) {}
 
@@ -4286,7 +4329,8 @@ namespace mse {
 				class TUnMovableACOGuardedWrapper {
 				public:
 					typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
-					TUnMovableACOGuardedWrapper(_Ty&& obj) : m_obj(MSE_FWD(obj)) {}
+					template <class... Args>
+					TUnMovableACOGuardedWrapper(Args&&... args) : m_obj(std::forward<Args>(args)...) {}
 					TUnMovableACOGuardedWrapper(const TUnMovableACOGuardedWrapper& src) : m_obj(CReadLockedSrcRefHolder<TUnMovableACOGuardedWrapper>(src).ref().m_obj) {}
 
 					_Ty m_obj;
@@ -4296,7 +4340,8 @@ namespace mse {
 				class TUnCopyableACOGuardedWrapper {
 				public:
 					typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
-					TUnCopyableACOGuardedWrapper(_Ty&& obj) : m_obj(MSE_FWD(obj)) {}
+					template <class... Args>
+					TUnCopyableACOGuardedWrapper(Args&&... args) : m_obj(std::forward<Args>(args)...) {}
 					TUnCopyableACOGuardedWrapper(TUnCopyableACOGuardedWrapper&& src) : m_obj(CWriteLockedSrc<TUnCopyableACOGuardedWrapper>(MSE_FWD(src)).ref().m_obj) {}
 
 					_Ty m_obj;
@@ -4306,7 +4351,8 @@ namespace mse {
 				class TUnCopyableAndUnMovableACOGuardedWrapper {
 				public:
 					typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
-					TUnCopyableAndUnMovableACOGuardedWrapper(_Ty&& obj) : m_obj(MSE_FWD(obj)) {}
+					template <class... Args>
+					TUnCopyableAndUnMovableACOGuardedWrapper(Args&&... args) : m_obj(std::forward<Args>(args)...) {}
 
 					_Ty m_obj;
 					mutable _TWrappedAccessMutex m_mutex1;
@@ -4328,8 +4374,12 @@ namespace mse {
 				TAccessControlledObjBase(TAccessControlledObjBase&& src) = default;
 				TAccessControlledObjBase(const TAccessControlledObjBase& src) = default;
 
+				template <class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_Ty2*, TAccessControlledObjBase const *>::value) > MSE_IMPL_EIS >
+				TAccessControlledObjBase(const _Ty2& arg) : m_guarded_obj(arg) {}
+				template <class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_Ty2*, TAccessControlledObjBase const*>::value) > MSE_IMPL_EIS >
+				TAccessControlledObjBase(_Ty2&& arg) : m_guarded_obj(MSE_FWD(arg)) {}
 				template <class... Args>
-				TAccessControlledObjBase(Args&&... args) : m_guarded_obj(constructor_helper1(std::forward<Args>(args)...)) {}
+				TAccessControlledObjBase(Args&&... args) : m_guarded_obj(std::forward<Args>(args)...) {}
 
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAccessControlledObjBase() {
 					MSE_TRY{
@@ -5759,6 +5809,110 @@ namespace mse {
 	}
 
 
+	namespace impl {
+		template<typename _Tz, typename _TPointer, typename _TTarget>
+		struct target_can_be_referenced_as_helper1 : std::false_type {};
+		template<typename _TPointer, typename _TTarget>
+		struct target_can_be_referenced_as_helper1<std::true_type, _TPointer, _TTarget> : std::is_convertible<mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())>*, _TTarget*> {};
+
+		template<typename _TPointer, typename _TTarget>
+		struct target_can_be_referenced_as : target_can_be_referenced_as_helper1<typename mse::impl::IsDereferenceable_pb<_TPointer>::type, _TPointer, _TTarget> {};
+	}
+
+	template <typename TPointer, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::IsDereferenceable_pb<TPointer>::value> MSE_IMPL_EIS >
+	class TNullablePointer {
+	public:
+		typedef TPointer base_pointer_t;
+		typedef mse::impl::target_type<TPointer> _Ty;
+
+		TNullablePointer() {}
+		TNullablePointer(const std::nullptr_t&) : TNullablePointer() {}
+		TNullablePointer(const TNullablePointer& src) : m_maybe_ptr(src.m_maybe_ptr) {}
+		TNullablePointer(const base_pointer_t& src) : m_maybe_ptr(src) {}
+
+		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
+			(!std::is_convertible<_TPointer1, TNullablePointer>::value)
+			&& (!std::is_base_of<base_pointer_t, _TPointer1>::value)
+			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
+			&& mse::impl::target_can_be_referenced_as<_TPointer1, _Ty>::value
+			//&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
+			&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
+		> MSE_IMPL_EIS >
+			TNullablePointer(const _TPointer1& pointer) : m_maybe_ptr(pointer) {
+			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
+		}
+
+		auto& operator*() const {
+			if (is_null()) {
+				MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNullablePointer"));
+			}
+			return (*(m_maybe_ptr.value()));
+		}
+		auto* operator->() const {
+			return std::addressof(*(*this));
+		}
+
+		friend void swap(TNullablePointer& first, TNullablePointer& second) {
+			std::swap(first.m_maybe_ptr, second.m_maybe_ptr);
+		}
+
+		TNullablePointer& operator=(TNullablePointer _Right) {
+			swap(*this, _Right);
+			return (*this);
+		}
+
+		bool operator==(const TNullablePointer& rhs) const {
+			if (rhs.is_null() != (*this).is_null()) {
+				return false;
+			}
+			else if ((*this).is_null()) {
+				return true;
+			}
+			return (m_maybe_ptr == (rhs.m_maybe_ptr));
+		}
+#ifndef MSE_HAS_CXX20
+		bool operator!=(const TNullablePointer& rhs) const { return !((*this) == rhs); }
+#endif // !MSE_HAS_CXX20
+
+
+		operator bool() const {
+			return (!is_null());
+		}
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(mse::optional<TPointer>);
+
+	private:
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		mse::optional<TPointer> m_maybe_ptr;
+		bool is_null() const { return !(m_maybe_ptr.has_value()); }
+	};
+
+	template <typename TPointer>
+	bool operator==(const std::nullptr_t& lhs, const TNullablePointer<TPointer>& rhs) { return rhs == lhs; }
+	template <typename TPointer>
+	bool operator!=(const std::nullptr_t& lhs, const TNullablePointer<TPointer>& rhs) { return rhs != lhs; }
+
+	template <typename TSpecifiedPointer = void, typename TPointerArg = void>
+	auto make_nullable_pointer(const TPointerArg& x) {
+		typedef mse::impl::conditional_t<std::is_same<TSpecifiedPointer, void>::value, mse::impl::remove_reference_t<decltype(x)>, TSpecifiedPointer> TSpecifiedPointer2;
+		return TNullablePointer<TSpecifiedPointer2>(x);
+	}
+	template <typename TSpecifiedPointer = void, typename TPointerArg = void>
+	auto make_nullable_pointer(TPointerArg&& x) {
+		typedef mse::impl::conditional_t<std::is_same<TSpecifiedPointer, void>::value, mse::impl::remove_reference_t<decltype(x)>, TSpecifiedPointer> TSpecifiedPointer2;
+		return TNullablePointer<TSpecifiedPointer2>(MSE_FWD(x));
+	}
+	template <typename TSpecifiedPointer>
+	auto make_nullable_pointer(std::nullptr_t) {
+		return TNullablePointer<TSpecifiedPointer>(nullptr);
+	}
+	template <typename TSpecifiedPointer>
+	auto make_nullable_pointer() {
+		return TNullablePointer<TSpecifiedPointer>();
+	}
+
+
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -5771,7 +5925,6 @@ namespace mse {
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif /*__GNUC__*/
 #endif /*__clang__*/
-
 
 	namespace self_test {
 		class COptionalTest1 {
@@ -5951,6 +6104,8 @@ namespace mse {
 
 #endif // MSE_SELF_TESTS
 			}
+		};
+	}
 
 #ifdef __clang__
 #pragma clang diagnostic pop
@@ -5959,8 +6114,7 @@ namespace mse {
 #pragma GCC diagnostic pop
 #endif /*__GNUC__*/
 #endif /*__clang__*/
-		};
-	}
+
 } // namespace mse
 
 #ifdef _MSC_VER

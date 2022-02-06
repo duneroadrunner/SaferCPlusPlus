@@ -55,6 +55,7 @@
 #define MSE_FUNCTION_TRY try
 #define MSE_FUNCTION_CATCH(x) catch(x)
 #define MSE_FUNCTION_CATCH_ANY catch(...)
+#define MSE_IF_EXCEPTIONS_ENABLED(x) x
 #else // __cpp_exceptions >= 199711
 #define MSE_TRY if (true)
 #define MSE_CATCH(x) if (false)
@@ -63,6 +64,7 @@
 #define MSE_FUNCTION_CATCH(x) void mse_placeholder_function_catch(x)
 #define MSE_FUNCTION_CATCH_ANY void mse_placeholder_function_catch_any()
 #define MSE_CUSTOM_THROW_DEFINITION(x) exit(-11)
+#define MSE_IF_EXCEPTIONS_ENABLED(x)
 #endif // __cpp_exceptions >= 199711
 
 #ifdef MSE_HAS_CXX20
@@ -390,7 +392,24 @@ namespace mse {
 #define MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION	auto operator&() { return this; } auto operator&() const { return this; }
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
-#define MSE_DEFAULT_OPERATOR_NEW_DECLARATION	void* operator new(size_t size) { return ::operator new(size); }
+	/* The MSE_DEFAULT_OPERATOR_NEW_DECLARATION macro is (generally) used to make the `operator new()`s of xscope
+	types private (i.e. inaccessible). But (with C++14) the `xscope_any` class stores potentially xscope items in a
+	`us::impl::any` object, which may use `operator new()` to allocate the storage. So xscope classes that make
+	their `operator new()`s private also need to friend the `us::impl::any` class. */
+	namespace us {
+		namespace impl {
+			namespace ns_any {
+				class any;
+			}
+			namespace xsrtc {
+				class any;
+			}
+		}
+	}
+#define MSE_DEFAULT_OPERATOR_NEW_DECLARATION \
+	void* operator new(size_t size) { return ::operator new(size); } \
+	friend class mse::us::impl::ns_any::any; \
+	friend class mse::us::impl::xsrtc::any;
 #define MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION	MSE_DEFAULT_OPERATOR_NEW_DECLARATION MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
 
 #define MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(Base)	\
@@ -414,6 +433,15 @@ namespace mse {
 	}
 
 
+#define MSE_IMPL_MEMBER_GETTER_DECLARATIONS(member, getter_name) \
+	const decltype(member)& getter_name() const& { return member; } \
+	const decltype(member)& getter_name() const&& { return member; } \
+	decltype(member)& getter_name()& { return member; } \
+	auto getter_name()&& -> decltype(mse::us::impl::as_ref<decltype(member)>(std::move(member))) { \
+		return mse::us::impl::as_ref<decltype(member)>(std::move(member)); \
+	}
+
+
 #define MSE_IMPL_OPERATOR_DELEGATING_DECLARATION(operator_name, this_type, delegate_type) \
 	friend bool operator operator_name (const this_type& _Left_cref, const this_type& _Right_cref) { \
 		typedef delegate_type const& delegate_cref_t; \
@@ -426,6 +454,36 @@ namespace mse {
 #define MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type) \
 	friend bool operator!=(const this_type& _Left_cref, const this_type& _Right_cref) { return !((_Left_cref) == (_Right_cref)); }
 
+#define MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(this_type) \
+	friend bool operator==(const this_type& _Left_cref, const this_type& _Right_cref) { \
+		if (!bool(_Left_cref)) { \
+			if (!bool(_Right_cref)) { \
+				return true; \
+			} else { \
+				return false; \
+			} \
+		} else if (!bool(_Right_cref)) { \
+			return false; \
+		} \
+		return (std::addressof(*_Right_cref) == std::addressof(*_Left_cref)); \
+	}
+
+#define MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type) \
+	template<typename TPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointer>::value) \
+	&& (std::is_convertible<typename std::decay<TPointer>::type, bool>::value)> MSE_IMPL_EIS > \
+	friend bool operator==(const this_type& _Left_cref, const TPointer& _Right_cref) { \
+		if (!bool(_Left_cref)) { \
+			if (!bool(_Right_cref)) { \
+				return true; \
+			} else { \
+				return false; \
+			} \
+		} else if (!bool(_Right_cref)) { \
+			return false; \
+		} \
+		return (std::addressof(*_Right_cref) == std::addressof(*_Left_cref)); \
+	}
+
 #ifndef MSE_HAS_CXX20
 
 #define MSE_IMPL_EQUALITY_COMPARISON_OPERATOR_DELEGATING_DECLARATIONS(this_type, delegate_type) \
@@ -435,6 +493,12 @@ namespace mse {
 #define MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(this_type) \
 	MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type)
 
+#define MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(this_type) \
+	MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type) \
+	template<typename TPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointer>::value) \
+	&& (std::is_convertible<typename std::decay<TPointer>::type, bool>::value)> MSE_IMPL_EIS > \
+	friend bool operator!=(const this_type& _Left_cref, const TPointer& _Right_cref) { return !(_Left_cref == _Right_cref); }
+
 #else // !MSE_HAS_CXX20
 
 #define MSE_IMPL_EQUALITY_COMPARISON_OPERATOR_DELEGATING_DECLARATIONS(this_type, delegate_type) \
@@ -442,10 +506,32 @@ namespace mse {
 
 #define MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(this_type)
 
+#define MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(this_type) \
+	MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type)
+
 #endif // !MSE_HAS_CXX20
 
 
-	namespace impl {
+#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20) && !defined(MSE_MSC_CONFORMANCE_MODE)
+/* Jan 2022: The microsoft compiler seems to default to "permissive" mode (/permissive+) for C++17 and lower. When
+compiling in "conformance" mode (/permissive-) with C++17 and lower, you should define the MSE_MSC_CONFORMANCE_MODE
+preprocessor symbol. */
+#define MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20) && !defined(MSE_MSC_CONFORMANCE_MODE)
+
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) mse::impl::IsDereferenceable_pb<x>::value
+#define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) mse::impl::target_can_be_referenced_as<pointer_t, target_t>::value
+#else // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+/* Jan 2022: The microsoft compiler in "permissive" mode (/permissive+) seems to have some strange behavior (that
+results in "ambiguous overload" compile errors when we attempt to filter for "dereferenceability" (i.e. require
+the type to be some sort of pointer). So we substitute it with a simpler (and looser) criteria. */
+#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) ((!std::is_same<decltype(NULL), x>::value) && (!std::is_same<decltype(0), x>::value))
+#define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(pointer_t)
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+
+
+namespace impl {
 		template<typename _TPointer>
 		using target_type = mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())>;
 	}
@@ -503,7 +589,7 @@ namespace mse {
 					return *ptr;
 				}
 				template<typename _Ty, typename _Ty2>
-				_Ty as_ref_helper1(std::true_type, _Ty2&& x) {
+				_Ty&& as_ref_helper1(std::true_type, _Ty2&& x) {
 					return MSE_FWD(x);
 				}
 			}
@@ -1427,14 +1513,11 @@ namespace mse {
 			return m_target_pointer;
 		}
 
-		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
-		bool operator==(const TSyncWeakFixedPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
-#ifndef MSE_HAS_CXX20
-		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
-		bool operator!=(const TSyncWeakFixedPointer& _Right_cref) const { return (!((*this) == _Right_cref)); }
-		bool operator==(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>& _Right_cref) const;
-		bool operator!=(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>& _Right_cref) const;
-#endif // !MSE_HAS_CXX20
+		friend bool operator==(const TSyncWeakFixedPointer& _Left_cref, const TSyncWeakFixedPointer& _Right_cref) {
+			return (_Left_cref.m_target_pointer == _Right_cref.m_target_pointer);
+		}
+		MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TSyncWeakFixedPointer)
+		MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TSyncWeakFixedPointer)
 
 		bool operator!() const { return (!m_target_pointer); }
 		operator bool() const {
@@ -1461,7 +1544,7 @@ namespace mse {
 
 	private:
 		TSyncWeakFixedPointer(_TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a registered pointer */)
-			: m_target_pointer(&target), m_lease_pointer(lease_pointer) {}
+			: m_target_pointer(std::addressof(target)), m_lease_pointer(lease_pointer) {}
 		TSyncWeakFixedPointer& operator=(const TSyncWeakFixedPointer& _Right_cref) = delete;
 		static void dummy_foo(const decltype(*std::declval<_TLeasePointerType>())&) {}
 
@@ -1494,12 +1577,11 @@ namespace mse {
 			return m_target_pointer;
 		}
 
-		bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
-		bool operator==(const TSyncWeakFixedConstPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
-#ifndef MSE_HAS_CXX20
-		bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
-		bool operator!=(const TSyncWeakFixedConstPointer& _Right_cref) const { return (!((*this) == _Right_cref)); }
-#endif // !MSE_HAS_CXX20
+		friend bool operator==(const TSyncWeakFixedConstPointer& _Left_cref, const TSyncWeakFixedConstPointer& _Right_cref) {
+			return (_Left_cref.m_target_pointer == _Right_cref.m_target_pointer);
+		}
+		MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TSyncWeakFixedConstPointer)
+		MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TSyncWeakFixedConstPointer)
 
 		bool operator!() const { return (!m_target_pointer); }
 		operator bool() const {
@@ -1526,19 +1608,12 @@ namespace mse {
 
 	private:
 		TSyncWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a registered pointer */)
-			: m_target_pointer(&target), m_lease_pointer(lease_pointer) {}
+			: m_target_pointer(std::addressof(target)), m_lease_pointer(lease_pointer) {}
 		TSyncWeakFixedConstPointer& operator=(const TSyncWeakFixedConstPointer& _Right_cref) = delete;
 
 		const _TTargetType* m_target_pointer;
 		_TLeasePointerType m_lease_pointer;
 	};
-
-#ifndef MSE_HAS_CXX20
-	template <class _TTargetType, class _TLeasePointerType>
-	bool TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator==(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (_Right_cref == m_target_pointer); }
-	template <class _TTargetType, class _TLeasePointerType>
-	bool TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>::operator!=(const TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType> &_Right_cref) const { return (!((*this) == _Right_cref)); }
-#endif // !MSE_HAS_CXX20
 
 	namespace impl {
 		template<class _Ty, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_Ty, _Ty2>::value> MSE_IMPL_EIS >
@@ -1696,14 +1771,11 @@ namespace mse {
 				return m_target_pointer;
 			}
 
-			bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
-			bool operator==(const TStrongFixedPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
-#ifndef MSE_HAS_CXX20
-			bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
-			bool operator!=(const TStrongFixedPointer& _Right_cref) const { return (!((*this) == _Right_cref)); }
-			bool operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType>& _Right_cref) const;
-			bool operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType>& _Right_cref) const;
-#endif // !MSE_HAS_CXX20
+			friend bool operator==(const TStrongFixedPointer& _Left_cref, const TStrongFixedPointer& _Right_cref) {
+				return (_Left_cref.m_target_pointer == _Right_cref.m_target_pointer);
+			}
+			MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TStrongFixedPointer)
+			MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TStrongFixedPointer)
 
 			bool operator!() const { return (!m_target_pointer); }
 			operator bool() const {
@@ -1776,12 +1848,11 @@ namespace mse {
 				return m_target_pointer;
 			}
 
-			bool operator==(const _TTargetType* _Right_cref) const { return (_Right_cref == m_target_pointer); }
-			bool operator==(const TStrongFixedConstPointer &_Right_cref) const { return (_Right_cref == m_target_pointer); }
-#ifndef MSE_HAS_CXX20
-			bool operator!=(const _TTargetType* _Right_cref) const { return (!((*this) == _Right_cref)); }
-			bool operator!=(const TStrongFixedConstPointer& _Right_cref) const { return (!((*this) == _Right_cref)); }
-#endif // !MSE_HAS_CXX20
+			friend bool operator==(const TStrongFixedConstPointer& _Left_cref, const TStrongFixedConstPointer& _Right_cref) {
+				return (_Left_cref.m_target_pointer == _Right_cref.m_target_pointer);
+			}
+			MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TStrongFixedConstPointer)
+			MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TStrongFixedConstPointer)
 
 			bool operator!() const { return (!m_target_pointer); }
 			operator bool() const {
@@ -1830,13 +1901,6 @@ namespace mse {
 		auto make_const_strong(const _TTargetType& target, _TLeaseType&& lease) -> TStrongFixedConstPointer<_TTargetType, mse::impl::remove_reference_t<_TLeaseType> > {
 			return TStrongFixedConstPointer<_TTargetType, mse::impl::remove_reference_t<_TLeaseType> >::make(target, MSE_FWD(lease));
 		}
-
-#ifndef MSE_HAS_CXX20
-		template <class _TTargetType, class _TLeaseType>
-		bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator==(const TStrongFixedConstPointer<_TTargetType, _TLeaseType>& _Right_cref) const { return (_Right_cref == m_target_pointer); }
-		template <class _TTargetType, class _TLeaseType>
-		bool TStrongFixedPointer<_TTargetType, _TLeaseType>::operator!=(const TStrongFixedConstPointer<_TTargetType, _TLeaseType>& _Right_cref) const { return (!((*this) == _Right_cref)); }
-#endif // !MSE_HAS_CXX20
 	}
 }
 

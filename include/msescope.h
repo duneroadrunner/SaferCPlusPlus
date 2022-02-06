@@ -17,7 +17,6 @@
 
 #ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 #include "msenorad.h"
-#include "mseany.h"
 #endif // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 
 #ifdef MSE_SELF_TESTS
@@ -48,17 +47,36 @@
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma push_macro("_NOEXCEPT")
+#pragma push_macro("MSE_THROW")
+#pragma push_macro("_NODISCARD")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
 
+#ifdef MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) MSE_CUSTOM_THROW_DEFINITION(x)
+#else // MSE_CUSTOM_THROW_DEFINITION
+#define MSE_THROW(x) throw(x)
+#endif // MSE_CUSTOM_THROW_DEFINITION
+
+#ifndef _NODISCARD
+#define _NODISCARD
+#endif /*_NODISCARD*/
+
+
+/* This macro roughly simulates constructor inheritance. */
+#define MSE_SCOPE_USING(Derived, Base) MSE_USING(Derived, Base)
+
+#ifdef MSE_SCOPEPOINTER_DISABLED
+#define MSE_IF_NOT_SCOPEPOINTER_DISABLED(x)
+#else // MSE_SCOPEPOINTER_DISABLED
+#define MSE_IF_NOT_SCOPEPOINTER_DISABLED(x) x
+#endif // MSE_SCOPEPOINTER_DISABLED
+
 
 namespace mse {
-
-	/* This macro roughly simulates constructor inheritance. */
-#define MSE_SCOPE_USING(Derived, Base) MSE_USING(Derived, Base)
 
 	namespace us {
 		namespace impl {
@@ -174,10 +192,651 @@ namespace mse {
 		namespace impl {
 
 #ifdef MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
+			namespace xsrtc {
+				template<typename _Ty> class TAnyPointerBaseV1;
+				template<typename _Ty> class TAnyConstPointerBaseV1;
+
+				class bad_any_cast : public std::bad_cast
+				{
+				public:
+					const char* what() const noexcept override
+					{
+						return "bad any cast";
+					}
+				};
+
+				class any /*final*/
+				{
+				public:
+					/// Constructs an object of type any with an empty state.
+					any() :
+						vtable(nullptr)
+					{
+					}
+
+					/// Constructs an object of type any with an equivalent state as other.
+					any(const any& rhs) :
+						vtable(rhs.vtable)
+					{
+						if (!rhs.empty())
+						{
+							rhs.vtable->copy(rhs.storage, this->storage);
+						}
+					}
+
+					/// Constructs an object of type any with a state equivalent to the original state of other.
+					/// rhs is left in a valid but otherwise unspecified state.
+					any(any&& rhs) noexcept :
+						vtable(rhs.vtable)
+					{
+						if (!rhs.empty())
+						{
+							rhs.vtable->move(rhs.storage, this->storage);
+							rhs.vtable = nullptr;
+						}
+					}
+
+					/// Same effect as this->reset().
+					~any()
+					{
+						this->reset();
+					}
+
+					/// Constructs an object of type any that contains an object of type T direct-initialized with std::forward<ValueType>(value).
+					///
+					/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
+					/// This is because an `any` may be copy constructed into another `any` at any time, so a copy should always be allowed.
+					template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, any>::value)
+						&& (!std::is_convertible<typename std::decay<ValueType>::type*, any const*>::value)> MSE_IMPL_EIS >
+						any(ValueType&& value)
+					{
+						static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
+							"T shall satisfy the CopyConstructible requirements.");
+						this->construct(std::forward<ValueType>(value));
+					}
+
+					/// Has the same effect as any(rhs).swap(*this). No effects if an exception is thrown.
+					any& operator=(const any& rhs)
+					{
+						any(rhs).swap(*this);
+						return *this;
+					}
+
+					/// Has the same effect as any(std::move(rhs)).swap(*this).
+					///
+					/// The state of *this is equivalent to the original state of rhs and rhs is left in a valid
+					/// but otherwise unspecified state.
+					any& operator=(any&& rhs) noexcept
+					{
+						any(std::move(rhs)).swap(*this);
+						return *this;
+					}
+
+					/// Has the same effect as any(std::forward<ValueType>(value)).swap(*this). No effect if a exception is thrown.
+					///
+					/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
+					/// This is because an `any` may be copy constructed into another `any` at any time, so a copy should always be allowed.
+					template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, any>::value)
+						&& (!std::is_convertible<typename std::decay<ValueType>::type*, any const*>::value)> MSE_IMPL_EIS >
+						any& operator=(ValueType&& value)
+					{
+						static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
+							"T shall satisfy the CopyConstructible requirements.");
+						any(std::forward<ValueType>(value)).swap(*this);
+						return *this;
+					}
+
+					/// If not empty, destroys the contained object.
+					void reset() noexcept
+					{
+						if (!empty())
+						{
+							this->vtable->destroy(storage);
+							this->vtable = nullptr;
+						}
+					}
+
+					/// Returns true if *this has no contained object, otherwise false.
+					_NODISCARD constexpr bool empty() const noexcept
+					{
+						return this->vtable == nullptr;
+					}
+
+					_NODISCARD /*constexpr */bool has_value() const noexcept {
+						return !empty();
+					}
+
+					/// If *this has a contained object of type T, typeid(T); otherwise typeid(void).
+					const std::type_info& type() const noexcept
+					{
+						return empty() ? typeid(void) : this->vtable->type();
+					}
+
+					/// Exchange the states of *this and rhs.
+					void swap(any& rhs) noexcept
+					{
+						if (this->vtable != rhs.vtable)
+						{
+							any tmp(std::move(rhs));
+
+							// move from *this to rhs.
+							rhs.vtable = this->vtable;
+							if (this->vtable != nullptr)
+							{
+								this->vtable->move(this->storage, rhs.storage);
+								//this->vtable = nullptr; -- uneeded, see below
+							}
+
+							// move from tmp (previously rhs) to *this.
+							this->vtable = tmp.vtable;
+							if (tmp.vtable != nullptr)
+							{
+								tmp.vtable->move(tmp.storage, this->storage);
+								tmp.vtable = nullptr;
+							}
+						}
+						else // same types
+						{
+							if (this->vtable != nullptr)
+								this->vtable->swap(this->storage, rhs.storage);
+						}
+					}
+
+				private: // Storage and Virtual Method Table
+
+					void* storage_address() noexcept
+					{
+						return empty() ? nullptr : this->vtable->storage_address(storage);
+					}
+					const void* storage_address() const noexcept
+					{
+						return empty() ? nullptr : this->vtable->const_storage_address(storage);
+					}
+
+					union storage_union
+					{
+#ifdef MSE_DISABLE_SOO_EXTENSIONS1
+#define MSE_IMPL_ANY_SOO_SIZE_FACTOR	1
+#else // MSE_DISABLE_SOO_EXTENSIONS1
+#define MSE_IMPL_ANY_SOO_SIZE_FACTOR	4
+#endif // MSE_DISABLE_SOO_EXTENSIONS1
+
+						using stack_storage_t = typename std::aligned_storage<MSE_IMPL_ANY_SOO_SIZE_FACTOR * 2 * sizeof(void*), std::alignment_of<void*>::value>::type;
+
+						void* dynamic;
+						stack_storage_t     stack;      // 2 words for e.g. shared_ptr
+					};
+
+					/// Base VTable specification.
+					struct vtable_type
+					{
+						// Note: The caller is responssible for doing .vtable = nullptr after destructful operations
+						// such as destroy() and/or move().
+
+						/// The type of the object this vtable is for.
+						const std::type_info& (*type)() noexcept;
+
+						/// Destroys the object in the union.
+						/// The state of the union after this call is unspecified, caller must ensure not to use src anymore.
+						void(*destroy)(storage_union&) noexcept;
+
+						/// Copies the **inner** content of the src union into the yet unitialized dest union.
+						/// As such, both inner objects will have the same state, but on separate memory locations.
+						void(*copy)(const storage_union& src, storage_union& dest);
+
+						/// Moves the storage from src to the yet unitialized dest union.
+						/// The state of src after this call is unspecified, caller must ensure not to use src anymore.
+						void(*move)(storage_union& src, storage_union& dest) noexcept;
+
+						/// Exchanges the storage between lhs and rhs.
+						void(*swap)(storage_union& lhs, storage_union& rhs) noexcept;
+
+						void* (*storage_address)(storage_union&) noexcept;
+						const void* (*const_storage_address)(const storage_union&) noexcept;
+					};
+
+					/// VTable for dynamically allocated storage.
+					template<typename T>
+					struct vtable_dynamic
+					{
+						static const std::type_info& type() noexcept
+						{
+							return typeid(T);
+						}
+
+						static void destroy(storage_union& storage) noexcept
+						{
+							//assert(reinterpret_cast<T*>(storage.dynamic));
+							delete reinterpret_cast<T*>(storage.dynamic);
+						}
+
+						static void copy(const storage_union& src, storage_union& dest)
+						{
+							dest.dynamic = new T(*reinterpret_cast<const T*>(src.dynamic));
+						}
+
+						static void move(storage_union& src, storage_union& dest) noexcept
+						{
+							dest.dynamic = src.dynamic;
+							src.dynamic = nullptr;
+						}
+
+						static void swap(storage_union& lhs, storage_union& rhs) noexcept
+						{
+							// just exchage the storage pointers.
+							std::swap(lhs.dynamic, rhs.dynamic);
+						}
+
+						static void* storage_address(storage_union& storage) noexcept
+						{
+							return static_cast<void*>(storage.dynamic);
+						}
+
+						static const void* const_storage_address(const storage_union& storage) noexcept
+						{
+							return static_cast<const void*>(storage.dynamic);
+						}
+					};
+
+					/// VTable for stack allocated storage.
+					template<typename T>
+					struct vtable_stack
+					{
+						static const std::type_info& type() noexcept
+						{
+							return typeid(T);
+						}
+
+						static void destroy(storage_union& storage) noexcept
+						{
+							reinterpret_cast<T*>(&storage.stack)->~T();
+						}
+
+						static void copy(const storage_union& src, storage_union& dest)
+						{
+							new (&dest.stack) T(reinterpret_cast<const T&>(src.stack));
+						}
+
+						static void move(storage_union& src, storage_union& dest) noexcept
+						{
+							// one of the conditions for using vtable_stack is a nothrow move constructor,
+							// so this move constructor will never throw a exception.
+							new (&dest.stack) T(std::move(reinterpret_cast<T&>(src.stack)));
+							destroy(src);
+						}
+
+						static void swap(storage_union& lhs, storage_union& rhs) noexcept
+						{
+							std::swap(reinterpret_cast<T&>(lhs.stack), reinterpret_cast<T&>(rhs.stack));
+						}
+
+						static void* storage_address(storage_union& storage) noexcept
+						{
+							return static_cast<void*>(&storage.stack);
+						}
+
+						static const void* const_storage_address(const storage_union& storage) noexcept
+						{
+							return static_cast<const void*>(&storage.stack);
+						}
+					};
+
+					template<class T, class EqualTo>
+					struct SupportsStdSwap_impl
+					{
+						template<class U, class V>
+						static auto test(U* u) -> decltype(std::swap(*u, *u), std::declval<V>(), bool(true));
+						template<typename, typename>
+						static auto test(...)->std::false_type;
+
+						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+						static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+					};
+					template<class T, class EqualTo = T>
+					struct SupportsStdSwap : SupportsStdSwap_impl<
+						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+					/// Whether the type T must be dynamically allocated or can be stored on the stack.
+					template<typename T>
+					struct requires_allocation :
+						std::integral_constant<bool,
+						!(
+#ifdef MSE_DISABLE_SOO_EXTENSIONS1
+							std::is_nothrow_move_constructible<T>::value      // N4562 ?6.3/3 [any.class]
+#else // MSE_DISABLE_SOO_EXTENSIONS1
+							SupportsStdSwap<T>::value
+							&& std::is_move_constructible<T>::value
+							&& (std::is_move_assignable<T>::value || std::is_copy_assignable<T>::value)
+#endif // MSE_DISABLE_SOO_EXTENSIONS1
+							&& sizeof(T) <= sizeof(storage_union::stack)
+							&& std::alignment_of<T>::value <= std::alignment_of<storage_union::stack_storage_t>::value)>
+					{};
+
+					/// Returns the pointer to the vtable of the type T.
+					template<typename T>
+					static vtable_type* vtable_for_type()
+					{
+						using VTableType = mse::impl::conditional_t<requires_allocation<T>::value, vtable_dynamic<T>, vtable_stack<T>>;
+						static vtable_type table = {
+							VTableType::type, VTableType::destroy,
+							VTableType::copy, VTableType::move,
+							VTableType::swap, VTableType::storage_address,
+							VTableType::const_storage_address,
+						};
+						return &table;
+					}
+
+				private:
+					template<typename T>
+					friend const T* any_cast(const any* operand) noexcept;
+					template<typename T>
+					friend T* any_cast(any* operand) noexcept;
+
+					/// Same effect as is_same(this->type(), t);
+					bool is_typed(const std::type_info& t) const
+					{
+						return is_same(this->type(), t);
+					}
+
+					/// Checks if two type infos are the same.
+					///
+					/// If ANY_IMPL_FAST_TYPE_INFO_COMPARE is defined, checks only the address of the
+					/// type infos, otherwise does an actual comparision. Checking addresses is
+					/// only a valid approach when there's no interaction with outside sources
+					/// (other shared libraries and such).
+					static bool is_same(const std::type_info& a, const std::type_info& b)
+					{
+#ifdef ANY_IMPL_FAST_TYPE_INFO_COMPARE
+						return &a == &b;
+#else
+						return a == b;
+#endif
+					}
+
+					/// Casts (with no type_info checks) the storage pointer as const T*.
+					template<typename T>
+					const T* cast() const noexcept
+					{
+						return requires_allocation<typename std::decay<T>::type>::value ?
+							reinterpret_cast<const T*>(storage.dynamic) :
+							reinterpret_cast<const T*>(&storage.stack);
+					}
+
+					/// Casts (with no type_info checks) the storage pointer as T*.
+					template<typename T>
+					T* cast() noexcept
+					{
+						return requires_allocation<typename std::decay<T>::type>::value ?
+							reinterpret_cast<T*>(storage.dynamic) :
+							reinterpret_cast<T*>(&storage.stack);
+					}
+
+				private:
+					storage_union storage; // on offset(0) so no padding for align
+					vtable_type* vtable;
+
+					template<typename ValueType, typename T>
+					mse::impl::enable_if_t<requires_allocation<T>::value>
+						do_construct(ValueType&& value)
+					{
+						storage.dynamic = new T(std::forward<ValueType>(value));
+					}
+
+					template<typename ValueType, typename T>
+					mse::impl::enable_if_t<!requires_allocation<T>::value>
+						do_construct(ValueType&& value)
+					{
+						new (&storage.stack) T(std::forward<ValueType>(value));
+					}
+
+					/// Chooses between stack and dynamic allocation for the type decay_t<ValueType>,
+					/// assigns the correct vtable, and constructs the object on our storage.
+					template<typename ValueType>
+					void construct(ValueType&& value)
+					{
+						using T = typename std::decay<ValueType>::type;
+
+						this->vtable = vtable_for_type<T>();
+
+						do_construct<ValueType, T>(std::forward<ValueType>(value));
+					}
+
+					template<typename _Ty2> friend class mse::us::impl::xsrtc::TAnyPointerBaseV1;
+					template<typename _Ty2> friend class mse::us::impl::xsrtc::TAnyConstPointerBaseV1;
+				};
+
+
+				template <class _TPointer>
+				bool operator_bool_helper1(std::true_type, const _TPointer& ptr_cref) {
+					return !(!ptr_cref);
+				}
+				template <class _TPointer>
+				bool operator_bool_helper1(std::false_type, const _TPointer&) {
+					/* We need to return the result of conversion to bool, but in this case the "pointer" type, _TPointer, is not convertible
+					to bool. Presumably because _TPointer is actually an iterator type. Unfortunately there isn't a good way, in general, to
+					determine if an iterator points to a valid item. */
+					assert(false);
+					return false;
+				}
+
+				template <typename _Ty>
+				class TCommonPointerInterface {
+				public:
+					virtual ~TCommonPointerInterface() {}
+					virtual _Ty& operator*() const = 0;
+					virtual _Ty* operator->() const = 0;
+					virtual operator bool() const = 0;
+				};
+
+				template <typename _Ty, typename _TPointer1>
+				class TCommonizedPointer : public TCommonPointerInterface<_Ty> {
+				public:
+					TCommonizedPointer(const _TPointer1& pointer) : m_pointer(pointer) {}
+					virtual ~TCommonizedPointer() {}
+
+					_Ty& operator*() const {
+						/* Using the mse::us::impl::raw_reference_to<>() function allows us to, for example, obtain an 'int&' to
+						an mse::Tint<int>. This allows a pointer to an mse::TInt<int> to be used as a pointer to an int. */
+						return mse::us::impl::raw_reference_to<_Ty>(*m_pointer);
+					}
+					_Ty* operator->() const {
+						return std::addressof(mse::us::impl::raw_reference_to<_Ty>(*m_pointer));
+					}
+					operator bool() const {
+						//return bool(m_pointer);
+						return mse::us::impl::xsrtc::operator_bool_helper1<_TPointer1>(typename std::is_convertible<_TPointer1, bool>::type(), m_pointer);
+					}
+
+					_TPointer1 m_pointer;
+				};
+
+				template <typename _Ty> class TAnyConstPointerBaseV1;
+
+				template <typename _Ty>
+				class TAnyPointerBaseV1 {
+				public:
+					TAnyPointerBaseV1(const TAnyPointerBaseV1& src) : m_any_pointer(src.m_any_pointer) {}
+
+					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
+						&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+						> MSE_IMPL_EIS >
+					TAnyPointerBaseV1(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
+
+					_Ty& operator*() const {
+						return (*(*common_pointer_interface_ptr()));
+					}
+					_Ty* operator->() const {
+						return std::addressof(*(*common_pointer_interface_ptr()));
+					}
+					operator bool() const {
+						return bool(*common_pointer_interface_ptr());
+					}
+
+					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
+					bool operator==(const _TPointer1& _Right_cref) const {
+						if (!bool(*this)) {
+							if (!bool(_Right_cref)) {
+								return true;
+							}
+							else {
+								return false;
+							}
+						}
+						/* Note that both underlying stored pointers are dereferenced here and we may be relying on the intrinsic
+						safety of those pointers to ensure the safety of the dereference operations. */
+						return ((void*)(std::addressof(*(*this))) == (void*)(std::addressof(*_Right_cref)));
+					}
+					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
+					bool operator!=(const _TPointer1& _Right_cref) const { return !((*this) == _Right_cref); }
+#ifndef MSE_HAS_CXX20
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+					template <typename _TPointer1, typename _TPointer2, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
+						&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+						&& std::is_convertible<_TPointer2*, TAnyPointerBaseV1 const *>::value
+					> MSE_IMPL_EIS >
+						friend bool operator==(const _TPointer1& _Left_cref, const TAnyPointerBaseV1& _Right_cref) {
+						return _Right_cref.operator==(_Left_cref);
+					}
+					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
+						&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+					> MSE_IMPL_EIS >
+						friend bool operator!=(const _TPointer1& _Left_cref, const TAnyPointerBaseV1& _Right_cref) {
+						return !(_Right_cref.operator==(_Left_cref));
+					}
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#endif // !MSE_HAS_CXX20
+
+				protected:
+					MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+					const TCommonPointerInterface<_Ty>* common_pointer_interface_ptr() const {
+						auto retval = static_cast<const TCommonPointerInterface<_Ty>*>(m_any_pointer.storage_address());
+						assert(nullptr != retval);
+						return retval;
+					}
+
+					mse::us::impl::xsrtc::any m_any_pointer;
+
+					friend class TAnyConstPointerBaseV1<_Ty>;
+				};
+
+				template <typename _Ty>
+				class TCommonConstPointerInterface {
+				public:
+					virtual ~TCommonConstPointerInterface() {}
+					virtual const _Ty& operator*() const = 0;
+					virtual const _Ty* operator->() const = 0;
+					virtual operator bool() const = 0;
+				};
+
+				template <typename _Ty, typename _TConstPointer1>
+				class TCommonizedConstPointer : public TCommonConstPointerInterface<_Ty> {
+				public:
+					TCommonizedConstPointer(const _TConstPointer1& const_pointer) : m_const_pointer(const_pointer) {}
+					virtual ~TCommonizedConstPointer() {}
+
+					const _Ty& operator*() const {
+						/* Using the mse::us::impl::raw_reference_to<>() function allows us to, for example, obtain a 'const int&' to
+						an mse::Tint<int>. This allows a pointer to an mse::TInt<int> to be used as a pointer to a const int. */
+						return mse::us::impl::raw_reference_to<const _Ty>(*m_const_pointer);
+					}
+					const _Ty* operator->() const {
+						return std::addressof(mse::us::impl::raw_reference_to<const _Ty>(*m_const_pointer));
+					}
+					operator bool() const {
+						//return bool(m_const_pointer);
+						return mse::us::impl::xsrtc::operator_bool_helper1<_TConstPointer1>(typename std::is_convertible<_TConstPointer1, bool>::type(), m_const_pointer);
+					}
+
+					_TConstPointer1 m_const_pointer;
+				};
+
+				template <typename _Ty>
+				class TAnyConstPointerBaseV1 {
+				public:
+					TAnyConstPointerBaseV1(const TAnyConstPointerBaseV1& src) : m_any_const_pointer(src.m_any_const_pointer) {}
+					TAnyConstPointerBaseV1(const TAnyPointerBaseV1<_Ty>& src) : m_any_const_pointer(src.m_any_pointer) {}
+
+					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
+						&& (!std::is_convertible<TAnyPointerBaseV1<_Ty>, _TPointer1>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+					> MSE_IMPL_EIS >
+						TAnyConstPointerBaseV1(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
+
+					const _Ty& operator*() const {
+						return (*(*common_pointer_interface_const_ptr()));
+					}
+					const _Ty* operator->() const {
+						return std::addressof(*(*common_pointer_interface_const_ptr()));
+					}
+					operator bool() const {
+						return bool(*common_pointer_interface_const_ptr());
+					}
+
+					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
+					bool operator==(const _TPointer1& _Right_cref) const {
+						if (!bool(*this)) {
+							if (!bool(_Right_cref)) {
+								return true;
+							}
+							else {
+								return false;
+							}
+						}
+						/* Note that both underlying stored pointers are dereferenced here and we may be relying on the intrinsic
+						safety of those pointers to ensure the safety of the dereference operations. */
+						return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
+					}
+					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
+					bool operator !=(const _TPointer1& _Right_cref) const { return !((*this) == _Right_cref); }
+#ifndef MSE_HAS_CXX20
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+					template <typename _TPointer1, typename _TPointer2, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
+						&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+						&& std::is_convertible<_TPointer2*, TAnyConstPointerBaseV1 const*>::value
+					> MSE_IMPL_EIS >
+						friend bool operator==(const _TPointer1& _Left_cref, const TAnyConstPointerBaseV1& _Right_cref) {
+						return _Right_cref.operator==(_Left_cref);
+					}
+					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
+						&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+					> MSE_IMPL_EIS >
+						friend bool operator!=(const _TPointer1& _Left_cref, const TAnyConstPointerBaseV1& _Right_cref) {
+						return !(_Right_cref.operator==(_Left_cref));
+					}
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#endif // !MSE_HAS_CXX20
+
+				protected:
+					MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+					const TCommonPointerInterface<_Ty>* common_pointer_interface_const_ptr() const {
+						/* This use of mse::us::impl::xsrtc::any::storage_address() brings to mind the fact that the (pre-C++17) implementation
+						of mse::us::impl::xsrtc::any that we're using does not support over-aligned types. (And therefore neither does this
+						template.) Though it's hard to imagine a reason why a pointer would be declared an over-aligned type. */
+						auto retval = static_cast<const TCommonPointerInterface<_Ty>*>(m_any_const_pointer.storage_address());
+						assert(nullptr != retval);
+						return retval;
+					}
+
+					mse::us::impl::xsrtc::any m_any_const_pointer;
+				};
+			}
 
 			template<typename _TROz> using TXScopeObjBase = mse::TNDNoradObj<_TROz>;
-			template<typename _Ty> using TXScopeItemPointerBase = mse::us::impl::TAnyPointerBase<_Ty>;
-			template<typename _Ty> using TXScopeItemConstPointerBase = mse::us::impl::TAnyConstPointerBase<_Ty>;
+			template<typename _Ty> using TXScopeItemPointerBase = mse::us::impl::xsrtc::TAnyPointerBaseV1<_Ty>;
+			template<typename _Ty> using TXScopeItemConstPointerBase = mse::us::impl::xsrtc::TAnyConstPointerBaseV1<_Ty>;
 
 			template<typename _Ty, lifetime_info1_t lt_info1 = no_lifetime_info1>
 			class TXScopeObjPointerBase : public mse::TNDNoradPointer<_Ty> {
@@ -535,6 +1194,7 @@ namespace mse {
 		{
 		public:
 			typedef mse::us::impl::TXScopeObjBase<_TROy> base_class;
+			typedef _TROy element_t;
 
 			TXScopeObj(const TXScopeObj& _X) = default;
 			TXScopeObj(TXScopeObj&& _X) = default;
@@ -590,6 +1250,12 @@ namespace mse {
 			friend class TXScopeOwnerPointer;
 			//friend class TXScopeOwnerPointer<_TROy, lt_info1>;
 		};
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<typename _TROy>
+		TXScopeObj(_TROy)->TXScopeObj<_TROy>;
+#endif /* MSE_HAS_CXX17 */
 	}
 
 	template<typename _Ty>
@@ -3129,6 +3795,8 @@ namespace mse {
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma pop_macro("_NOEXCEPT")
+#pragma pop_macro("MSE_THROW")
+#pragma pop_macro("_NODISCARD")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
 
 #ifdef __clang__

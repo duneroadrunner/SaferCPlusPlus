@@ -446,7 +446,7 @@ void msetl_example2() {
 		assert(fnii_vector1_expected == mse::make_xscope_borrowing_fixed_nii_vector(&xs_nii_vector1_xscpobj));
 
 		/* Constructing a xscope_borrowing_fixed_nii_vector<> requires a (non-const) scope pointer to an eligible vector. */
-		auto xs_bf_nii_vector1_xscpobj = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xs_nii_vector1_xscpobj));
+		auto xs_bf_nii_vector1_xscpobj = mse::make_xscope_borrowing_fixed_nii_vector(&xs_nii_vector1_xscpobj);
 
 		{
 			/* Here we're obtaining a scope iterator to the fixed vector. */
@@ -482,11 +482,15 @@ void msetl_example2() {
 		shared between asynchronous threads using "access requesters". */
 
 		auto xs_shareable_nii_vector1 = mse::make_xscope(mse::nii_vector<shareable_A_t>{});
-		auto xs_aco_bf_nii_vector1 = mse::make_xscope(mse::make_xscope_access_controlled(mse::make_xscope_borrowing_fixed_nii_vector(&xs_shareable_nii_vector1)));
+		mse::TXScopeObj<mse::TXScopeAccessControlledObj<mse::xscope_borrowing_fixed_nii_vector<mse::nii_vector<shareable_A_t> > > > xs_aco_bf_nii_vector1(&xs_shareable_nii_vector1);
+		// which can also be written as
+		// auto xs_aco_bf_nii_vector1 = mse::make_xscope(mse::make_xscope_access_controlled(mse::xscope_borrowing_fixed_nii_vector<mse::nii_vector<shareable_A_t> >(&xs_shareable_nii_vector1)));
 		auto xs_access_requester1 = mse::make_xscope_asyncsharedv2acoreadwrite(&xs_aco_bf_nii_vector1);
 
 		auto xs_shareable_nii_vector2 = mse::make_xscope(mse::nii_vector<mse::nii_string>{ "abc", "def" });
-		auto xs_aco_bf_nii_vector2 = mse::make_xscope(mse::make_xscope_access_controlled(mse::make_xscope_borrowing_fixed_nii_vector(&xs_shareable_nii_vector2)));
+		mse::TXScopeObj<mse::TXScopeAccessControlledObj<mse::xscope_borrowing_fixed_nii_vector<mse::nii_vector<mse::nii_string> > > > xs_aco_bf_nii_vector2(&xs_shareable_nii_vector2);
+		// which can also be written as
+		// auto xs_aco_bf_nii_vector1 = mse::make_xscope(mse::make_xscope_access_controlled(mse::xscope_borrowing_fixed_nii_vector<mse::nii_vector<mse::nii_string> >(&xs_shareable_nii_vector2)));
 		auto xs_access_requester2 = mse::make_xscope_asyncsharedv2acoreadwrite(&xs_aco_bf_nii_vector2);
 
 		auto xs_shareable_nii_vector3 = mse::make_xscope(mse::nii_vector<A>{});
@@ -794,17 +798,17 @@ void msetl_example2() {
 		values.
 		*/
 
-		auto xs_mstd_vec1_citer2 = ++mse::make_xscope_begin_iterator(&xs_mstd_vec1);
-		B::foo1(xs_mstd_vec1_citer2);
+		auto xs_mstd_vec1_iter2 = ++mse::make_xscope_begin_iterator(&xs_mstd_vec1);
+		B::foo1(xs_mstd_vec1_iter2);
 		auto xs_mstd_vec1_iter1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
 		auto res4 = B::foo2(xs_mstd_vec1_iter1);
 
-		auto xs_mstd_vec1_begin_citer1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
-		mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter1 = xs_mstd_vec1_begin_citer1;
-		auto xs_mstd_vec1_end_citer1 = mse::make_xscope_end_iterator(&xs_mstd_vec1);
-		mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter2 = xs_mstd_vec1_end_citer1;
+		auto xs_mstd_vec1_begin_iter1 = mse::make_xscope_begin_iterator(&xs_mstd_vec1);
+		mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter1 = xs_mstd_vec1_begin_iter1;
+		auto xs_mstd_vec1_end_iter1 = mse::make_xscope_end_iterator(&xs_mstd_vec1);
+		mse::TXScopeCSSSXSTERandomAccessIterator<int> xs_te_iter2 = xs_mstd_vec1_end_iter1;
 		auto res5 = xs_te_iter2 - xs_te_iter1;
-		xs_te_iter1 = xs_te_iter2;
+		xs_te_iter2 = xs_te_iter1;
 
 		{
 			auto std_array1 = mse::make_xscope(std::array<int, 4>{ 1, 2, 3, 4 });
@@ -938,6 +942,80 @@ void msetl_example2() {
 		}
 
 		mse::self_test::COptionalTest1::s_test1();
+#endif // EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+	}
+
+	{
+		/***********/
+		/*  any<>  */
+		/***********/
+
+		{
+			/* mstd::any<> is essentially just a safe implementation of std::any<>. */
+			auto any1 = mse::mstd::any{ 7 };
+			assert(any1.has_value());
+			auto val1 = mse::mstd::any_cast<int>(any1);
+		}
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+		{
+			/* You might think of `any` as a dynamic container like a vector<> that supports a maximum of one element.
+			So like vectors, directly accessing or referencing the contents of an `any` is discouraged. Instead
+			prefer to access the contents via an xscope_borrowing_fixed_any<>, which is a "non-dynamic" type (i.e. its
+			element, if present, can be modified, but elements cannot be added or removed), that will "borrow" the contents
+			of the "dynamic" `any`. */
+
+			auto xs_any1 = mse::make_xscope(mse::make_any<mse::mstd::string>("abc"));
+			// which can also be written as
+			// auto xs_any1 = mse::TXScopeObj<mse::any<mse::mstd::string> >("abc");
+
+			xs_any1 = {};
+			xs_any1 = mse::mstd::string("def");
+
+			{
+				/* Here we obtain an xscope_borrowing_fixed_any<> that "borrows" the contents of xs_any1. */
+				auto xs_bfany1 = mse::make_xscope_borrowing_fixed_any(&xs_any1);
+
+				/* Note that accessing xs_any1 is prohibited while xs_bfany1 exists. This restriction is enforced.*/
+
+				/* Here we obtain a (safe) pointer to the contained element. */
+				auto xs_elem_ptr1 = mse::make_xscope_fixed_any_element_pointer<mse::mstd::string>(&xs_bfany1);
+
+				/* We can also then obtain a scope pointer to the contained element. */
+				auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
+				auto val1 = *xs_ptr1;
+				*xs_ptr1 = mse::mstd::string("ghi");
+			}
+			/* After the xscope_borrowing_fixed_any<> is gone, we can again access our `any`. */
+			xs_any1.reset();
+		}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+
+		{
+			/* Analogous to mtnii_vector<>, mt_any is a version that is eligible to be shared among threads, at a
+			cost of slightly higher run-time overhead. When suitable, using `any` and xscope_borrowing_any<> is
+			generally preferred. */
+			auto any1_access_requester = mse::make_asyncsharedv2readwrite<mse::mt_any>(mse::nii_string("abc"));
+			auto elem_ptr1 = mse::make_any_element_pointer<mse::nii_string>(any1_access_requester.writelock_ptr());
+			auto val1 = *elem_ptr1;
+		}
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+		{
+			/* `any`s can, like any other type, be declared as a scope type (using mse::make_xscope() / mse::TXScopeObj<>).
+			But they do not support using scope types as their contained element type. It is (intended to be) uncommon to need
+			such capability. But the library does provide a couple of versions that support it. xscope_mt_any is eligible
+			to be shared among (scope) threads, while xscope_st_any is not. */
+
+			/* Here we're creating a (string) object of scope type. */
+			auto xs_str1 = mse::make_xscope(mse::mstd::string("abc"));
+
+			/* Here we're creating an xscope_st_any object that contains a scope pointer to the (scope) string object.
+			mstd::any, for example, would not support this. */
+			auto xsany1 = mse::make_xscope_st_any<decltype(&xs_str1)>(&xs_str1);
+
+			auto val1 = *(mse::any_cast<decltype(&xs_str1)>(xsany1));
+		}
+
+		mse::self_test::CAnyTest1::s_test1();
 #endif // EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
 
@@ -1333,7 +1411,7 @@ void msetl_example2() {
 		auto xs_nii_string1_xscpobj = mse::make_xscope(mse::nii_string{ "abc" });
 
 		/* Constructing a xscope_borrowing_fixed_nii_string requires a (non-const) scope pointer to an eligible string. */
-		auto xs_bf_nii_string1_xscpobj = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_basic_string(&xs_nii_string1_xscpobj));
+		auto xs_bf_nii_string1_xscpobj = mse::make_xscope_borrowing_fixed_nii_basic_string(&xs_nii_string1_xscpobj);
 		/* or alternatively: */
 		//mse::TXScopeObj<mse::xscope_borrowing_fixed_nii_basic_string<mse::nii_string> > xs_bf_nii_string1_xscpobj{ &xs_nii_string1_xscpobj };
 
@@ -1363,7 +1441,9 @@ void msetl_example2() {
 		shared between asynchronous threads using "access requesters". */
 
 		auto xs_shareable_nii_string1 = mse::make_xscope(mse::nii_string{ "def" });
-		auto xs_aco_bf_nii_string1 = mse::make_xscope(mse::make_xscope_access_controlled(mse::make_xscope_borrowing_fixed_nii_basic_string(&xs_shareable_nii_string1)));
+		mse::TXScopeObj<mse::TXScopeAccessControlledObj<mse::xscope_borrowing_fixed_nii_basic_string<mse::nii_string> > > xs_aco_bf_nii_string1(&xs_shareable_nii_string1);
+		// which can also be written as
+		// auto xs_aco_bf_nii_string1 = mse::make_xscope(mse::make_xscope_access_controlled(mse::xscope_borrowing_fixed_nii_basic_string<mse::nii_string>(&xs_shareable_nii_string1)));
 		auto xs_access_requester1 = mse::make_xscope_asyncsharedv2acoreadwrite(&xs_aco_bf_nii_string1);
 	}
 
@@ -1680,7 +1760,8 @@ void msetl_example2() {
 			mse::xscope_range_for_each_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 
 			{
-				auto xscope_bfnv1 = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xscope_nv1));
+				auto xscope_bfnv1 = mse::make_xscope_borrowing_fixed_nii_vector(&xscope_nv1);
+
 				mse::xscope_range_for_each_ptr(&xscope_bfnv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
 			}
 			{
@@ -1918,28 +1999,28 @@ void msetl_example2() {
 			if (iptrwbv2) {
 				auto res10 = iptrwbv2[0];
 				auto res11 = iptrwbv2[1];
-				auto res12 = iptrwbv2[2];
+auto res12 = iptrwbv2[2];
 			}
 		}
 
 		{
-			struct s1_type {
-				MSE_LH_FIXED_ARRAY_DECLARATION(int, 3, nar11) = { 1, 2, 3 };
-			} s1, s2;
+		struct s1_type {
+			MSE_LH_FIXED_ARRAY_DECLARATION(int, 3, nar11) = { 1, 2, 3 };
+		} s1, s2;
 
-			MSE_LH_FIXED_ARRAY_DECLARATION(int, 5, nar1) = { 1, 2, 3, 4, 5 };
-			auto res14 = nar1[0];
-			auto res15 = nar1[1];
-			auto res16 = nar1[2];
+		MSE_LH_FIXED_ARRAY_DECLARATION(int, 5, nar1) = { 1, 2, 3, 4, 5 };
+		auto res14 = nar1[0];
+		auto res15 = nar1[1];
+		auto res16 = nar1[2];
 
-			s2 = s1;
+		s2 = s1;
 
-			s2.nar11[1] = 4;
-			s1 = s2;
-			auto res16b = s1.nar11[1];
+		s2.nar11[1] = 4;
+		s1 = s2;
+		auto res16b = s1.nar11[1];
 
-			MSE_LH_ARRAY_ITERATOR_TYPE(int) naraiter1 = s1.nar11;
-			auto res16c = naraiter1[1];
+		MSE_LH_ARRAY_ITERATOR_TYPE(int) naraiter1 = s1.nar11;
+		auto res16c = naraiter1[1];
 		}
 
 		{
@@ -2010,7 +2091,7 @@ void msetl_example2() {
 			auto res_str1 = func_ptr1(3, 5);
 			auto res_str1b = (*func_ptr1)(3, 5);
 
-			std::string (*func_ptr2)(int x, int y) = &CB::foo1;
+			std::string(*func_ptr2)(int x, int y) = &CB::foo1;
 			func_ptr2 = &CB::foo1;
 			auto res_str2 = func_ptr2(3, 5);
 			auto res_str2b = (*func_ptr2)(3, 5);
