@@ -979,6 +979,8 @@ usage example:
 
 [*provisional*]
 
+*Note, if you are using scpptool for safety enforcement, you can(/probably should) instead use the supported [lifetime constraint annotations](https://github.com/duneroadrunner/scpptool#annotating-lifetime-constraints-in-function-interfaces).*
+
 For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted to be used as function return values. (The [`return_value()`](#return_value) function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be a `min(a, b)` function which takes two objects by reference and returns the reference to the lesser of the two objects. For these cases you could use the `xscope_chosen()` function which takes two objects of the same type (in this case it will be two scope pointers) and returns (a copy of) one of the objects (scope pointers), which one depending on the value of a given "decider" function. You could use this function to implement the equivalent of a `min(a, b)` function like so:
 
 ```cpp
@@ -1011,6 +1013,8 @@ For safety reasons, non-owning scope pointers (or any objects containing a scope
 ### as_a_returnable_fparam()
 
 [*provisional*]
+
+*Note, if you are using scpptool for safety enforcement, you can(/probably should) instead use the supported [lifetime constraint annotations](https://github.com/duneroadrunner/scpptool#annotating-lifetime-constraints-in-function-interfaces).*
 
 Another alternative if you want to return a scope pointer (or any object containing a scope reference) function parameter is to (immediately) create a "returnable" version of it using the `rsv::as_a_returnable_fparam()` function.
 
@@ -1118,6 +1122,8 @@ void main(int argc, char* argv[]) {
 ### as_an_fparam()
 
 [*provisional*]
+
+*Note, if you are using [scpptool](https://github.com/duneroadrunner/scpptool) for safety enforcement, you can instead just use const references in the usual way.*
 
 `rsv::TFParam<>` is just a transparent template wrapper for function parameter declarations. In most cases use of this wrapper is not necessary, but in some cases it enables functionality only available to variables that are function parameters. Specifically, it allows functions to support arguments that are scope pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so in the case of function parameters, the `rsv::TFParam<>` wrapper enables certain scope pointer/reference types (like `TXScopeFixedConstPointer<>`, and "[random access const sections](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" scope types) to be constructed from their "functionally disabled" counterparts.
 
