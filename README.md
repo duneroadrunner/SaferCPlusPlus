@@ -39,9 +39,8 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     2. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
     3. [SaferCPlusPlus versus Checked C](#safercplusplus-versus-checked-c)
 5. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
-6. [Registered pointers](#registered-pointers)
-    <details>
-    <summary>...</summary>
+6. <details>
+    <summary>Registered pointers</summary>
 
     1. [TRegisteredPointer](#tregisteredpointer)
         1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
@@ -51,12 +50,14 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     2. [TCRegisteredPointer](#tcregisteredpointer)
     3. [TNDRegisteredPointer, TNDCRegisteredPointer](#tndregisteredpointer-tndcregisteredpointer)
     </details>
-7. [Norad pointers](#norad-pointers)
+7. <details>
+    <summary>Norad pointers</summary>
+
     1. [TNoradPointer](#tnoradpointer)
+    </details>
 8. [Simple benchmarks](#simple-benchmarks)
-9. [Reference counting pointers](#reference-counting-pointers)
-    <details>
-    <summary>...</summary>
+9. <details>
+    <summary>Reference counting pointers</summary>
 
     1. [TRefCountingPointer](#trefcountingpointer)
         1. [TRefCountingNotNullPointer](#trefcountingnotnullpointer)
@@ -64,9 +65,8 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
         3. [TRefCountingConstPointer](#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer)
     2. [Using registered pointers as weak pointers](#using-registered-pointers-as-weak-pointers-with-reference-counting-pointers)
     </details>
-10. [Scope pointers](#scope-pointers)
-    <details>
-    <summary>...</summary>
+10. <details>
+    <summary>Scope pointers</summary>
 
     1. [TXScopeFixedPointer](#txscopefixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
@@ -87,9 +87,8 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     3. [TAnyPointer](#txscopeanypointer-txscopeanyconstpointer-tanypointer-tanyconstpointer)
 13. [pointer_to()](#pointer_to)
 14. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
-15. [Multithreading](#multithreading)
-    <details>
-    <summary>...</summary>
+15. <details>
+    <summary>Multithreading</summary>
 
     1. [TAsyncPassableObj](#tasyncpassableobj)
     2. [thread](#thread)
@@ -122,18 +121,16 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [CNDInt, CNDSize_t and CNDBool](#cndint-cndsize_t-and-cndbool)
     3. [Quarantined types](#quarantined-types)
-17. [Arrays](#arrays)
-    <details>
-    <summary>...</summary>
+17. <details>
+    <summary>Arrays</summary>
 
     1. [mstd::array](#mstdarray)
     2. [nii_array](#nii_array)
     3. [xscope_nii_array](#xscope_nii_array)
     4. [xscope_iterator](#xscope_iterator)
     </details>
-18. [Vectors](#vectors)
-    <details>
-    <summary>...</summary>
+18. <details>
+    <summary>Vectors</summary>
 
     1. [mstd::vector](#mstdvector)
     2. [nii_vector](#nii_vector)
@@ -142,9 +139,8 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     5. [ivector](#ivector)
     </details>
 19. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
-20. [Strings](#strings)
-    <details>
-    <summary>...</summary>
+20. <details>
+    <summary>Strings</summary>
 
     1. [mstd::string](#mstdstring)
     2. [nii_string](#nii_string)
@@ -154,9 +150,8 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     6. [mstd::string_view](#string_view)
     7. [nrp_string_view](#nrp_string_view)
     </details>
-21. Poly Iterators and Sections
-    <details>
-    <summary>...</summary>
+21. <details>
+    <summary>Poly Iterators and Sections</summary>
 
     1. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
     2. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
@@ -165,27 +160,28 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     5. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
     6. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
     </details>
-22. [Optionals](#optionals)
-    <details>
-    <summary>...</summary>
+22. <details>
+    <summary>Optionals</summary>
 
     1. [mstd::optional](#mstdoptional)
     2. [optional](#optional)
     3. [fixed_optional](#fixed_optional)
     4. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
     </details>
-23. [Anys](#anys)
-    <details>
-    <summary>...</summary>
+23. <details>
+    <summary>Anys</summary>
 
     1. [mstd::any](#mstdany)
     2. [any](#any)
     3. [fixed_any](#fixed_any)
     4. [xscope_borrowing_fixed_any](#xscope_borrowing_fixed_any)
     </details>
-24. [Tuples](#tuples)
+24. <details>
+    <summary>Tuples</summary>
+
     1. [mstd::tuple](#tuple)
     2. [xscope_tuple](#xscope_tuple)
+    </details>
 25. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
