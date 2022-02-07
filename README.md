@@ -138,18 +138,23 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     2. [optional](#optional)
     3. [fixed_optional](#fixed_optional)
     4. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
-23. [Tuples](#tuples)
+23. [Anys](#anys)
+    1. [mstd::any](#mstdany)
+    2. [any](#any)
+    3. [fixed_any](#fixed_any)
+    4. [xscope_borrowing_fixed_any](#xscope_borrowing_fixed_any)
+24. [Tuples](#tuples)
     1. [mstd::tuple](#tuple)
     2. [xscope_tuple](#xscope_tuple)
-24. [Algorithms](#algorithms)
+25. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
-25. [thread_local](#thread_local)
-26. [(Type-erased) function objects](#type-erased-function-objects)
+26. [thread_local](#thread_local)
+27. [(Type-erased) function objects](#type-erased-function-objects)
     1. [mstd::function](#function)
     2. [xscope_function](#xscope_function)
-27. [Practical limitations](#practical-limitations)
-28. [Questions and comments](#questions-and-comments)
+28. [Practical limitations](#practical-limitations)
+29. [Questions and comments](#questions-and-comments)
 
 ### Use cases
 
@@ -3761,6 +3766,118 @@ usage example:
         // auto xsopt1 = mse::xscope_st_optional<mse::TXScopeFixedPointer<mse::mstd::string> >(&xs_str1);
 
         auto val1 = *(xsopt1.value());
+    }
+```
+
+### Anys
+
+Conceptually, you might think of an `any` as a dynamic container, like an `optional<>`, that supports a maximum of one element, but without restriction on the element type. So the library provides a few versions of `any`, and "any element" pointers that roughly correspond to their [`optional<>` counterparts](#optionals).
+
+### mstd::any
+
+`mstd::any` is essentially just a safe implementation of std::any. 
+
+usage example:
+
+```cpp
+    #include "mseany.h"
+    
+    void main(int argc, char* argv[]) {
+        auto any1 = mse::mstd::any<int>{ 7 };
+        assert(any1.has_value());
+        auto val1 = mse::mstd::any_cast<int>(any1);
+    }
+```
+
+### any
+
+Unlike its optional counterpart, [`optional<>`](#optional), `any` is not eligible to be shared among asynchronous threads, as at any given time its contained element may itself not be safely shareable. But like `optional<>`, the preferred way of accessing or referencing the contained element is via [`xscope_borrowing_fixed_any<>`](#xscope_borrowing_fixed_any).
+
+usage example: (see the example for [`xscope_borrowing_fixed_any<>`](#xscope_borrowing_fixed_any))
+
+### fixed_any
+
+Analogous to its optional counterpart, [`fixed_optional<>`](#fixed_optional), `fixed_any` is just a version of `any` whose contained element type and quantity (zero or one) is fixed at construction.
+
+### xscope_fixed_any
+
+Analogous to its optional counterpart, [`xscope_fixed_optional<>`](#xscope_fixed_optional), `xscope_fixed_any` is just a version of [`fixed_any`](#fixed_any) that supports elements of scope type, and as a scope type itself, is subject to the restrictions of scope objects.
+
+### xscope_borrowing_fixed_any
+
+Analogous to its optional counterpart, [`xscope_borrowing_fixed_optional<>`](#xscope_borrowing_fixed_optional), `xscope_borrowing_fixed_any<>` is like [`xscope_fixed_any`](#xscope_fixed_any), except that, at construction, "borrows" the contents of a specified (via scope pointer) existing `any`, then, upon destruction "releases" the (possibly modified) contents back to the original owner. Like `xscope_borrowing_fixed_optional<>`, the contained element, if any, is not (necessarily) moved when "borrowed", but equivalently, the "borrowing" object is granted "exclusive access" to the "lending" object for the duration of the borrow.
+
+usage example:
+
+```cpp
+    #include "mseany.h"
+    #include "msemstdstring.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        auto xs_any1 = mse::make_xscope(mse::make_any<mse::mstd::string>("abc"));
+        // which can also be written as
+        // auto xs_any1 = mse::TXScopeObj<mse::any<mse::mstd::string> >("abc");
+
+        xs_any1 = {};
+        xs_any1 = mse::mstd::string("def");
+
+        {
+            /* Here we obtain an xscope_borrowing_fixed_any<> that "borrows" the contents of xs_any1. */
+            auto xs_bfany1 = mse::make_xscope_borrowing_fixed_any(&xs_any1);
+
+            /* Note that accessing xs_any1 is prohibited while xs_bfany1 exists. This restriction is enforced.*/
+
+            /* Here we obtain a (safe) pointer to the contained element. */
+            auto xs_elem_ptr1 = mse::make_xscope_fixed_any_element_pointer<mse::mstd::string>(&xs_bfany1);
+
+            /* We can also then obtain a scope pointer to the contained element. */
+            auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
+            auto val1 = *xs_ptr1;
+            *xs_ptr1 = mse::mstd::string("ghi");
+        }
+        /* After the xscope_borrowing_fixed_any<> is gone, we can again access our `any`. */
+        xs_any1.reset();
+    }
+```
+
+### mt_any
+
+Analogous to [`mtoptional<>`](#mtoptional), `mt_any` supports direct access and references to its contained element and is [eligible to be shared](#asynchronously-shared-objects) among threads (and thus can only accept values of shareable type). Like their iterator counterparts, scope any element pointers, while they exist, hold a ["structure lock"](#structure-locking) on their target `any` object which prevents the contained element from being destroyed. As with the optionals, [`xscope_borrowing_fixed_any<>`](#xscope_borrowing_fixed_any) (like all the "fixed-size" anys) can also be shared among threads and are generally preferred when suitable.
+
+usage example:
+
+```cpp
+    #include "mseany.h"
+    #include "msemsestring.h"
+    #include "mseasyncshared.h"
+    
+    void main(int argc, char* argv[]) {
+        auto any1_access_requester = mse::make_asyncsharedv2readwrite<mse::mt_any>(mse::nii_string("abc"));
+        auto elem_ptr1 = mse::make_any_element_pointer<mse::nii_string>(any1_access_requester.writelock_ptr());
+        auto val1 = *elem_ptr1;
+    }
+```
+
+### xscope_mt_any, xscope_st_any
+
+[`mstd::any`](#mstdany) and [`mt_any`](#mt_any) can, like any other type, be declared as a [scope type](#scope-pointers) (using `mse::make_xscope()` / `mse::TXScopeObj<>`). But they do not support using scope types as their contained element type. It is (intended to be) uncommon to need such capability. But the library does provide a couple of versions that support it. `xscope_mt_any` is eligible to be shared among (scope) threads, while `xscope_st_any` is not. `xscope_mt_any` and `xscope_st_any` are of course themselves scope types and subject to the corresponding usage restrictions.
+
+usage example:
+
+```cpp
+    #include "mseany.h"
+    #include "msemstdstring.h"
+    
+    void main(int argc, char* argv[]) {
+        /* Here we're creating a (string) object of scope type. */
+        auto xs_str1 = mse::make_xscope(mse::mstd::string("abc"));
+
+        /* Here we're creating an xscope_st_any object that contains a scope pointer to the (scope) string object.
+        mstd::any, for example, would not support this. */
+        auto xsany1 = mse::make_xscope_st_any<decltype(&xs_str1)>(&xs_str1);
+
+        auto val1 = *(mse::any_cast<decltype(&xs_str1)>(xsany1));
     }
 ```
 
