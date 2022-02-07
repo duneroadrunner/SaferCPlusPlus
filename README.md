@@ -872,7 +872,7 @@ usage example:
 
 ### TNoradProxyPointer
 
-"norad proxy" pointers are to ["registered proxy" pointers](#tregisteredproxypointer) as [norad pointers](#norad-pointers) are to [registered pointers](#registered-pointers). That is, the difference is that the destruction of a a norad proxy object while a norad proxy pointer still references it will result in program termination. So like their registered counterparts:
+"norad proxy" pointers are to ["registered proxy" pointers](#tregisteredproxypointer) as [norad pointers](#norad-pointers) are to [registered pointers](#registered-pointers). That is, the difference is that the destruction of a norad proxy object while a norad proxy pointer still references it will result in program termination. So like their registered counterparts:
 
 Norad proxy pointers are basically just norad pointers which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TNoradProxyPointer<T>` is similar to a `TNoradPointer<TXScopeFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the `TXScopeFixedPointer<T>`. They are also convertible back to scope pointers when needed.
 
