@@ -29,7 +29,6 @@ Elements in this library are currently based on the C++17 version of their count
 #### Supported platforms
 Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and clang++12.0.0 (Ubuntu 20.04). Versions of g++ prior to version 5 are not supported. Last tested with Apple clang++ version 12.0.0 (macOS Catalina v10.15.7) on Aug 18, 2021. Apple clang++ is not currently a regular test target. Some (generally "less commonly used") features are not available with Apple clang++ (for example, some uses of `std::tie`). With the microsoft compiler, compiling in "conformance" mode (/permissive-) (which is not the default when using C++17 or lower) is recommended.
 
-
 ### Table of contents
 1. [Overview](#overview)
 2. [Use cases](#use-cases)
@@ -42,6 +41,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 6. <details>
     <summary>Registered pointers</summary>
 
+    1. [Overview](#registered-pointers)
     1. [TRegisteredPointer](#tregisteredpointer)
         1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
         2. [TRegisteredFixedPointer](#tregisteredfixedpointer)
@@ -53,12 +53,14 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 7. <details>
     <summary>Norad pointers</summary>
 
+    1. [Overview](#norad-pointers)
     1. [TNoradPointer](#tnoradpointer)
     </details>
 8. [Simple benchmarks](#simple-benchmarks)
 9. <details>
     <summary>Reference counting pointers</summary>
 
+    1. [Overview](#reference-counting-pointers)
     1. [TRefCountingPointer](#trefcountingpointer)
         1. [TRefCountingNotNullPointer](#trefcountingnotnullpointer)
         2. [TRefCountingFixedPointer](#trefcountingfixedpointer)
@@ -68,6 +70,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 10. <details>
     <summary>Scope pointers</summary>
 
+    1. [Overview](#scope-pointers)
     1. [TXScopeFixedPointer](#txscopefixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
@@ -90,6 +93,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 15. <details>
     <summary>Multithreading</summary>
 
+    1. [Overview](#multithreading)
     1. [TAsyncPassableObj](#tasyncpassableobj)
     2. [thread](#thread)
     3. [async()](#async)
@@ -124,6 +128,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 17. <details>
     <summary>Arrays</summary>
 
+    1. [Overview](#arrays)
     1. [mstd::array](#mstdarray)
     2. [nii_array](#nii_array)
     3. [xscope_nii_array](#xscope_nii_array)
@@ -132,6 +137,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 18. <details>
     <summary>Vectors</summary>
 
+    1. [Overview](#vectors)
     1. [mstd::vector](#mstdvector)
     2. [nii_vector](#nii_vector)
     3. [fixed_nii_vector](#fixed_nii_vector)
@@ -142,6 +148,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 20. <details>
     <summary>Strings</summary>
 
+    1. [Overview](#strings)
     1. [mstd::string](#mstdstring)
     2. [nii_string](#nii_string)
     3. [xscope_borrowing_fixed_nii_basic_string](#xscope_borrowing_fixed_nii_basic_string)
@@ -153,6 +160,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 21. <details>
     <summary>Poly Iterators and Sections</summary>
 
+    1. [Overview](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
     1. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
     2. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
     3. [TAnyStringSection](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection)
@@ -163,6 +171,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 22. <details>
     <summary>Optionals</summary>
 
+    1. [Overview](#optionals)
     1. [mstd::optional](#mstdoptional)
     2. [optional](#optional)
     3. [fixed_optional](#fixed_optional)
@@ -171,6 +180,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 23. <details>
     <summary>Anys</summary>
 
+    1. [Overview](#anys)
     1. [mstd::any](#mstdany)
     2. [any](#any)
     3. [fixed_any](#fixed_any)
@@ -179,6 +189,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
 24. <details>
     <summary>Tuples</summary>
 
+    1. [Overview](#tuples)
     1. [mstd::tuple](#tuple)
     2. [xscope_tuple](#xscope_tuple)
     </details>
