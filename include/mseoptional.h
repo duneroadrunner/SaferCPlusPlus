@@ -5884,7 +5884,7 @@ namespace mse {
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		mse::optional<TPointer> m_maybe_ptr;
+		mse::us::impl::ns_optional::optional_base1<TPointer> m_maybe_ptr;
 		bool is_null() const { return !(m_maybe_ptr.has_value()); }
 	};
 

@@ -1869,6 +1869,93 @@ namespace mse {
 #endif // !MSE_SCOPE_POINTERS_AND_ITERATORS_MAY_BOTH_BE_RAW_POINTERS
 
 	namespace us {
+		template <class _TTargetType, class _TLeaseType> class TXScopeSyncWeakFixedConstPointer;
+
+		template <class _TTargetType, class _TLeaseType>
+		class TXScopeSyncWeakFixedPointer : public TSyncWeakFixedPointer<_TTargetType, _TLeaseType>, public mse::us::impl::XScopeTagBase {
+		public:
+			typedef TSyncWeakFixedPointer<_TTargetType, _TLeaseType> base_class;
+
+			TXScopeSyncWeakFixedPointer(const TXScopeSyncWeakFixedPointer&) = default;
+			template<class _TLeaseType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> MSE_IMPL_EIS >
+			TXScopeSyncWeakFixedPointer(const TXScopeSyncWeakFixedPointer<_TTargetType, _TLeaseType2>& src_cref) : base_class(static_cast<const TSyncWeakFixedPointer<_TTargetType, _TLeaseType2>&>(src_cref)) {}
+
+			template <class _TTargetType2, class _TLeaseType2>
+			static TXScopeSyncWeakFixedPointer make(_TTargetType2& target, const _TLeaseType2& lease) {
+				return base_class::make(target, lease);
+			}
+			template <class _TTargetType2, class _TLeaseType2>
+			static TXScopeSyncWeakFixedPointer make(_TTargetType2& target, _TLeaseType2&& lease) {
+				return base_class::make(target, MSE_FWD(lease));
+			}
+
+		protected:
+			TXScopeSyncWeakFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
+				: base_class(target, lease) {}
+			TXScopeSyncWeakFixedPointer(_TTargetType& target/* often a struct member */, _TLeaseType&& lease)
+				: base_class(target, MSE_FWD(lease)) {}
+		private:
+			TXScopeSyncWeakFixedPointer(const base_class& src_cref) : base_class(src_cref) {}
+
+			TXScopeSyncWeakFixedPointer& operator=(const TXScopeSyncWeakFixedPointer& _Right_cref) = delete;
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+			friend class TXScopeSyncWeakFixedConstPointer<_TTargetType, _TLeaseType>;
+		};
+
+		template <class _TTargetType, class _TLeaseType>
+		TXScopeSyncWeakFixedPointer<_TTargetType, _TLeaseType> make_xscope_syncweak(_TTargetType& target, const _TLeaseType& lease) {
+			return TXScopeSyncWeakFixedPointer<_TTargetType, _TLeaseType>::make(target, lease);
+		}
+		template <class _TTargetType, class _TLeaseType>
+		auto make_xscope_syncweak(_TTargetType& target, _TLeaseType&& lease) -> TXScopeSyncWeakFixedPointer<_TTargetType, mse::impl::remove_reference_t<_TLeaseType> > {
+			return TXScopeSyncWeakFixedPointer<_TTargetType, mse::impl::remove_reference_t<_TLeaseType> >::make(target, MSE_FWD(lease));
+		}
+
+		template <class _TTargetType, class _TLeaseType>
+		class TXScopeSyncWeakFixedConstPointer : public TSyncWeakFixedConstPointer<_TTargetType, _TLeaseType>, public mse::us::impl::XScopeTagBase {
+		public:
+			typedef TSyncWeakFixedConstPointer<_TTargetType, _TLeaseType> base_class;
+
+			TXScopeSyncWeakFixedConstPointer(const TXScopeSyncWeakFixedConstPointer&) = default;
+			template<class _TLeaseType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> MSE_IMPL_EIS >
+			TXScopeSyncWeakFixedConstPointer(const TXScopeSyncWeakFixedConstPointer<_TTargetType, _TLeaseType2>& src_cref) : base_class(static_cast<const TSyncWeakFixedConstPointer<_TTargetType, _TLeaseType2>&>(src_cref)) {}
+			TXScopeSyncWeakFixedConstPointer(const TXScopeSyncWeakFixedPointer<_TTargetType, _TLeaseType>& src_cref) : base_class(static_cast<const TSyncWeakFixedConstPointer<_TTargetType, _TLeaseType>&>(src_cref)) {}
+			template<class _TLeaseType2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TLeaseType2, _TLeaseType>::value> MSE_IMPL_EIS >
+			TXScopeSyncWeakFixedConstPointer(const TXScopeSyncWeakFixedPointer<_TTargetType, _TLeaseType2>& src_cref) : base_class(static_cast<const TSyncWeakFixedConstPointer<_TTargetType, _TLeaseType2>&>(src_cref)) {}
+
+			template <class _TTargetType2, class _TLeaseType2>
+			static TXScopeSyncWeakFixedConstPointer make(const _TTargetType2& target, const _TLeaseType2& lease) {
+				return base_class::make(target, lease);
+			}
+			template <class _TTargetType2, class _TLeaseType2>
+			static TXScopeSyncWeakFixedConstPointer make(const _TTargetType2& target, _TLeaseType2&& lease) {
+				return base_class::make(target, MSE_FWD(lease));
+			}
+
+		protected:
+			TXScopeSyncWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
+				: base_class(target, lease) {}
+			TXScopeSyncWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, _TLeaseType&& lease)
+				: base_class(target, MSE_FWD(lease)) {}
+		private:
+			TXScopeSyncWeakFixedConstPointer(const base_class& src_cref) : base_class(src_cref) {}
+
+			TXScopeSyncWeakFixedConstPointer& operator=(const TXScopeSyncWeakFixedConstPointer& _Right_cref) = delete;
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+		};
+
+		template <class _TTargetType, class _TLeaseType>
+		TXScopeSyncWeakFixedConstPointer<_TTargetType, _TLeaseType> make_xscope_const_syncweak(const _TTargetType& target, const _TLeaseType& lease) {
+			return TXScopeSyncWeakFixedConstPointer<_TTargetType, _TLeaseType>::make(target, lease);
+		}
+		template <class _TTargetType, class _TLeaseType>
+		auto make_xscope_const_syncweak(const _TTargetType& target, _TLeaseType&& lease) -> TXScopeSyncWeakFixedConstPointer<_TTargetType, mse::impl::remove_reference_t<_TLeaseType> > {
+			return TXScopeSyncWeakFixedConstPointer<_TTargetType, mse::impl::remove_reference_t<_TLeaseType> >::make(target, MSE_FWD(lease));
+		}
+	}
+
+	namespace us {
 		template <class _TTargetType, class _TLeaseType> class TXScopeStrongFixedConstPointer;
 
 		template <class _TTargetType, class _TLeaseType>
@@ -3603,8 +3690,8 @@ namespace mse {
 	template<typename _Ty> using scpfp MSE_DEPRECATED = TXScopeObjFixedPointer<_Ty>;
 	template<typename _Ty> using scpfcp MSE_DEPRECATED = TXScopeObjFixedConstPointer<_Ty>;
 	template<typename _TROy> using scpo MSE_DEPRECATED = TXScopeObj<_TROy>;
-	template<class _TTargetType, class _TXScopeObjPointerType> using scpwkfp MSE_DEPRECATED = TSyncWeakFixedPointer<_TTargetType, _TXScopeObjPointerType>;
-	template<class _TTargetType, class _TXScopeObjPointerType> using scpwkfcp MSE_DEPRECATED = TSyncWeakFixedConstPointer<_TTargetType, _TXScopeObjPointerType>;
+	template<class _TTargetType, class _TXScopeObjPointerType> using scpwkfp MSE_DEPRECATED = mse::us::TSyncWeakFixedPointer<_TTargetType, _TXScopeObjPointerType>;
+	template<class _TTargetType, class _TXScopeObjPointerType> using scpwkfcp MSE_DEPRECATED = mse::us::TSyncWeakFixedConstPointer<_TTargetType, _TXScopeObjPointerType>;
 
 	template<typename _Ty> using TScopeFixedPointer MSE_DEPRECATED = TXScopeObjFixedPointer<_Ty>;
 	template<typename _Ty> using TScopeFixedConstPointer MSE_DEPRECATED = TXScopeObjFixedConstPointer<_Ty>;

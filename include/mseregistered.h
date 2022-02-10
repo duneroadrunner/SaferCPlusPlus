@@ -957,8 +957,8 @@ namespace mse {
 	void rdelete(const TRegisteredPointer<_Ty>& regPtrRef) { registered_delete<_Ty>(regPtrRef); }
 
 	/* deprecated aliases */
-	template<class _TTargetType, class _TLeasePointerType> using swkfp MSE_DEPRECATED = TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>;
-	template<class _TTargetType, class _TLeasePointerType> using swkfcp MSE_DEPRECATED = TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
+	template<class _TTargetType, class _TLeasePointerType> using swkfp MSE_DEPRECATED = mse::us::TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>;
+	template<class _TTargetType, class _TLeasePointerType> using swkfcp MSE_DEPRECATED = mse::us::TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
 	template<typename _Ty> using TWRegisteredPointer MSE_DEPRECATED = TNDRegisteredPointer<_Ty>;
 	template<typename _Ty> using TWRegisteredConstPointer MSE_DEPRECATED = TNDRegisteredConstPointer<_Ty>;
 	template<typename _Ty> using TWRegisteredNotNullPointer MSE_DEPRECATED = TNDRegisteredNotNullPointer<_Ty>;
@@ -1187,12 +1187,12 @@ namespace mse {
 					(*s2_safe_ptr1) = "some new text";
 					auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member_v2(E_registered_ptr1, &E::s2);
 
-					/* Just testing the convertibility of mse::TSyncWeakFixedPointers. */
+					/* Just testing the convertibility of mse::us::TSyncWeakFixedPointers. */
 					auto E_registered_fixed_ptr1 = &registered_e;
-					auto swfptr1 = mse::make_syncweak<std::string>(E_registered_fixed_ptr1->s2, E_registered_fixed_ptr1);
-					mse::TSyncWeakFixedPointer<std::string, mse::TRegisteredPointer<E>> swfptr2 = swfptr1;
-					mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredFixedPointer<E>> swfcptr1 = swfptr1;
-					mse::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredPointer<E>> swfcptr2 = swfcptr1;
+					auto swfptr1 = mse::us::make_syncweak<std::string>(E_registered_fixed_ptr1->s2, E_registered_fixed_ptr1);
+					mse::us::TSyncWeakFixedPointer<std::string, mse::TRegisteredPointer<E>> swfptr2 = swfptr1;
+					mse::us::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredFixedPointer<E>> swfcptr1 = swfptr1;
+					mse::us::TSyncWeakFixedConstPointer<std::string, mse::TRegisteredPointer<E>> swfcptr2 = swfcptr1;
 					if (swfcptr1 == swfptr1) {
 						int q = 7;
 					}

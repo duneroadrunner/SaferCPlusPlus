@@ -855,12 +855,12 @@ int main(int argc, char* argv[]) {
 			auto s2_safe_const_ptr1 = mse::make_const_pointer_to_member_v2(E_registered_ptr1, &E::s2);
 
 			/* The return type of mse::make_pointer_to_member_v2() depends on the type of the parameters passed
-			to it. In this case, the type of s2_safe_ptr1 is mse::TSyncWeakFixedPointer<std::string,
+			to it. In this case, the type of s2_safe_ptr1 is mse::us::TSyncWeakFixedPointer<std::string,
 			mse::TRegisteredPointer<E>>. s2_safe_ptr1 here is essentially a pointer to "E.s2"
 			(string member of class E) with a registered pointer to E to in its pocket. It uses the registered
 			pointer to ensure that it is safe to access the object. */
 
-			/* In practice, rather than declaring a specific mse::TSyncWeakFixedPointer parameter, we expect
+			/* In practice, rather than declaring a specific mse::us::TSyncWeakFixedPointer parameter, we expect
 			functions intended for general use to be "templatized" so that they can accept any type of pointer. */
 			std::string res1 = H::foo6(s2_safe_ptr1, s2_safe_const_ptr1);
 		}
