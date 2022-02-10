@@ -22,13 +22,12 @@ Besides zero-overhead pointers that enforce some of the necessary restrictions t
 
 And the library also addresses the data race issue, where the Core Guidelines don't (yet) offer anything substantial.
 
-To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
+To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. 
 
 Elements in this library are currently based on the C++17 version of their counterpart APIs. (C++14 is still supported.)
 
 #### Supported platforms
 Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and clang++12.0.0 (Ubuntu 20.04). Versions of g++ prior to version 5 are not supported. Last tested with Apple clang++ version 12.0.0 (macOS Catalina v10.15.7) on Aug 18, 2021. Apple clang++ is not currently a regular test target. Some (generally "less commonly used") features are not available with Apple clang++ (for example, some uses of `std::tie`). With the microsoft compiler, compiling in "conformance" mode (/permissive-) (which is not the default when using C++17 or lower) is recommended.
-
 
 ### Table of contents
 1. [Overview](#overview)
@@ -39,7 +38,10 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     2. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
     3. [SaferCPlusPlus versus Checked C](#safercplusplus-versus-checked-c)
 5. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
-6. [Registered pointers](#registered-pointers)
+6. <details>
+    <summary>Registered pointers</summary>
+
+    1. [Overview](#registered-pointers)
     1. [TRegisteredPointer](#tregisteredpointer)
         1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
         2. [TRegisteredFixedPointer](#tregisteredfixedpointer)
@@ -47,16 +49,28 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
         4. [TRegisteredRefWrapper](#tregisteredrefwrapper)
     2. [TCRegisteredPointer](#tcregisteredpointer)
     3. [TNDRegisteredPointer, TNDCRegisteredPointer](#tndregisteredpointer-tndcregisteredpointer)
-7. [Norad pointers](#norad-pointers)
+    </details>
+7. <details>
+    <summary>Norad pointers</summary>
+
+    1. [Overview](#norad-pointers)
     1. [TNoradPointer](#tnoradpointer)
+    </details>
 8. [Simple benchmarks](#simple-benchmarks)
-9. [Reference counting pointers](#reference-counting-pointers)
+9. <details>
+    <summary>Reference counting pointers</summary>
+
+    1. [Overview](#reference-counting-pointers)
     1. [TRefCountingPointer](#trefcountingpointer)
         1. [TRefCountingNotNullPointer](#trefcountingnotnullpointer)
         2. [TRefCountingFixedPointer](#trefcountingfixedpointer)
         3. [TRefCountingConstPointer](#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer)
     2. [Using registered pointers as weak pointers](#using-registered-pointers-as-weak-pointers-with-reference-counting-pointers)
-10. [Scope pointers](#scope-pointers)
+    </details>
+10. <details>
+    <summary>Scope pointers</summary>
+
+    1. [Overview](#scope-pointers)
     1. [TXScopeFixedPointer](#txscopefixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
@@ -68,6 +82,7 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     9. [Conformance helpers](#conformance-helpers)
         1. [return_value()](#return_value)
         2. [TMemberObj](#tmemberobj)
+    </details>
 11. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
 12. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
@@ -75,7 +90,10 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     3. [TAnyPointer](#txscopeanypointer-txscopeanyconstpointer-tanypointer-tanyconstpointer)
 13. [pointer_to()](#pointer_to)
 14. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
-15. [Multithreading](#multithreading)
+15. <details>
+    <summary>Multithreading</summary>
+
+    1. [Overview](#multithreading)
     1. [TAsyncPassableObj](#tasyncpassableobj)
     2. [thread](#thread)
     3. [async()](#async)
@@ -102,23 +120,35 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
         1. [static immutables](#static-immutables)
         2. [static atomics](#static-atomics)
         3. [static access controlled objects and access requesters](#static-access-controlled-objects-and-access-requesters)
+    </details>
 16. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [CNDInt, CNDSize_t and CNDBool](#cndint-cndsize_t-and-cndbool)
     3. [Quarantined types](#quarantined-types)
-17. [Arrays](#arrays)
+17. <details>
+    <summary>Arrays</summary>
+
+    1. [Overview](#arrays)
     1. [mstd::array](#mstdarray)
     2. [nii_array](#nii_array)
     3. [xscope_nii_array](#xscope_nii_array)
     4. [xscope_iterator](#xscope_iterator)
-18. [Vectors](#vectors)
+    </details>
+18. <details>
+    <summary>Vectors</summary>
+
+    1. [Overview](#vectors)
     1. [mstd::vector](#mstdvector)
     2. [nii_vector](#nii_vector)
     3. [fixed_nii_vector](#fixed_nii_vector)
     4. [xscope_borrowing_fixed_nii_vector](#xscope_borrowing_fixed_nii_vector)
     5. [ivector](#ivector)
+    </details>
 19. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
-20. [Strings](#strings)
+20. <details>
+    <summary>Strings</summary>
+
+    1. [Overview](#strings)
     1. [mstd::string](#mstdstring)
     2. [nii_string](#nii_string)
     3. [xscope_borrowing_fixed_nii_basic_string](#xscope_borrowing_fixed_nii_basic_string)
@@ -126,30 +156,52 @@ Tested with the microsoft compiler (v.19.29.30138) (Windows 10), g++10.3.0 and c
     5. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
     6. [mstd::string_view](#string_view)
     7. [nrp_string_view](#nrp_string_view)
-21. Poly Iterators and Sections
+    </details>
+21. <details>
+    <summary>Poly Iterators and Sections</summary>
+
+    1. [Overview](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
     1. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
     2. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
     3. [TAnyStringSection](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection)
     4. [TAnyNRPStringSection](#txscopeanynrpstringsection-txscopeanynrpstringconstsection-tanynrpstringsection-tanynrpstringconstsection)
     5. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
     6. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
-22. [Optionals](#optionals)
+    </details>
+22. <details>
+    <summary>Optionals</summary>
+
+    1. [Overview](#optionals)
     1. [mstd::optional](#mstdoptional)
     2. [optional](#optional)
     3. [fixed_optional](#fixed_optional)
     4. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
-23. [Tuples](#tuples)
+    </details>
+23. <details>
+    <summary>Anys</summary>
+
+    1. [Overview](#anys)
+    1. [mstd::any](#mstdany)
+    2. [any](#any)
+    3. [fixed_any](#fixed_any)
+    4. [xscope_borrowing_fixed_any](#xscope_borrowing_fixed_any)
+    </details>
+24. <details>
+    <summary>Tuples</summary>
+
+    1. [Overview](#tuples)
     1. [mstd::tuple](#tuple)
     2. [xscope_tuple](#xscope_tuple)
-24. [Algorithms](#algorithms)
+    </details>
+25. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
-25. [thread_local](#thread_local)
-26. [(Type-erased) function objects](#type-erased-function-objects)
+26. [thread_local](#thread_local)
+27. [(Type-erased) function objects](#type-erased-function-objects)
     1. [mstd::function](#function)
     2. [xscope_function](#xscope_function)
-27. [Practical limitations](#practical-limitations)
-28. [Questions and comments](#questions-and-comments)
+28. [Practical limitations](#practical-limitations)
+29. [Questions and comments](#questions-and-comments)
 
 ### Use cases
 
@@ -872,7 +924,7 @@ usage example:
 
 ### TNoradProxyPointer
 
-"norad proxy" pointers are to ["registered proxy" pointers](#tregisteredproxypointer) as [norad pointers](#norad-pointers) are to [registered pointers](#registered-pointers). That is, the difference is that the destruction of a a norad proxy object while a norad proxy pointer still references it will result in program termination. So like their registered counterparts:
+"norad proxy" pointers are to ["registered proxy" pointers](#tregisteredproxypointer) as [norad pointers](#norad-pointers) are to [registered pointers](#registered-pointers). That is, the difference is that the destruction of a norad proxy object while a norad proxy pointer still references it will result in program termination. So like their registered counterparts:
 
 Norad proxy pointers are basically just norad pointers which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TNoradProxyPointer<T>` is similar to a `TNoradPointer<TXScopeFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the `TXScopeFixedPointer<T>`. They are also convertible back to scope pointers when needed.
 
@@ -938,6 +990,8 @@ usage example:
 
 [*provisional*]
 
+*Note, if you are using scpptool for safety enforcement, you can(/probably should) instead use the supported [lifetime constraint annotations](https://github.com/duneroadrunner/scpptool#annotating-lifetime-constraints-in-function-interfaces).*
+
 For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted to be used as function return values. (The [`return_value()`](#return_value) function wrapper enforces this.) Pretty much the only time you'd legitimately want to do this is when the returned pointer is one of the input parameters. An example might be a `min(a, b)` function which takes two objects by reference and returns the reference to the lesser of the two objects. For these cases you could use the `xscope_chosen()` function which takes two objects of the same type (in this case it will be two scope pointers) and returns (a copy of) one of the objects (scope pointers), which one depending on the value of a given "decider" function. You could use this function to implement the equivalent of a `min(a, b)` function like so:
 
 ```cpp
@@ -970,6 +1024,8 @@ For safety reasons, non-owning scope pointers (or any objects containing a scope
 ### as_a_returnable_fparam()
 
 [*provisional*]
+
+*Note, if you are using scpptool for safety enforcement, you can(/probably should) instead use the supported [lifetime constraint annotations](https://github.com/duneroadrunner/scpptool#annotating-lifetime-constraints-in-function-interfaces).*
 
 Another alternative if you want to return a scope pointer (or any object containing a scope reference) function parameter is to (immediately) create a "returnable" version of it using the `rsv::as_a_returnable_fparam()` function.
 
@@ -1077,6 +1133,8 @@ void main(int argc, char* argv[]) {
 ### as_an_fparam()
 
 [*provisional*]
+
+*Note, if you are using [scpptool](https://github.com/duneroadrunner/scpptool) for safety enforcement, you can instead just use const references in the usual way.*
 
 `rsv::TFParam<>` is just a transparent template wrapper for function parameter declarations. In most cases use of this wrapper is not necessary, but in some cases it enables functionality only available to variables that are function parameters. Specifically, it allows functions to support arguments that are scope pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so in the case of function parameters, the `rsv::TFParam<>` wrapper enables certain scope pointer/reference types (like `TXScopeFixedConstPointer<>`, and "[random access const sections](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" scope types) to be constructed from their "functionally disabled" counterparts.
 
@@ -3761,6 +3819,118 @@ usage example:
         // auto xsopt1 = mse::xscope_st_optional<mse::TXScopeFixedPointer<mse::mstd::string> >(&xs_str1);
 
         auto val1 = *(xsopt1.value());
+    }
+```
+
+### Anys
+
+Conceptually, you might think of an `any` as a dynamic container, like an `optional<>`, that supports a maximum of one element, but without restriction on the element type. So the library provides a few versions of `any`, and "any element" pointers that roughly correspond to their [`optional<>` counterparts](#optionals).
+
+### mstd::any
+
+`mstd::any` is essentially just a safe implementation of std::any. 
+
+usage example:
+
+```cpp
+    #include "mseany.h"
+    
+    void main(int argc, char* argv[]) {
+        auto any1 = mse::mstd::any<int>{ 7 };
+        assert(any1.has_value());
+        auto val1 = mse::mstd::any_cast<int>(any1);
+    }
+```
+
+### any
+
+Unlike its optional counterpart, [`optional<>`](#optional), `any` is not eligible to be shared among asynchronous threads, as at any given time its contained element may itself not be safely shareable. But like `optional<>`, the preferred way of accessing or referencing the contained element is via [`xscope_borrowing_fixed_any<>`](#xscope_borrowing_fixed_any).
+
+usage example: (see the example for [`xscope_borrowing_fixed_any<>`](#xscope_borrowing_fixed_any))
+
+### fixed_any
+
+Analogous to its optional counterpart, [`fixed_optional<>`](#fixed_optional), `fixed_any` is just a version of `any` whose contained element type and quantity (zero or one) is fixed at construction.
+
+### xscope_fixed_any
+
+Analogous to its optional counterpart, [`xscope_fixed_optional<>`](#xscope_fixed_optional), `xscope_fixed_any` is just a version of [`fixed_any`](#fixed_any) that supports elements of scope type, and as a scope type itself, is subject to the restrictions of scope objects.
+
+### xscope_borrowing_fixed_any
+
+Analogous to its optional counterpart, [`xscope_borrowing_fixed_optional<>`](#xscope_borrowing_fixed_optional), `xscope_borrowing_fixed_any<>` is like [`xscope_fixed_any`](#xscope_fixed_any), except that, at construction, "borrows" the contents of a specified (via scope pointer) existing `any`, then, upon destruction "releases" the (possibly modified) contents back to the original owner. Like `xscope_borrowing_fixed_optional<>`, the contained element, if any, is not (necessarily) moved when "borrowed", but equivalently, the "borrowing" object is granted "exclusive access" to the "lending" object for the duration of the borrow.
+
+usage example:
+
+```cpp
+    #include "mseany.h"
+    #include "msemstdstring.h"
+    
+    void main(int argc, char* argv[]) {
+    
+        auto xs_any1 = mse::make_xscope(mse::make_any<mse::mstd::string>("abc"));
+        // which can also be written as
+        // auto xs_any1 = mse::TXScopeObj<mse::any<mse::mstd::string> >("abc");
+
+        xs_any1 = {};
+        xs_any1 = mse::mstd::string("def");
+
+        {
+            /* Here we obtain an xscope_borrowing_fixed_any<> that "borrows" the contents of xs_any1. */
+            auto xs_bfany1 = mse::make_xscope_borrowing_fixed_any(&xs_any1);
+
+            /* Note that accessing xs_any1 is prohibited while xs_bfany1 exists. This restriction is enforced.*/
+
+            /* Here we obtain a (safe) pointer to the contained element. */
+            auto xs_elem_ptr1 = mse::make_xscope_fixed_any_element_pointer<mse::mstd::string>(&xs_bfany1);
+
+            /* We can also then obtain a scope pointer to the contained element. */
+            auto xs_ptr1 = mse::xscope_pointer(xs_elem_ptr1);
+            auto val1 = *xs_ptr1;
+            *xs_ptr1 = mse::mstd::string("ghi");
+        }
+        /* After the xscope_borrowing_fixed_any<> is gone, we can again access our `any`. */
+        xs_any1.reset();
+    }
+```
+
+### mt_any
+
+Analogous to [`mtoptional<>`](#mtoptional), `mt_any` supports direct access and references to its contained element and is [eligible to be shared](#asynchronously-shared-objects) among threads (and thus can only accept values of shareable type). Like their iterator counterparts, scope any element pointers, while they exist, hold a ["structure lock"](#structure-locking) on their target `any` object which prevents the contained element from being destroyed. As with the optionals, [`xscope_borrowing_fixed_any<>`](#xscope_borrowing_fixed_any) (like all the "fixed-size" anys) can also be shared among threads and are generally preferred when suitable.
+
+usage example:
+
+```cpp
+    #include "mseany.h"
+    #include "msemsestring.h"
+    #include "mseasyncshared.h"
+    
+    void main(int argc, char* argv[]) {
+        auto any1_access_requester = mse::make_asyncsharedv2readwrite<mse::mt_any>(mse::nii_string("abc"));
+        auto elem_ptr1 = mse::make_any_element_pointer<mse::nii_string>(any1_access_requester.writelock_ptr());
+        auto val1 = *elem_ptr1;
+    }
+```
+
+### xscope_mt_any, xscope_st_any
+
+[`mstd::any`](#mstdany) and [`mt_any`](#mt_any) can, like any other type, be declared as a [scope type](#scope-pointers) (using `mse::make_xscope()` / `mse::TXScopeObj<>`). But they do not support using scope types as their contained element type. It is (intended to be) uncommon to need such capability. But the library does provide a couple of versions that support it. `xscope_mt_any` is eligible to be shared among (scope) threads, while `xscope_st_any` is not. `xscope_mt_any` and `xscope_st_any` are of course themselves scope types and subject to the corresponding usage restrictions.
+
+usage example:
+
+```cpp
+    #include "mseany.h"
+    #include "msemstdstring.h"
+    
+    void main(int argc, char* argv[]) {
+        /* Here we're creating a (string) object of scope type. */
+        auto xs_str1 = mse::make_xscope(mse::mstd::string("abc"));
+
+        /* Here we're creating an xscope_st_any object that contains a scope pointer to the (scope) string object.
+        mstd::any, for example, would not support this. */
+        auto xsany1 = mse::make_xscope_st_any<decltype(&xs_str1)>(&xs_str1);
+
+        auto val1 = *(mse::any_cast<decltype(&xs_str1)>(xsany1));
     }
 ```
 
