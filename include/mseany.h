@@ -937,7 +937,7 @@ namespace mse
 				}
 
 				template<typename T, typename TPointerToAny, class _TStateMutex, class TConstLockableIndicator, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_any::points_to<any_base2<_TStateMutex, TConstLockableIndicator>, TPointerToAny>::value)> MSE_IMPL_EIS >
-				inline auto maybe_any_cast(const TPointerToAny& operand) /*noexcept*/
+				inline auto maybe_any_cast_ptr(const TPointerToAny& operand) /*noexcept*/
 				{
 					auto cast_res = any_cast<T>(std::addressof((*operand).unchecked_contained_any()));
 					return any_cast_make_maybe_pointer_helper01(cast_res, operand);
@@ -993,7 +993,7 @@ namespace mse
 		return mse::us::impl::ns_any::maybe_any_cast<ValueType>(MSE_FWD(operand));
 	}
 	template<typename T, typename TPointerToAny, class _TStateMutex, class TConstLockableIndicator, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_any::points_to<mse::us::impl::ns_any::any_base2<_TStateMutex, TConstLockableIndicator>, TPointerToAny>::value)> MSE_IMPL_EIS >
-	inline auto maybe_any_cast(const TPointerToAny& operand) /*noexcept*/ {
+	inline auto maybe_any_cast_ptr(const TPointerToAny& operand) /*noexcept*/ {
 		return mse::us::impl::ns_any::maybe_any_cast(operand);
 	}
 	template<typename T, typename TPointerToAny, class _TStateMutex, class TConstLockableIndicator, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_any::points_to<mse::us::impl::ns_any::any_base2<_TStateMutex, TConstLockableIndicator>, TPointerToAny>::value)> MSE_IMPL_EIS >
@@ -1009,16 +1009,16 @@ namespace mse
 	namespace impl {
 		namespace ns_any {
 			template<typename T, typename TPointerToAny, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointerToAny>::value)> MSE_IMPL_EIS >
-			inline auto maybe_any_cast(const TPointerToAny& operand) /*noexcept*/ {
+			inline auto maybe_any_cast_ptr_test1(const TPointerToAny& operand) /*noexcept*/ {
 				auto cast_res = any_cast<T>(std::addressof(mse::us::impl::ns_any::contained_any(*operand)));
 				return mse::us::impl::ns_any::any_cast_make_maybe_pointer_helper01(cast_res, operand);
 			}
 
 			template<class T, class EqualTo>
-			struct IsSupportedByMaybeAnyCast_any_impl
+			struct IsSupportedByMaybeAnyCastPtr_any_impl
 			{
 				template<class U, class V>
-				static auto test(U*) -> decltype((maybe_any_cast<int>(std::declval<U>())), (*std::declval<V>()), bool(true));
+				static auto test(U*) -> decltype((maybe_any_cast_ptr_test1<int>(std::declval<U>())), (*std::declval<V>()), bool(true));
 				template<typename, typename>
 				static auto test(...)->std::false_type;
 
@@ -1026,20 +1026,20 @@ namespace mse
 				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
 			};
 			template<>
-			struct IsSupportedByMaybeAnyCast_any_impl<void*, void*> : std::false_type {};
+			struct IsSupportedByMaybeAnyCastPtr_any_impl<void*, void*> : std::false_type {};
 			template<class T, class EqualTo = T>
-			struct IsSupportedByMaybeAnyCast_any : IsSupportedByMaybeAnyCast_any_impl<
+			struct IsSupportedByMaybeAnyCastPtr_any : IsSupportedByMaybeAnyCastPtr_any_impl<
 				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 		}
 	}
 
-	template<typename T, typename TPointerToAny, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_any::IsSupportedByMaybeAnyCast_any<TPointerToAny>::value)> MSE_IMPL_EIS >
-	inline auto maybe_any_cast(const TPointerToAny& operand) /*noexcept*/ {
+	template<typename T, typename TPointerToAny, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_any::IsSupportedByMaybeAnyCastPtr_any<TPointerToAny>::value)> MSE_IMPL_EIS >
+	inline auto maybe_any_cast_ptr(const TPointerToAny& operand) /*noexcept*/ {
 		auto cast_res = any_cast<T>(std::addressof(mse::us::impl::ns_any::contained_any(*operand)));
 		return mse::us::impl::ns_any::any_cast_make_maybe_pointer_helper01(cast_res, operand);
 	}
 
-	template<typename T, typename TPointerToAny, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_any::IsSupportedByMaybeAnyCast_any<TPointerToAny>::value)> MSE_IMPL_EIS >
+	template<typename T, typename TPointerToAny, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_any::IsSupportedByMaybeAnyCastPtr_any<TPointerToAny>::value)> MSE_IMPL_EIS >
 	inline auto any_cast(const TPointerToAny& operand) /*noexcept*/ {
 		auto maybe_ptr = maybe_any_cast<T>(operand);
 		auto retval = mse::make_nullable_pointer<mse::impl::remove_reference_t<decltype(maybe_ptr.value())> >(nullptr);
@@ -1073,11 +1073,11 @@ namespace mse
 
 #define MSE_IMPL_ANY_CONTAINED_ANY_FRIEND_DECLARATIONS1 \
 		template<typename TAny> \
-		friend auto us::impl::ns_any::pointer_to_base_any_member(); \
+		friend auto mse::us::impl::ns_any::pointer_to_base_any_member(); \
 		template<typename TAny> \
-		friend auto us::impl::ns_any::contained_any(const TAny& any1) -> decltype(any1.contained_any()); \
+		friend auto mse::us::impl::ns_any::contained_any(const TAny& any1) -> decltype(any1.contained_any()); \
 		template<typename TAny> \
-		friend auto us::impl::ns_any::contained_any(TAny&& any1) -> decltype(MSE_FWD(any1).contained_any());
+		friend auto mse::us::impl::ns_any::contained_any(TAny&& any1) -> decltype(MSE_FWD(any1).contained_any());
 
 #define MSE_IMPL_ANY_LOCK_DELEGATING_DECLARATIONS1(delegatee) \
 		auto structure_change_lock() const { delegatee.structure_change_lock(); } \
@@ -1511,9 +1511,9 @@ namespace mse
 
 		MSE_IMPL_ANY_CAST_DEFINITIONS1(any)
 
-		template<typename T, typename TPointerToAny, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_any::IsSupportedByMaybeAnyCast_any<TPointerToAny>::value)> MSE_IMPL_EIS >
+		template<typename T, typename TPointerToAny, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_any::IsSupportedByMaybeAnyCastPtr_any<TPointerToAny>::value)> MSE_IMPL_EIS >
 		inline auto any_cast(const TPointerToAny& operand) /*noexcept*/ {
-			auto maybe_ptr = maybe_any_cast<T>(operand);
+			auto maybe_ptr = maybe_any_cast_ptr<T>(operand);
 			auto retval = mse::make_nullable_pointer<mse::impl::remove_reference_t<decltype(maybe_ptr.value())> >(nullptr);
 			if (maybe_ptr.has_value()) {
 				return mse::make_nullable_pointer(maybe_ptr.value());
@@ -3053,12 +3053,9 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		value_t& element_ref(const TXScopeFixedAnyPointer& src) const {
-			auto maybe_elem_ptr = mse::maybe_any_cast<value_t>(src);
+			auto maybe_elem_ptr = mse::maybe_any_cast_ptr<value_t>(src);
 			if (!maybe_elem_ptr.has_value()) {
-				auto maybe_elem_ptr = mse::maybe_any_cast<mse::TXScopeObj<value_t> >(src);
-				if (!maybe_elem_ptr.has_value()) {
-					MSE_THROW(bad_any_cast());
-				}
+				MSE_THROW(bad_any_cast());
 			}
 			return *(maybe_elem_ptr.value());
 		}
@@ -3094,7 +3091,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		value_t& element_ref(const TXScopeFixedAnyPointer& src) const {
-			auto maybe_elem_ptr = mse::maybe_any_cast<value_t>(src);
+			auto maybe_elem_ptr = mse::maybe_any_cast_ptr<value_t>(src);
 			if (!maybe_elem_ptr.has_value()) {
 				MSE_THROW(bad_any_cast());
 			}
@@ -3297,11 +3294,67 @@ namespace mse {
 					return retval;
 				}
 
-				mse::us::impl::ns_any::any m_any_pointer;
+				typedef mse::us::impl::ns_any::any base_class;
+				base_class m_any_pointer;
+
+				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_pointer, contained_any)
 
 				friend class TAnyConstPointerBaseV1<_Ty>;
+				MSE_IMPL_ANY_CONTAINED_ANY_FRIEND_DECLARATIONS1
 			};
+
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(const TAnyPointerBaseV1<_Ty>& operand) {
+				return mse::any_cast<TCommonizedPointer<_Ty, ValueType> >(mse::us::impl::ns_any::contained_any(operand)).m_pointer;
+			}
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(TAnyPointerBaseV1<_Ty>& operand) {
+				return mse::any_cast<TCommonizedPointer<_Ty, ValueType> >(mse::us::impl::ns_any::contained_any(operand)).m_pointer;
+			}
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(TAnyPointerBaseV1<_Ty>&& operand) {
+				return mse::any_cast<TCommonizedPointer<_Ty, ValueType> >(mse::us::impl::ns_any::contained_any(MSE_FWD(operand))).m_pointer;
+			}
+			template<typename ValueType, typename _Ty>
+			inline auto maybe_any_cast(const TAnyPointerBaseV1<_Ty>& operand) {
+				auto maybe_commonized_ptr = mse::maybe_any_cast<TCommonizedPointer<_Ty, ValueType> >(mse::us::impl::ns_any::contained_any(operand));
+				typedef typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type retval_t;
+				if (maybe_commonized_ptr.has_value()) {
+					return retval_t{ maybe_commonized_ptr.value().m_pointer };
+				}
+				return retval_t{};
+			}
+			template<typename ValueType, typename _Ty>
+			inline auto maybe_any_cast(TAnyPointerBaseV1<_Ty>&& operand) {
+				auto maybe_commonized_ptr = mse::maybe_any_cast<TCommonizedPointer<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(MSE_FWD(operand)));
+				typedef typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type retval_t;
+				if (maybe_commonized_ptr.has_value()) {
+					return retval_t{ maybe_commonized_ptr.value().m_pointer };
+				}
+				return retval_t{};
+			}
 		}
+	}
+
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(const mse::us::impl::TAnyPointerBaseV1<_Ty>& operand) {
+		return mse::us::impl::any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(mse::us::impl::TAnyPointerBaseV1<_Ty>& operand) {
+		return mse::us::impl::any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(mse::us::impl::TAnyPointerBaseV1<_Ty>&& operand) {
+		return mse::us::impl::any_cast<ValueType>(MSE_FWD(operand));
+	}
+	template<typename ValueType, typename _Ty/* = mse::impl::target_type<ValueType> */>
+	inline auto maybe_any_cast(const mse::us::impl::TAnyPointerBaseV1<_Ty>& operand) {
+		return mse::us::impl::maybe_any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline auto maybe_any_cast(mse::us::impl::TAnyPointerBaseV1<_Ty>&& operand) {
+		return mse::us::impl::maybe_any_cast<ValueType>(MSE_FWD(operand));
 	}
 
 	namespace us {
@@ -3410,9 +3463,66 @@ namespace mse {
 					return retval;
 				}
 
-				mse::us::impl::ns_any::any m_any_const_pointer;
+				typedef mse::us::impl::ns_any::any base_class;
+				base_class m_any_const_pointer;
+
+				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_const_pointer, contained_any)
+
+				MSE_IMPL_ANY_CONTAINED_ANY_FRIEND_DECLARATIONS1
 			};
+
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(const TAnyConstPointerBaseV1<_Ty>& operand) {
+				return mse::any_cast<TCommonizedConstPointer<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(operand)).m_const_pointer;
+			}
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(TAnyConstPointerBaseV1<_Ty>& operand) {
+				return mse::any_cast<TCommonizedConstPointer<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(operand)).m_const_pointer;
+			}
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(TAnyConstPointerBaseV1<_Ty>&& operand) {
+				return mse::any_cast<TCommonizedConstPointer<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(MSE_FWD(operand))).m_const_pointer;
+			}
+			template<typename ValueType, typename _Ty>
+			inline auto maybe_any_cast(const TAnyConstPointerBaseV1<_Ty>& operand) {
+				auto maybe_commonized_ptr = mse::maybe_any_cast<TCommonizedConstPointer<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(operand));
+				typedef typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type retval_t;
+				if (maybe_commonized_ptr.has_value()) {
+					return retval_t{ maybe_commonized_ptr.value().m_const_pointer };
+				}
+				return retval_t{};
+			}
+			template<typename ValueType, typename _Ty>
+			inline auto maybe_any_cast(TAnyConstPointerBaseV1<_Ty>&& operand) {
+				auto maybe_commonized_ptr = mse::maybe_any_cast<TCommonizedConstPointer<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(MSE_FWD(operand)));
+				typedef typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type retval_t;
+				if (maybe_commonized_ptr.has_value()) {
+					return retval_t{ maybe_commonized_ptr.value().m_const_pointer };
+				}
+				return retval_t{};
+			}
 		}
+	}
+
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(const mse::us::impl::TAnyConstPointerBaseV1<_Ty>& operand) {
+		return mse::us::impl::any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(mse::us::impl::TAnyConstPointerBaseV1<_Ty>& operand) {
+		return mse::us::impl::any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(mse::us::impl::TAnyConstPointerBaseV1<_Ty>&& operand) {
+		return mse::us::impl::any_cast<ValueType>(MSE_FWD(operand));
+	}
+	template<typename ValueType, typename _Ty/* = mse::impl::target_type<ValueType> */>
+	inline auto maybe_any_cast(const mse::us::impl::TAnyConstPointerBaseV1<_Ty>& operand) {
+		return mse::us::impl::maybe_any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline auto maybe_any_cast(mse::us::impl::TAnyConstPointerBaseV1<_Ty>&& operand) {
+		return mse::us::impl::maybe_any_cast<ValueType>(MSE_FWD(operand));
 	}
 
 
