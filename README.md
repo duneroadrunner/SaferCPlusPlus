@@ -3826,6 +3826,8 @@ usage example:
 
 Conceptually, you might think of an `any` as a dynamic container, like an `optional<>`, that supports a maximum of one element, but without restriction on the element type. So the library provides a few versions of `any`, and "any element" pointers that roughly correspond to their [`optional<>` counterparts](#optionals).
 
+Recall that if you pass a (raw) pointer targeting an `std::any` to the `std::any_cast<>()` template function, a (possibly null) (raw) pointer will be returned. Because of safety requirements, this library's implementation of `any_cast<>()` accepts any type of (safe smart) pointer targeting any of the library's `any` types, and returns another (possibly null) safe (smart) pointer. Additionally, the library provides a `maybe_any_cast<>()` template function which returns an `optional<>` (in lieu of throwing an exception or returning a null pointer when the cast fails).
+
 ### mstd::any
 
 `mstd::any` is essentially just a safe implementation of std::any. 
