@@ -2671,6 +2671,7 @@ Note that while `CInt` and `CSize_t` have no problem interacting with native sig
 
 Btw, `CInt` is actually just an alias for a specific instantiation of the `TInt<>` template, which can be used to make a safe version of any given integer type. (Eg. `typedef mse::TInt<signed char> my_safe_small_int;`)
 
+[*provisional*]
 Note that by default `TInt<>` does not address overflow from arithmetic operations. However, when the `MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC` preprocessor symbol is defined, results of arithmetic operations involving `TInt<>` are returned as a (larger) type that can accomodate the range of possible results (without risk of overflow), if such a type is available. Assigning such a result, for example, back to one of the original `TInt<>` operands may result in a "narrowing" conversion that would be checked (at runtime). While not currently the case, one could imagine that, in the future, instantiations of `TInt<>` that don't have a (larger) available type that can accomodate the results of some of their arithmetic operations simply may not support those operations.
 
 ### CNDInt, CNDSize_t and CNDBool
