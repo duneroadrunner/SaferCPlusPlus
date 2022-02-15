@@ -303,11 +303,13 @@ namespace mse {
 			_CONST_FUN typename _MA::const_reference back() const { return contained_array().back(); }
 
 			/* Try to avoid using these whenever possible. */
-			value_type *data() _NOEXCEPT {	// return pointer to mutable data array
-				return contained_array().data();
+			MSE_DEPRECATED value_type *data() _NOEXCEPT {	// return pointer to mutable data array
+				//return contained_array().data();
+				return empty() ? nullptr : std::addressof(front());
 			}
-			const value_type *data() const _NOEXCEPT {	// return pointer to nonmutable data array
-				return contained_array().data();
+			MSE_DEPRECATED const value_type *data() const _NOEXCEPT {	// return pointer to nonmutable data array
+				//return contained_array().data();
+				return empty() ? nullptr : std::addressof(front());
 			}
 
 

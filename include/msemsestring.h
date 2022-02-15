@@ -3960,12 +3960,14 @@ namespace mse {
 					/*m_debug_size = size();*/
 				}
 
-				value_type *data() _NOEXCEPT
+#ifdef MSE_HAS_CXX17
+				MSE_DEPRECATED value_type *data() _NOEXCEPT
 				{	// return pointer to mutable data basic_string
 					return contained_basic_string().data();
 				}
+#endif // MSE_HAS_CXX17
 
-				const value_type *data() const _NOEXCEPT
+				MSE_DEPRECATED const value_type *data() const _NOEXCEPT
 				{	// return pointer to nonmutable data basic_string
 					return contained_basic_string().data();
 				}
@@ -6103,12 +6105,14 @@ namespace mse {
 					/*m_debug_size = size();*/
 				}
 
-				value_type* data() _NOEXCEPT
+#ifdef MSE_HAS_CXX17
+				MSE_DEPRECATED value_type* data() _NOEXCEPT
 				{	// return pointer to mutable data basic_string
 					return contained_basic_string().data();
 				}
+#endif // MSE_HAS_CXX17
 
-				const value_type* data() const _NOEXCEPT
+				MSE_DEPRECATED const value_type* data() const _NOEXCEPT
 				{	// return pointer to nonmutable data basic_string
 					return contained_basic_string().data();
 				}

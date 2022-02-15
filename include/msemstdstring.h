@@ -485,14 +485,19 @@ namespace mse {
 			typename _MBS::const_reference back() const { return m_shptr->back(); }
 
 			/* Try to avoid using these whenever possible. */
-			value_type *data() _NOEXCEPT {
-				return m_shptr->data();
+#ifdef MSE_HAS_CXX17
+			MSE_DEPRECATED value_type *data() _NOEXCEPT {
+				//return m_shptr->data();
+				return empty() ? nullptr : std::addressof(front());
 			}
-			const value_type *data() const _NOEXCEPT {
-				return m_shptr->data();
+#endif /* MSE_HAS_CXX17 */
+			MSE_DEPRECATED const value_type *data() const _NOEXCEPT {
+				//return m_shptr->data();
+				return empty() ? nullptr : std::addressof(front());
 			}
 			auto c_str() const _NOEXCEPT {
-				return m_shptr->data();
+				//return m_shptr->data();
+				return empty() ? nullptr : std::addressof(front());
 			}
 
 			typedef Tbasic_string_xscope_const_iterator<_Ty, _Traits, _A> xscope_const_iterator;

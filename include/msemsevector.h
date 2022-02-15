@@ -1548,12 +1548,12 @@ namespace mse {
 					/*m_debug_size = size();*/
 				}
 
-				value_type *data() _NOEXCEPT
+				MSE_DEPRECATED value_type *data() _NOEXCEPT
 				{	// return pointer to mutable data vector
 					return contained_vector().data();
 				}
 
-				const value_type *data() const _NOEXCEPT
+				MSE_DEPRECATED const value_type *data() const _NOEXCEPT
 				{	// return pointer to nonmutable data vector
 					return contained_vector().data();
 				}

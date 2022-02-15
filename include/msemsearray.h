@@ -669,9 +669,13 @@ namespace mse {
 		struct HasOrInheritsDataMemberFunction : HasOrInheritsDataMemberFunction_impl<
 			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 
-		template <typename _Ty> struct is_contiguous_sequence_container : std::integral_constant<bool,
+		template <typename _Tx, typename _Ty> struct is_contiguous_sequence_container_helper1 : std::integral_constant<bool,
+			(has_random_access_implicit_iterators<_Ty>::value && HasOrInheritsDataMemberFunction<_Ty>::value)> {};
+		template <typename _Ty> struct is_contiguous_sequence_container_helper1<std::true_type, _Ty> : std::true_type {};
+
+		template <typename _Ty> struct is_contiguous_sequence_container : is_contiguous_sequence_container_helper1<std::integral_constant<bool,
 			(std::is_base_of<mse::us::impl::ContiguousSequenceContainerTagBase, mse::impl::remove_reference_t<_Ty> >::value) || (is_std_array<_Ty>::value)
-			|| (IsNativeArray_msemsearray<_Ty>::value) || (has_random_access_implicit_iterators<_Ty>::value && HasOrInheritsDataMemberFunction<_Ty>::value)> {};
+			|| (IsNativeArray_msemsearray<_Ty>::value)>, _Ty> {};
 
 		template <typename _Ty> struct is_contiguous_sequence_static_structure_container_msemsearray : std::integral_constant<bool,
 			(std::is_base_of<mse::us::impl::ContiguousSequenceContainerTagBase, mse::impl::remove_reference_t<_Ty> >::value && std::is_base_of<mse::us::impl::StaticStructureContainerTagBase, mse::impl::remove_reference_t<_Ty> >::value)
@@ -3145,12 +3149,12 @@ namespace mse {
 					return contained_array().at(msear_as_a_size_t(_Pos));
 				}
 
-				value_type* data() _NOEXCEPT
+				MSE_DEPRECATED value_type* data() _NOEXCEPT
 				{	// return pointer to mutable data array
 					return contained_array().data();
 				}
 
-				const value_type* data() const _NOEXCEPT
+				MSE_DEPRECATED const value_type* data() const _NOEXCEPT
 				{	// return pointer to nonmutable data array
 					return contained_array().data();
 				}
