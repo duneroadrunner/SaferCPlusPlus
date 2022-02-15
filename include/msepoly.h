@@ -2105,7 +2105,7 @@ namespace mse {
 			else if ((*this).m_is_null) {
 				return true;
 			}
-			return base_class::operator==(rhs);
+			return mse::us::impl::as_ref<base_class>(*this) == mse::us::impl::as_ref<base_class>(rhs);
 		}
 #ifndef MSE_HAS_CXX20
 		bool operator!=(const TNullableAnyRandomAccessIterator& rhs) const { return !((*this) == rhs); }
@@ -2175,7 +2175,7 @@ namespace mse {
 			else if ((*this).m_is_null) {
 				return true;
 			}
-			return base_class::operator==(rhs);
+			return mse::us::impl::as_ref<base_class>(*this) == mse::us::impl::as_ref<base_class>(rhs);
 		}
 #ifndef MSE_HAS_CXX20
 		bool operator!=(const TXScopeNullableAnyRandomAccessIterator& rhs) const { return !((*this) == rhs); }
@@ -2246,7 +2246,7 @@ namespace mse {
 			else if ((*this).m_is_null) {
 				return true;
 			}
-			return base_class::operator==(rhs);
+			return mse::us::impl::as_ref<base_class>(*this) == mse::us::impl::as_ref<base_class>(rhs);
 		}
 #ifndef MSE_HAS_CXX20
 		bool operator!=(const TNullableAnyPointer& rhs) const { return !((*this) == rhs); }
@@ -2310,7 +2310,7 @@ namespace mse {
 			else if ((*this).m_is_null) {
 				return true;
 			}
-			return base_class::operator==(rhs);
+			return mse::us::impl::as_ref<base_class>(*this) == mse::us::impl::as_ref<base_class>(rhs);
 		}
 #ifndef MSE_HAS_CXX20
 		bool operator!=(const TXScopeNullableAnyPointer& rhs) const { return !((*this) == rhs); }

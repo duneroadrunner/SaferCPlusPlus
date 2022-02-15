@@ -327,17 +327,11 @@ namespace mse {
 		public:
 			typedef mse::TNullableAnyPointer<_Ty> base_class;
 			TLHNullableAnyPointer(const TLHNullableAnyPointer& src) = default;
-#if 0
-			TLHNullableAnyPointer(const NULL_t val) : base_class(std::nullptr_t()) {
-				/* This constructor is just to support zero being used as a null pointer value. */
-				assert(0 == val);
-			}
-			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 			TLHNullableAnyPointer(_Ty2 val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
-#endif // 0
 			template <size_t _Size>
 			TLHNullableAnyPointer(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
 			template <size_t _Size>
@@ -351,6 +345,7 @@ namespace mse {
 				&& (!std::is_base_of<base_class, _TPointer1>::value)
 				&& (!std::is_same<_TPointer1, std::nullptr_t>::value)
 				&& (!std::is_same<_TPointer1, NULL_t>::value)
+				&& (!std::is_same<_TPointer1, ZERO_LITERAL_t>::value)
 				&& (mse::impl::IsDereferenceable_pb<_TPointer1>::value
 					&& (std::is_base_of<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value
 						|| std::is_same<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value))
@@ -396,17 +391,11 @@ namespace mse {
 		public:
 			typedef mse::TXScopeNullableAnyPointer<_Ty> base_class;
 			TXScopeLHNullableAnyPointer(const TXScopeLHNullableAnyPointer& src) = default;
-#if 0
-			TXScopeLHNullableAnyPointer(const NULL_t val) : base_class(std::nullptr_t()) {
-				/* This constructor is just to support zero being used as a null pointer value. */
-				assert(0 == val);
-			}
-			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 			TXScopeLHNullableAnyPointer(_Ty2 val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
-#endif // 0
 			template <size_t _Size>
 			TXScopeLHNullableAnyPointer(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
 			template <size_t _Size>
@@ -420,6 +409,7 @@ namespace mse {
 				&& (!std::is_base_of<base_class, _TPointer1>::value)
 				&& (!std::is_same<_TPointer1, std::nullptr_t>::value)
 				&& (!std::is_same<_TPointer1, NULL_t>::value)
+				&& (!std::is_same<_TPointer1, ZERO_LITERAL_t>::value)
 			> MSE_IMPL_EIS >
 				TXScopeLHNullableAnyPointer(const _TPointer1 & pointer) : base_class(pointer) {}
 
@@ -468,11 +458,7 @@ namespace mse {
 
 			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator& src) : base_class(src) {}
 
-			TLHNullableAnyRandomAccessIterator(const NULL_t val) : base_class(std::nullptr_t()) {
-				/* This constructor is just to support zero being used as a null pointer/iterator value. */
-				assert(0 == val);
-			}
-			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 			TLHNullableAnyRandomAccessIterator(_Ty2 val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
@@ -487,6 +473,7 @@ namespace mse {
 				&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 				&& (!std::is_same<_TRandomAccessIterator1, std::nullptr_t>::value)
 				&& (!std::is_same<_TRandomAccessIterator1, NULL_t>::value)
+				&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
 			> MSE_IMPL_EIS >
 			TLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(constructor_helper1(
 				typename HasOrInheritsPlusEqualsOperator<_TRandomAccessIterator1>::type(), random_access_iterator)) {
@@ -609,11 +596,7 @@ namespace mse {
 
 			TXScopeLHNullableAnyRandomAccessIterator(const TXScopeLHNullableAnyRandomAccessIterator& src) = default;
 
-			TXScopeLHNullableAnyRandomAccessIterator(const NULL_t val) : base_class(std::nullptr_t()) {
-				/* This constructor is just to support zero being used as a null pointer/iterator value. */
-				assert(0 == val);
-			}
-			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 			TXScopeLHNullableAnyRandomAccessIterator(_Ty2 val) : base_class(std::nullptr_t()) {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
@@ -628,6 +611,7 @@ namespace mse {
 				&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 				&& (!std::is_same<_TRandomAccessIterator1, std::nullptr_t>::value)
 				&& (!std::is_same<_TRandomAccessIterator1, NULL_t>::value)
+				&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
 			> MSE_IMPL_EIS >
 			TXScopeLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(constructor_helper1(
 				typename TLHNullableAnyRandomAccessIterator<_Ty>::template HasOrInheritsPlusEqualsOperator<_TRandomAccessIterator1>::type(), random_access_iterator)) {
@@ -704,18 +688,14 @@ namespace mse {
 			TStrongVectorIterator(const TStrongVectorIterator& src) = default;
 			TStrongVectorIterator(TStrongVectorIterator&& src) = default;
 			TStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_Ilist), 0) {}
-			TStrongVectorIterator(const base_class& src) : base_class(src) {}
-			TStrongVectorIterator(const mse::TXScopeRAIterator<mse::TRefCountingPointer<TStrongTargetVector<_Ty>>>& src) : base_class(src) {}
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, base_class>::value)
+				|| (std::is_same<_Ty2, mse::TXScopeRAIterator<mse::TRefCountingPointer<TStrongTargetVector<_Ty>>> >::value)
+				> MSE_IMPL_EIS >
+			TStrongVectorIterator(const _Ty2& src) : base_class(src) {}
 			/* turns out that size_type and NULL_t could be the same type on some platforms */
 			//explicit TStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N), 0) {}
 			explicit TStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N, _V), 0) {}
-#if 0
-			TStrongVectorIterator(const NULL_t val) : TStrongVectorIterator() {
-				/* This constructor is just to support zero being used as a null pointer/iterator value. */
-				assert(0 == val);
-			}
-#endif // 0
-			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 			TStrongVectorIterator(_Ty2 val) : TStrongVectorIterator() {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
@@ -803,21 +783,18 @@ namespace mse {
 			TXScopeStrongVectorIterator(const TXScopeStrongVectorIterator& src) = default;
 			TXScopeStrongVectorIterator(TXScopeStrongVectorIterator&& src) = default;
 			TXScopeStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_Ilist), 0) {}
-			TXScopeStrongVectorIterator(const base_class& src) : base_class(src) {}
-			TXScopeStrongVectorIterator(const mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>>& src) : base_class(src) {}
-			explicit TXScopeStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N), 0) {}
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, base_class>::value)
+				|| (std::is_same<_Ty2, mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> >::value)
+				> MSE_IMPL_EIS >
+			TXScopeStrongVectorIterator(const _Ty2& src) : base_class(src) {}
+			/* turns out that size_type and NULL_t could be the same type on some platforms */
+			//explicit TXScopeStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N), 0) {}
 			explicit TXScopeStrongVectorIterator(size_type _N, const _Ty& _V) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N, _V), 0) {}
-#if 0
-			TXScopeStrongVectorIterator(const NULL_t val) : TXScopeStrongVectorIterator() {
-				/* This constructor is just to support zero being used as a null pointer/iterator value. */
-				assert(0 == val);
-			}
-			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 			TXScopeStrongVectorIterator(_Ty2 val) : TXScopeStrongVectorIterator() {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
-#endif // 0
 			/*
 			template <class... Args>
 			TXScopeStrongVectorIterator(Args&&... args) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(std::forward<Args>(args)...), 0) {}
