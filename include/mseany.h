@@ -26,11 +26,12 @@ Note that this (pre-C++17) implementation doesn't really support over-aligned ty
 #include <type_traits>
 #include <stdexcept>
 
+#include "msepointerbasics.h"
+
 #ifdef MSE_HAS_CXX17
 #include <any>
 #endif // MSE_HAS_CXX17
 
-#include "msepointerbasics.h"
 #include "mseoptional.h"
 
 #ifdef MSE_SELF_TESTS
