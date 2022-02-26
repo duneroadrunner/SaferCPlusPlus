@@ -335,7 +335,7 @@ namespace mse {
 					++iter_of_null_terminated;
 					ch = *iter_of_null_terminated;
 				}
-				return std::move(str1);
+				return str1;
 			}
 
 			basic_string(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr) : m_shptr(std::make_shared<_MBS>(xs_ptr->msebasic_string())) {}

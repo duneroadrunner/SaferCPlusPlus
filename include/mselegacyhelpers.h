@@ -735,7 +735,12 @@ namespace mse {
 				*/
 			}
 
-			bool operator==(const TStrongVectorIterator& _Right_cref) const { return base_class::operator==(_Right_cref); }
+			bool operator==(const TStrongVectorIterator& _Right_cref) const {
+				if (!((*this).target_container_ptr() == _Right_cref.target_container_ptr())) {
+					return false;
+				}
+				return base_class::operator==(_Right_cref);
+			}
 			bool operator!=(const TStrongVectorIterator& _Right_cref) const { return !((*this) == _Right_cref); }
 			template <typename _Ty2>
 			bool operator==(const _Ty2& _Right_cref) const { return operator==(TStrongVectorIterator(_Right_cref)); }
