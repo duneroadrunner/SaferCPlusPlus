@@ -125,5 +125,8 @@
     <ClInclude Include="include\msetuple.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\msesuppresschecks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

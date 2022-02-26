@@ -1099,6 +1099,9 @@ namespace impl {
 
 #define MSE_INHERIT_COMMON_XSCOPE_OBJ_TAG_BASE_SET_FROM(class2, class3) MSE_INHERIT_COMMON_XSCOPE_POINTER_TAG_BASE_SET_FROM(class2, class3)
 
+
+#ifndef MSE_SUPPRESS_CHECK_IN_XSCOPE
+
 #define MSE_IMPL_MACRO_TEXT_CONCAT_(a,b)  a##b
 
 	namespace rsv {
@@ -1112,6 +1115,8 @@ namespace impl {
 #define MSE_SUPPRESS_CHECK_IN_DECLSCOPE \
 		static void MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME() {}
 	}
+
+#endif // !MSE_SUPPRESS_CHECK_IN_XSCOPE
 
 
 	namespace us {
