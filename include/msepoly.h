@@ -1248,9 +1248,47 @@ namespace mse {
 
 				mse::us::impl::ns_any::any m_any_random_access_iterator;
 
+				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_random_access_iterator, contained_any)
+
+				MSE_IMPL_ANY_CONTAINED_ANY_FRIEND_DECLARATIONS1
+
 				template <typename _Ty2>
 				friend class TAnyRandomAccessConstIteratorBase;
 			};
+
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(const TAnyRandomAccessIteratorBase<_Ty>& operand) {
+				return mse::any_cast<TCommonizedRandomAccessIterator<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(operand)).m_any_random_access_iterator;
+			}
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(TAnyRandomAccessIteratorBase<_Ty>& operand) {
+				return mse::any_cast<TCommonizedRandomAccessIterator<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(operand)).m_any_random_access_iterator;
+			}
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(TAnyRandomAccessIteratorBase<_Ty>&& operand) {
+				return mse::any_cast<TCommonizedRandomAccessIterator<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(MSE_FWD(operand))).m_any_random_access_iterator;
+			}
+			template<typename ValueType, typename _Ty>
+			inline auto maybe_any_cast(const TAnyRandomAccessIteratorBase<_Ty>& operand) {
+				auto any1 = mse::us::impl::ns_any::contained_any(operand);
+				auto cast_ptr = mse::us::impl::ns_any::any_cast<TCommonizedRandomAccessIterator<_Ty, ValueType> >(std::addressof(any1));
+				typedef typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type retval_t;
+				if (cast_ptr) {
+					return retval_t{ mse::us::impl::ns_any::any_cast<TCommonizedRandomAccessIterator<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(operand)).m_random_access_iterator };
+				}
+				return retval_t{};
+			}
+			template<typename ValueType, typename _Ty>
+			inline auto maybe_any_cast(TAnyRandomAccessIteratorBase<_Ty>&& operand) {
+				auto any1 = mse::us::impl::ns_any::contained_any(operand);
+				auto cast_ptr = mse::us::impl::ns_any::any_cast<TCommonizedRandomAccessIterator<_Ty, ValueType> >(std::addressof(any1));
+				typedef typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type retval_t;
+				if (cast_ptr) {
+					return retval_t{ mse::us::impl::ns_any::any_cast<TCommonizedRandomAccessIterator<_Ty, ValueType> >(mse::us::impl::ns_any::contained_any(MSE_FWD(operand))).m_random_access_iterator };
+				}
+				return retval_t{};
+			}
+
 
 			template <typename _Ty>
 			class TCommonRandomAccessConstIteratorInterface : public TRandomAccessConstIteratorStdBase<_Ty> {
@@ -1385,9 +1423,89 @@ namespace mse {
 				}
 
 				mse::us::impl::ns_any::any m_any_random_access_const_iterator;
+
+				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_random_access_const_iterator, contained_any)
+
+				MSE_IMPL_ANY_CONTAINED_ANY_FRIEND_DECLARATIONS1
 			};
+
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(const TAnyRandomAccessConstIteratorBase<_Ty>& operand) {
+				return mse::any_cast<TCommonizedRandomAccessConstIterator<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(operand)).m_any_random_access_const_iterator;
+			}
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(TAnyRandomAccessConstIteratorBase<_Ty>& operand) {
+				return mse::any_cast<TCommonizedRandomAccessConstIterator<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(operand)).m_any_random_access_const_iterator;
+			}
+			template<typename ValueType, typename _Ty>
+			inline ValueType any_cast(TAnyRandomAccessConstIteratorBase<_Ty>&& operand) {
+				return mse::any_cast<TCommonizedRandomAccessConstIterator<_Ty, ValueType>>(mse::us::impl::ns_any::contained_any(MSE_FWD(operand))).m_any_random_access_const_iterator;
+			}
+			template<typename ValueType, typename _Ty>
+			inline auto maybe_any_cast(const TAnyRandomAccessConstIteratorBase<_Ty>& operand) {
+				auto any1 = mse::us::impl::ns_any::contained_any(operand);
+				auto cast_ptr = mse::us::impl::ns_any::any_cast<TCommonizedRandomAccessConstIterator<_Ty, ValueType> >(std::addressof(any1));
+				typedef typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type retval_t;
+				if (cast_ptr) {
+					return retval_t{ mse::us::impl::ns_any::any_cast<TCommonizedRandomAccessConstIterator<_Ty, ValueType> >(mse::us::impl::ns_any::contained_any(operand)).m_random_access_const_iterator };
+				}
+				return retval_t{};
+			}
+			template<typename ValueType, typename _Ty>
+			inline auto maybe_any_cast(TAnyRandomAccessConstIteratorBase<_Ty>&& operand) {
+				auto any1 = mse::us::impl::ns_any::contained_any(operand);
+				auto cast_ptr = mse::us::impl::ns_any::any_cast<TCommonizedRandomAccessConstIterator<_Ty, ValueType> >(std::addressof(any1));
+				typedef typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type retval_t;
+				if (cast_ptr) {
+					return retval_t{ mse::us::impl::ns_any::any_cast<TCommonizedRandomAccessConstIterator<_Ty, ValueType> >(mse::us::impl::ns_any::contained_any(MSE_FWD(operand))).m_random_access_const_iterator };
+				}
+				return retval_t{};
+			}
 		}
 	}
+
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(const mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty>& operand) {
+		return mse::us::impl::any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty>& operand) {
+		return mse::us::impl::any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty>&& operand) {
+		return mse::us::impl::any_cast<ValueType>(MSE_FWD(operand));
+	}
+	template<typename ValueType, typename _Ty/* = mse::impl::target_type<ValueType> */>
+	inline auto maybe_any_cast(const mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty>& operand) {
+		return mse::us::impl::maybe_any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline auto maybe_any_cast(mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty>&& operand) {
+		return mse::us::impl::maybe_any_cast<ValueType>(MSE_FWD(operand));
+	}
+
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(const mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>& operand) {
+		return mse::us::impl::any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>& operand) {
+		return mse::us::impl::any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline ValueType any_cast(mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>&& operand) {
+		return mse::us::impl::any_cast<ValueType>(MSE_FWD(operand));
+	}
+	template<typename ValueType, typename _Ty/* = mse::impl::target_type<ValueType> */>
+	inline auto maybe_any_cast(const mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>& operand) {
+		return mse::us::impl::maybe_any_cast<ValueType>(operand);
+	}
+	template<typename ValueType, typename _Ty>
+	inline auto maybe_any_cast(mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>&& operand) {
+		return mse::us::impl::maybe_any_cast<ValueType>(MSE_FWD(operand));
+	}
+
 
 	template <typename _Ty>
 	class TXScopeAnyRandomAccessIterator : public us::impl::TAnyRandomAccessIteratorBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
