@@ -129,7 +129,7 @@ namespace mse {
 					}
 					TCheckedThreadSafeObj<_Ty>* operator->() const {
 						if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TTSNoradPointer")); }
-						return (*this).m_ptr;
+						return std::address(*((*this).m_ptr));
 					}
 
 					operator bool() const { return !(!((*this).m_ptr)); }
@@ -186,7 +186,7 @@ namespace mse {
 					}
 					const TCheckedThreadSafeObj<_Ty>* operator->() const {
 						if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TTSNoradPointer")); }
-						return (*this).m_ptr;
+						return std::address(*((*this).m_ptr));
 					}
 
 					operator bool() const { return !(!((*this).m_ptr)); }

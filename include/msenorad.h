@@ -275,7 +275,7 @@ namespace mse {
 				}
 				TGNoradObj<_Ty, _TRefCounter>* operator->() const {
 					if (!m_ptr) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
-					return (TGNoradObj<_Ty, _TRefCounter>*)(m_ptr);
+					return std::addressof(*m_ptr);
 				}
 
 				operator bool() const { return !(!m_ptr); }
@@ -394,7 +394,7 @@ namespace mse {
 				}
 				const TGNoradObj<_Ty, _TRefCounter>* operator->() const {
 					if (!m_ptr) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
-					return (const TGNoradObj<_Ty, _TRefCounter>*)(m_ptr);
+					return std::addressof(*m_ptr);
 				}
 
 				operator bool() const { return !(!m_ptr); }
@@ -464,7 +464,7 @@ namespace mse {
 				}
 				TGNoradObj<_Ty, _TRefCounter>* operator->() const {
 					//if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
-					return (*this).m_ptr;
+					return std::addressof(*((*this).m_ptr));
 				}
 
 			private:
@@ -512,7 +512,7 @@ namespace mse {
 				}
 				const TGNoradObj<_Ty, _TRefCounter>* operator->() const {
 					//if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
-					return (*this).m_ptr;
+					return std::addressof(*((*this).m_ptr));
 				}
 
 			private:
@@ -977,7 +977,7 @@ namespace mse {
 		}
 		TNDNoradObj<_Ty>* operator->() const {
 			if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
-			return (*this).m_ptr;
+			return std::addressof(*((*this).m_ptr));
 		}
 
 		operator bool() const { return !(!((*this).m_ptr)); }
@@ -1070,7 +1070,7 @@ namespace mse {
 		}
 		const TNDNoradObj<_Ty>* operator->() const {
 			if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
-			return (*this).m_ptr;
+			return std::addressof(*((*this).m_ptr));
 		}
 
 		operator bool() const { return !(!((*this).m_ptr)); }
@@ -1137,7 +1137,7 @@ namespace mse {
 		}
 		TNDNoradObj<_Ty>* operator->() const {
 			//if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
-			return (*this).m_ptr;
+			return std::addressof(*((*this).m_ptr));
 		}
 
 	private:
@@ -1185,7 +1185,7 @@ namespace mse {
 		}
 		const TNDNoradObj<_Ty>* operator->() const {
 			//if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
-			return (*this).m_ptr;
+			return std::addressof(*((*this).m_ptr));
 		}
 
 	private:
