@@ -2245,7 +2245,8 @@ use an already available (relatively benign) attribute that takes a string param
 ast. At the time of writing, "gsl::suppress" seems to be one of the few (if not the only one) that works for our
 purposes. */
 /* MSE_ATTR_STR(x) is used to add a string attribute to an element. */
-#define MSE_ATTR_STR(x) [[gsl::suppress(x)]]
+//define MSE_ATTR_STR(x) [[gsl::suppress(x)]]
+#define MSE_ATTR_STR(x) __attribute__((annotate(x)))
 #else // defined(__clang__)
 #define MSE_ATTR_STR(x)
 #endif // defined(__clang__)
