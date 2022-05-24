@@ -630,8 +630,9 @@ namespace impl {
 	}
 	namespace rsv {
 		class XScopeTagBase : public mse::us::impl::XScopeTagBase { public: void xscope_tag() const {} };
-		class ContainsNonOwningScopeReferenceTagBase : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {};
 		class ReferenceableByScopePointerTagBase : public mse::us::impl::ReferenceableByScopePointerTagBase {};
+		class ContainsNonOwningScopeReferenceTagBase : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {};
+		class XScopeContainsNonOwningScopeReferenceTagBase : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {};
 	}
 
 	namespace rsv {
