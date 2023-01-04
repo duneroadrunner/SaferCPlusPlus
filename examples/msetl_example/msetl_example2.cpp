@@ -43,7 +43,7 @@
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
 #pragma clang diagnostic ignored "-Wunused-local-typedefs"
-//pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -541,8 +541,6 @@ void msetl_example2() {
 				std::string retval = (*ptr) + (*ptr);
 				return retval;
 			}
-		protected:
-			~B() {}
 		};
 
 		/* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those

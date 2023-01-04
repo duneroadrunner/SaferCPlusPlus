@@ -38,7 +38,7 @@
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
 #pragma clang diagnostic ignored "-Wunused-local-typedefs"
-//pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -211,8 +211,6 @@ void msetl_example3() {
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
 				return (*xs_D_atomic_ptr).load().b;
 			}
-		protected:
-			~B() {}
 		};
 
 		std::cout << std::endl;

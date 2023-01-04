@@ -1118,6 +1118,7 @@ namespace mse {
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointerRR);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1423,6 +1424,7 @@ namespace mse {
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointerRR);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1874,6 +1876,7 @@ namespace mse {
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		class unsafe_t {};
@@ -1944,6 +1947,7 @@ namespace mse {
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		class unsafe_t {};
@@ -2198,6 +2202,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2213,6 +2218,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2228,6 +2234,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2243,6 +2250,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2284,6 +2292,7 @@ namespace mse {
 					return ((m_first_element_ptr == rhs.m_first_element_ptr) && (m_size == rhs.m_size));
 				}
 				TXScopeRuntimeRawArrayProxyAndSelfPointer& operator=(const TXScopeRuntimeRawArrayProxyAndSelfPointer& rhs) = default;
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -2310,6 +2319,7 @@ namespace mse {
 				auto operator->() const {
 					return this;
 				}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
@@ -2372,6 +2382,7 @@ namespace mse {
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 
@@ -2542,6 +2553,7 @@ namespace mse {
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 
@@ -2690,6 +2702,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2705,6 +2718,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2720,6 +2734,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2735,6 +2750,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2968,6 +2984,7 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_ss_iterator_type_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -3004,6 +3021,7 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_ss_iterator_type_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -5158,6 +5176,7 @@ namespace mse {
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
 		void async_not_shareable_and_not_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -5329,6 +5348,7 @@ namespace mse {
 		void xscope_tag() const {}
 		void xscope_iterator_tag() const {}
 		void async_not_shareable_and_not_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -5434,6 +5454,7 @@ namespace mse {
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		class unsafe_t {};
@@ -5473,6 +5494,7 @@ namespace mse {
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 		void xscope_iterator_tag() const {}
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		class unsafe_t {};
@@ -6336,6 +6358,7 @@ namespace mse {
 		auto cbegin() const { return (*this).xscope_cbegin(); }
 		auto end() const { return (*this).xscope_cend(); }
 		auto cend() const { return (*this).xscope_cend(); }
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 
@@ -6972,6 +6995,7 @@ namespace mse {
 		auto cbegin() const { return (*this).xscope_cbegin(); }
 		auto end() const { return (*this).xscope_end(); }
 		auto cend() const { return (*this).xscope_cend(); }
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 
@@ -7245,6 +7269,7 @@ namespace mse {
 	class TXScopeCagedRandomAccessConstSectionToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	protected:
 		TXScopeCagedRandomAccessConstSectionToRValue(TXScopeCagedRandomAccessConstSectionToRValue&&) = default;
@@ -7309,6 +7334,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			template <typename _TRAContainer>
@@ -7352,6 +7378,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -7364,6 +7391,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -7376,6 +7404,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -7404,6 +7433,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -7430,6 +7460,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -7456,6 +7487,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -7482,6 +7514,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -8016,6 +8049,7 @@ namespace mse {
 		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
 			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value)> MSE_IMPL_EIS >
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopePassablePointer(_Ty& obj_ref) : m_obj_ptr(std::addressof(obj_ref)) {}
@@ -8053,6 +8087,7 @@ namespace mse {
 		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
 			&& (mse::impl::is_marked_as_xscope_shareable_msemsearray<_Ty2>::value)> MSE_IMPL_EIS >
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopePassableConstPointer(const _Ty& obj_ref) : m_obj_ptr(std::addressof(obj_ref)) {}
@@ -8148,6 +8183,7 @@ namespace mse {
 		static auto make(const ac_obj_xscpptr_t& xscpptr) {
 			return TXScopeACOLockerForSharing((*xscpptr).exclusive_pointer());
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "async_shareable_tag()" member
@@ -8525,6 +8561,7 @@ namespace mse {
 				&& ((std::is_base_of<mse::us::impl::StrongPointerTagBase, _TRAIterator>::value) || (mse::impl::is_potentially_xscope<_TRAIterator>::value))
 				> MSE_IMPL_EIS >
 			void xscope_async_shareable_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TXScopeSplitterRandomAccessSection(const TXScopeSplitterRandomAccessSection& src) = default;
@@ -8647,6 +8684,7 @@ namespace mse {
 		aco_splitter_ra_section_xsptr_t xscope_ptr_to_second_ra_section_aco() {
 			return mse::us::unsafe_make_xscope_pointer_to(m_splitter_aco_ra_section_map.at(1));
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 	private:
 		TXScopeRASectionSplitterXWP(const TXScopeRASectionSplitterXWP& src) = delete;
 		TXScopeRASectionSplitterXWP(TXScopeRASectionSplitterXWP&& src) = delete;
@@ -8724,6 +8762,7 @@ namespace mse {
 		const aco_splitter_ra_section_t& second_ra_section_aco() const {
 			return m_splitter_aco_ra_section_map.at(1);
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 	private:
 		auto adjusted_ra_iterator(const ra_iterator_t& src_it, const access_lease_ptr_t& access_lease_ptr) const {
 #ifdef MSE_TRASECTIONSPLITTERXWP_NDEBUG
@@ -8756,6 +8795,7 @@ namespace mse {
 		TXScopeACORASectionSplitter(const ac_obj_xscpptr_t& xsptr, size_t split_index) : base_class(xsptr->exclusive_pointer(), split_index) {}
 		template<typename _TList>
 		TXScopeACORASectionSplitter(const ac_obj_xscpptr_t& xsptr, const _TList& section_sizes) : base_class(xsptr->exclusive_pointer(), section_sizes) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeACORASectionSplitter & operator=(const TXScopeACORASectionSplitter& _Right_cref) = delete;

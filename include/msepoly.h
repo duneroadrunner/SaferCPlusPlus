@@ -325,6 +325,7 @@ namespace mse {
 			TXScopeAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAnyPointer<_Ty>& operator=(const TXScopeAnyPointer<_Ty>& _Right_cref) {
@@ -376,7 +377,7 @@ namespace mse {
 
 		void async_not_shareable_and_not_passable_tag() const {}
 
-	protected:
+	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend struct std::hash<mse::TAnyPointer<_Ty> >;
@@ -410,6 +411,7 @@ namespace mse {
 		*/
 
 		void async_not_shareable_and_not_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAnyConstPointer<_Ty>& operator=(const TXScopeAnyConstPointer<_Ty>& _Right_cref) {
@@ -459,7 +461,7 @@ namespace mse {
 
 		void async_not_shareable_and_not_passable_tag() const {}
 
-	protected:
+	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend struct std::hash<mse::TAnyConstPointer<_Ty> >;
@@ -508,6 +510,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
@@ -721,8 +724,9 @@ namespace mse {
 			TXScopePolyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
-	protected:
+	private:
 		TXScopePolyPointer<_Ty>& operator=(const TXScopePolyPointer<_Ty>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
@@ -955,8 +959,9 @@ namespace mse {
 			TXScopePolyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
-	protected:
+	private:
 		TXScopePolyConstPointer<_Ty>& operator=(const TXScopePolyConstPointer<_Ty>& _Right_cref) {
 			base_class::operator=(_Right_cref);
 			return (*this);
@@ -1036,6 +1041,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
@@ -1518,6 +1524,7 @@ namespace mse {
 		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeAnyRandomAccessIterator);
 
 		void async_not_shareable_and_not_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAnyRandomAccessIterator& operator=(const base_class& _Right) {
@@ -1554,6 +1561,7 @@ namespace mse {
 		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeAnyRandomAccessConstIterator);
 
 		void async_not_shareable_and_not_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAnyRandomAccessConstIterator& operator=(const base_class& _Right) {
@@ -1760,6 +1768,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
@@ -1876,6 +1885,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			template<typename _Ty2>
 			auto constructor_helper1(std::true_type, TXScopeCagedItemFixedConstPointerToRValue<_Ty2>&& param) {
@@ -2574,9 +2584,6 @@ namespace mse {
 							return retval;
 						}
 #endif // MSE_POLY_SELF_TEST_DEPRECATED_POLY_POINTERS
-
-					protected:
-						~B() {}
 					};
 
 					/* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those

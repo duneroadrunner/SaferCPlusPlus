@@ -38,6 +38,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #pragma clang diagnostic ignored "-Wunused-value"
 #else /*__clang__*/
 #ifdef __GNUC__
@@ -388,6 +389,7 @@ namespace mse {
 		public:
 			typedef mse::us::impl::static_immutable::TStaticImmutableConstPointerBase<_Ty> base_class;
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TStaticImmutableConstPointer() {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			TStaticImmutableConstPointer() : base_class() {}
 			TStaticImmutableConstPointer(const base_class& ptr) : base_class(ptr) {}
@@ -448,6 +450,7 @@ namespace mse {
 #endif // !MSE_STATICIMMUTABLE_NO_XSCOPE_DEPENDENCE
 			void static_tag() const {}
 			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TStaticImmutableNotNullConstPointer(const TStaticImmutableNotNullConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
@@ -483,6 +486,7 @@ namespace mse {
 			operator bool() const { return (*static_cast<const base_class*>(this)); }
 			void static_tag() const {}
 			void async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TStaticImmutableFixedConstPointer(const typename TStaticImmutableConstPointer<_Ty>::base_class& ptr) : base_class(ptr) {}
@@ -735,8 +739,6 @@ namespace mse {
 				public:
 					static int foo1(const shareable_A* a_native_ptr) { return a_native_ptr->b; }
 					static int foo2(mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_static_ptr) { return shareable_A_static_ptr->b; }
-				protected:
-					~B() {}
 				};
 
 				shareable_A* shareable_A_native_ptr = nullptr;
@@ -784,8 +786,6 @@ namespace mse {
 						static int foo1(shareable_A* a_native_ptr) { return a_native_ptr->b; }
 						static int foo2(mse::rsv::TStaticImmutableFixedPointer<shareable_A> shareable_A_scpfptr) { return shareable_A_scpfptr->b; }
 						static int foo3(mse::rsv::TStaticImmutableFixedConstPointer<shareable_A> shareable_A_scpfcptr) { return shareable_A_scpfcptr->b; }
-					protected:
-						~B() {}
 					};
 
 					MSE_DECLARE_STATIC_IMMUTABLE(shareable_A) a_scpobj(5);

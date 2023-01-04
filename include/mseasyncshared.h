@@ -1282,6 +1282,7 @@ namespace mse {
 		}
 
 		void xscope_async_shareable_and_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAsyncSharedV2XWPReadWriteAccessRequester(const std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr) : base_class(shptr) {}
@@ -1668,6 +1669,7 @@ namespace mse {
 		}
 
 		void xscope_async_shareable_and_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAsyncSharedV2XWPReadOnlyAccessRequester(const std::shared_ptr<const TAsyncSharedXWPAccessLeaseObj<_TAccessLease>>& shptr) : base_class(shptr) {}
@@ -1927,6 +1929,7 @@ namespace mse {
 		static void make(mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex>&&) = delete;
 
 		void xscope_async_shareable_and_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		/* If _Ty is not "marked" as safe to share among threads (via the presence of the "xscope_async_shareable_and_passable_tag()" member
@@ -2138,6 +2141,7 @@ namespace mse {
 			&& (mse::impl::is_strong_container_reference_holding_iterator<_TRAIterator>::value)
 			> MSE_IMPL_EIS >
 		void xscope_async_shareable_and_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAsyncSplitterRandomAccessSection(const TXScopeAsyncSplitterRandomAccessSection& src) = default;
@@ -2305,6 +2309,7 @@ namespace mse {
 		}
 
 		void xscope_async_shareable_and_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAsyncSplitterRASectionReadWriteAccessRequester(_TAccessLease&& exclusive_write_pointer)
@@ -2472,6 +2477,7 @@ namespace mse {
 		xscope_ras_ar_t second_ra_section_access_requester() const {
 			return m_ra_section_ar_map.at(1);
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 	private:
 		TXScopeAsyncRASectionSplitterXWP(const TXScopeAsyncRASectionSplitterXWP& src) = delete;
 		TXScopeAsyncRASectionSplitterXWP(TXScopeAsyncRASectionSplitterXWP&& src) = delete;
@@ -2564,6 +2570,7 @@ namespace mse {
 		TXScopeAsyncRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_pointer(), section_sizes) {}
 
 		TXScopeAsyncRASectionSplitter(_TAccessRequester& ar, size_t split_index) : base_class(ar.exclusive_pointer(), split_index) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAsyncRASectionSplitter & operator=(const TXScopeAsyncRASectionSplitter& _Right_cref) = delete;
@@ -2614,6 +2621,7 @@ namespace mse {
 		TXScopeAsyncACORASectionSplitter(const ac_obj_xscpptr_t& xsptr, size_t split_index) : base_class(xsptr->exclusive_pointer(), split_index) {}
 		template<typename _TList>
 		TXScopeAsyncACORASectionSplitter(const ac_obj_xscpptr_t& xsptr, const _TList& section_sizes) : base_class(xsptr->exclusive_pointer(), section_sizes) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAsyncACORASectionSplitter & operator=(const TXScopeAsyncACORASectionSplitter& _Right_cref) = delete;
@@ -2729,6 +2737,7 @@ namespace mse {
 			s_valid_if_xscope_passable(_Ax...);
 		}
 		static void s_valid_if_xscope_passable() {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		xscope_thread(xscope_thread&& _Other) _NOEXCEPT : base_class(mse::us::impl::as_ref<base_class>(MSE_FWD(_Other))) {}
@@ -2775,6 +2784,7 @@ namespace mse {
 		auto xscope_ptr_at(const handle_t& handle) const {
 			return mse::us::unsafe_make_xscope_const_pointer_to(m_xscope_thread_map.at(handle));
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		class movable_xscope_thread : public xscope_thread {
@@ -2835,6 +2845,7 @@ namespace mse {
 		std::future_status wait_until(const std::chrono::time_point<_Clock, _Dur>& _Abs_time) const {
 			return base_class::wait_until(_Abs_time);
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		xscope_future(xscope_future&& _Other) _NOEXCEPT : base_class(MSE_FWD(_Other)) {}
@@ -2909,6 +2920,7 @@ namespace mse {
 		auto xscope_ptr_at(const handle_t& handle) const {
 			return mse::us::unsafe_make_xscope_const_pointer_to(m_xscope_future_map.at(handle));
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		class movable_xscope_future : public xscope_future<_Ty> {

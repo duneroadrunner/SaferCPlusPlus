@@ -224,17 +224,6 @@ namespace mse {
 			return retval;
 		}
 
-	protected:
-		X* get() const {
-			if (!m_ref_with_target_obj_ptr) {
-				return nullptr;
-			}
-			else {
-				X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
-				return x_ptr;
-			}
-		}
-
 	private:
 		explicit TRefCountingPointer(TRefWithTargetObj<X>* p/* = nullptr*/) {
 			m_ref_with_target_obj_ptr = p;
@@ -267,6 +256,15 @@ namespace mse {
 			}
 		}
 
+		X* get() const {
+			if (!m_ref_with_target_obj_ptr) {
+				return nullptr;
+			}
+			else {
+				X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+				return x_ptr;
+			}
+		}
 		X* unchecked_get() const {
 			X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return x_ptr;
@@ -465,17 +463,6 @@ namespace mse {
 			return (m_ref_with_target_obj_ptr ? (m_ref_with_target_obj_ptr->use_count() == 1) : true);
 		}
 
-	protected:
-		const X* get() const {
-			if (!m_ref_with_target_obj_ptr) {
-				return nullptr;
-			}
-			else {
-				X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
-				return x_ptr;
-			}
-		}
-
 	private:
 		explicit TRefCountingConstPointer(TRefWithTargetObj<X>* p/* = nullptr*/) {
 			m_ref_with_target_obj_ptr = p;
@@ -509,6 +496,15 @@ namespace mse {
 			}
 		}
 
+		const X* get() const {
+			if (!m_ref_with_target_obj_ptr) {
+				return nullptr;
+			}
+			else {
+				X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+				return x_ptr;
+			}
+		}
 		const X* unchecked_get() const {
 			const X* x_ptr = static_cast<const X*>(m_ref_with_target_obj_ptr->target_obj_address());
 			return x_ptr;
@@ -834,6 +830,7 @@ namespace mse {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -987,8 +984,6 @@ namespace mse {
 			public:
 				static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
 				static int foo2(mse::TRefCountingPointer<A> A_refcounting_ptr) { return A_refcounting_ptr->b; }
-			protected:
-				~B() {}
 			};
 
 			A* A_native_ptr = nullptr;

@@ -410,6 +410,8 @@ namespace mse {
 	void* operator new(size_t size) { return ::operator new(size); } \
 	friend class mse::us::impl::ns_any::any; \
 	friend class mse::us::impl::xsrtc::any;
+#define MSE_DEFAULT_OPERATOR_DELETE_DECLARATION \
+	void operator delete(void* ptr) { return ::operator delete(ptr); }
 #define MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION	MSE_DEFAULT_OPERATOR_NEW_DECLARATION MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION
 
 #define MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(Base)	\

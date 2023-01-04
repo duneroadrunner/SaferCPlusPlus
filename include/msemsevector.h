@@ -337,6 +337,7 @@ namespace mse {
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_iterator_tag() const {}
 				void xscope_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -395,6 +396,7 @@ namespace mse {
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_iterator_tag() const {}
 				void xscope_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -687,6 +689,7 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_cslsstrong_iterator_type_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -732,6 +735,7 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_cslsstrong_iterator_type_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -793,6 +797,7 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_ss_iterator_type_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -829,6 +834,7 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_ss_iterator_type_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -918,6 +924,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				void lock_the_target() const {
@@ -1001,6 +1008,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				void lock_the_target() {
@@ -1083,6 +1091,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1164,6 +1173,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -1242,6 +1252,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -2355,6 +2366,7 @@ namespace mse {
 					operator mse::TXScopeFixedConstPointer<_TContainer>() const {
 						return static_cast<const base_class&>(*this);
 					}
+					MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 				private:
 					MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 				};
@@ -2383,6 +2395,7 @@ namespace mse {
 					return mse::TXScopeFixedConstPointer<TDynamicContainer2>(static_cast<const base_class&>(*this));
 				}
 				*/
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
@@ -2401,6 +2414,7 @@ namespace mse {
 				operator exclusive_writer_const_pointer_t() const {
 					return static_cast<const base_class&>(*this);
 				}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
@@ -5827,6 +5841,7 @@ namespace mse {
 					return static_cast<const base_class&>(*this);
 				}
 				*/
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -5868,6 +5883,7 @@ namespace mse {
 				operator mse::TXScopeFixedConstPointer<MV>() const {
 					return static_cast<const base_class&>(*this);
 				}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;

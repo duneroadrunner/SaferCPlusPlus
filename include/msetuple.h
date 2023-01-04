@@ -264,6 +264,7 @@ namespace mse {
 
 		void async_xscope_shareable_tag() const {}
 		void async_xscope_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -296,6 +297,7 @@ namespace mse {
 			&& (mse::impl::is_marked_as_xscope_passable_msemsearray<_This2>::value)
 			&& (mse::impl::conjunction<mse::impl::is_marked_as_xscope_passable_msemsearray<_Rest>...>::value)> MSE_IMPL_EIS >
 		void async_xscope_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -519,6 +521,7 @@ namespace mse {
 			: base_class(std::get<Index>(*lease), lease) {}
 		TXScopeTupleElementByIndexFixedPointer(TXScopeTuplePointer&& lease)
 			: base_class(std::get<Index>(*lease), MSE_FWD(lease)) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeTupleElementByIndexFixedPointer(const base_class& src_cref) : base_class(src_cref) {}
@@ -547,6 +550,7 @@ namespace mse {
 			: base_class(std::get<Index>(*lease), lease) {}
 		TXScopeTupleElementByIndexFixedConstPointer(TXScopeTuplePointer&& lease)
 			: base_class(std::get<Index>(*lease), MSE_FWD(lease)) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeTupleElementByIndexFixedConstPointer(const base_class& src_cref) : base_class(src_cref) {}
@@ -715,6 +719,7 @@ namespace mse {
 			: base_class(std::get<TIndex>(*lease), lease) {}
 		TXScopeTupleElementFixedPointer(TXScopeTuplePointer&& lease)
 			: base_class(std::get<TIndex>(*lease), MSE_FWD(lease)) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeTupleElementFixedPointer(const base_class& src_cref) : base_class(src_cref) {}
@@ -743,6 +748,7 @@ namespace mse {
 			: base_class(std::get<TIndex>(*lease), lease) {}
 		TXScopeTupleElementFixedConstPointer(TXScopeTuplePointer&& lease)
 			: base_class(std::get<TIndex>(*lease), MSE_FWD(lease)) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeTupleElementFixedConstPointer(const base_class& src_cref) : base_class(src_cref) {}

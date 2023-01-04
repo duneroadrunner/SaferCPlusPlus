@@ -1404,6 +1404,7 @@ namespace mse {
 		auto end() { return (*this).xscope_end(); }
 		auto end() const { return cend(); }
 		auto cend() const { return (*this).xscope_cend(); }
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 
@@ -1745,6 +1746,7 @@ namespace mse {
 		auto cbegin() const { return (*this).xscope_cbegin(); }
 		auto end() const { return (*this).xscope_cend(); }
 		auto cend() const { return (*this).xscope_cend(); }
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 
@@ -2072,6 +2074,7 @@ namespace mse {
 	class TXScopeCagedStringConstSectionToRValue : public TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator>, public mse::us::impl::CagedStringSectionTagBase {
 	public:
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	protected:
 		typedef TXScopeCagedRandomAccessConstSectionToRValue<_TRAIterator> base_class;
@@ -2146,6 +2149,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			template <typename _TRAContainer>
@@ -2172,6 +2176,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2183,6 +2188,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2194,6 +2200,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2206,6 +2213,7 @@ namespace mse {
 			typedef TXScopeStringConstSection<const char*> base_class;
 			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
 			TFParam(const char(&presumed_string_literal)[_Size]) : base_class(presumed_string_literal) {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
@@ -2216,6 +2224,7 @@ namespace mse {
 			typedef TXScopeStringSection<char*> base_class;
 			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
 			TFParam(char(&param)[_Size]) : base_class(param) {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
@@ -2248,6 +2257,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2279,6 +2289,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2310,6 +2321,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2341,6 +2353,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2524,6 +2537,7 @@ namespace mse {
 
 		typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
@@ -2664,6 +2678,7 @@ namespace mse {
 
 		//typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		/* Construction from a const native array is publicly supported (only) because string literals are const
@@ -2874,6 +2889,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			template <typename _TRAContainer>
@@ -2900,6 +2916,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2911,6 +2928,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2923,6 +2941,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2957,6 +2976,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2988,6 +3008,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -3019,6 +3040,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -3050,6 +3072,7 @@ namespace mse {
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -3313,6 +3336,7 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_cslsstrong_iterator_type_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -3358,6 +3382,7 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_cslsstrong_iterator_type_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -3417,6 +3442,7 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_ss_iterator_type_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -3453,6 +3479,7 @@ namespace mse {
 
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 				void xscope_ss_iterator_type_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -5534,6 +5561,7 @@ namespace mse {
 					operator mse::TXScopeFixedConstPointer<_TContainer>() const {
 						return static_cast<const base_class&>(*this);
 					}
+					MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 				private:
 					MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 				};
@@ -5562,6 +5590,7 @@ namespace mse {
 					return static_cast<const base_class&>(*this);
 				}
 				*/
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
@@ -5580,6 +5609,7 @@ namespace mse {
 				operator exclusive_writer_const_pointer_t() const {
 					return static_cast<const base_class&>(*this);
 				}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};

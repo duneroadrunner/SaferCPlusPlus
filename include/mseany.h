@@ -73,6 +73,13 @@ namespace mse {
 			template <typename _Ty> class TAnyRandomAccessConstIteratorBase;
 
 			namespace ns_any {
+				template<std::size_t Len, std::size_t Align>
+				struct any_aligned_storage {
+					struct type {
+						alignas(Align) unsigned char data[Len];
+					};
+				};
+
 				class bad_any_cast : public std::bad_cast
 				{
 				public:
@@ -238,7 +245,7 @@ namespace mse {
 #define MSE_IMPL_ANY_SOO_SIZE_FACTOR	4
 #endif // MSE_DISABLE_SOO_EXTENSIONS1
 
-						using stack_storage_t = typename std::aligned_storage<MSE_IMPL_ANY_SOO_SIZE_FACTOR * 2 * sizeof(void*), std::alignment_of<void*>::value>::type;
+						using stack_storage_t = typename any_aligned_storage<MSE_IMPL_ANY_SOO_SIZE_FACTOR * 2 * sizeof(void*), std::alignment_of<void*>::value>::type;
 
 						void* dynamic;
 						stack_storage_t     stack;      // 2 words for e.g. shared_ptr
@@ -2269,6 +2276,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				void lock_the_target() const {
@@ -2340,6 +2348,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				void lock_the_target() {
@@ -2405,6 +2414,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -2468,6 +2478,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -2532,6 +2543,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -2565,6 +2577,7 @@ namespace mse {
 					operator mse::TXScopeFixedConstPointer<mse::us::impl::ns_any::any_base2<_TStateMutex, TConstLockableIndicator> >() const {
 						return static_cast<const base_class&>(*this);
 					}
+					MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 				private:
 					MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 				};
@@ -2593,6 +2606,7 @@ namespace mse {
 					return mse::TXScopeFixedConstPointer<TDynamicContainer2>(static_cast<const base_class&>(*this));
 				}
 				*/
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
@@ -2611,6 +2625,7 @@ namespace mse {
 				operator exclusive_writer_const_pointer_t() const {
 					return static_cast<const base_class&>(*this);
 				}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
@@ -2847,6 +2862,7 @@ namespace mse {
 		TXScopeAnyElementFixedPointer(TXScopeAnyElementFixedPointer&&) = default;
 
 		TXScopeAnyElementFixedPointer(const TXScopeAnyPointer& src) : base_class(construction_helper1(src)) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		static auto construction_helper1(const TXScopeAnyPointer& src) {
@@ -2881,6 +2897,7 @@ namespace mse {
 
 		TXScopeAnyElementFixedConstPointer(const TXScopeAnyPointer& src) : base_class(construction_helper1(src)) {}
 		TXScopeAnyElementFixedConstPointer(TXScopeAnyPointer&& src) : base_class(construction_helper1(MSE_FWD(src))) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		static auto construction_helper1(const TXScopeAnyPointer& src) {
@@ -3079,6 +3096,7 @@ namespace mse {
 			static_assert(mse::impl::ns_fixed_any::is_fixed_any<mse::impl::target_type<TXScopeFixedAnyPointer> >::value
 				, "argument must be a pointer to a 'fixed any' type - TXScopeFixedAnyElementFixedPointer");
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -3117,6 +3135,7 @@ namespace mse {
 			static_assert(mse::impl::ns_fixed_any::is_fixed_any<mse::impl::target_type<TXScopeFixedAnyPointer> >::value
 				, "argument must be a pointer to a 'fixed any' type - TXScopeFixedAnyElementFixedConstPointer");
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;

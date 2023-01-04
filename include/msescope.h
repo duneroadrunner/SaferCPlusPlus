@@ -32,6 +32,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #pragma clang diagnostic ignored "-Wunused-value"
 #else /*__clang__*/
 #ifdef __GNUC__
@@ -40,6 +41,7 @@
 #pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #pragma GCC diagnostic ignored "-Wunused-value"
+//#pragma GCC diagnostic ignored "-Wmismatched-new-delete"
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
@@ -195,6 +197,13 @@ namespace mse {
 			namespace xsrtc {
 				template<typename _Ty> class TAnyPointerBaseV1;
 				template<typename _Ty> class TAnyConstPointerBaseV1;
+
+				template<std::size_t Len, std::size_t Align>
+				struct any_aligned_storage {
+					struct type {
+						alignas(Align) unsigned char data[Len];
+					};
+				};
 
 				class bad_any_cast : public std::bad_cast
 				{
@@ -361,7 +370,7 @@ namespace mse {
 #define MSE_IMPL_ANY_SOO_SIZE_FACTOR	4
 #endif // MSE_DISABLE_SOO_EXTENSIONS1
 
-						using stack_storage_t = typename std::aligned_storage<MSE_IMPL_ANY_SOO_SIZE_FACTOR * 2 * sizeof(void*), std::alignment_of<void*>::value>::type;
+						using stack_storage_t = typename any_aligned_storage<MSE_IMPL_ANY_SOO_SIZE_FACTOR * 2 * sizeof(void*), std::alignment_of<void*>::value>::type;
 
 						void* dynamic;
 						stack_storage_t     stack;      // 2 words for e.g. shared_ptr
@@ -1016,6 +1025,7 @@ namespace mse {
 		class TXScopeObjPointer : public mse::us::impl::TXScopeObjPointerBase<_Ty, lt_info1>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjPointer() {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			TXScopeObjPointer() : mse::us::impl::TXScopeObjPointerBase<_Ty, lt_info1>() {}
 			TXScopeObjPointer(TXScopeObj<_Ty>& scpobj_ref) : mse::us::impl::TXScopeObjPointerBase<_Ty, lt_info1>(scpobj_ref) {}
@@ -1053,6 +1063,7 @@ namespace mse {
 		class TXScopeObjConstPointer : public mse::us::impl::TXScopeObjConstPointerBase<_Ty, lt_info1>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjConstPointer() {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			TXScopeObjConstPointer() : mse::us::impl::TXScopeObjConstPointerBase<_Ty, lt_info1>() {}
 			TXScopeObjConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : mse::us::impl::TXScopeObjConstPointerBase<_Ty, lt_info1>(scpobj_cref) {}
@@ -1093,6 +1104,7 @@ namespace mse {
 		class TXScopeObjNotNullPointer : public TXScopeObjPointer<_Ty, lt_info1>, public mse::us::impl::NeverNullTagBase {
 		public:
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjNotNullPointer() {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			TXScopeObjNotNullPointer(TXScopeObj<_Ty>& scpobj_ref) : TXScopeObjPointer<_Ty, lt_info1>(scpobj_ref) {}
 			TXScopeObjNotNullPointer(TXScopeObj<_Ty>* ptr) : TXScopeObjPointer<_Ty, lt_info1>(ptr) {}
@@ -1114,6 +1126,7 @@ namespace mse {
 		class TXScopeObjNotNullConstPointer : public TXScopeObjConstPointer<_Ty, lt_info1>, public mse::us::impl::NeverNullTagBase {
 		public:
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjNotNullConstPointer() {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			TXScopeObjNotNullConstPointer(const TXScopeObjNotNullConstPointer<_Ty>& src_cref) : TXScopeObjConstPointer<_Ty, lt_info1>(src_cref) {}
 			//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
@@ -1140,6 +1153,7 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedPointer() {}
 			operator bool() const { return (*static_cast<const TXScopeObjNotNullPointer<_Ty>*>(this)); }
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TXScopeObjFixedPointer(TXScopeObj<_Ty>& scpobj_ref) : TXScopeObjNotNullPointer<_Ty>(scpobj_ref) {}
@@ -1172,6 +1186,7 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const TXScopeObjNotNullConstPointer<_Ty>*>(this)); }
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TXScopeObjFixedConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : TXScopeObjNotNullConstPointer<_Ty>(scpobj_cref) {}
@@ -1242,6 +1257,7 @@ namespace mse {
 				(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 				)> MSE_IMPL_EIS >
 				void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_DECLARATION
@@ -1330,6 +1346,7 @@ namespace mse {
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 			MSE_DEPRECATED explicit operator _Ty* () const { return std::addressof(*(*this))/*base_class::operator _Ty*()*/; }
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TXScopeFixedPointer(_Ty* ptr) : base_class(ptr) {}
@@ -1379,6 +1396,7 @@ namespace mse {
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 			MSE_DEPRECATED explicit operator const _Ty* () const { return std::addressof(*(*this))/*base_class::operator const _Ty*()*/; }
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TXScopeFixedConstPointer(const _Ty* ptr) : base_class(ptr) {}
@@ -1418,6 +1436,7 @@ namespace mse {
 		class TXScopeCagedItemFixedPointerToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TXScopeCagedItemFixedPointerToRValue(const TXScopeCagedItemFixedPointerToRValue&) = delete;
@@ -1444,6 +1463,7 @@ namespace mse {
 		class TXScopeCagedItemFixedConstPointerToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TXScopeCagedItemFixedConstPointerToRValue(const TXScopeCagedItemFixedConstPointerToRValue& src_cref) = delete;
@@ -1601,6 +1621,7 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {} \
 			operator bool() const { return true; } \
 			void xscope_tag() const {} \
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION \
 		private: \
 			TXScopeFixedPointer(specified_type * ptr) : base_class(ptr) {} \
 			TXScopeFixedPointer(mapped_type * ptr) : base_class(reinterpret_cast<specified_type *>(ptr)) {} \
@@ -1634,6 +1655,7 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {} \
 			operator bool() const { return true; } \
 			void xscope_tag() const {} \
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION \
 		private: \
 			TXScopeFixedConstPointer(typename std::add_const<specified_type>::type * ptr) : base_class(ptr) {} \
 			TXScopeFixedConstPointer(typename std::add_const<mapped_type>::type * ptr) : base_class(reinterpret_cast<const specified_type *>(ptr)) {} \
@@ -1705,6 +1727,7 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {} \
 			operator bool() const { return true; } \
 			void xscope_tag() const {} \
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION \
 		private: \
 			TXScopeFixedPointer(arithmetic_type * ptr) : base_class(ptr) {} \
 			TXScopeFixedPointer(template_wrapper<arithmetic_type> * ptr) : base_class(reinterpret_cast<arithmetic_type *>(ptr)) {} \
@@ -1738,6 +1761,7 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {} \
 			operator bool() const { return true; } \
 			void xscope_tag() const {} \
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION \
 		private: \
 			TXScopeFixedConstPointer(typename std::add_const<arithmetic_type>::type * ptr) : base_class(ptr) {} \
 			TXScopeFixedConstPointer(typename std::add_const<template_wrapper<arithmetic_type>>::type * ptr) : base_class(reinterpret_cast<const arithmetic_type *>(ptr)) {} \
@@ -1888,6 +1912,7 @@ namespace mse {
 			static TXScopeSyncWeakFixedPointer make(_TTargetType2& target, _TLeaseType2&& lease) {
 				return base_class::make(target, MSE_FWD(lease));
 			}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		protected:
 			TXScopeSyncWeakFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
@@ -1932,6 +1957,7 @@ namespace mse {
 			static TXScopeSyncWeakFixedConstPointer make(const _TTargetType2& target, _TLeaseType2&& lease) {
 				return base_class::make(target, MSE_FWD(lease));
 			}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		protected:
 			TXScopeSyncWeakFixedConstPointer(const _TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
@@ -1984,6 +2010,7 @@ namespace mse {
 				return xscope_ptr();
 			}
 			operator mse::TXScopeFixedPointer<_TTargetType>() const&& = delete;
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		protected:
 			TXScopeStrongFixedPointer(_TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
@@ -2037,6 +2064,7 @@ namespace mse {
 				return xscope_ptr();
 			}
 			operator mse::TXScopeFixedConstPointer<_TTargetType>() const&& = delete;
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		protected:
 			TXScopeStrongFixedConstPointer(const _TTargetType& target/* often a struct member */, const _TLeaseType& lease/* usually a reference counting pointer */)
@@ -2137,6 +2165,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			template<class _Ty2>
@@ -2184,6 +2213,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			template<class _Ty2>
@@ -2270,6 +2300,7 @@ purposes. */
 		public:
 			typedef _Ty base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2336,6 +2367,7 @@ purposes. */
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2347,6 +2379,7 @@ purposes. */
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2358,6 +2391,7 @@ purposes. */
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -2367,6 +2401,7 @@ purposes. */
 		class TFParam<_Ty*> : public mse::us::impl::TPointerForLegacy<_Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			TFParam(std::nullptr_t) {}
@@ -2380,6 +2415,7 @@ purposes. */
 		class TFParam<const _Ty*> : public mse::us::impl::TPointerForLegacy<const _Ty>, public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::XScopeTagBase {
 		public:
 			typedef mse::us::impl::TPointerForLegacy<const _Ty> base_class;
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			TFParam(std::nullptr_t) {}
@@ -2395,6 +2431,7 @@ purposes. */
 		public:
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			TFParam(std::nullptr_t) {}
@@ -2408,6 +2445,7 @@ purposes. */
 		public:
 			typedef mse::us::impl::TPointerForLegacy<const _Ty> base_class;
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			TFParam(std::nullptr_t) {}
@@ -2426,6 +2464,7 @@ purposes. */
 			typedef mse::us::impl::TPointerForLegacy<const _Ty> base_class;
 			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
 			TFParam(const _Ty(&param)[_Size]) : base_class(param) {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
@@ -2435,6 +2474,7 @@ purposes. */
 			typedef mse::us::impl::TPointerForLegacy<_Ty> base_class;
 			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam);
 			TFParam(_Ty(&param)[_Size]) : base_class(param) {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		};
@@ -2472,6 +2512,7 @@ purposes. */
 
 			void returnable_once_tag() const {}
 			void xscope_returnable_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			MSE_USING(TReturnableFParam, base_class);
@@ -2584,6 +2625,7 @@ purposes. */
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			TReturnableFParam(std::nullptr_t) {}
@@ -2602,6 +2644,7 @@ purposes. */
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			TReturnableFParam(std::nullptr_t) {}
@@ -2621,6 +2664,7 @@ purposes. */
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			TReturnableFParam(std::nullptr_t) {}
@@ -2639,6 +2683,7 @@ purposes. */
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		private:
 			TReturnableFParam(std::nullptr_t) {}
@@ -2710,6 +2755,7 @@ namespace mse {
 
 		template<class _Ty2 = _TROy, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		/* If _TROy is not recognized as safe to use as a function return value, then the following member function
@@ -2735,6 +2781,7 @@ namespace mse {
 
 		template<class _Ty2 = _TROy, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (mse::impl::is_potentially_not_xscope<_Ty2>::value)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -2807,6 +2854,7 @@ namespace mse {
 #if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
@@ -2828,6 +2876,7 @@ namespace mse {
 #if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
@@ -2850,6 +2899,7 @@ namespace mse {
 #if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
@@ -2871,6 +2921,7 @@ namespace mse {
 #if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 		void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
@@ -3073,6 +3124,7 @@ namespace mse {
 			TXScopeUserDeclaredReturnable& operator=(const _Ty2& _X) { _TROy::operator=(_X); return (*this); }
 
 			void xscope_returnable_tag() const {} /* Indication that this type is eligible to be used as a function return value. */
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 
@@ -3568,6 +3620,7 @@ namespace mse {
 				typedef _TROy base_class;
 				MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS_AND_USING_ASSIGNMENT_OPERATOR(TNewableXScopeObj, base_class);
 
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 				MSE_DEFAULT_OPERATOR_NEW_DECLARATION
 
 #ifdef __apple_build_version__
@@ -3720,8 +3773,6 @@ namespace mse {
 				public:
 					static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
 					static int foo2(mse::TXScopeFixedPointer<A> A_scope_ptr) { return A_scope_ptr->b; }
-				protected:
-					~B() {}
 				};
 
 				A* A_native_ptr = nullptr;
@@ -3805,8 +3856,6 @@ namespace mse {
 						static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
 						static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
 						static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
-					protected:
-						~B() {}
 					};
 
 					mse::TXScopeObj<A> a_scpobj(5);

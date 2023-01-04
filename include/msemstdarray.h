@@ -187,6 +187,7 @@ namespace mse {
 
 			MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 			void xscope_iterator_type_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -223,6 +224,7 @@ namespace mse {
 
 			MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
 			void xscope_iterator_type_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;

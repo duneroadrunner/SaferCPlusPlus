@@ -611,6 +611,7 @@ namespace mse {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -641,8 +642,6 @@ namespace mse {
 					static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
 					static int foo2(mse::TNoradProxyPointer<A> A_norad_proxy_ptr) { return A_norad_proxy_ptr->b; }
 					static int foo3(mse::TXScopeFixedConstPointer<A> A_scope_ptr) { return A_scope_ptr->b; }
-				protected:
-					~B() {}
 				};
 
 				A* A_native_ptr = nullptr;

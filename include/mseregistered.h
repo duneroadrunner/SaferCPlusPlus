@@ -1022,6 +1022,7 @@ namespace mse {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -1051,8 +1052,6 @@ namespace mse {
 				public:
 					static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
 					static int foo2(mse::TRegisteredPointer<A> A_registered_ptr) { return A_registered_ptr->b; }
-				protected:
-					~B() {}
 				};
 
 				A* A_native_ptr = nullptr;

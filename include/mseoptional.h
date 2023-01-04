@@ -2693,6 +2693,7 @@ namespace mse {
 		void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
 
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		/* If T is "marked" as containing a scope reference, then the following member function
@@ -2829,6 +2830,7 @@ namespace mse {
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		/* If T is "marked" as containing a scope reference, then the following member function
@@ -2963,6 +2965,7 @@ namespace mse {
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
 			)> MSE_IMPL_EIS >
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		/* If T is "marked" as containing a scope reference, then the following member function
@@ -3936,6 +3939,7 @@ namespace mse {
 		template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
 			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 			void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
@@ -4086,6 +4090,7 @@ namespace mse {
 		template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
 			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 			void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
@@ -4228,6 +4233,7 @@ namespace mse {
 		template<class _TAccessMutex2 = _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TAccessMutex2, _TAccessMutex>::value)
 			&& (mse::impl::is_thread_safety_enforcing_mutex_msemsearray<_TAccessMutex2>::value)> MSE_IMPL_EIS >
 			void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		typedef recursive_shared_mutex_wrapped<_TAccessMutex> _TWrappedAccessMutex;
@@ -4665,6 +4671,7 @@ namespace mse {
 		auto try_exclusive_pointer_until(const std::chrono::time_point<_Clock, _Duration>& _Abs_time) {
 			return base_class::xscope_try_exclusive_pointer_until(_Abs_time);
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -4969,6 +4976,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				void lock_the_target() const {
@@ -5035,6 +5043,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				void lock_the_target() {
@@ -5095,6 +5104,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -5153,6 +5163,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -5212,6 +5223,7 @@ namespace mse {
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -5245,6 +5257,7 @@ namespace mse {
 					operator mse::TXScopeFixedConstPointer<mse::us::impl::ns_optional::optional_base2<T, _TStateMutex, TConstLockableIndicator> >() const {
 						return static_cast<const base_class&>(*this);
 					}
+					MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 				private:
 					MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 				};
@@ -5273,6 +5286,7 @@ namespace mse {
 					return mse::TXScopeFixedConstPointer<TDynamicContainer2>(static_cast<const base_class&>(*this));
 				}
 				*/
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
@@ -5291,6 +5305,7 @@ namespace mse {
 				operator exclusive_writer_const_pointer_t() const {
 					return static_cast<const base_class&>(*this);
 				}
+				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 			};
@@ -5506,6 +5521,7 @@ namespace mse {
 		TXScopeOptionalElementFixedPointer(TXScopeOptionalElementFixedPointer&&) = default;
 
 		TXScopeOptionalElementFixedPointer(const TXScopeOptionalPointer& src) : base_class(construction_helper1(src)) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		static auto construction_helper1(const TXScopeOptionalPointer& src) {
@@ -5540,6 +5556,7 @@ namespace mse {
 
 		TXScopeOptionalElementFixedConstPointer(const TXScopeOptionalPointer& src) : base_class(construction_helper1(src)) {}
 		TXScopeOptionalElementFixedConstPointer(TXScopeOptionalPointer&& src) : base_class(construction_helper1(MSE_FWD(src))) {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		static auto construction_helper1(const TXScopeOptionalPointer& src) {
@@ -5716,6 +5733,7 @@ namespace mse {
 			static_assert(mse::impl::ns_fixed_optional::is_fixed_optional<mse::impl::target_type<TXScopeFixedOptionalPointer> >::value
 				, "argument must be a pointer to a 'fixed optional' type - TXScopeFixedOptionalElementFixedPointer");
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -5747,6 +5765,7 @@ namespace mse {
 			static_assert(mse::impl::ns_fixed_optional::is_fixed_optional<mse::impl::target_type<TXScopeFixedOptionalPointer> >::value
 				, "argument must be a pointer to a 'fixed optional' type - TXScopeFixedOptionalElementFixedConstPointer");
 		}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;

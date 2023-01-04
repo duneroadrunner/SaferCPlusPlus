@@ -32,6 +32,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #pragma clang diagnostic ignored "-Wunused-value"
 #else /*__clang__*/
 #ifdef __GNUC__
@@ -230,6 +231,7 @@ namespace mse {
 		{
 	public:
 		~TXScopeAtomicPointer() {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 	private:
 		TXScopeAtomicPointer() : mse::us::impl::TXScopeAtomicPointerBase<_Ty>() {}
 		TXScopeAtomicPointer(TXScopeAtomicObj<_Ty>& scpobj_ref) : mse::us::impl::TXScopeAtomicPointerBase<_Ty>(scpobj_ref) {}
@@ -271,6 +273,7 @@ namespace mse {
 	{
 	public:
 		~TXScopeAtomicConstPointer() {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 	private:
 		TXScopeAtomicConstPointer() : mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>() {}
 		TXScopeAtomicConstPointer(const TXScopeAtomicObj<_Ty>& scpobj_cref) : mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>(scpobj_cref) {}
@@ -312,6 +315,7 @@ namespace mse {
 	class TXScopeAtomicNotNullPointer : public TXScopeAtomicPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 	public:
 		~TXScopeAtomicNotNullPointer() {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 	private:
 		TXScopeAtomicNotNullPointer(TXScopeAtomicObj<_Ty>& scpobj_ref) : TXScopeAtomicPointer<_Ty>(scpobj_ref) {}
 		TXScopeAtomicNotNullPointer(TXScopeAtomicObj<_Ty>* ptr) : TXScopeAtomicPointer<_Ty>(ptr) {}
@@ -333,6 +337,7 @@ namespace mse {
 	class TXScopeAtomicNotNullConstPointer : public TXScopeAtomicConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
 	public:
 		~TXScopeAtomicNotNullConstPointer() {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 	private:
 		TXScopeAtomicNotNullConstPointer(const TXScopeAtomicNotNullConstPointer<_Ty>& src_cref) : TXScopeAtomicConstPointer<_Ty>(src_cref) {}
 		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
@@ -360,6 +365,7 @@ namespace mse {
 		operator bool() const { return (*static_cast<const TXScopeAtomicNotNullPointer<_Ty>*>(this)); }
 		void xscope_tag() const {}
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAtomicFixedPointer(TXScopeAtomicObj<_Ty>& scpobj_ref) : TXScopeAtomicNotNullPointer<_Ty>(scpobj_ref) {}
@@ -393,6 +399,7 @@ namespace mse {
 		operator bool() const { return (*static_cast<const TXScopeAtomicNotNullConstPointer<_Ty>*>(this)); }
 		void xscope_tag() const {}
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAtomicFixedConstPointer(const TXScopeAtomicObj<_Ty>& scpobj_cref) : TXScopeAtomicNotNullConstPointer<_Ty>(scpobj_cref) {}
@@ -521,6 +528,7 @@ namespace mse {
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator std::atomic<_Ty>*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>::operator _Ty*()*/; }
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAtomicItemFixedPointer(_Ty* ptr) : mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>(ptr) {}
@@ -560,6 +568,7 @@ namespace mse {
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator const std::atomic<_Ty>*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>::operator const _Ty*()*/; }
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAtomicItemFixedConstPointer(const _Ty* ptr) : mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>(ptr) {}
@@ -576,6 +585,7 @@ namespace mse {
 	class TXScopeAtomicCagedItemFixedPointerToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAtomicCagedItemFixedPointerToRValue(const TXScopeAtomicCagedItemFixedPointerToRValue&) = delete;
@@ -603,6 +613,7 @@ namespace mse {
 	class TXScopeAtomicCagedItemFixedConstPointerToRValue : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 	public:
 		void xscope_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 		TXScopeAtomicCagedItemFixedConstPointerToRValue(const TXScopeAtomicCagedItemFixedConstPointerToRValue& src_cref) = delete;
@@ -743,6 +754,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TXScopeAtomicItemFixedPointerFParam<_Ty>& operator=(const TXScopeAtomicItemFixedPointerFParam<_Ty>& _Right_cref) = delete;
@@ -769,6 +781,7 @@ namespace mse {
 
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TXScopeAtomicItemFixedConstPointerFParam<_Ty>& operator=(const TXScopeAtomicItemFixedConstPointerFParam<_Ty>& _Right_cref) = delete;
@@ -788,6 +801,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -799,6 +813,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -810,6 +825,7 @@ namespace mse {
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TFParam, base_class);
 			void xscope_not_returnable_tag() const {}
 			void xscope_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			MSE_USING_ASSIGNMENT_OPERATOR_AND_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION(base_class);
 		};
@@ -1016,8 +1032,6 @@ namespace mse {
 				public:
 					static int foo1(std::atomic<shareable_A_t>* a_native_ptr) { return a_native_ptr->load().b; }
 					static int foo2(mse::TXScopeAtomicItemFixedPointer<shareable_A_t> A_scope_ptr) { return A_scope_ptr->load().b; }
-				protected:
-					~B() {}
 				};
 
 				std::atomic<shareable_A_t>* A_native_ptr = nullptr;
@@ -1085,8 +1099,6 @@ namespace mse {
 						static int foo1(std::atomic<shareable_A_t>* a_native_ptr) { return a_native_ptr->load().b; }
 						static int foo2(mse::TXScopeAtomicItemFixedPointer<shareable_A_t> A_scpfptr) { return A_scpfptr->load().b; }
 						static int foo3(mse::TXScopeAtomicItemFixedConstPointer<shareable_A_t> A_scpfcptr) { return A_scpfcptr->load().b; }
-					protected:
-						~B() {}
 					};
 
 					mse::TXScopeAtomicObj<shareable_A_t> a_scpobj(5);

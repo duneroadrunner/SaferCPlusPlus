@@ -35,6 +35,7 @@
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #pragma clang diagnostic ignored "-Wunused-value"
 #else /*__clang__*/
 #ifdef __GNUC__
@@ -180,6 +181,7 @@ namespace mse {
 		public:
 			typedef mse::us::impl::ns_thread_local::TThreadLocalPointerBase<_Ty> base_class;
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalPointer() {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			TThreadLocalPointer() : base_class() {}
 			TThreadLocalPointer(const base_class& ptr) : base_class(ptr) {}
@@ -233,6 +235,7 @@ namespace mse {
 		public:
 			typedef mse::us::impl::ns_thread_local::TThreadLocalConstPointerBase<_Ty> base_class;
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalConstPointer() {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 		private:
 			TThreadLocalConstPointer() : base_class() {}
 			TThreadLocalConstPointer(const base_class& ptr) : base_class(ptr) {}
@@ -315,6 +318,7 @@ namespace mse {
 			*/
 #endif // !MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
 			void thread_local_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			//TThreadLocalNotNullPointer(typename base_class::scope_obj_base_ptr_t src_cref) : base_class(src_cref) {}
@@ -346,6 +350,7 @@ namespace mse {
 			}
 #endif // !MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
 			void thread_local_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			TThreadLocalNotNullConstPointer(const TThreadLocalNotNullConstPointer<_Ty>& src_cref) : base_class(src_cref) {}
@@ -378,6 +383,7 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedPointer() {}
 			operator bool() const { return (*static_cast<const base_class*>(this)); }
 			void thread_local_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			//TThreadLocalFixedPointer(typename TThreadLocalPointer<_Ty>::scope_obj_base_ptr_t ptr) : base_class(ptr) {}
@@ -406,6 +412,7 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedConstPointer() {}
 			operator bool() const { return (*static_cast<const base_class*>(this)); }
 			void thread_local_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
 			//TThreadLocalFixedConstPointer(typename TThreadLocalConstPointer<_Ty>::scope_obj_base_const_ptr_t ptr) : base_class(ptr) {}
@@ -722,8 +729,6 @@ namespace mse {
 				public:
 					static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
 					static int foo2(mse::rsv::TThreadLocalFixedPointer<A> A_thread_local_ptr) { return A_thread_local_ptr->b; }
-				protected:
-					~B() {}
 				};
 
 				A* A_native_ptr = nullptr;
@@ -774,8 +779,6 @@ namespace mse {
 						static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
 						static int foo2(mse::rsv::TThreadLocalFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
 						static int foo3(mse::rsv::TThreadLocalFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
-					protected:
-						~B() {}
 					};
 
 					MSE_DECLARE_THREAD_LOCAL(A) a_scpobj(5);

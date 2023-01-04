@@ -55,7 +55,7 @@ types. Your best bet is probably to use a find/search to get to the data type yo
 #pragma clang diagnostic ignored "-Wtautological-compare"
 #pragma clang diagnostic ignored "-Wunused-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
-//pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -735,8 +735,6 @@ int main(int argc, char* argv[]) {
 			static int foo2(mse::TRegisteredPointer<A> A_registered_ptr) { return A_registered_ptr->b; }
 			/* mse::TRegisteredFixedConstPointer<A> is recommended where you might have used "const A&".*/
 			static int foo3(mse::TRegisteredFixedConstPointer<A> A_registered_fc_ptr) { return A_registered_fc_ptr->b; }
-		protected:
-			~B() {}
 		};
 
 		A* A_native_ptr = nullptr;
@@ -1054,8 +1052,6 @@ int main(int argc, char* argv[]) {
 				std::string retval = (*strong_string_ptr);
 				return retval;
 			}
-		protected:
-			~B() {}
 		};
 
 		{
@@ -1243,8 +1239,6 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 			static int foo1(A* a_native_ptr) { return a_native_ptr->b; }
 			static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
 			static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
-		protected:
-			~B() {}
 		};
 
 		/* Here we're declaring a scope object. */

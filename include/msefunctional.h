@@ -111,6 +111,7 @@ namespace mse {
 		xscope_function(_Fty2&& func) : base_class(mse::us::impl::make_newable_xscope(MSE_FWD(func))) {}
 
 		void async_not_shareable_and_not_passable_tag() const {}
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
 
