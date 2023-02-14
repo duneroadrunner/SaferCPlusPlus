@@ -258,7 +258,7 @@ Reassignable (mut) references occur much less frequently, but currently, safe, r
 
 Probably the most noticeable difference though, is that SaferCPlusPlus does not (universally) restrict the number and type of references to an object that can exist at one time (i.e. the "exclusivity of mutable references") the way Rust does. With respect to memory safety, the benefit of this restriction is that it ensures that objects with "arbitrary lifespan" (like an element in a (resizable) vector) are not decommissioned while other references to that object still exist. But most objects do not have "arbitrary lifespan" (both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan"), so most of the time, from a memory safety perspective, this restriction is not necessary. So SaferCPlusPlus (and the lifetime checker too) are more selective about what restrictions are applied and when. 
 
-There are situations where restrictions on object accessibility can be beneficial or essential for reasons other than (single-threaded) memory safety. (To help ensure data race safety of asynchronously shared objects, for example.) For those cases, the library does provide facilities for the enforcement of "access control" restrictions, including essentially the [equivalent](#exclusive-writer-objects) of Rust's `RefCell` wrapper.
+There are situations where restrictions on object accessibility can be beneficial or essential for reasons other than (single-threaded) memory safety. (To help ensure data race safety of asynchronously shared objects, for example.) For those cases, the library does provide facilities for the enforcement of "access control" restrictions, including essentially the [(reverse) counterpart](#exclusive-writer-objects) to Rust's `RefCell` wrapper.
 
 Overall though, there's probably more commonality than difference between the Rust and the SaferCPlusPlus memory safety strategies. At least compared to other current languages. So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.
 
@@ -2694,7 +2694,7 @@ Integer types with more comprehensive range checking can be found here: https://
 
 ### Arrays
 
-The library provides a few array types - [`mstd::array<>`](#mstdarray), [`nii_array<>`](#nii_array) and [`xscope_nii_array<>`](#xscope_nii_array). `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. Due to their iterators, arrays are not, in general, safe to share among threads.  `nii_array<>` is designed to be safely shared between asynchronous threads. Note that these two arrays do not support using [scope](#scope-pointers) types as the element type, while `xscope_nii_array<>` does. 
+The library provides a few array types - [`mstd::array<>`](#mstdarray), [`nii_array<>`](#nii_array) and [`xscope_nii_array<>`](#xscope_nii_array). `mstd::array<>` is simply a memory-safe drop-in replacement for `std::array<>`. Due to their iterators, arrays are not, in general, safe to share among threads. `nii_array<>` is designed to be safely shared between asynchronous threads. Note that these two arrays do not support using [scope](#scope-pointers) types as the element type, while `xscope_nii_array<>` does. 
 
 And remember that you can use ["random access sections"](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection) to provide access to a subsection of any vector or array.
 
@@ -2748,7 +2748,7 @@ usage example:
 
 ### nii_array
 
-Due to their iterators, `std::array<>`s (and `mstd::array<>`s) are not, in general, safe to share among threads. `nii_array<>` is a "stripped down" array that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. "Explicit" iterators are supported. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the `nii_array<>`. So for example, instead of a `begin()` member function (that takes no parameters), you can obtain an iterator using the (generic) `make_begin_iterator(...)` free function that takes as an argument a (safe) pointer to the array.  
+Due to their iterators, `std::array<>`s (and `mstd::array<>`s) are not, in general, safe to share among threads. `nii_array<>` is a "stripped down" array that does not support "implicit reference" iterators, allowing it to be safely shareable between asynchronous threads. "Explicit reference" iterators are supported. That is, in order to obtain an iterator, you must explicitly provide a (safe) pointer to the `nii_array<>`. So for example, instead of a `begin()` member function (that takes no parameters), you can obtain an iterator using the (generic) `make_begin_iterator(...)` free function that takes as an argument a (safe) pointer to the array.  
 
 `nii_array<>`s are swappable with `mstd::array<>`s (and `std::array<>`s).
 
@@ -2818,7 +2818,7 @@ usage example:
 
 ### Vectors
 
-The library provides a number of vector types. Like their [array](#arrays) counterparts, [`mstd::vector<>`](#mstdvector) is a memory-safe drop-in replacement for `std::vector<>` and [`nii_vector<>`](#nii_vector) is a vector that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads.
+The library provides a number of vector types. Like their [array](#arrays) counterparts, [`mstd::vector<>`](#mstdvector) is a memory-safe drop-in replacement for `std::vector<>` and [`nii_vector<>`](#nii_vector) is a vector that doesn't support "implicit reference" iterators and (so) is eligible to be safely shared among asynchronous threads.
 
 But unlike (fixed-size) arrays, dynamic containers like (resizable) vectors present an extra memory safety challenge in that the container may be modified/resized so that an element in the container might be eliminated, or moved to a different location, while there are still references (iterators) targeting the element. This results in dynamic containers having additional overhead (for safety mechanisms) and/or usage restrictions. For this reason, directly referencing elements in these (resizable) vectors is discouraged. You may instead move the vector contents to a (more efficient) "non-resizable" vector and access the elements from that container. A [`fixed_nii_vector<>`](#fixed_nii_vector) is provided, but generally you'll want to use [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector). Upon construction it "borrows" the contents of a specified vector and returns the (possibly modified) contents upon destruction. The premise here is that the moving of a vector's contents is an inexpensive operation that might be expected to be completely optimized away in cases where the contents are returned to their original location. Like arrays, fixed-size vectors support (efficient) [scope iterators](#xscope_iterator).
 
@@ -2871,9 +2871,9 @@ usage example:
 
 ### nii_vector
 
-Like its array counterpart, [`nii_array<>`](#nii_array), `nii_vector<>` is a vector that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. You can obtain "explicit" iterators using the (generic) `make_begin_iterator(...)` free function that takes as an argument a (safe) pointer to the vector, but directly accessing the elements of an `nii_vector<>` is discouraged. Prefer instead to access (or hold references to) vector elements by using an [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector). (Indeed, if the elements are going to be accessed or referenced directly, consider using [`stnii_vector<>`](#stnii_vector) instead.)
+Like its array counterpart, [`nii_array<>`](#nii_array), `nii_vector<>` is a vector that does not support "implicit reference" iterators, allowing it to be safely shareable between asynchronous threads. You can obtain "explicit reference" iterators using the (generic) `make_begin_iterator(...)` free function that takes as an argument a (safe) pointer to the vector, but directly accessing the elements of an `nii_vector<>` is discouraged. Prefer instead to access (or hold references to) vector elements by using an [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector). (Indeed, if the elements are going to be accessed or referenced directly, consider using [`stnii_vector<>`](#stnii_vector) instead.)
 
-Note that the standard vector `insert()`, `erase()` and `emplace()` member functions return "implicit" iterators which, again, `nii_vector<>` does not support. Instead there are free function counterparts that take a (safe) pointer to the container as their first argument which is used to generate and return an "explicit" iterator (as demonstrated in the usage example).
+Note that the standard vector `insert()`, `erase()` and `emplace()` member functions return "implicit reference" iterators which, again, `nii_vector<>` does not support. Instead there are free function counterparts that take a (safe) pointer to the container as their first argument which is used to generate and return an "explicit reference" iterator (as demonstrated in the usage example).
 
 `nii_vector<>`s are swappable with `mstd::vector<>`s (and `std::vector<>`s).
 
@@ -2900,7 +2900,7 @@ usage example:
         mse::TRegisteredObj<fixed_nii_vector1_t> rg_vo1{ mse::nii_string{"abc"}, mse::nii_string{"def"} };
         mse::TRegisteredPointer<fixed_nii_vector1_t> vo1_regptr1 = &rg_vo1;
 
-        /* fixed_nii_vector<> does not have a begin() member function that returns an "implicit" iterator. You can obtain an
+        /* fixed_nii_vector<> does not have a begin() member function that returns an "implicit reference" iterator. You can obtain an
         iterator using the make_begin_iterator() et al. functions, which take a (safe) pointer to the container. */
         auto iter1 = mse::make_begin_iterator(vo1_regptr1);
         auto citer1 = mse::make_end_const_iterator(vo1_regptr1);
@@ -2982,8 +2982,8 @@ usage example:
         auto xs_nii_vector1_xscpobj = mse::make_xscope(mse::nii_vector<int>{ 1, 2, 3 });
         /* first we demonstrate some resizing operations on the nii_vector<> */
         /* Note that the standard emplace(), insert() and erase() member functions return an iterator. Since nii_vector<> doesn't
-        support "implicit" iterators (i.e. iterators generated from the native "this" pointer) those operations are provided by
-        free functions that take an explicit (safe) "this" pointer used to generate and return an explicit iterator. */
+        support "implicit reference" iterators (i.e. iterators generated from the native "this" pointer) those operations are provided by
+        free functions that take an explicit (safe) "this" pointer used to generate and return an "explicit reference" iterator. */
         mse::push_back(&xs_nii_vector1_xscpobj, 4/*value*/);
         mse::erase(&xs_nii_vector1_xscpobj, 2/*position index*/);
         mse::insert(&xs_nii_vector1_xscpobj, 1/*position index*/, 5/*value*/);
@@ -3047,7 +3047,7 @@ usage example:
 
 ### ivector
 
-`mse::ivector<>` is a safe vector like [`mse::mstd::vector<>`](#mstdvector), but its (implicit) iterators behave more like list iterators than standard vector iterators. That is, upon insert or delete, the iterators continue to point to the same item, not (necessarily) the same position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted.
+`mse::ivector<>` is a safe vector like [`mse::mstd::vector<>`](#mstdvector), but its (implicit reference) iterators behave more like list iterators than standard vector iterators. That is, upon insert or delete, the iterators continue to point to the same item, not (necessarily) the same position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted.
 
 usage example:
 ```cpp
@@ -3107,7 +3107,7 @@ usage example:
         }
         mse::TRegisteredPointer<mtnii_vector1_t> vo1_regptr1 = &rg_vo1;
 
-        /* mtnii_vector<> does not have a begin() member function that returns an "implicit" iterator. You can obtain an
+        /* mtnii_vector<> does not have a begin() member function that returns an "implicit reference" iterator. You can obtain an
         iterator using the make_begin_iterator() et al. functions, which take a (safe) pointer to the container. */
         auto iter1 = mse::make_begin_iterator(vo1_regptr1);
         auto citer1 = mse::make_end_const_iterator(vo1_regptr1);
@@ -3220,7 +3220,7 @@ usage example:
 
 ### exclusive writer protected dynamic containers
 
-As [noted previously](#mtnii_vector), unlike the other vectors, (for thread safety reasons) [`nii_vector<>`](#nii_vector)'s [scope const iterator](#xscope_iterator) doesn't "[structure lock](#structure-locking)" the vector and therefore, you cannot obtain a [scope pointer](#txscopefixedpointer) from it. However, an object protected by an "[excluse writer](#exclusive-writer-objects)" access control wrapper is ensured to remain unmodified while a corresponding "access controlled const pointer" exists. So it is safe to obtain a (const) scope pointer from a scope const iterator constructed from an "access controlled const pointer" of an `nii_vector<>` protected by an "excluse writer" access control wrapper.
+As [noted previously](#mtnii_vector), unlike the other vectors, (for thread safety reasons) [`nii_vector<>`](#nii_vector)'s [scope const iterator](#xscope_iterator) doesn't "[structure lock](#structure-locking)" the vector and therefore, you cannot obtain a [scope pointer](#txscopefixedpointer) from it. However, an object protected by an "[excluse writer](#exclusive-writer-objects)" access control wrapper is ensured to remain unmodified while a corresponding "access controlled const pointer" exists. So it is safe to obtain a (const) scope pointer from a scope const iterator constructed from an "access controlled const pointer" of an `nii_vector<>` protected by an "exclusive writer" access control wrapper.
 
 usage example:
 
@@ -3325,7 +3325,7 @@ See also [TXScopeCSSSXSTERandomAccessSection](https://github.com/duneroadrunner/
 
 ### Strings
 
-From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A few string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#mstdstring) is a memory-safe drop-in replacement for `std::string` and [`nii_string`](#nii_string) is a string that doesn't support "implicit" iterators and (so) is eligible to be safely shared among asynchronous threads. [`xscope_borrowing_fixed_nii_basic_string<>`](#xscope_borrowing_fixed_nii_basic_string) is a non-resizable string that facilitates more efficient and less restricted direct access to characters in the string.
+From an interface perspective, you might think of strings roughly as glorified vectors of characters, and thus they are given similar treatment in the library. A few string types are provided that correspond to their [vector](#vectors) counterparts. [`mstd::string`](#mstdstring) is a memory-safe drop-in replacement for `std::string` and [`nii_string`](#nii_string) is a string that doesn't support "implicit reference" iterators and (so) is eligible to be safely shared among asynchronous threads. [`xscope_borrowing_fixed_nii_basic_string<>`](#xscope_borrowing_fixed_nii_basic_string) is a non-resizable string that facilitates more efficient and less restricted direct access to characters in the string.
 
 ### mstd::string
 
@@ -3333,7 +3333,7 @@ From an interface perspective, you might think of strings roughly as glorified v
 
 ### nii_string
 
-Like its vector counterpart, [`nii_vector<>`](#nii_vector), `nii_string` is a string that does not support "implicit" iterators, allowing it to be safely shareable between asynchronous threads. But directly accessing the characters of an `nii_string` is discouraged. Prefer instead to access (or hold references to) characters of the string by using an [`xscope_borrowing_fixed_nii_basic_string<>`](#xscope_borrowing_fixed_nii_basic_string). The `nii_wstring`, `nii_u16string` and `nii_u32string` aliases are also present.
+Like its vector counterpart, [`nii_vector<>`](#nii_vector), `nii_string` is a string that does not support "implicit reference" iterators, allowing it to be safely shareable between asynchronous threads. But directly accessing the characters of an `nii_string` is discouraged. Prefer instead to access (or hold references to) characters of the string by using an [`xscope_borrowing_fixed_nii_basic_string<>`](#xscope_borrowing_fixed_nii_basic_string). The `nii_wstring`, `nii_u16string` and `nii_u32string` aliases are also present.
 
 ### fixed_nii_basic_string
 
