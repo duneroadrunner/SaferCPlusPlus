@@ -215,6 +215,24 @@ so you can't disable mstd::vector<> without also disabling mstd::array<>. */
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
+#if defined(__clang__)
+/* We need to support the augmentation of C++ elements with lifetime annotations used by the scpptool. Ideally, we
+would just want a generic attribute that places a specified string in the (clang) ast (so that it's accessible to
+the scpptool). Unfortunately, such an attribute is apparently not available at the moment. As a substitute we coul
+use an already available (relatively benign) attribute that takes a string parameter that clang will place in the
+ast. At the time of writing, "gsl::suppress" seems to be one of the few (if not the only one) that works for our
+purposes. */
+/* MSE_ATTR_STR(x) is used to add a string attribute to an element. */
+//define MSE_ATTR_STR(x) [[gsl::suppress(x)]]
+#define MSE_ATTR_STR(x) __attribute__((annotate(x)))
+#else // defined(__clang__)
+#define MSE_ATTR_STR(x)
+#endif // defined(__clang__)
+/* MSE_ATTR_FUNC_STR(x) is used to add a string attribute to a function declaration. */
+#define MSE_ATTR_FUNC_STR(x) MSE_ATTR_STR(x)
+/* MSE_ATTR_PARAM_STR(x) is used to add a string attribute to a function parameter declaration. */
+#define MSE_ATTR_PARAM_STR(x) MSE_ATTR_STR(x)
+
 namespace mse {
 
 	class primitives_null_dereference_error : public std::logic_error {
