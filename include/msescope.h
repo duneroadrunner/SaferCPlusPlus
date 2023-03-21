@@ -1251,7 +1251,7 @@ namespace mse {
 			const TXScopeCagedItemFixedConstPointerToRValue<_TROy, lt_info1> mse_xscope_ifptr() const&& { return &(*this); }
 
 			void xscope_tag() const {}
-			//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
+			//void xscope_contains_accessible_scope_addressof_operator_tag() const {}
 			/* This type can be safely used as a function return value if _Ty is also safely returnable. */
 			template<class _Ty2 = _TROy, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (
 				(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)

@@ -467,7 +467,7 @@ namespace mse {
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TROy);
 		void xscope_tag() const {}
-		//void xscope_contains_accessible_scope_address_of_operator_tag() const {}
+		//void xscope_contains_accessible_scope_addressof_operator_tag() const {}
 		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
 		template<class _Ty2 = std::atomic<_TROy>, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)

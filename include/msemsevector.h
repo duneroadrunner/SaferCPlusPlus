@@ -3510,7 +3510,7 @@ namespace mse {
 		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
 			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<_Ty2>::value)
 			> MSE_IMPL_EIS >
-		void valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
+		void valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_addressof_operator() const {}
 
 		friend /*class */xscope_ss_const_iterator_type;
 		friend /*class */xscope_ss_iterator_type;

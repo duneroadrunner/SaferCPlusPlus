@@ -31,6 +31,7 @@
 #endif // MSE_MSEARRAY_USE_MSE_PRIMITIVES
 
 #include "msescope.h"
+#include "mseslta.h"
 #include "mseoptional.h"
 //include "msealgorithm.h"
 #include <array>
@@ -3753,35 +3754,28 @@ namespace mse {
 		operator _MA() const& { return contained_array(); }
 		operator _MA() && { return std::forward<_MA>(contained_array()); }
 
-		void assign(const _Ty& _Value)
-		{	// assign value to all elements
-			valid_if_Ty_is_not_marked_as_containing_a_scope_reference<_Ty>();
-			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
-			base_class::assign(_Value);
-		}
-
 		void fill(const _Ty& _Value)
 		{	// assign value to all elements
 			valid_if_Ty_is_not_marked_as_containing_a_scope_reference<_Ty>();
-			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_addressof_operator<_Ty>();
 			base_class::fill(_Value);
 		}
 
 		void swap(_Myt& _Other) {	// swap contents with _Other
 			valid_if_Ty_is_not_marked_as_containing_a_scope_reference<_Ty>();
-			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_addressof_operator<_Ty>();
 			base_class::swap(_Other);
 		}
 
 		void swap(_MA& _Other) {	// swap contents with _Other
 			valid_if_Ty_is_not_marked_as_containing_a_scope_reference<_Ty>();
-			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_addressof_operator<_Ty>();
 			base_class::swap(_Other);
 		}
 
 		xscope_nii_array& operator=(const xscope_nii_array& _Right_cref) {
 			valid_if_Ty_is_not_marked_as_containing_a_scope_reference<_Ty>();
-			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator<_Ty>();
+			valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_addressof_operator<_Ty>();
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
@@ -3878,7 +3872,7 @@ namespace mse {
 		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
 			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<_Ty2>::value)
 			> MSE_IMPL_EIS >
-		void valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_address_of_operator() const {}
+		void valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_addressof_operator() const {}
 
 		//std_array m_array;
 		//state_mutex_t m_mutex1;
@@ -4017,6 +4011,941 @@ namespace std {
 	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
 	void swap(mse::xscope_nii_array<_Ty, _Size>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
 	{
+		_Left.swap(_Right);
+	}
+}
+
+
+#define MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, this_class) \
+	this_class& operator +=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { \
+		base_class::operator +=(x); \
+		return (*this); \
+	} \
+	this_class& operator -=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { operator +=(-x); return (*this); } \
+	this_class& operator ++() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { operator +=(1); return (*this); } \
+	this_class operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); } \
+	this_class& operator --() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { operator -=(1); return (*this); } \
+	this_class operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); } \
+	this_class operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; } \
+	this_class operator-(difference_type n) const { return ((*this) + (-n)); } \
+	difference_type operator-(const base_class& _Right_cref) const { \
+		return base_class::operator-(_Right_cref); \
+	}
+
+namespace mse {
+	namespace rsv {
+		template <typename _TRAContainerPointer> class TXSLTARAConstIterator;
+
+		template <typename _TRAContainerPointer>
+		class TXSLTARAIterator : public us::impl::ns_ra_iter::TRAIteratorBase<mse::impl::remove_reference_t<_TRAContainerPointer> >, public mse::us::impl::XSLTATagBase {
+		public:
+			typedef us::impl::ns_ra_iter::TRAIteratorBase<mse::impl::remove_reference_t<_TRAContainerPointer> > base_class;
+			typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class)
+
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TXSLTARAIterator);
+
+			TXSLTARAIterator(const _TRAContainerPointerRR& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index) : base_class(ra_container_pointer, index) {}
+			TXSLTARAIterator(_TRAContainerPointerRR&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index) : base_class(MSE_FWD(ra_container_pointer), index) {}
+
+			reference operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return base_class::operator*();
+			}
+			typedef typename std::add_pointer<value_type>::type pointer_t;
+			pointer_t operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return base_class::operator->();
+			}
+			reference operator[](difference_type _Off) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return base_class::operator[](_Off);
+			}
+
+			TXSLTARAIterator& operator +=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::operator +=(x);
+				return (*this);
+			}
+			TXSLTARAIterator& operator -=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(-x); return (*this); }
+			TXSLTARAIterator& operator ++() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(1); return (*this); }
+			TXSLTARAIterator operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+			TXSLTARAIterator& operator --() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator -=(1); return (*this); }
+			TXSLTARAIterator operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+			TXSLTARAIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			TXSLTARAIterator operator-(difference_type n) const { return ((*this) + (-n)); }
+			difference_type operator-(const base_class& _Right_cref) const {
+				return base_class::operator-(_Right_cref);
+			}
+
+			TXSLTARAIterator& operator=(const TXSLTARAIterator& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::operator=(_Right_cref);
+				return (*this);
+			}
+			TXSLTARAIterator& operator=(TXSLTARAIterator&& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::operator=(MSE_FWD(_Right_cref));
+				return (*this);
+			}
+
+			MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointerRR);
+			void xslta_iterator_tag() const {}
+			void xslta_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+		private:
+			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
+
+			template <typename _TRAContainerPointer2>
+			friend class TXSLTARAConstIterator;
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TRAContainerPointer, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+		template <typename _TRAContainerPointer>
+		class TXSLTARAConstIterator : public us::impl::ns_ra_iter::TRAConstIteratorBase<mse::impl::remove_reference_t<_TRAContainerPointer> >, public mse::us::impl::XSLTATagBase {
+		public:
+			typedef us::impl::ns_ra_iter::TRAConstIteratorBase<mse::impl::remove_reference_t<_TRAContainerPointer> > base_class;
+			typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class)
+
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TXSLTARAConstIterator);
+
+			TXSLTARAConstIterator(const TXSLTARAIterator<_TRAContainerPointerRR>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(src.m_ra_container_pointer, src.m_index) {}
+			TXSLTARAConstIterator(TXSLTARAIterator<_TRAContainerPointerRR>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(MSE_FWD(src).m_ra_container_pointer, src.m_index) {}
+
+			TXSLTARAConstIterator(const _TRAContainerPointerRR& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index) : base_class(ra_container_pointer, index) {}
+			TXSLTARAConstIterator(_TRAContainerPointerRR&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index) : base_class(MSE_FWD(ra_container_pointer), index) {}
+
+			const_reference operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return base_class::operator*();
+			}
+			typedef typename std::add_pointer<typename std::add_const<value_type>::type>::type const_pointer_t;
+			const_pointer_t operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return base_class::operator->();
+			}
+			const_reference operator[](difference_type _Off) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return base_class::operator[](_Off);
+			}
+
+			TXSLTARAConstIterator& operator +=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::operator +=(x);
+				return (*this);
+			}
+			TXSLTARAConstIterator& operator -=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(-x); return (*this); }
+			TXSLTARAConstIterator& operator ++() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(1); return (*this); }
+			TXSLTARAConstIterator operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+			TXSLTARAConstIterator& operator --() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator -=(1); return (*this); }
+			TXSLTARAConstIterator operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+			TXSLTARAConstIterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			TXSLTARAConstIterator operator-(difference_type n) const { return ((*this) + (-n)); }
+			difference_type operator-(const base_class& _Right_cref) const {
+				return base_class::operator-(_Right_cref);
+			}
+
+			TXSLTARAConstIterator& operator=(const TXSLTARAConstIterator& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::operator=(_Right_cref);
+				return (*this);
+			}
+			TXSLTARAConstIterator& operator=(TXSLTARAConstIterator&& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::operator=(MSE_FWD(_Right_cref));
+				return (*this);
+			}
+
+			MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_TRAContainerPointerRR);
+			void xslta_iterator_tag() const {}
+			void xslta_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+		private:
+			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TRAContainerPointer, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+		template <typename _TRAContainerPointer> class TXSLTACSSSStrongRAConstIterator;
+		template <typename _TRAContainerPointer> class TXSLTACSSSStrongRAIterator;
+		namespace us {
+			/* A couple of unsafe functions for internal use. */
+			template<class _TRAContainerPointer>
+			TXSLTACSSSStrongRAIterator<_TRAContainerPointer> unsafe_make_xslta_csss_strong_ra_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXSLTACSSSStrongRAIterator<_TRAContainerPointer>::size_type index/* = 0*/);
+			template<class _TRAContainerPointer>
+			TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> unsafe_make_xslta_csss_strong_ra_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>::size_type index/* = 0*/);
+		}
+
+		template <typename _TRAContainerPointer>
+		class TXSLTACSSSStrongRAIterator : public TXSLTARAIterator<_TRAContainerPointer> {
+		public:
+			typedef TXSLTARAIterator<_TRAContainerPointer> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			TXSLTACSSSStrongRAIterator(const TXSLTACSSSStrongRAIterator& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(src) {}
+			TXSLTACSSSStrongRAIterator(TXSLTACSSSStrongRAIterator&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(MSE_FWD(src)) {}
+			TXSLTACSSSStrongRAIterator(const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index) : base_class(ra_container_pointer, index) {
+				mse::impl::is_valid_if_strong_pointer<_TRAContainerPointer>::no_op();
+				typedef mse::impl::remove_reference_t<decltype(*ra_container_pointer)> TRAContainer;
+				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
+			}
+			TXSLTACSSSStrongRAIterator(_TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index) : base_class(MSE_FWD(ra_container_pointer), index) {
+				mse::impl::is_valid_if_strong_pointer<_TRAContainerPointer>::no_op();
+				typedef mse::impl::remove_reference_t<decltype(*ra_container_pointer)> TRAContainer;
+				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
+			}
+			TXSLTACSSSStrongRAIterator(const TXSLTARAIterator<_TRAContainerPointer>& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(xs_ra_iter) {
+				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_or_locking_strong_iterator_msemsearray<TXSLTARAIterator<_TRAContainerPointer> >();
+			}
+			TXSLTACSSSStrongRAIterator(TXSLTARAIterator<_TRAContainerPointer>&& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(MSE_FWD(xs_ra_iter)) {
+				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_strong_iterator_msemsearray<TXSLTARAIterator<_TRAContainerPointer> >();
+			}
+
+			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTACSSSStrongRAIterator);
+			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTACSSSStrongRAIterator);
+			//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+
+			bool is_valid() const {
+				return ((0 <= (*this).position()) && (difference_type(mse::container_size(*(*this).target_container_ptr())) >= (*this).position()));
+			}
+
+			MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+			void xslta_iterator_tag() const {}
+			void xslta_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+		private:
+			class unsafe_t {};
+			TXSLTACSSSStrongRAIterator(unsafe_t, const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index = 0) : base_class(ra_container_pointer, index) {}
+			TXSLTACSSSStrongRAIterator(unsafe_t, _TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
+
+			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
+
+			friend class TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>;
+			template<class _TRAContainerPointer2> friend TXSLTACSSSStrongRAIterator<_TRAContainerPointer2> us::unsafe_make_xslta_csss_strong_ra_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTACSSSStrongRAIterator<_TRAContainerPointer2>::size_type index);
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TRAContainerPointer, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+		template <typename _TRAContainerPointer>
+		class TXSLTACSSSStrongRAConstIterator : public TXSLTARAConstIterator<_TRAContainerPointer> {
+		public:
+			typedef TXSLTARAConstIterator<_TRAContainerPointer> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			TXSLTACSSSStrongRAConstIterator(const TXSLTACSSSStrongRAConstIterator& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(src) {}
+			TXSLTACSSSStrongRAConstIterator(TXSLTACSSSStrongRAConstIterator&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(MSE_FWD(src)) {}
+
+			TXSLTACSSSStrongRAConstIterator(const TXSLTACSSSStrongRAIterator<_TRAContainerPointer>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(src) {}
+			TXSLTACSSSStrongRAConstIterator(TXSLTACSSSStrongRAIterator<_TRAContainerPointer>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(MSE_FWD(src)) {}
+
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTACSSSStrongRAConstIterator(TXSLTACSSSStrongRAConstIterator<_Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(MSE_FWD(src)) {}
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTACSSSStrongRAConstIterator(const TXSLTACSSSStrongRAConstIterator<_Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(src) {}
+
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTACSSSStrongRAConstIterator(TXSLTACSSSStrongRAIterator<_Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(MSE_FWD(src)) {}
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTACSSSStrongRAConstIterator(const TXSLTACSSSStrongRAIterator<_Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(src) {}
+
+			TXSLTACSSSStrongRAConstIterator(const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index = 0) : base_class(ra_container_pointer, index) {
+				mse::impl::is_valid_if_strong_pointer<_TRAContainerPointer>::no_op();
+				typedef mse::impl::remove_reference_t<decltype(*ra_container_pointer)> TRAContainer;
+				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
+			}
+			TXSLTACSSSStrongRAConstIterator(_TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {
+				mse::impl::is_valid_if_strong_pointer<_TRAContainerPointer>::no_op();
+				typedef mse::impl::remove_reference_t<decltype(*ra_container_pointer)> TRAContainer;
+				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_container_msemsearray<TRAContainer>();
+			}
+			TXSLTACSSSStrongRAConstIterator(const TXSLTARAConstIterator<_TRAContainerPointer>& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(xs_ra_iter) {
+				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_or_locking_strong_iterator_msemsearray<TXSLTARAConstIterator<_TRAContainerPointer> >();
+			}
+			TXSLTACSSSStrongRAConstIterator(TXSLTARAConstIterator<_TRAContainerPointer>&& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(MSE_FWD(xs_ra_iter)) {
+				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_strong_iterator_msemsearray<TXSLTARAConstIterator<_TRAContainerPointer> >();
+			}
+			/*
+			TXSLTACSSSStrongRAConstIterator(const TXSLTARAIterator<_TRAContainerPointer>& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(xs_ra_iter) {
+				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_or_locking_strong_iterator_msemsearray<TXSLTARAIterator<_TRAContainerPointer> >();
+			}
+			TXSLTACSSSStrongRAConstIterator(TXSLTARAIterator<_TRAContainerPointer>&& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : base_class(MSE_FWD(xs_ra_iter)) {
+				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_strong_iterator_msemsearray<TXSLTARAIterator<_TRAContainerPointer> >();
+			}
+			*/
+
+			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTACSSSStrongRAConstIterator);
+			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTACSSSStrongRAConstIterator);
+			//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+
+			bool is_valid() const {
+				return ((0 <= (*this).position()) && (difference_type(mse::container_size(*(*this).target_container_ptr())) >= (*this).position()));
+			}
+
+			MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+			void xslta_iterator_tag() const {}
+			void xslta_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+		private:
+			class unsafe_t {};
+			TXSLTACSSSStrongRAConstIterator(unsafe_t, const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index = 0) : base_class(ra_container_pointer, index) {}
+			TXSLTACSSSStrongRAConstIterator(unsafe_t, _TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
+
+			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
+
+			template<class _TRAContainerPointer2> friend TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer2> us::unsafe_make_xslta_csss_strong_ra_const_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer2>::size_type index);
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TRAContainerPointer, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+		namespace us {
+			/* A couple of unsafe functions for internal use. */
+			template<class _TRAContainerPointer>
+			TXSLTACSSSStrongRAIterator<_TRAContainerPointer> unsafe_make_xslta_csss_strong_ra_iterator(const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), typename TXSLTACSSSStrongRAIterator<_TRAContainerPointer>::size_type index/* = 0*/)
+				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+				MSE_ATTR_FUNC_STR("mse::lifetime_labels(alias_11$)")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+
+				return TXSLTACSSSStrongRAIterator<_TRAContainerPointer>(typename TXSLTACSSSStrongRAIterator<_TRAContainerPointer>::unsafe_t(), ra_container_pointer, index);
+			}
+			template<class _TRAContainerPointer>
+			TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> unsafe_make_xslta_csss_strong_ra_const_iterator(const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), typename TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>::size_type index/* = 0*/)
+				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+				MSE_ATTR_FUNC_STR("mse::lifetime_labels(alias_11$)")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+
+				return TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>(typename TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>::unsafe_t(), ra_container_pointer, index);
+			}
+		}
+
+		template <typename _TRAContainer>
+		using TXSLTACSSSXSRAConstIterator = TXSLTACSSSStrongRAConstIterator<mse::rsv::TXSLTAConstPointer<_TRAContainer> >;
+		template <typename _TRAContainer>
+		using TXSLTACSSSXSRAIterator = TXSLTACSSSStrongRAIterator<mse::rsv::TXSLTAPointer<_TRAContainer> >;
+
+
+		template<class _Ty, size_t _Size>
+		class xslta_nii_array;
+
+		namespace us {
+			namespace impl {
+				template<class _Ty, size_t _Size, class _TStateMutex/* = container_adjusted_default_state_mutex<_Ty>*/>
+				class xslta_nii_array_base : private mse::impl::TOpaqueWrapper<std::array<_Ty, _Size> >, private adjusted_state_mutex<_Ty, _TStateMutex>, public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
+				public:
+					/* A (non-thread safe) mutex is used to enforce safety against potentially mischievous element constructors/destructors.
+					There are no such concerns with trivial element types, so in those cases we'll just use a "no-op dummy" mutex. */
+					typedef adjusted_state_mutex<_Ty, _TStateMutex> state_mutex_t;
+
+					/* We (privately) inherit the underlying data type rather than make it a data member to ensure it's the "first" component in the structure.*/
+					typedef mse::impl::TOpaqueWrapper<std::array<_Ty, _Size> > base_class;
+					typedef std::array<_Ty, _Size> std_array;
+					typedef std_array _MA;
+					typedef xslta_nii_array_base _Myt;
+
+					typedef mse::impl::random_access_iterator_base<_Ty> ra_it_base;
+					typedef typename ra_it_base::value_type value_type;
+					typedef typename ra_it_base::difference_type difference_type;
+					typedef typename ra_it_base::pointer pointer;
+					typedef typename ra_it_base::const_pointer const_pointer;
+					typedef typename ra_it_base::reference reference;
+					typedef typename ra_it_base::const_reference const_reference;
+					typedef typename ra_it_base::size_type size_type;
+
+				private:
+					const _MA& contained_array() const& { return (*this).value(); }
+					//const _MA& contained_array() const&& { return (*this).value(); }
+					_MA& contained_array()& { return (*this).value(); }
+					_MA&& contained_array()&& { return std::move(*this).value(); }
+
+					state_mutex_t& state_mutex1()& { return (*this); }
+
+				public:
+					xslta_nii_array_base() : base_class(std::array<_Ty, _Size>{}) {}
+					xslta_nii_array_base(_MA&& _X) : base_class(MSE_FWD(_X)) {}
+					xslta_nii_array_base(const _MA& _X) : base_class(_X) {}
+					xslta_nii_array_base(_Myt&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) : base_class(MSE_FWD(_X).contained_array()) {}
+					xslta_nii_array_base(const _Myt& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) : base_class(_X.contained_array()) {}
+					//xslta_nii_array_base(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : base_class(_Ilist) {}
+				private:
+					static constexpr std::array<_Ty, _Size> std_array_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
+						/* _Ty is default constructible. */
+						assert(_Ilist.size() <= _Size);
+						return mse::us::impl::array_helper::default_constructible_array_helper_type<_Ty, _Size>::std_array_initialized_with_range(_Ilist.begin(), _Ilist.end());
+					}
+					static constexpr std::array<_Ty, _Size> std_array_initial_value(std::false_type, _XSTD initializer_list<_Ty> _Ilist) {
+						/* _Ty is not default constructible. */
+						assert(_Ilist.size() == _Size);
+						return mse::us::impl::array_helper::not_default_constructible_array_helper_type<_Ty, _Size>::std_array_initialized_with_range(_Ilist.begin(), _Ilist.end());
+					}
+				public:
+					constexpr xslta_nii_array_base(_XSTD initializer_list<_Ty> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) : base_class(std_array_initial_value(typename std::is_default_constructible<_Ty>::type(), _Ilist)) {
+						/* std::array<> is an "aggregate type" (basically a POD struct with no base class, constructors or private
+						data members (details here: http://en.cppreference.com/w/cpp/language/aggregate_initialization)). As such,
+						support for construction from initializer list is automatically generated by the compiler. Specifically,
+						aggregate types support "aggregate initialization". But since mstd::array has a member with an explicitly
+						defined constructor (or at least I think that's why), it is not an aggregate type and therefore doesn't
+						qualify to have support for "aggregate initialization" automatically generated by the compiler. So we try
+						to emulate it. */
+					}
+
+					~xslta_nii_array_base() {
+						mse::impl::destructor_lock_guard1<state_mutex_t> lock1(state_mutex1());
+					}
+
+					operator _MA() const& { return contained_array(); }
+					operator _MA()&& { return std::forward<_MA>(contained_array()); }
+
+					typename std_array::const_reference operator[](msear_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+						return (*this).at(msear_as_a_size_t(_P));
+					}
+					typename std_array::reference operator[](msear_size_t _P) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+						return (*this).at(msear_as_a_size_t(_P));
+					}
+					typename std_array::reference front() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return first element of mutable sequence
+						if (0 == (*this).size()) { MSE_THROW(nii_array_range_error("front() on empty - typename std_array::reference front() - xslta_nii_array_base")); }
+						return contained_array().front();
+					}
+					_CONST_FUN typename std_array::const_reference front() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return first element of nonmutable sequence
+						if (0 == (*this).size()) { MSE_THROW(nii_array_range_error("front() on empty - typename std_array::const_reference front() - xslta_nii_array_base")); }
+						return contained_array().front();
+					}
+					typename std_array::reference back() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return last element of mutable sequence
+						if (0 == (*this).size()) { MSE_THROW(nii_array_range_error("back() on empty - typename std_array::reference back() - xslta_nii_array_base")); }
+						return contained_array().back();
+					}
+					_CONST_FUN typename std_array::const_reference back() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return last element of nonmutable sequence
+						if (0 == (*this).size()) { MSE_THROW(nii_array_range_error("back() on empty - typename std_array::const_reference back() - xslta_nii_array_base")); }
+						return contained_array().back();
+					}
+
+					void fill(const _Ty& _Value MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+					{	// assign value to all elements
+						std::lock_guard<state_mutex_t> lock1(state_mutex1());
+						contained_array().fill(_Value);
+					}
+
+					void swap(_Myt& _Other MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])"))
+						MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }") {	// swap contents with _Other
+
+						std::lock_guard<state_mutex_t> lock1(state_mutex1());
+						contained_array().swap(_Other.contained_array());
+					}
+
+					void swap(_MA& _Other) {	// swap contents with _Other
+						std::lock_guard<state_mutex_t> lock1(state_mutex1());
+						contained_array().swap(_Other);
+					}
+
+					size_type size() const _NOEXCEPT
+					{	// return length of sequence
+						return contained_array().size();
+					}
+
+					size_type max_size() const _NOEXCEPT
+					{	// return maximum possible length of sequence
+						return contained_array().max_size();
+					}
+
+					_CONST_FUN bool empty() const _NOEXCEPT
+					{	// test if sequence is empty
+						return contained_array().empty();
+					}
+
+					reference at(msear_size_t _Pos) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
+					{	// subscript mutable sequence with checking
+						return contained_array().at(msear_as_a_size_t(_Pos));
+					}
+
+					const_reference at(msear_size_t _Pos) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
+					{	// subscript nonmutable sequence with checking
+						return contained_array().at(msear_as_a_size_t(_Pos));
+					}
+
+					MSE_DEPRECATED value_type* data() _NOEXCEPT
+					{	// return pointer to mutable data array
+						return contained_array().data();
+					}
+
+					MSE_DEPRECATED const value_type* data() const _NOEXCEPT
+					{	// return pointer to nonmutable data array
+						return contained_array().data();
+					}
+
+					xslta_nii_array_base& operator=(const xslta_nii_array_base& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+						std::lock_guard<state_mutex_t> lock1(state_mutex1());
+						contained_array() = _Right_cref.contained_array();
+						return (*this);
+					}
+
+					//typedef xslta_ss_const_iterator_type xslta_const_iterator;
+					//typedef xslta_ss_iterator_type xslta_iterator;
+					typedef TXSLTACSSSXSRAConstIterator<_Myt> xslta_const_iterator;
+					typedef TXSLTACSSSXSRAIterator<_Myt> xslta_iterator;
+
+					template<typename _TArrayConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value)> MSE_IMPL_EIS >
+					using Tss_const_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
+					using Tss_iterator_type = mse::impl::ns_nii_array::Tarray_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
+
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
+					using Tss_reverse_iterator_type = mse::impl::ns_nii_array::Tarray_ss_reverse_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex>;
+					template<typename _TArrayConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value)> MSE_IMPL_EIS >
+					using Tss_const_reverse_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
+
+					template<typename _TArrayPointer>
+					static auto ss_begin(const _TArrayPointer& owner_ptr) {
+						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
+							, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> > return_type;
+						return_type retval(owner_ptr, 0);
+						retval.set_to_beginning();
+						return retval;
+					}
+
+					template<typename _TArrayPointer>
+					static auto data(const _TArrayPointer& owner_ptr) {
+						return ss_begin(owner_ptr);
+					}
+
+					template<typename _TArrayPointer>
+					static auto ss_end(const _TArrayPointer& owner_ptr) {
+						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
+							, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> > return_type;
+						return_type retval(owner_ptr, 0);
+						retval.set_to_end_marker();
+						return retval;
+					}
+
+					template<typename _TArrayPointer>
+					static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
+						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+						Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr, 0);
+						retval.set_to_beginning();
+						return retval;
+					}
+
+					template<typename _TArrayPointer>
+					static auto ss_cend(const _TArrayPointer& owner_ptr) {
+						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+						Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr, 0);
+						retval.set_to_end_marker();
+						return retval;
+					}
+
+					template<typename _TArrayPointer>
+					static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
+						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
+							, Tss_const_reverse_iterator_type<_TArrayPointer>, Tss_reverse_iterator_type<_TArrayPointer> > return_type;
+						return return_type(ss_end<_TArrayPointer>(owner_ptr));
+					}
+
+					template<typename _TArrayPointer>
+					static auto ss_rend(const _TArrayPointer& owner_ptr) {
+						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
+							, Tss_const_reverse_iterator_type<_TArrayPointer>, Tss_reverse_iterator_type<_TArrayPointer> > return_type;
+						return return_type(ss_begin<_TArrayPointer>(owner_ptr));
+					}
+
+					template<typename _TArrayPointer>
+					static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
+						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+						return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_cend<_TArrayPointer>(owner_ptr)));
+					}
+
+					template<typename _TArrayPointer>
+					static auto ss_crend(const _TArrayPointer& owner_ptr) {
+						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
+						return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_crbegin<_TArrayPointer>(owner_ptr)));
+					}
+
+				private:
+					template<typename _TArrayPointer>
+					static auto xslta_ss_begin_helper1(std::true_type, const _TArrayPointer& owner_ptr) {
+						xslta_iterator retval(owner_ptr, 0);
+						retval.set_to_beginning();
+						return retval;
+					}
+					template<typename _TArrayPointer>
+					static auto xslta_ss_begin_helper1(std::false_type, const _TArrayPointer& owner_ptr) {
+						return xslta_ss_cbegin(owner_ptr);
+					}
+					template<typename _TArrayPointer>
+					static auto xslta_ss_end_helper1(std::true_type, const _TArrayPointer& owner_ptr) {
+						xslta_iterator retval(owner_ptr, 0);
+						retval.set_to_end_marker();
+						return retval;
+					}
+					template<typename _TArrayPointer>
+					static auto xslta_ss_end_helper1(std::false_type, const _TArrayPointer& owner_ptr) {
+						return xslta_ss_cend(owner_ptr);
+					}
+				public:
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAPointer<_Myt> >::value || std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAConstPointer<_Myt> >::value> MSE_IMPL_EIS >
+					static auto xslta_ss_begin(const _TArrayPointer& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])"))
+						MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TArrayPointer, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
+
+						return xslta_ss_begin_helper1(typename std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAPointer<_Myt> >::type(), owner_ptr);
+					}
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAPointer<_Myt> >::value || std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAConstPointer<_Myt> >::value> MSE_IMPL_EIS >
+					static auto xslta_ss_end(const _TArrayPointer& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])"))
+						MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TArrayPointer, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
+
+						return xslta_ss_end_helper1(typename std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAPointer<_Myt> >::type(), owner_ptr);
+					}
+					static auto xslta_ss_cbegin(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+						MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+						xslta_const_iterator retval(owner_ptr, 0);
+						retval.set_to_beginning();
+						return retval;
+					}
+					static auto xslta_ss_cend(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+						MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+						xslta_const_iterator retval(owner_ptr, 0);
+						retval.set_to_end_marker();
+						return retval;
+					}
+
+					static auto xslta_ss_rbegin(const mse::rsv::TXSLTAPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+						MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+						return xslta_ss_reverse_iterator_type(xslta_ss_end(owner_ptr));
+					}
+					static auto xslta_ss_rend(const mse::rsv::TXSLTAPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+						MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+						return xslta_ss_reverse_iterator_type(xslta_ss_begin(owner_ptr));
+					}
+					static auto xslta_ss_crbegin(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+						MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+						return (xslta_ss_const_reverse_iterator_type(xslta_ss_cend(owner_ptr)));
+					}
+					static auto xslta_ss_crend(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+						MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+						return (xslta_ss_const_reverse_iterator_type(xslta_ss_crbegin(owner_ptr)));
+					}
+					static auto xslta_ss_rbegin(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") { return xslta_ss_crbegin(owner_ptr); }
+					static auto xslta_ss_rend(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") { return xslta_ss_crend(owner_ptr); }
+
+					MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(_Myt, _MA)
+
+						template<class _Ty2, class _Traits2>
+					std::basic_ostream<_Ty2, _Traits2>& write_bytes(std::basic_ostream<_Ty2, _Traits2>& _Ostr, size_type byte_count, const size_type byte_start_offset = 0) const {
+						const auto array_size_in_bytes = mse::msear_as_a_size_t(sizeof(_Ty) * (*this).size());
+						auto byte_ptr = reinterpret_cast<const char*>((*this).contained_array().data());
+						if ((array_size_in_bytes <= byte_start_offset) || (0 >= byte_count)) {
+							return _Ostr;
+						}
+						else {
+							byte_ptr += mse::msear_as_a_size_t(byte_start_offset);
+							return _Ostr.write(byte_ptr, std::min(mse::msear_as_a_size_t(array_size_in_bytes - byte_start_offset), mse::msear_as_a_size_t(byte_count)));
+						}
+					}
+					template<class _Ty2, class _Traits2>
+					std::basic_ostream<_Ty2, _Traits2>& write_bytes(std::basic_ostream<_Ty2, _Traits2>& _Ostr) const {
+						return write_bytes(_Ostr, mse::msear_as_a_size_t(sizeof(_Ty) * (*this).size()));
+					}
+
+				private:
+					friend class mse::nii_array<_Ty, _Size>;
+					friend class mse::rsv::xslta_nii_array<_Ty, _Size>;
+					friend class mse::us::msearray<_Ty, _Size, _TStateMutex>;
+				} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+					MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+			}
+		}
+
+		template<class _Ty, size_t _Size>
+		class xslta_nii_array;
+	}
+}
+
+namespace std {
+
+	/* forward declarations of std::get<>() functions associated with mse::rsv::xslta_nii_array<> */
+
+	// TUPLE INTERFACE TO array
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN _Ty& get(mse::rsv::xslta_nii_array<_Ty, _Size>& _Arr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)")) _NOEXCEPT
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); return_value(42) }");
+
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN const _Ty& get(const mse::rsv::xslta_nii_array<_Ty, _Size>& _Arr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)")) _NOEXCEPT
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); return_value(42) }");
+
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN _Ty&& get(mse::rsv::xslta_nii_array<_Ty, _Size>&& _Arr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)")) _NOEXCEPT
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); return_value(42) }");
+}
+
+namespace mse {
+	namespace rsv {
+
+		/* xslta_nii_array<> is the slta version of nii_array<> (which unlike nii_array<>, can hold slta objects). */
+		template<class _Ty, size_t _Size>
+		class xslta_nii_array : public mse::rsv::us::impl::xslta_nii_array_base<_Ty, _Size, container_adjusted_default_state_mutex<_Ty> >, public mse::us::impl::XSLTATagBase
+			, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ReferenceableBySLTAPointerTagBase, _Ty, xslta_nii_array<_Ty, _Size> >
+			, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningSLTAReferenceTagBase, _Ty, xslta_nii_array<_Ty, _Size> >
+		{
+		public:
+			typedef mse::rsv::us::impl::xslta_nii_array_base<_Ty, _Size, container_adjusted_default_state_mutex<_Ty> > base_class;
+			typedef container_adjusted_default_state_mutex<_Ty> _TStateMutex;
+			typedef std::array<_Ty, _Size> std_array;
+			typedef std_array _MA;
+			typedef xslta_nii_array _Myt;
+
+			typedef mse::impl::random_access_iterator_base<_Ty> ra_it_base;
+			typedef typename ra_it_base::value_type value_type;
+			typedef typename ra_it_base::difference_type difference_type;
+			typedef typename ra_it_base::pointer pointer;
+			typedef typename ra_it_base::const_pointer const_pointer;
+			typedef typename ra_it_base::reference reference;
+			typedef typename ra_it_base::const_reference const_reference;
+			typedef typename ra_it_base::size_type size_type;
+
+		private:
+			const _MA& contained_array() const& { return base_class::contained_array(); }
+			//const _MA& contained_array() const&& { return base_class::contained_array(); }
+			_MA& contained_array()& { return base_class::contained_array(); }
+			_MA&& contained_array()&& { return std::forward<_MA>(base_class::contained_array()); }
+
+		public:
+			xslta_nii_array() {}
+			xslta_nii_array(_MA&& _X) : base_class(MSE_FWD(_X)) {}
+			xslta_nii_array(const _MA& _X) : base_class(_X) {}
+			xslta_nii_array(_Myt&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(MSE_FWD(_X).contained_array()) {}
+			xslta_nii_array(const _Myt& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(_X.contained_array()) {}
+			constexpr xslta_nii_array(_XSTD initializer_list<_Ty> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) : base_class(_Ilist) {}
+
+			operator _MA() const& { return contained_array(); }
+			operator _MA()&& { return std::forward<_MA>(contained_array()); }
+
+			void fill(const _Ty& _Value MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			{	// assign value to all elements
+				base_class::fill(_Value);
+			}
+
+			void swap(_Myt& _Other MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }") {	// swap contents with _Other
+
+				base_class::swap(_Other);
+			}
+
+			void swap(_MA& _Other) {	// swap contents with _Other
+				valid_if_Ty_is_not_marked_as_containing_a_scope_reference<_Ty>();
+				valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_addressof_operator<_Ty>();
+				base_class::swap(_Other);
+			}
+
+			xslta_nii_array& operator=(const xslta_nii_array& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				valid_if_Ty_is_not_marked_as_containing_a_scope_reference<_Ty>();
+				valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_addressof_operator<_Ty>();
+				base_class::operator=(_Right_cref);
+				return (*this);
+			}
+
+			//class na_const_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, const_pointer, const_reference> {};
+			//class na_iterator_base : public std::iterator<std::random_access_iterator_tag, value_type, difference_type, pointer, reference> {};
+			typedef mse::impl::random_access_const_iterator_base<_Ty> na_const_iterator_base;
+			typedef mse::impl::random_access_iterator_base<_Ty> na_iterator_base;
+
+			typedef TXSLTACSSSXSRAConstIterator<_Myt> xslta_const_iterator;
+			typedef TXSLTACSSSXSRAIterator<_Myt> xslta_iterator;
+
+			template<typename _TArrayPointer>
+			static auto ss_begin(const _TArrayPointer& owner_ptr) {
+				return base_class::template ss_begin(owner_ptr);
+			}
+			template<typename _TArrayPointer>
+			static auto ss_end(const _TArrayPointer& owner_ptr) {
+				return base_class::template ss_end(owner_ptr);
+			}
+			template<typename _TArrayPointer>
+			static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
+				return base_class::template ss_cbegin(owner_ptr);
+			}
+			template<typename _TArrayPointer>
+			static auto ss_cend(const _TArrayPointer& owner_ptr) {
+				return base_class::template ss_cend(owner_ptr);
+			}
+			template<typename _TArrayPointer>
+			static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
+				return base_class::template ss_rbegin(owner_ptr);
+			}
+			template<typename _TArrayPointer>
+			static auto ss_rend(const _TArrayPointer& owner_ptr) {
+				return base_class::template ss_rend(owner_ptr);
+			}
+			template<typename _TArrayPointer>
+			static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
+				return base_class::template ss_crbegin(owner_ptr);
+			}
+			template<typename _TArrayPointer>
+			static auto ss_crend(const _TArrayPointer& owner_ptr) {
+				return base_class::template ss_crend(owner_ptr);
+			}
+
+			template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAPointer<_Myt> >::value || std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAConstPointer<_Myt> >::value> MSE_IMPL_EIS >
+			static auto xslta_ss_begin(const _TArrayPointer& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TArrayPointer, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
+				return base_class::template xslta_ss_begin(owner_ptr);
+			}
+			template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAPointer<_Myt> >::value || std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAConstPointer<_Myt> >::value> MSE_IMPL_EIS >
+			static auto xslta_ss_end(const _TArrayPointer& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TArrayPointer, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
+				return base_class::template xslta_ss_end(owner_ptr);
+			}
+
+			static auto xslta_ss_cbegin(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+				xslta_const_iterator retval(owner_ptr, 0);
+				retval.set_to_beginning();
+				return retval;
+			}
+			static auto xslta_ss_cend(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+				xslta_const_iterator retval(owner_ptr, 0);
+				retval.set_to_end_marker();
+				return retval;
+			}
+
+			static auto xslta_ss_rbegin(const mse::rsv::TXSLTAPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+				return xslta_ss_reverse_iterator_type(xslta_ss_end(owner_ptr));
+			}
+			static auto xslta_ss_rend(const mse::rsv::TXSLTAPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+				return xslta_ss_reverse_iterator_type(xslta_ss_begin(owner_ptr));
+			}
+			static auto xslta_ss_crbegin(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+				return (xslta_ss_const_reverse_iterator_type(xslta_ss_cend(owner_ptr)));
+			}
+			static auto xslta_ss_crend(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") {
+
+				return (xslta_ss_const_reverse_iterator_type(xslta_ss_crbegin(owner_ptr)));
+			}
+			static auto xslta_ss_rbegin(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") { return xslta_ss_crbegin(owner_ptr); }
+			static auto xslta_ss_rend(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(99); return_value(99) }") { return xslta_ss_crend(owner_ptr); }
+
+			MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(_Myt, base_class)
+
+				MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
+
+		private:
+
+			/* If _Ty is "marked" as containing a slta reference, then the following member function
+			will not instantiate, causing an (intended) compile error. */
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+				&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<_Ty2>::value)> MSE_IMPL_EIS >
+			void valid_if_Ty_is_not_marked_as_containing_a_scope_reference() const {}
+
+			/* If _Ty is "marked" as containing an accessible "slta address of" operator, then the following member function
+			will not instantiate, causing an (intended) compile error. */
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
+				&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<_Ty2>::value)
+			> MSE_IMPL_EIS >
+			void valid_if_Ty_is_not_marked_as_containing_an_accessible_scope_addressof_operator() const {}
+
+			//std_array m_array;
+			//state_mutex_t m_mutex1;
+
+			template<size_t _Idx, class _Tz, size_t _Size2>
+			friend _CONST_FUN _Tz& std::get(mse::rsv::xslta_nii_array<_Tz, _Size2>& _Arr) _NOEXCEPT;
+			template<size_t _Idx, class _Tz, size_t _Size2>
+			friend _CONST_FUN const _Tz& std::get(const mse::rsv::xslta_nii_array<_Tz, _Size2>& _Arr) _NOEXCEPT;
+			template<size_t _Idx, class _Tz, size_t _Size2>
+			friend _CONST_FUN _Tz&& std::get(mse::rsv::xslta_nii_array<_Tz, _Size2>&& _Arr) _NOEXCEPT;
+
+			friend void swap(_Myt& a, _Myt& b) { a.swap(b); }
+			friend void swap(_Myt& a, _MA& b) { a.swap(b); }
+			friend void swap(_MA& a, _Myt& b) { b.swap(a); }
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+
+		template<class _First,
+			class... _Rest>
+		xslta_nii_array(_First, _Rest...)
+			-> xslta_nii_array<typename mse::impl::_mse_Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
+#endif /* MSE_HAS_CXX17 */
+	}
+}
+
+namespace std {
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmismatched-tags"
+#endif /*__clang__*/
+
+	template<class _Ty, size_t _Size>
+	struct tuple_size<mse::rsv::xslta_nii_array<_Ty, _Size> >
+		: integral_constant<size_t, _Size>
+	{	// struct to determine number of elements in array
+	};
+
+	template<size_t _Idx, class _Ty, size_t _Size>
+	struct tuple_element<_Idx, mse::rsv::xslta_nii_array<_Ty, _Size> >
+	{	// struct to determine type of element _Idx in array
+		static_assert(_Idx < _Size, "array index out of bounds");
+
+		typedef _Ty type;
+	};
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif /*__clang__*/
+
+	// TUPLE INTERFACE TO array
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN _Ty& get(mse::rsv::xslta_nii_array<_Ty, _Size>& _Arr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)")) _NOEXCEPT
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); return_value(42) }")
+	{	// return element at _Idx in array _Arr
+		static_assert(_Idx < _Size, "array index out of bounds");
+		return (std::get<_Idx>(_Arr.contained_array()));
+	}
+
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN const _Ty& get(const mse::rsv::xslta_nii_array<_Ty, _Size>& _Arr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)")) _NOEXCEPT
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); return_value(42) }")
+	{	// return element at _Idx in array _Arr
+		static_assert(_Idx < _Size, "array index out of bounds");
+		return (std::get<_Idx>(_Arr.contained_array()));
+	}
+
+	template<size_t _Idx, class _Ty, size_t _Size>
+	_CONST_FUN _Ty&& get(mse::rsv::xslta_nii_array<_Ty, _Size>&& _Arr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)")) _NOEXCEPT
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); return_value(42) }")
+	{	// return element at _Idx in array _Arr
+		static_assert(_Idx < _Size, "array index out of bounds");
+		return (_STD move(std::get<_Idx>(_Arr.contained_array())));
+	}
+
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::rsv::xslta_nii_array<_Ty, _Size>& _Left MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), mse::rsv::xslta_nii_array<_Ty, _Size>& _Right MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])")) _NOEXCEPT
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_11$); set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_11$, alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }")
+	{
+		_Left.swap(_Right);
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(array<_Ty, _Size>& _Left, mse::rsv::xslta_nii_array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	{	// swap arrays
+		/* Swapping with an std::array<> will only compile if the element type, _Ty, is not marked as containing any 
+		scope references, so no lifetime annotation would apply or be needed. */
+		return (_Right.swap(_Left));
+	}
+	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
+	void swap(mse::rsv::xslta_nii_array<_Ty, _Size>& _Left, array<_Ty, _Size>& _Right) _NOEXCEPT
+	{
+		/* Swapping with an std::array<> will only compile if the element type, _Ty, is not marked as containing any
+		scope references, so no lifetime annotation would apply or be needed. */
 		_Left.swap(_Right);
 	}
 }

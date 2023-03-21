@@ -12,6 +12,7 @@
 #include "mseregistered.h"
 #include "msecregistered.h"
 #include "msescope.h"
+#include "mseslta.h"
 #include "msepoly.h"
 #include "msemsearray.h"
 #include "msemstdarray.h"
@@ -2002,23 +2003,23 @@ auto res12 = iptrwbv2[2];
 		}
 
 		{
-		struct s1_type {
-			MSE_LH_FIXED_ARRAY_DECLARATION(int, 3, nar11) = { 1, 2, 3 };
-		} s1, s2;
+			struct s1_type {
+				MSE_LH_FIXED_ARRAY_DECLARATION(int, 3, nar11) = { 1, 2, 3 };
+			} s1, s2;
 
-		MSE_LH_FIXED_ARRAY_DECLARATION(int, 5, nar1) = { 1, 2, 3, 4, 5 };
-		auto res14 = nar1[0];
-		auto res15 = nar1[1];
-		auto res16 = nar1[2];
+			MSE_LH_FIXED_ARRAY_DECLARATION(int, 5, nar1) = { 1, 2, 3, 4, 5 };
+			auto res14 = nar1[0];
+			auto res15 = nar1[1];
+			auto res16 = nar1[2];
 
-		s2 = s1;
+			s2 = s1;
 
-		s2.nar11[1] = 4;
-		s1 = s2;
-		auto res16b = s1.nar11[1];
+			s2.nar11[1] = 4;
+			s1 = s2;
+			auto res16b = s1.nar11[1];
 
-		MSE_LH_ARRAY_ITERATOR_TYPE(int) naraiter1 = s1.nar11;
-		auto res16c = naraiter1[1];
+			MSE_LH_ARRAY_ITERATOR_TYPE(int) naraiter1 = s1.nar11;
+			auto res16c = naraiter1[1];
 		}
 
 		{
@@ -2096,6 +2097,55 @@ auto res12 = iptrwbv2[2];
 
 			func_ptr1 = func_ptr2;
 		}
+	}
+
+	{
+		/**************************/
+		/*  rsv::TXSLTAPointer  */
+		/**************************/
+
+		/* rsv::TXSLTAPointer<> is a lifetime annotated wrapper for (scope raw) pointers. It preserves
+		lifetime information inferred from its initialization value for use by scpptool. As with all
+		elements in the rsv namespace, its safety depends on the use of a static analyzer/enforcrer like
+		scpptool. */
+
+		int i1 = 3;
+		int i2 = 5;
+		int i3 = 7;
+		auto ilaptr1 = mse::rsv::TXSLTAPointer<int>{ &i1 };
+		auto ilaptr2 = mse::rsv::TXSLTAPointer<int>{ &i2 };
+		//ilaptr1 = ilaptr2;	// scpptool would complain
+		ilaptr2 = ilaptr1;
+		ilaptr2 = &i1;
+		//ilaptr2 = &i3;	// scpptool would complain
+	}
+
+	{
+		/**************************/
+		/*  rsv::xslta_nii_array  */
+		/**************************/
+
+		/* rsv::xslta_nii_array<> is a lifetime annotated version of xscope_nii_array<>. It preserves 
+		lifetime information inferred from its initialization value for use by scpptool. As with all
+		elements in the rsv namespace, its safety depends on the use of a static analyzer/enforcrer like 
+		scpptool. */
+
+		int i1 = 3;
+		int i2 = 5;
+		int i3 = 7;
+
+		auto arrwp2 = mse::rsv::xslta_nii_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i1, &i2 };
+		auto ilaptr3 = arrwp2.front();
+		//ilaptr3 = &i3;	// scpptool would complain
+		ilaptr3 = &i1;
+
+		auto arrwp3 = mse::rsv::xslta_nii_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i2, &i2 };
+		std::swap(arrwp2, arrwp3);
+		arrwp2.swap(arrwp3);
+
+		auto arrwp4 = mse::rsv::xslta_nii_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i3, &i1 };
+		//std::swap(arrwp2, arrwp4);	// scpptool would complain
+		//arrwp2.swap(arrwp4);	// scpptool would complain
 	}
 }
 
