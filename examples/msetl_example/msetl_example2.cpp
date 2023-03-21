@@ -2112,8 +2112,12 @@ auto res12 = iptrwbv2[2];
 		int i1 = 3;
 		int i2 = 5;
 		int i3 = 7;
+		/* The (lower bound) lifetime associated with an rsv::TXSLTAPointer<> is set to the lifetime of 
+		its initialization value. */
 		auto ilaptr1 = mse::rsv::TXSLTAPointer<int>{ &i1 };
 		auto ilaptr2 = mse::rsv::TXSLTAPointer<int>{ &i2 };
+		/* The (lower bound) lifetime associated with ilaptr2 does not outlive the one associated with 
+		ilaptr1, so assigning the value of ilaptr2 to ilaptr1 cannot be verified to be safe. */
 		//ilaptr1 = ilaptr2;	// scpptool would complain
 		ilaptr2 = ilaptr1;
 		ilaptr2 = &i1;
