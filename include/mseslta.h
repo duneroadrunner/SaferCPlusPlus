@@ -89,43 +89,78 @@
 namespace mse {
 	namespace us {
 		namespace impl {
-			typedef ReferenceableByScopePointerTagBase ReferenceableBySLTAPointerTagBase;
-			typedef ContainsNonOwningScopeReferenceTagBase ContainsNonOwningSLTAReferenceTagBase;
+			class ReferenceableBySLTAPointerTagBase : public ReferenceableByScopePointerTagBase {};
+			class ContainsNonOwningSLTAReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase {};
+			class XSLTAContainsNonOwningSLTAReferenceTagBase : public ContainsNonOwningSLTAReferenceTagBase, public XSLTATagBase {};
 		}
 	}
 
-	namespace impl {
-		class TSLTAID {};
+	namespace rsv {
+		namespace impl {
 
-		template<typename T>
-		struct HasXSLTAReturnableTagMethod
-		{
-			template<typename U, void(U::*)() const> struct SFINAE {};
-			template<typename U> static char Test(SFINAE<U, &U::xslta_returnable_tag>*);
-			template<typename U> static int Test(...);
-			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
-		};
+			template<typename _Ty> using is_potentially_xslta = mse::impl::is_potentially_xscope<_Ty>;
+			template<typename _Ty> using is_potentially_not_xslta = mse::impl::is_potentially_not_xscope<_Ty>;
+			template<typename _Ty> struct is_xslta : mse::impl::negation<is_potentially_not_xslta<_Ty> > {};
+			/* The purpose of these template functions are just to produce a compile error on attempts to instantiate
+			when certain conditions are not met. */
+			template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::rsv::impl::is_potentially_not_xslta<_Ty>::value)> MSE_IMPL_EIS >
+			void T_valid_if_not_an_xslta_type() {}
+			template<class _Ty>
+			void T_valid_if_not_an_xslta_type(const _Ty&) {
+				T_valid_if_not_an_xslta_type<_Ty>();
+			}
 
-		/*
-		template<typename T>
-		struct HasXSLTANotReturnableTagMethod
-		{
-			template<typename U, void(U::*)() const> struct SFINAE {};
-			template<typename U> static char Test(SFINAE<U, &U::xslta_not_returnable_tag>*);
-			template<typename U> static int Test(...);
-			static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
-		};
-		*/
 
-#if 0
-		template<typename T>
-		struct is_nonowning_slta_pointer : std::integral_constant<bool, ((std::is_base_of<mse::us::impl::XSLTAContainsNonOwningSLTAReferenceTagBase, T>::value
-			&& std::is_base_of<mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, T>::value)
+			class TSLTAID {};
+
+			template<typename T>
+			struct HasXSLTAReturnableTagMethod
+			{
+				template<typename U, void(U::*)() const> struct SFINAE {};
+				template<typename U> static char Test(SFINAE<U, &U::xslta_returnable_tag>*);
+				template<typename U> static int Test(...);
+				static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
+			};
+
+			/*
+			template<typename T>
+			struct HasXSLTANotReturnableTagMethod
+			{
+				template<typename U, void(U::*)() const> struct SFINAE {};
+				template<typename U> static char Test(SFINAE<U, &U::xslta_not_returnable_tag>*);
+				template<typename U> static int Test(...);
+				static const bool value = (sizeof(Test<T>(0)) == sizeof(char));
+			};
+			*/
+
+			template<typename T>
+			struct is_nonowning_slta_pointer : std::integral_constant<bool, ((std::is_base_of<mse::us::impl::XSLTATagBase, T>::value
+				&& std::is_base_of<mse::us::impl::ContainsNonOwningSLTAReferenceTagBase, T>::value&& std::is_base_of<mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, T>::value)
 #ifdef MSE_SLTAPOINTER_DISABLED
-			|| (std::is_pointer<T>::value && (!mse::impl::is_potentially_not_xslta<T>::value))
+				|| (std::is_pointer<T>::value && (!mse::impl::is_potentially_not_xslta<T>::value))
 #endif /*MSE_SLTAPOINTER_DISABLED*/
-			)> {};
-#endif /*0*/
+				)> {};
+		}
+
+		template<typename _Ty> class TXSLTAPointer;
+		template<typename _Ty> class TXSLTAConstPointer;
+
+		namespace impl {
+			template<typename TPtr, typename TTarget>
+			struct is_convertible_to_nonowning_slta_pointer_helper1 : std::integral_constant<bool,
+				std::is_convertible<TPtr, mse::rsv::TXSLTAPointer<TTarget>>::value || std::is_convertible<TPtr, mse::rsv::TXSLTAConstPointer<TTarget>>::value> {};
+			template<typename TPtr>
+			struct is_convertible_to_nonowning_slta_pointer : is_convertible_to_nonowning_slta_pointer_helper1<TPtr
+				, mse::impl::remove_reference_t<decltype(*std::declval<TPtr>())> > {};
+
+			template<typename TPtr, typename TTarget>
+			struct is_convertible_to_nonowning_slta_or_indeterminate_pointer_helper1 : std::integral_constant<bool,
+				is_convertible_to_nonowning_slta_pointer<TPtr>::value
+			> {};
+			template<typename TPtr>
+			struct is_convertible_to_nonowning_slta_or_indeterminate_pointer : is_convertible_to_nonowning_slta_or_indeterminate_pointer_helper1
+				<TPtr, mse::impl::remove_reference_t<decltype(*std::declval<TPtr>())> > {};
+		}
 	}
 
 
@@ -136,7 +171,7 @@ namespace mse {
 
 		/* TXSLTAPointer is just a lifetime annotated wrapper for native pointers. */
 		template<typename _Ty>
-		class TXSLTAPointer : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
+		class TXSLTAPointer : public mse::us::impl::XSLTAContainsNonOwningSLTAReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
 		public:
 			TXSLTAPointer(_Ty* ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_ptr(ptr) {}
 			TXSLTAPointer(const TXSLTAPointer& src MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) : m_ptr(src.m_ptr) {}
@@ -190,7 +225,7 @@ namespace mse {
 		/* TXSLTAPointer<T> does implicitly convert to TXSLTAPointer<const T>. But some may prefer to
 		think of the pointer giving "const" access to the object rather than giving access to a "const object". */
 		template<typename _ncTy>
-		class TXSLTAConstPointer : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
+		class TXSLTAConstPointer : public mse::us::impl::XSLTAContainsNonOwningSLTAReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
 		public:
 			typedef const _ncTy _Ty;
 			TXSLTAConstPointer(_Ty* ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_ptr(ptr) {}
@@ -282,6 +317,7 @@ namespace mse {
 		template<typename _Ty>
 		class TXSLTAOwnerPointer : public mse::us::impl::XSLTATagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase
 			, mse::us::impl::ReferenceableBySLTAPointerTagBase
+			, mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, TXSLTAOwnerPointer<_Ty> >
 			, mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningSLTAReferenceTagBase, _Ty, TXSLTAOwnerPointer<_Ty> >
 		{
 		public:

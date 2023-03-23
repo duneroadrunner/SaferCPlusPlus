@@ -634,7 +634,7 @@ namespace impl {
 	namespace us {
 		namespace impl {
 			class XScopeTagBase { public: void xscope_tag() const {} };
-			class XSLTATagBase : public XScopeTagBase { public: void xslta_tag() const {} };
+			typedef XScopeTagBase XSLTATagBase;
 
 			/* Note that objects not derived from ReferenceableByScopePointerTagBase might still be targeted by a scope pointer via
 			make_pointer_to_member_v2(). */

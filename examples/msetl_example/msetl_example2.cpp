@@ -2154,12 +2154,24 @@ auto res12 = iptrwbv2[2];
 		std::swap(arrwp2, arrwp3);
 		arrwp2.swap(arrwp3);
 
-		/* The lower bound lifetime of arrwp4's initializer list is not the same as those of arrwp2. */
+		/* The lower bound lifetime of arrwp4's initializer list is not the same as that of arrwp2. */
 		auto arrwp4 = mse::rsv::xslta_nii_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i3, &i1 };
 		/* Since the (lower bound) lifetime values of arrwp2 and arrwp4 are not the same, their values 
 		cannot be safely swapped.*/
 		//std::swap(arrwp2, arrwp4);	// scpptool would complain
 		//arrwp2.swap(arrwp4);	// scpptool would complain
+
+		{
+			auto xslta_iter1 = mse::rsv::make_xslta_begin_iterator(&arrwp2);
+			auto xslta_iter2 = mse::rsv::make_xslta_end_iterator(&arrwp2);
+
+			auto xslta_citer3 = mse::rsv::make_xslta_begin_const_iterator(&arrwp2);
+			xslta_citer3 = xslta_iter1;
+			xslta_citer3 = mse::rsv::make_xslta_begin_const_iterator(&arrwp2);
+			xslta_citer3 += 1;
+			auto res1 = *(*xslta_citer3);
+			auto res2 = *(xslta_citer3[0]);
+		}
 	}
 }
 
