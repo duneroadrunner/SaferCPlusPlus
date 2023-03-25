@@ -44,20 +44,21 @@ namespace mse {
 		}
 
 		template<class _InIt>
-		class TXScopeSpecializedFirstAndLast {
+		class TXScopeSpecializedFirstAndLast : public mse::us::impl::XScopeTagBase {
 		public:
-			TXScopeSpecializedFirstAndLast(_InIt _First, _InIt _Last) : m_first(std::move(_First)), m_last(std::move(_Last)) {}
-			const auto& first() const {
+			TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : m_first(std::move(_First)), m_last(std::move(_Last)) {}
+			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return m_first;
 			}
-			const auto& last() const {
+			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return m_last;
 			}
 
 		private:
-			_InIt m_first;
-			_InIt m_last;
-		};
+			_InIt m_first MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)");
+			_InIt m_last MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)");
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_InIt, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
 		template<class T, class EqualTo>
 		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded_impl
@@ -83,7 +84,14 @@ namespace mse {
 		}
 
 		template<class _InIt>
-		auto make_xscope_specialized_first_and_last(const _InIt& _First, const _InIt& _Last) {
+		using make_xscope_specialized_first_and_last_return_type = decltype(make_xscope_specialized_first_and_last_helper1(
+			typename IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded<_InIt>::type(), std::declval<_InIt>(), std::declval<_InIt>()));
+
+		template<class _InIt, typename _TReturn = make_xscope_specialized_first_and_last_return_type<_InIt> >
+		auto make_xscope_specialized_first_and_last(const _InIt& _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _InIt& _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TReturn, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
+		{
 			return make_xscope_specialized_first_and_last_helper1(
 				typename IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded<_InIt>::type(), _First, _Last);
 		}
