@@ -92,7 +92,7 @@ namespace mse {
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TReturn, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
-			return make_xscope_specialized_first_and_last_helper1(
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_specialized_first_and_last_helper1(
 				typename IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded<_InIt>::type(), _First, _Last);
 		}
 
@@ -238,7 +238,7 @@ namespace mse {
 			xscope_c_range_get_ref_to_element_known_to_be_present_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
 				: result(eval(_XscpPtr, _Pred, args...)) {}
 		private:
-			result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
+			static result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 				/* Note that since we're returning a (const) reference, we need to be careful that it refers to an
 				element in the original container, not an (ephemeral) copy. */
 				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
@@ -260,7 +260,7 @@ namespace mse {
 
 	template<class _InIt, class _Pr, class... Args>
 	inline _InIt find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
-		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
 		return find_if_ptr(_First, _Last, pred2);
 	}
 
@@ -274,7 +274,7 @@ namespace mse {
 	/* This function returns a (scope) optional that contains a scope pointer to the found element. */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
-		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
 		return xscope_range_get_ref_if_ptr(_XscpPtr, pred2);
 	}
 
@@ -288,7 +288,7 @@ namespace mse {
 	/* This function returns a scope pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_to_element_known_to_be_present(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
-		auto pred2 = [&_Pred](auto ptr) { return _Pred(*ptr); };
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
 		return xscope_range_get_ref_to_element_known_to_be_present_ptr(_XscpPtr, pred2);
 	}
 
@@ -306,14 +306,14 @@ namespace mse {
 			return retval;
 		};
 		template<class _InIt, class _Fn, class... Args>
-		class c_for_each_ptr {
+		class c_for_each_ptr : public mse::rsv::XScopeContainsNonOwningScopeReferenceTagBase, public mse::rsv::ReferenceableByScopePointerTagBase {
 		public:
 			typedef item_pointer_type_from_iterator<_InIt> item_pointer_type;
 			typedef _Fn result_type;
-			result_type result;
-			c_for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func, const Args&... args) : result(eval(_First, _Last, _Func, args...)) {}
+			result_type result MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+			c_for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args) : result(eval(_First, _Last, _Func, args...)) {}
 		private:
-			static result_type eval(const _InIt& _First, const _InIt& _Last, _Fn _Func, const Args&... args) {
+			static result_type eval(const _InIt& _First, const _InIt& _Last, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args) {
 				const auto xs_iters = make_xscope_specialized_first_and_last(_First, _Last);
 				auto current = xs_iters.first();
 				for (; current != xs_iters.last(); ++current) {
@@ -321,45 +321,59 @@ namespace mse {
 				}
 				return (_Func);
 			}
-		};
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
 		template<class _ContainerPointer, class _Fn, class... Args>
-		class xscope_c_range_for_each_ptr {
+		class xscope_c_range_for_each_ptr : public mse::rsv::XScopeContainsNonOwningScopeReferenceTagBase, public mse::rsv::ReferenceableByScopePointerTagBase {
 		public:
 			typedef item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
 			typedef _Fn result_type;
-			result_type result;
-			xscope_c_range_for_each_ptr(const _ContainerPointer& _XscpPtr, _Fn _Func, const Args&... args)
+			result_type result MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+			xscope_c_range_for_each_ptr(const _ContainerPointer& _XscpPtr, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args)
 				: result(eval(_XscpPtr, _Func, args...)) {}
 		private:
-			result_type eval(const _ContainerPointer& _XscpPtr, _Fn _Func, const Args&... args) {
+			static result_type eval(const _ContainerPointer& _XscpPtr, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args) {
 				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
 				return c_for_each_ptr<decltype(xs_iters.begin()), _Fn>(xs_iters.begin(), xs_iters.end(), _Func, args...).result;
 			}
-		};
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 	}
 	template<class _InIt> using for_each_ptr_type = typename impl::c_for_each_ptr<_InIt, decltype(impl::for_each_ptr_placeholder_function())>::item_pointer_type;
 	template<class _InIt, class _Fn, class... Args>
-	inline auto for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func, const Args&... args) {
+	inline auto for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args)
+		MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+	{
 		return impl::c_for_each_ptr<_InIt, _Fn, Args...>(_First, _Last, _Func, args...).result;
 	}
 
 	template<class _InIt, class _Fn, class... Args>
-	inline auto for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func, const Args&... args) {
-		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+	inline auto for_each(const _InIt& _First, const _InIt& _Last, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args)
+		MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+	{
+		auto func2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Func](auto ptr) { _Func(*ptr); });
 		for_each_ptr(_First, _Last, func2, args...);
 		return (_Func);
 	}
 
 	template<class _XScopeContainerPointer> using xscope_range_for_each_ptr_type = typename impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer, decltype(impl::for_each_ptr_placeholder_function())>::item_pointer_type;
 	template<class _XScopeContainerPointer, class _Fn, class... Args>
-	inline auto xscope_range_for_each_ptr(const _XScopeContainerPointer& _XscpPtr, _Fn _Func, const Args&... args) {
+	inline auto xscope_range_for_each_ptr(const _XScopeContainerPointer& _XscpPtr, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args)
+		MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+	{
 		return impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer, _Fn>(_XscpPtr, _Func, args...).result;
 	}
 
 	template<class _XScopeContainerPointer, class _Fn, class... Args>
-	inline auto xscope_range_for_each(const _XScopeContainerPointer& _XscpPtr, _Fn _Func, const Args&... args) {
-		auto func2 = [&_Func](auto ptr) { _Func(*ptr); };
+	inline auto xscope_range_for_each(const _XScopeContainerPointer& _XscpPtr, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args)
+		MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+	{
+		auto func2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Func](auto ptr) { _Func(*ptr); });
 		xscope_range_for_each_ptr(_XscpPtr, func2, args...);
 		return (_Func);
 	}
@@ -435,7 +449,7 @@ namespace mse {
 			xscope_c_range_equal(const _ContainerPointer& _XscpPtr, _InIt2 _First2)
 				: result(eval(_XscpPtr, _First2)) {}
 		private:
-			result_type eval(const _ContainerPointer& _XscpPtr, _InIt2 _First2) {
+			static result_type eval(const _ContainerPointer& _XscpPtr, _InIt2 _First2) {
 				auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
 				return m_equal(xs_iters.begin(), xs_iters.end(), _First2);
 			}
