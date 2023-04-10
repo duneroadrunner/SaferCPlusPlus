@@ -1563,7 +1563,7 @@ namespace mse {
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TROy)");
 
 
 	namespace rsv {

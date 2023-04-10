@@ -58,12 +58,12 @@ namespace mse {
 
 			template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const function*>::value)
 				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)> MSE_IMPL_EIS >
-			function(const _Fty2& func) : base_class(func) {
+			function(const _Fty2& func) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Fty2)") : base_class(func) {
 				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
 			}
 			template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const function*>::value)
 				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)> MSE_IMPL_EIS >
-			function(_Fty2&& func) : base_class(MSE_FWD(func)) {
+			function(_Fty2&& func) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Fty2)") : base_class(MSE_FWD(func)) {
 				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
 			}
 

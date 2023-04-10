@@ -1383,7 +1383,7 @@ namespace mse {
 
 		//friend class TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease>;
 		friend class TAsyncSharedV2XWPWeakReadWriteAccessRequester<_TAccessLease>;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TAccessLease)");
 
 	template<typename _TAccessLease>
 	TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease> make_asyncsharedv2xwpreadwrite(_TAccessLease&& exclusive_write_pointer) {
@@ -1739,7 +1739,7 @@ namespace mse {
 			void valid_if_target_type_is_marked_as_shareable() const {}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TAccessLease)");
 
 	template<typename _TAccessLease>
 	TAsyncSharedV2XWPReadOnlyAccessRequester<_TAccessLease> make_asyncsharedv2xwpreadonly(_TAccessLease&& exclusive_write_pointer) {
@@ -1810,7 +1810,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		friend class TAsyncSharedV2WeakReadWriteAccessRequester<_Ty>;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
 
 	template <class X, class... Args>
 	TAsyncSharedV2ReadWriteAccessRequester<X> make_asyncsharedv2readwrite(Args&&... args) {
@@ -1884,7 +1884,7 @@ namespace mse {
 		TAsyncSharedV2ReadOnlyAccessRequester(mse::us::impl::TTaggedUniquePtr<_Ty>&& uqptr) : base_class(make_asyncsharedv2xwpreadonly(MSE_FWD(uqptr))) {}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
 
 	template <class X, class... Args>
 	TAsyncSharedV2ReadOnlyAccessRequester<X> make_asyncsharedv2readonly(Args&&... args) {
@@ -2017,7 +2017,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<const _Ty> m_shptr;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
 
 	template <class X, class... Args>
 	TAsyncSharedV2ImmutableFixedPointer<X> make_asyncsharedv2immutable(Args&&... args) {
@@ -2079,7 +2079,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		std::shared_ptr<std::atomic<_Ty> > m_shptr;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
 
 	template <class X, class... Args>
 	TAsyncSharedV2AtomicFixedPointer<X> make_asyncsharedv2atomic(Args&&... args) {
@@ -2201,7 +2201,7 @@ namespace mse {
 		friend class TAsyncRASectionSplitterXWP;
 		template <typename _TRAIterator2>
 		friend class TAsyncSplitterRASectionReadWriteAccessRequester;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)");
 
 	template <typename _TAccessLease>
 	class TXScopeAsyncSplitterRASectionReadWriteAccessRequester : public mse::us::impl::XScopeTagBase {
@@ -2553,7 +2553,7 @@ namespace mse {
 
 		std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > m_access_lease_obj_shptr;
 		std::vector<ras_ar_t> m_ra_sections;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TExclusiveWritelockPtr)");
 
 #ifdef MSE_HAS_CXX17
 	/* deduction guide */

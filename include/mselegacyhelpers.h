@@ -356,7 +356,7 @@ namespace mse {
 						|| std::is_same<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value))
 				&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 			> MSE_IMPL_EIS >
-			TLHNullableAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
+			TLHNullableAnyPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {}
 
 			friend void swap(TLHNullableAnyPointer& first, TLHNullableAnyPointer& second) {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));

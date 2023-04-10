@@ -757,7 +757,7 @@ namespace impl {
 		/* The purpose of these template functions are just to produce a compile error on attempts to instantiate
 		when certain conditions are not met. */
 		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_Ty>::value)> MSE_IMPL_EIS >
-		void T_valid_if_not_an_xscope_type() {}
+		void T_valid_if_not_an_xscope_type() MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {}
 
 		template<class _Ty>
 		void T_valid_if_not_an_xscope_type(const _Ty&) {
@@ -1663,14 +1663,14 @@ namespace impl {
 		}
 	}
 	template<class _TLeasePointer, class _TMemberObjectPointer>
-	static auto make_pointer_to_member_v2(const _TLeasePointer &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	static auto make_pointer_to_member_v2(const _TLeasePointer &lease_pointer, const _TMemberObjectPointer& member_object_ptr) MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TLeasePointer)") {
 		impl::T_valid_if_not_an_xscope_type(lease_pointer);
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return mse::us::TSyncWeakFixedPointer<_TTarget, _TLeasePointer>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _TLeasePointer, class _TMemberObjectPointer>
-	static auto make_const_pointer_to_member_v2(const _TLeasePointer &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	static auto make_const_pointer_to_member_v2(const _TLeasePointer &lease_pointer, const _TMemberObjectPointer& member_object_ptr) MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TLeasePointer)") {
 		impl::T_valid_if_not_an_xscope_type(lease_pointer);
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);

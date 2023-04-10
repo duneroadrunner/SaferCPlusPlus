@@ -1184,7 +1184,7 @@ namespace mse {
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAContainerPointer)");
 
 	namespace us {
 		namespace impl {
@@ -1490,7 +1490,7 @@ namespace mse {
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAContainerPointer)");
 
 	template <typename _TRAContainerPointer>
 	auto xscope_pointer(const TXScopeRAIterator<_TRAContainerPointer>& iter_cref) {
@@ -2782,12 +2782,12 @@ namespace mse {
 	}
 
 	template <typename _TRAContainerPointer, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRAContainerPointer)>
-	auto make_random_access_iterator(_TRAContainerPointer&& ra_container_pointer, typename TRandomAccessIterator<mse::impl::remove_reference_t<_TRAContainerPointer> >::size_type index = 0) {
+	auto make_random_access_iterator(_TRAContainerPointer&& ra_container_pointer, typename TRandomAccessIterator<mse::impl::remove_reference_t<_TRAContainerPointer> >::size_type index = 0) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAContainerPointer)") {
 		typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
 		return TRandomAccessIterator<_TRAContainerPointerRR>(std::forward<_TRAContainerPointer>(ra_container_pointer), index);
 	}
 	template <typename _TRAContainerPointer>
-	auto make_random_access_iterator(const _TRAContainerPointer& ra_container_pointer, typename TRandomAccessIterator<mse::impl::remove_reference_t<_TRAContainerPointer> >::size_type index = 0) {
+	auto make_random_access_iterator(const _TRAContainerPointer& ra_container_pointer, typename TRandomAccessIterator<mse::impl::remove_reference_t<_TRAContainerPointer> >::size_type index = 0) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAContainerPointer)") {
 		typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
 		return TRandomAccessIterator<_TRAContainerPointerRR>(ra_container_pointer, index);
 	}
@@ -2807,26 +2807,26 @@ namespace mse {
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_random_access_iterator)
 
 	template <typename _TRAContainerPointer>
-	auto make_random_access_const_iterator(_TRAContainerPointer&& ra_container_pointer, typename TRandomAccessConstIterator<mse::impl::remove_reference_t<_TRAContainerPointer> >::size_type index = 0) {
+	auto make_random_access_const_iterator(_TRAContainerPointer&& ra_container_pointer, typename TRandomAccessConstIterator<mse::impl::remove_reference_t<_TRAContainerPointer> >::size_type index = 0) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAContainerPointer)") {
 		typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
 		return TRandomAccessConstIterator<_TRAContainerPointerRR>(std::forward<_TRAContainerPointer>(ra_container_pointer), index);
 	}
 	template <typename _TRAContainerPointer>
-	auto make_random_access_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TRandomAccessConstIterator<mse::impl::remove_reference_t<_TRAContainerPointer> >::size_type index = 0) {
+	auto make_random_access_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TRandomAccessConstIterator<mse::impl::remove_reference_t<_TRAContainerPointer> >::size_type index = 0) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAContainerPointer)") {
 		typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
 		return TRandomAccessConstIterator<_TRAContainerPointerRR>(ra_container_pointer, index);
 	}
 
 	/* Overloads for rsv::TReturnableFParam<>. */
 	template <typename _Ty, typename _TSize = size_t>
-	auto make_random_access_const_iterator(const rsv::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) {
+	auto make_random_access_const_iterator(const rsv::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef typename rsv::TReturnableFParam<_Ty>::base_class ra_container_pointer_base_class;
 		ra_container_pointer_base_class const * ra_container_pointer_base_pointer = std::addressof(ra_container_pointer);
 		typedef decltype(make_random_access_const_iterator(std::declval<ra_container_pointer_base_class>(), count)) base_return_type;
 		return rsv::TReturnableFParam<base_return_type>(make_random_access_const_iterator(*ra_container_pointer_base_pointer, count));
 	}
 	template <typename _Ty, typename _TSize = size_t>
-	auto make_random_access_iterator(const rsv::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) {
+	auto make_random_access_iterator(const rsv::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef typename rsv::TReturnableFParam<_Ty>::base_class ra_container_pointer_base_class;
 		ra_container_pointer_base_class const * ra_container_pointer_base_pointer = std::addressof(ra_container_pointer);
 		typedef decltype(make_random_access_iterator(std::declval<ra_container_pointer_base_class>(), count)) base_return_type;
@@ -3200,7 +3200,7 @@ namespace mse {
 				using Tss_const_reverse_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
 
 				template<typename _TArrayPointer>
-				static auto ss_begin(const _TArrayPointer& owner_ptr) {
+				static auto ss_begin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 						, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> > return_type;
@@ -3215,7 +3215,7 @@ namespace mse {
 				}
 
 				template<typename _TArrayPointer>
-				static auto ss_end(const _TArrayPointer& owner_ptr) {
+				static auto ss_end(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 						, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> > return_type;
@@ -3225,7 +3225,7 @@ namespace mse {
 				}
 
 				template<typename _TArrayPointer>
-				static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
+				static auto ss_cbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr, 0);
 					retval.set_to_beginning();
@@ -3233,7 +3233,7 @@ namespace mse {
 				}
 
 				template<typename _TArrayPointer>
-				static auto ss_cend(const _TArrayPointer& owner_ptr) {
+				static auto ss_cend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr, 0);
 					retval.set_to_end_marker();
@@ -3241,7 +3241,7 @@ namespace mse {
 				}
 
 				template<typename _TArrayPointer>
-				static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
+				static auto ss_rbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 						, Tss_const_reverse_iterator_type<_TArrayPointer>, Tss_reverse_iterator_type<_TArrayPointer> > return_type;
@@ -3249,7 +3249,7 @@ namespace mse {
 				}
 
 				template<typename _TArrayPointer>
-				static auto ss_rend(const _TArrayPointer& owner_ptr) {
+				static auto ss_rend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 						, Tss_const_reverse_iterator_type<_TArrayPointer>, Tss_reverse_iterator_type<_TArrayPointer> > return_type;
@@ -3257,13 +3257,13 @@ namespace mse {
 				}
 
 				template<typename _TArrayPointer>
-				static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
+				static auto ss_crbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_cend<_TArrayPointer>(owner_ptr)));
 				}
 
 				template<typename _TArrayPointer>
-				static auto ss_crend(const _TArrayPointer& owner_ptr) {
+				static auto ss_crend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_crbegin<_TArrayPointer>(owner_ptr)));
 				}
@@ -3480,7 +3480,7 @@ namespace mse {
 		friend void swap(_Myt& a, _Myt& b) { a.swap(b); }
 		friend void swap(_Myt& a, _MA& b) { a.swap(b); }
 		friend void swap(_MA& a, _Myt& b) { b.swap(a); }
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
 
 #ifdef MSE_HAS_CXX17
 	/* deduction guides */
@@ -4486,7 +4486,7 @@ namespace mse {
 					using Tss_const_reverse_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
 
 					template<typename _TArrayPointer>
-					static auto ss_begin(const _TArrayPointer& owner_ptr) {
+					static auto ss_begin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 							, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> > return_type;
@@ -4496,12 +4496,12 @@ namespace mse {
 					}
 
 					template<typename _TArrayPointer>
-					static auto data(const _TArrayPointer& owner_ptr) {
+					static auto data(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						return ss_begin(owner_ptr);
 					}
 
 					template<typename _TArrayPointer>
-					static auto ss_end(const _TArrayPointer& owner_ptr) {
+					static auto ss_end(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 							, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> > return_type;
@@ -4511,7 +4511,7 @@ namespace mse {
 					}
 
 					template<typename _TArrayPointer>
-					static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
+					static auto ss_cbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr, 0);
 						retval.set_to_beginning();
@@ -4519,7 +4519,7 @@ namespace mse {
 					}
 
 					template<typename _TArrayPointer>
-					static auto ss_cend(const _TArrayPointer& owner_ptr) {
+					static auto ss_cend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr, 0);
 						retval.set_to_end_marker();
@@ -4527,7 +4527,7 @@ namespace mse {
 					}
 
 					template<typename _TArrayPointer>
-					static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
+					static auto ss_rbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 							, Tss_const_reverse_iterator_type<_TArrayPointer>, Tss_reverse_iterator_type<_TArrayPointer> > return_type;
@@ -4535,7 +4535,7 @@ namespace mse {
 					}
 
 					template<typename _TArrayPointer>
-					static auto ss_rend(const _TArrayPointer& owner_ptr) {
+					static auto ss_rend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 							, Tss_const_reverse_iterator_type<_TArrayPointer>, Tss_reverse_iterator_type<_TArrayPointer> > return_type;
@@ -4543,13 +4543,13 @@ namespace mse {
 					}
 
 					template<typename _TArrayPointer>
-					static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
+					static auto ss_crbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_cend<_TArrayPointer>(owner_ptr)));
 					}
 
 					template<typename _TArrayPointer>
-					static auto ss_crend(const _TArrayPointer& owner_ptr) {
+					static auto ss_crend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_crbegin<_TArrayPointer>(owner_ptr)));
 					}
@@ -6531,7 +6531,7 @@ namespace mse {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)");
 
 	namespace us {
 		namespace impl {
@@ -6703,7 +6703,7 @@ namespace mse {
 			base_class::operator=(_Right_cref);
 			return (*this);
 		}
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)");
 
 	template <typename _TRAIterator>
 	auto xscope_pointer(const TXScopeRASectionIterator<_TRAIterator>& iter_cref) {
@@ -7784,7 +7784,7 @@ namespace mse {
 		template <typename _TSection>
 		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
 			-> decltype(section.subsection_pv(pos, n));
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)");
 
 	namespace us {
 		namespace impl {
@@ -8453,7 +8453,7 @@ namespace mse {
 		template <typename _TSection>
 		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
 			-> decltype(section.subsection_pv(pos, n));
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)");
 
 	template <typename _TRAIterator>
 	auto make_xscope_random_access_const_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
@@ -8480,12 +8480,11 @@ namespace mse {
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_random_access_const_section)
 
 	template <typename _TRAIterator>
-	auto make_random_access_const_section(const _TRAIterator& start_iter, typename TRandomAccessConstSection<_TRAIterator>::size_type count) {
+	auto make_random_access_const_section(const _TRAIterator& start_iter, typename TRandomAccessConstSection<_TRAIterator>::size_type count) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TRandomAccessConstSection<_TRAIterator>(start_iter, count);
 	}
-	template <typename _TRALoneParam>
-	auto make_random_access_const_section(const _TRALoneParam& param) {
-		typedef mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<char *>::s_iter_from_lone_param(param))> _TRAIterator;
+	template <typename _TRALoneParam, typename _TRAIterator = mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<char*>::s_iter_from_lone_param(std::declval<_TRALoneParam>()))>>
+	auto make_random_access_const_section(const _TRALoneParam& param) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TRandomAccessConstSection<_TRAIterator>(param);
 	}
 
@@ -8535,12 +8534,11 @@ namespace mse {
 	}
 
 	template <typename _TRAIterator>
-	auto make_random_access_section(const _TRAIterator& start_iter, typename TRandomAccessSection<_TRAIterator>::size_type count) {
+	auto make_random_access_section(const _TRAIterator& start_iter, typename TRandomAccessSection<_TRAIterator>::size_type count) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TRandomAccessSection<_TRAIterator>(start_iter, count);
 	}
-	template <typename _TRALoneParam>
-	auto make_random_access_section(const _TRALoneParam& param) {
-		typedef mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessSectionBase<char *>::s_iter_from_lone_param(param))> _TRAIterator;
+	template <typename _TRALoneParam, typename _TRAIterator = mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessSectionBase<char*>::s_iter_from_lone_param(std::declval< _TRALoneParam>()))>>
+	auto make_random_access_section(const _TRALoneParam& param) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TRandomAccessSection<_TRAIterator>(param);
 	}
 
@@ -9931,7 +9929,7 @@ namespace mse {
 
 			template <typename _TExclusiveWritelockPtr>
 			friend class TRASectionSplitterXWP;
-		};
+		} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)");
 	}
 
 	template <typename _TAccessLease>
@@ -10093,7 +10091,7 @@ namespace mse {
 
 		access_lease_t m_access_lease_obj;
 		std::unordered_map<size_t, aco_splitter_ra_section_t> m_splitter_aco_ra_section_map;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TExclusiveWritelockPtr)");
 
 	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	class TXScopeACORASectionSplitter : public TXScopeRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {

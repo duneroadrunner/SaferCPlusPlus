@@ -82,17 +82,17 @@ namespace mse {
 		}
 	}
 	template <class X, class... Args>
-	auto make_ndcregistered(Args&&... args) {
+	auto make_ndcregistered(Args&&... args) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		typedef mse::impl::remove_reference_t<X> nrX;
 		return impl::make_ndcregistered_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TNDCRegisteredObj>::type(), std::forward<Args>(args)...);
 	}
 	template <class X>
-	auto make_ndcregistered(const X& arg) {
+	auto make_ndcregistered(const X& arg) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		typedef mse::impl::remove_reference_t<X> nrX;
 		return impl::make_ndcregistered_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TNDCRegisteredObj>::type(), arg);
 	}
 	template <class X>
-	auto make_ndcregistered(X&& arg) {
+	auto make_ndcregistered(X&& arg) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		typedef mse::impl::remove_reference_t<X> nrX;
 		return impl::make_ndcregistered_helper<nrX>(typename mse::impl::is_instantiation_of<nrX, TNDCRegisteredObj>::type(), MSE_FWD(arg));
 	}
@@ -141,17 +141,17 @@ namespace mse {
 	}
 
 	template <class X, class... Args>
-	auto make_cregistered(Args&&... args) {
+	auto make_cregistered(Args&&... args) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		typedef mse::impl::remove_reference_t<X> nrX;
 		return nrX(std::forward<Args>(args)...);
 	}
 	template <class X>
-	auto make_cregistered(const X& arg) {
+	auto make_cregistered(const X& arg) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		typedef mse::impl::remove_reference_t<X> nrX;
 		return nrX(arg);
 	}
 	template <class X>
-	auto make_cregistered(X&& arg) {
+	auto make_cregistered(X&& arg) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		typedef mse::impl::remove_reference_t<X> nrX;
 		return nrX(MSE_FWD(arg));
 	}
@@ -182,15 +182,15 @@ namespace mse {
 	}
 
 	template <class X, class... Args>
-	auto make_cregistered(Args&&... args) {
+	auto make_cregistered(Args&&... args) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		return make_ndcregistered<X>(std::forward<Args>(args)...);
 	}
 	template <class X>
-	auto make_cregistered(const X& arg) {
+	auto make_cregistered(const X& arg) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		return make_ndcregistered(arg);
 	}
 	template <class X>
-	auto make_cregistered(X&& arg) {
+	auto make_cregistered(X&& arg) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		return make_ndcregistered(MSE_FWD(arg));
 	}
 

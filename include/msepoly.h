@@ -366,7 +366,7 @@ namespace mse {
 			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 		> MSE_IMPL_EIS >
-		TAnyPointer(const _TPointer1& pointer) : base_class(pointer) {
+		TAnyPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
 
@@ -384,12 +384,12 @@ namespace mse {
 	};
 
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_any_pointer(const _Ty & x) {
+	auto make_any_pointer(const _Ty & x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_any_pointer(_Ty && x) {
+	auto make_any_pointer(_Ty && x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyPointer<_Tx2>(MSE_FWD(x));
 	}
@@ -450,7 +450,7 @@ namespace mse {
 			&& (!std::is_convertible<_TPointer1, TAnyPointer<_Ty>>::value)
 			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			> MSE_IMPL_EIS >
-		TAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {
+		TAnyConstPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
 
@@ -468,12 +468,12 @@ namespace mse {
 	};
 
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_any_const_pointer(const _Ty & x) {
+	auto make_any_const_pointer(const _Ty & x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyConstPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_any_const_pointer(_Ty && x) {
+	auto make_any_const_pointer(_Ty && x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyConstPointer<_Tx2>(MSE_FWD(x));
 	}
@@ -760,7 +760,7 @@ namespace mse {
 		//TPolyPointer(const us::impl::TPolyPointerBase<_Ty>& p) : base_class(p) {}
 
 		template <typename _TPointer1>
-		TPolyPointer(const _TPointer1& pointer) : base_class(pointer) {
+		TPolyPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
 
@@ -778,12 +778,12 @@ namespace mse {
 	};
 
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_poly_pointer(const _Ty & x) {
+	auto make_poly_pointer(const _Ty & x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TPolyPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_poly_pointer(_Ty && x) {
+	auto make_poly_pointer(_Ty && x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TPolyPointer<_Tx2>(MSE_FWD(x));
 	}
@@ -992,7 +992,7 @@ namespace mse {
 		//TPolyConstPointer(const TPolyPointer<_Ty>& src) : base_class(src) {}
 
 		template <typename _TPointer1>
-		TPolyConstPointer(const _TPointer1& pointer) : base_class(pointer) {
+		TPolyConstPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
 
@@ -1010,12 +1010,12 @@ namespace mse {
 	};
 
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_poly_const_pointer(const _Ty & x) {
+	auto make_poly_const_pointer(const _Ty & x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TPolyConstPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_poly_const_pointer(_Ty && x) {
+	auto make_poly_const_pointer(_Ty && x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TPolyConstPointer<_Tx2>(MSE_FWD(x));
 	}
@@ -1599,7 +1599,7 @@ namespace mse {
 			(!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<TAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)
 			> MSE_IMPL_EIS >
-		TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {
+		TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)") : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
 		}
 
@@ -1614,12 +1614,12 @@ namespace mse {
 	};
 
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_any_random_access_iterator(const _Ty & x) {
+	auto make_any_random_access_iterator(const _Ty & x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyRandomAccessIterator<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_any_random_access_iterator(_Ty && x) {
+	auto make_any_random_access_iterator(_Ty && x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyRandomAccessIterator<_Tx2>(MSE_FWD(x));
 	}
@@ -1638,7 +1638,7 @@ namespace mse {
 			(!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator<_Ty>>::value)
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
 			> MSE_IMPL_EIS >
-		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : base_class(random_access_const_iterator) {
+		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessConstIterator1)") : base_class(random_access_const_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessConstIterator1>();
 #if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED))
 			//mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessConstIterator1>();
@@ -1656,12 +1656,12 @@ namespace mse {
 	};
 
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_any_random_access_const_iterator(const _Ty & x) {
+	auto make_any_random_access_const_iterator(const _Ty & x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyRandomAccessConstIterator<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_any_random_access_const_iterator(_Ty && x) {
+	auto make_any_random_access_const_iterator(_Ty && x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TAnyRandomAccessConstIterator<_Tx2>(MSE_FWD(x));
 	}
@@ -1701,10 +1701,9 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
-	template <class... _Args>
-	auto make_any_random_access_section(_Args&& ... _Ax) {
-		typedef decltype(make_random_access_section(std::forward<_Args>(_Ax)...)) ra_section_t;
-		return TAnyRandomAccessSection<typename ra_section_t::value_type>(make_random_access_section(std::forward<_Args>(_Ax)...));
+	template <class... _Args, typename _TRASection = decltype(make_random_access_section(std::forward<_Args>(std::declval<_Args>())...))>
+	auto make_any_random_access_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRASection)") {
+		return TAnyRandomAccessSection<typename _TRASection::value_type>(make_random_access_section(std::forward<_Args>(_Ax)...));
 	}
 
 	template <typename _Ty>
@@ -1738,10 +1737,9 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
-	template <class... _Args>
-	auto make_any_random_access_const_section(_Args&& ... _Ax) {
-		typedef decltype(make_random_access_const_section(std::forward<_Args>(_Ax)...)) ra_section_t;
-		return TAnyRandomAccessConstSection<typename ra_section_t::value_type>(make_random_access_const_section(std::forward<_Args>(_Ax)...));
+	template <class... _Args, typename _TRASection = decltype(make_random_access_const_section(std::forward<_Args>(std::declval<_Args>())...))>
+	auto make_any_random_access_const_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRASection)") {
+		return TAnyRandomAccessConstSection<typename _TRASection::value_type>(make_random_access_const_section(std::forward<_Args>(_Ax)...));
 	}
 
 	namespace rsv {
@@ -1805,10 +1803,9 @@ namespace mse {
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	using TAnyStringSection = TStringSection<TAnyRandomAccessIterator<_Ty>, _Traits>;
 
-	template <class... _Args>
-	auto make_any_string_section(_Args&& ... _Ax) {
-		typedef decltype(make_string_section(std::forward<_Args>(_Ax)...)) str_section_t;
-		return TAnyStringSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_string_section(std::forward<_Args>(_Ax)...));
+	template <class... _Args, typename _TStrSection = decltype(make_string_section(std::forward<_Args>(std::declval<_Args>())...))>
+	auto make_any_string_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TStrSection)") {
+		return TAnyStringSection<typename _TStrSection::value_type, typename _TStrSection::traits_type>(make_string_section(std::forward<_Args>(_Ax)...));
 	}
 
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
@@ -1854,10 +1851,9 @@ namespace mse {
 		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
 
-	template <class... _Args>
-	auto make_any_string_const_section(_Args&& ... _Ax) {
-		typedef decltype(make_string_const_section(std::forward<_Args>(_Ax)...)) str_section_t;
-		return TAnyStringConstSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_string_const_section(std::forward<_Args>(_Ax)...));
+	template <class... _Args, typename _TStrSection = decltype(make_string_const_section(std::forward<_Args>(std::declval<_Args>())...))>
+	auto make_any_string_const_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TStrSection)") {
+		return TAnyStringConstSection<typename _TStrSection::value_type, typename _TStrSection::traits_type>(make_string_const_section(std::forward<_Args>(_Ax)...));
 	}
 
 	namespace rsv {
@@ -1998,10 +1994,9 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
-	template <class... _Args>
-	auto make_any_nrp_string_section(_Args&& ... _Ax) {
-		typedef decltype(make_nrp_string_section(std::forward<_Args>(_Ax)...)) str_section_t;
-		return TAnyNRPStringSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_nrp_string_section(std::forward<_Args>(_Ax)...));
+	template <class... _Args, typename _TStrSection = decltype(make_nrp_string_section(std::forward<_Args>(std::declval<_Args>())...))>
+	auto make_any_nrp_string_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TStrSection)") {
+		return TAnyNRPStringSection<typename _TStrSection::value_type, typename _TStrSection::traits_type>(make_nrp_string_section(std::forward<_Args>(_Ax)...));
 	}
 
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
@@ -2091,10 +2086,9 @@ namespace mse {
 		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
 
-	template <class... _Args>
-	auto make_any_nrp_string_const_section(_Args&& ... _Ax) {
-		typedef decltype(make_nrp_string_const_section(std::forward<_Args>(_Ax)...)) str_section_t;
-		return TAnyNRPStringConstSection<typename str_section_t::value_type, typename str_section_t::traits_type>(make_nrp_string_const_section(std::forward<_Args>(_Ax)...));
+	template <class... _Args, typename _TStrSection = decltype(make_nrp_string_const_section(std::forward<_Args>(std::declval<_Args>())...))>
+	auto make_any_nrp_string_const_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TStrSection)") {
+		return TAnyNRPStringConstSection<typename _TStrSection::value_type, typename _TStrSection::traits_type>(make_nrp_string_const_section(std::forward<_Args>(_Ax)...));
 	}
 }
 
@@ -2217,7 +2211,7 @@ namespace mse {
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
 			> MSE_IMPL_EIS >
-		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {
+		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)") : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
 		}
 
@@ -2262,12 +2256,12 @@ namespace mse {
 	};
 
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_nullable_any_random_access_iterator(const _Ty& x) {
+	auto make_nullable_any_random_access_iterator(const _Ty& x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TNullableAnyRandomAccessIterator<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_nullable_any_random_access_iterator(_Ty&& x) {
+	auto make_nullable_any_random_access_iterator(_Ty&& x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TNullableAnyRandomAccessIterator<_Tx2>(MSE_FWD(x));
 	}
@@ -2353,7 +2347,7 @@ namespace mse {
 			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 			> MSE_IMPL_EIS >
-		TNullableAnyPointer(const _TPointer1& pointer) : base_class(pointer) {
+		TNullableAnyPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
 
@@ -2399,12 +2393,12 @@ namespace mse {
 	bool operator!=(const std::nullptr_t& lhs, const TNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
 
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_nullable_any_pointer(const _Ty& x) {
+	auto make_nullable_any_pointer(const _Ty& x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TNullableAnyPointer<_Tx2>(x);
 	}
 	template <typename _Tx = void, typename _Ty = void>
-	auto make_nullable_any_pointer(_Ty&& x) {
+	auto make_nullable_any_pointer(_Ty&& x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TNullableAnyPointer<_Tx2>(MSE_FWD(x));
 	}

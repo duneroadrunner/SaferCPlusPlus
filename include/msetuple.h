@@ -148,7 +148,7 @@ namespace mse {
 		namespace impl {
 			namespace tuple {
 				template<class _Ty>
-				void s_invoke_T_valid_if_not_an_xscope_type_on_each_type() {
+				void s_invoke_T_valid_if_not_an_xscope_type_on_each_type() MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_Ty>();
 				}
 				template<class _Ty, class _Ty2, class... _Args>
@@ -631,7 +631,7 @@ namespace mse {
 
 		template<size_t Index2, typename TTuplePointer2>
 		friend class TTupleElementByIndexFixedConstPointer;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)");
 
 	template<size_t Index, typename TTuplePointer>
 	class TTupleElementByIndexFixedConstPointer : public std::conditional<mse::impl::is_strong_ptr<mse::impl::remove_reference_t<TTuplePointer> >::value
@@ -674,22 +674,22 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		TTuplePointerRR m_tuple_ptr;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)");
 
 	template<size_t Index, typename TTuplePointer>
-	auto make_tuple_element_pointer(const TTuplePointer& ptr) {
+	auto make_tuple_element_pointer(const TTuplePointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)") {
 		return TTupleElementByIndexFixedPointer<Index, TTuplePointer>(ptr);
 	}
 	template<size_t Index, typename TTuplePointer>
-	auto make_tuple_element_pointer(TTuplePointer&& ptr) {
+	auto make_tuple_element_pointer(TTuplePointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)") {
 		return TTupleElementByIndexFixedPointer<Index, TTuplePointer>(MSE_FWD(ptr));
 	}
 	template<size_t Index, typename TTuplePointer>
-	auto make_tuple_element_const_pointer(const TTuplePointer& ptr) {
+	auto make_tuple_element_const_pointer(const TTuplePointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)") {
 		return TTupleElementByIndexFixedConstPointer<Index, TTuplePointer>(ptr);
 	}
 	template<size_t Index, typename TTuplePointer>
-	auto make_tuple_element_const_pointer(TTuplePointer&& ptr) {
+	auto make_tuple_element_const_pointer(TTuplePointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)") {
 		return TTupleElementByIndexFixedConstPointer<Index, TTuplePointer>(MSE_FWD(ptr));
 	}
 
@@ -832,7 +832,7 @@ namespace mse {
 
 		template<class TIndex2, typename TTuplePointer2>
 		friend class TTupleElementFixedConstPointer;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)");
 
 	template<class TIndex, typename TTuplePointer>
 	class TTupleElementFixedConstPointer : public std::conditional<mse::impl::is_strong_ptr<mse::impl::remove_reference_t<TTuplePointer> >::value
@@ -875,22 +875,22 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		TTuplePointerRR m_tuple_ptr;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)");
 
 	template<class TIndex, typename TTuplePointer>
-	auto make_tuple_element_pointer(const TTuplePointer& ptr) {
+	auto make_tuple_element_pointer(const TTuplePointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)") {
 		return TTupleElementFixedPointer<TIndex, TTuplePointer>(ptr);
 	}
 	template<class TIndex, typename TTuplePointer>
-	auto make_tuple_element_pointer(TTuplePointer&& ptr) {
+	auto make_tuple_element_pointer(TTuplePointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)") {
 		return TTupleElementFixedPointer<TIndex, TTuplePointer>(MSE_FWD(ptr));
 	}
 	template<class TIndex, typename TTuplePointer>
-	auto make_tuple_element_const_pointer(const TTuplePointer& ptr) {
+	auto make_tuple_element_const_pointer(const TTuplePointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)") {
 		return TTupleElementFixedConstPointer<TIndex, TTuplePointer>(ptr);
 	}
 	template<class TIndex, typename TTuplePointer>
-	auto make_tuple_element_const_pointer(TTuplePointer&& ptr) {
+	auto make_tuple_element_const_pointer(TTuplePointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TTuplePointer)") {
 		return TTupleElementFixedConstPointer<TIndex, TTuplePointer>(MSE_FWD(ptr));
 	}
 

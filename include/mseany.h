@@ -1144,11 +1144,12 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `any` may be copy constructed into another `any` at any time, so a copy should always be allowed.
-		template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, any>::value)
+		template<typename ValueType, typename ValueTypeRR = mse::impl::remove_reference_t<ValueType>
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, any>::value)
 			&& (!std::is_convertible<typename std::decay<ValueType>::type*, any const*>::value)
 			&& (mse::impl::is_potentially_not_xscope<typename std::decay<ValueType>::type>::value)
 			> MSE_IMPL_EIS >
-		any(ValueType&& value) : m_base_any(std::forward<ValueType>(value)) {}
+		any(ValueType&& value) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(ValueTypeRR)") : m_base_any(std::forward<ValueType>(value)) {}
 
 		_NODISCARD /*constexpr */bool has_value() const noexcept {
 			return contained_any().has_value();
@@ -1175,11 +1176,12 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `any` may be copy constructed into another `any` at any time, so a copy should always be allowed.
-		template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, any>::value)
+		template<typename ValueType, typename ValueTypeRR = mse::impl::remove_reference_t<ValueType>
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, any>::value)
 			&& (!std::is_convertible<typename std::decay<ValueType>::type*, any const*>::value)
 			&& (mse::impl::is_potentially_not_xscope<typename std::decay<ValueType>::type>::value)
 			> MSE_IMPL_EIS >
-		any& operator=(ValueType&& value)
+		any& operator=(ValueType&& value) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(ValueTypeRR)")
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
 				"T shall satisfy the CopyConstructible requirements.");
@@ -1268,12 +1270,13 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `mt_any` may be copy constructed into another `mt_any` at mt_any time, so a copy should always be allowed.
-		template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, mt_any>::value)
+		template<typename ValueType, typename ValueTypeRR = mse::impl::remove_reference_t<ValueType>
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, mt_any>::value)
 			&& (!std::is_convertible<typename std::decay<ValueType>::type*, mt_any const*>::value)
 			&& (mse::impl::is_potentially_not_xscope<typename std::decay<ValueType>::type>::value)
 			&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<typename std::decay<ValueType>::type>::value)
 			> MSE_IMPL_EIS >
-		mt_any(ValueType && value) : m_base_any(std::forward<ValueType>(value)) {}
+		mt_any(ValueType && value) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(ValueTypeRR)") : m_base_any(std::forward<ValueType>(value)) {}
 
 		_NODISCARD /*constexpr */bool has_value() const noexcept {
 			return contained_any().has_value();
@@ -1300,12 +1303,13 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `mt_any` may be copy constructed into another `mt_any` at mt_any time, so a copy should always be allowed.
-		template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, mt_any>::value)
+		template<typename ValueType, typename ValueTypeRR = mse::impl::remove_reference_t<ValueType>
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, mt_any>::value)
 			&& (!std::is_convertible<typename std::decay<ValueType>::type*, mt_any const*>::value)
 			&& (mse::impl::is_potentially_not_xscope<typename std::decay<ValueType>::type>::value)
 			&& (mse::impl::is_marked_as_shareable_and_passable_msemsearray<typename std::decay<ValueType>::type>::value)
 		> MSE_IMPL_EIS >
-		mt_any& operator=(ValueType && value)
+		mt_any& operator=(ValueType && value) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(ValueTypeRR)")
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
 				"T shall satisfy the CopyConstructible requirements.");
@@ -1396,11 +1400,12 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `st_any` may be copy constructed into another `st_any` at st_any time, so a copy should always be allowed.
-		template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, st_any>::value)
+		template<typename ValueType, typename ValueTypeRR = mse::impl::remove_reference_t<ValueType>
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, st_any>::value)
 			&& (!std::is_convertible<typename std::decay<ValueType>::type*, st_any const*>::value)
 			&& (mse::impl::is_potentially_not_xscope<typename std::decay<ValueType>::type>::value)
 			> MSE_IMPL_EIS >
-		st_any(ValueType&& value) : m_base_any(std::forward<ValueType>(value)) {}
+		st_any(ValueType&& value) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(ValueTypeRR)") : m_base_any(std::forward<ValueType>(value)) {}
 
 		_NODISCARD /*constexpr */bool has_value() const noexcept {
 			return contained_any().has_value();
@@ -1427,11 +1432,12 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `st_any` may be copy constructed into another `st_any` at st_any time, so a copy should always be allowed.
-		template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, st_any>::value)
+		template<typename ValueType, typename ValueTypeRR = mse::impl::remove_reference_t<ValueType>
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, st_any>::value)
 			&& (!std::is_convertible<typename std::decay<ValueType>::type*, st_any const*>::value)
 			&& (mse::impl::is_potentially_not_xscope<typename std::decay<ValueType>::type>::value)
 			> MSE_IMPL_EIS >
-		st_any& operator=(ValueType&& value)
+		st_any& operator=(ValueType&& value) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(ValueTypeRR)")
 		{
 			static_assert(std::is_copy_constructible<typename std::decay<ValueType>::type>::value,
 				"T shall satisfy the CopyConstructible requirements.");
@@ -2031,11 +2037,12 @@ namespace mse
 		///
 		/// T shall satisfy the CopyConstructible requirements, otherwise the program is ill-formed.
 		/// This is because an `fixed_any` may be copy constructed into another `fixed_any` at fixed_any time, so a copy should always be allowed.
-		template<typename ValueType, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, fixed_any>::value)
+		template<typename ValueType, typename ValueTypeRR = mse::impl::remove_reference_t<ValueType>
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<typename std::decay<ValueType>::type, fixed_any>::value)
 			&& (!std::is_convertible<typename std::decay<ValueType>::type*, fixed_any const*>::value)
 			&& (mse::impl::is_potentially_not_xscope<typename std::decay<ValueType>::type>::value)
 			> MSE_IMPL_EIS >
-		fixed_any(ValueType && value) : m_base_any(std::forward<ValueType>(value)) {}
+		fixed_any(ValueType && value) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(ValueTypeRR)") : m_base_any(std::forward<ValueType>(value)) {}
 
 		_NODISCARD /*constexpr */bool has_value() const noexcept {
 			return contained_any().has_value();
@@ -3004,7 +3011,7 @@ namespace mse {
 
 		template<typename TElement2, typename TAnyPointer2>
 		friend class TAnyElementFixedConstPointer;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TAnyPointer)");
 
 	template<typename TElement, typename TAnyPointer>
 	class TAnyElementFixedConstPointer {
@@ -3050,22 +3057,22 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		TAnyPointer m_any_ptr;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TAnyPointer)");
 
 	template<typename TElement, typename TAnyPointer>
-	auto make_any_element_pointer(const TAnyPointer& ptr) {
+	auto make_any_element_pointer(const TAnyPointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TAnyPointer)") {
 		return TAnyElementFixedPointer<TElement, mse::impl::remove_reference_t<TAnyPointer> >(ptr);
 	}
 	template<typename TElement, typename TAnyPointer>
-	auto make_any_element_pointer(TAnyPointer&& ptr) {
+	auto make_any_element_pointer(TAnyPointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TAnyPointer)") {
 		return TAnyElementFixedPointer<TElement, mse::impl::remove_reference_t<TAnyPointer> >(MSE_FWD(ptr));
 	}
 	template<typename TElement, typename TAnyPointer>
-	auto make_any_element_const_pointer(const TAnyPointer& ptr) {
+	auto make_any_element_const_pointer(const TAnyPointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TAnyPointer)") {
 		return TAnyElementFixedConstPointer<TElement, mse::impl::remove_reference_t<TAnyPointer> >(ptr);
 	}
 	template<typename TElement, typename TAnyPointer>
-	auto make_any_element_const_pointer(TAnyPointer&& ptr) {
+	auto make_any_element_const_pointer(TAnyPointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TAnyPointer)") {
 		return TAnyElementFixedConstPointer<TElement, mse::impl::remove_reference_t<TAnyPointer> >(MSE_FWD(ptr));
 	}
 
@@ -3199,19 +3206,19 @@ namespace mse {
 	using TFixedAnyElementFixedPointer = TAnyElementFixedPointer<TElement, TFixedAnyPointer>;
 
 	template<typename TElement, typename TFixedAnyPointer>
-	auto make_fixed_any_element_pointer(const TFixedAnyPointer& ptr) {
+	auto make_fixed_any_element_pointer(const TFixedAnyPointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TFixedAnyPointer)") {
 		return TFixedAnyElementFixedPointer<TElement, mse::impl::remove_reference_t<TFixedAnyPointer> >(ptr);
 	}
 	template<typename TElement, typename TFixedAnyPointer>
-	auto make_fixed_any_element_pointer(TFixedAnyPointer&& ptr) {
+	auto make_fixed_any_element_pointer(TFixedAnyPointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TFixedAnyPointer)") {
 		return TFixedAnyElementFixedPointer<TElement, mse::impl::remove_reference_t<TFixedAnyPointer> >(MSE_FWD(ptr));
 	}
 	template<typename TElement, typename TFixedAnyPointer>
-	auto make_fixed_any_element_const_pointer(const TFixedAnyPointer& ptr) {
+	auto make_fixed_any_element_const_pointer(const TFixedAnyPointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TFixedAnyPointer)") {
 		return TFixedAnyElementFixedConstPointer<TElement, mse::impl::remove_reference_t<TFixedAnyPointer> >(ptr);
 	}
 	template<typename TElement, typename TFixedAnyPointer>
-	auto make_fixed_any_element_const_pointer(TFixedAnyPointer&& ptr) {
+	auto make_fixed_any_element_const_pointer(TFixedAnyPointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TFixedAnyPointer)") {
 		return TFixedAnyElementFixedConstPointer<TElement, mse::impl::remove_reference_t<TFixedAnyPointer> >(MSE_FWD(ptr));
 	}
 

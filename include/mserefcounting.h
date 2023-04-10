@@ -62,7 +62,7 @@ namespace mse {
 	template<typename _Ty> TRefCountingNotNullConstPointer<_Ty> not_null_from_nullable(const TRefCountingConstPointer<_Ty>& src);
 
 	template <class X, class... Args>
-	TRefCountingNotNullPointer<X> make_refcounting(Args&&... args) {
+	TRefCountingNotNullPointer<X> make_refcounting(Args&&... args) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		return std::make_shared<X>(std::forward<Args>(args)...);
 	}
 
@@ -283,7 +283,7 @@ namespace mse {
 
 		friend class TRefCountingNotNullPointer<X>;
 		friend class TRefCountingConstPointer<X>;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)");
 
 	template<typename _Ty>
 	class TRefCountingNotNullPointer : public TRefCountingPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
@@ -361,12 +361,12 @@ namespace mse {
 	};
 
 	template <class X, class... Args>
-	TRefCountingNotNullPointer<X> make_refcounting(Args&&... args) {
+	TRefCountingNotNullPointer<X> make_refcounting(Args&&... args) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		return TRefCountingNotNullPointer<X>::make(std::forward<Args>(args)...);
 	}
 
 	template <class X, class... Args>
-	TRefCountingPointer<X> make_nullable_refcounting(Args&&... args) {
+	TRefCountingPointer<X> make_nullable_refcounting(Args&&... args) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		return TRefCountingPointer<X>::make(std::forward<Args>(args)...);
 	}
 
@@ -522,7 +522,7 @@ namespace mse {
 		CRefCounter* m_ref_with_target_obj_ptr;
 
 		friend class TRefCountingNotNullConstPointer<X>;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)");
 
 	template<typename _Ty>
 	class TRefCountingNotNullConstPointer : public TRefCountingConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
@@ -807,17 +807,17 @@ namespace mse {
 	template<typename _Ty> using refc_fcptr = TRefCountingFixedConstPointer<_Ty>;
 
 	template <class X, class... Args>
-	auto mkrc(Args&&... args) {
+	auto mkrc(Args&&... args) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
 		return make_refcounting<X>(std::forward<Args>(args)...);
 	}
 
 	/* These functions assume the type is the same as the lone parameter, so you don't need to explicitly specify it. */
 	template <typename _TLoneParam>
-	auto mkrclp(const _TLoneParam& lone_param) {
+	auto mkrclp(const _TLoneParam& lone_param) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TLoneParam)") {
 		return make_refcounting<_TLoneParam>(lone_param);
 	}
 	template <typename _TLoneParam>
-	auto mkrclp(_TLoneParam&& lone_param) {
+	auto mkrclp(_TLoneParam&& lone_param) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TLoneParam)") {
 		return make_refcounting<mse::impl::remove_reference_t<_TLoneParam> >(MSE_FWD(lone_param));
 	}
 

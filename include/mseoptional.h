@@ -2333,7 +2333,7 @@ namespace mse {
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(T)");
 
 #ifdef MSE_HAS_CXX17
 	template<class _Ty>
@@ -2408,7 +2408,7 @@ namespace mse {
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(T)");
 
 #ifdef MSE_HAS_CXX17
 	template<class _Ty>
@@ -2481,7 +2481,7 @@ namespace mse {
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(T)");
 
 #ifdef MSE_HAS_CXX17
 	template<class _Ty>
@@ -2567,7 +2567,7 @@ namespace mse {
 
 		private:
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-		};
+		} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(T)");
 
 #ifdef MSE_HAS_CXX17
 		template<class _Ty>
@@ -3502,7 +3502,7 @@ namespace mse {
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(T)");
 
 #ifdef MSE_HAS_CXX17
 	template<class _Ty>
@@ -5644,7 +5644,7 @@ namespace mse {
 
 		template<typename TOptionalPointer2>
 		friend class TOptionalElementFixedConstPointer;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TOptionalPointer)");
 
 	template<typename TOptionalPointer>
 	class TOptionalElementFixedConstPointer {
@@ -5685,22 +5685,22 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		TOptionalPointer m_optional_ptr;
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TOptionalPointer)");
 
 	template<typename TOptionalPointer>
-	auto make_optional_element_pointer(const TOptionalPointer& ptr) {
+	auto make_optional_element_pointer(const TOptionalPointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TOptionalPointer)") {
 		return TOptionalElementFixedPointer<mse::impl::remove_reference_t<TOptionalPointer> >(ptr);
 	}
 	template<typename TOptionalPointer>
-	auto make_optional_element_pointer(TOptionalPointer&& ptr) {
+	auto make_optional_element_pointer(TOptionalPointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TOptionalPointer)") {
 		return TOptionalElementFixedPointer<mse::impl::remove_reference_t<TOptionalPointer> >(MSE_FWD(ptr));
 	}
 	template<typename TOptionalPointer>
-	auto make_optional_element_const_pointer(const TOptionalPointer& ptr) {
+	auto make_optional_element_const_pointer(const TOptionalPointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TOptionalPointer)") {
 		return TOptionalElementFixedConstPointer<mse::impl::remove_reference_t<TOptionalPointer> >(ptr);
 	}
 	template<typename TOptionalPointer>
-	auto make_optional_element_const_pointer(TOptionalPointer&& ptr) {
+	auto make_optional_element_const_pointer(TOptionalPointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TOptionalPointer)") {
 		return TOptionalElementFixedConstPointer<mse::impl::remove_reference_t<TOptionalPointer> >(MSE_FWD(ptr));
 	}
 
@@ -5811,19 +5811,19 @@ namespace mse {
 	using TFixedOptionalElementFixedPointer = TOptionalElementFixedPointer<TFixedOptionalPointer>;
 
 	template<typename TFixedOptionalPointer>
-	auto make_fixed_optional_element_pointer(const TFixedOptionalPointer& ptr) {
+	auto make_fixed_optional_element_pointer(const TFixedOptionalPointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TFixedOptionalPointer)") {
 		return TFixedOptionalElementFixedPointer<mse::impl::remove_reference_t<TFixedOptionalPointer> >(ptr);
 	}
 	template<typename TFixedOptionalPointer>
-	auto make_fixed_optional_element_pointer(TFixedOptionalPointer&& ptr) {
+	auto make_fixed_optional_element_pointer(TFixedOptionalPointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TFixedOptionalPointer)") {
 		return TFixedOptionalElementFixedPointer<mse::impl::remove_reference_t<TFixedOptionalPointer> >(MSE_FWD(ptr));
 	}
 	template<typename TFixedOptionalPointer>
-	auto make_fixed_optional_element_const_pointer(const TFixedOptionalPointer& ptr) {
+	auto make_fixed_optional_element_const_pointer(const TFixedOptionalPointer& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TFixedOptionalPointer)") {
 		return TFixedOptionalElementFixedConstPointer<mse::impl::remove_reference_t<TFixedOptionalPointer> >(ptr);
 	}
 	template<typename TFixedOptionalPointer>
-	auto make_fixed_optional_element_const_pointer(TFixedOptionalPointer&& ptr) {
+	auto make_fixed_optional_element_const_pointer(TFixedOptionalPointer&& ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TFixedOptionalPointer)") {
 		return TFixedOptionalElementFixedConstPointer<mse::impl::remove_reference_t<TFixedOptionalPointer> >(MSE_FWD(ptr));
 	}
 
@@ -5857,7 +5857,7 @@ namespace mse {
 			//&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 		> MSE_IMPL_EIS >
-			TNullablePointer(const _TPointer1& pointer) : m_maybe_ptr(pointer) {
+			TNullablePointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : m_maybe_ptr(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
 
@@ -5913,21 +5913,27 @@ namespace mse {
 	bool operator!=(const std::nullptr_t& lhs, const TNullablePointer<TPointer>& rhs) { return rhs != lhs; }
 
 	template <typename TSpecifiedPointer = void, typename TPointerArg = void>
-	auto make_nullable_pointer(const TPointerArg& x) {
+	auto make_nullable_pointer(const TPointerArg& x)
+		MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TSpecifiedPointer)")
+		MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TPointerArg)")
+	{
 		typedef mse::impl::conditional_t<std::is_same<TSpecifiedPointer, void>::value, mse::impl::remove_reference_t<decltype(x)>, TSpecifiedPointer> TSpecifiedPointer2;
 		return TNullablePointer<TSpecifiedPointer2>(x);
 	}
 	template <typename TSpecifiedPointer = void, typename TPointerArg = void>
-	auto make_nullable_pointer(TPointerArg&& x) {
+	auto make_nullable_pointer(TPointerArg&& x)
+		MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TSpecifiedPointer)")
+		MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TPointerArg)")
+	{
 		typedef mse::impl::conditional_t<std::is_same<TSpecifiedPointer, void>::value, mse::impl::remove_reference_t<decltype(x)>, TSpecifiedPointer> TSpecifiedPointer2;
 		return TNullablePointer<TSpecifiedPointer2>(MSE_FWD(x));
 	}
 	template <typename TSpecifiedPointer>
-	auto make_nullable_pointer(std::nullptr_t) {
+	auto make_nullable_pointer(std::nullptr_t) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TSpecifiedPointer)") {
 		return TNullablePointer<TSpecifiedPointer>(nullptr);
 	}
 	template <typename TSpecifiedPointer>
-	auto make_nullable_pointer() {
+	auto make_nullable_pointer() MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(TSpecifiedPointer)") {
 		return TNullablePointer<TSpecifiedPointer>();
 	}
 
