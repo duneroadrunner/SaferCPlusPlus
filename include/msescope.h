@@ -130,7 +130,7 @@ namespace mse {
 	}
 
 	typedef size_t lifetime_info1_t;
-	static const lifetime_info1_t no_lifetime_info1 = std::numeric_limits<lifetime_info1_t>::max();
+	static const lifetime_info1_t no_lifetime_info1 = 0/*std::numeric_limits<lifetime_info1_t>::max()*/;
 
 #ifdef MSE_SCOPEPOINTER_DISABLED
 
