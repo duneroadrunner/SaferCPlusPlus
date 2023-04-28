@@ -264,8 +264,8 @@ namespace mse {
 		return find_if_ptr(_First, _Last, pred2);
 	}
 
-	/* This function returns a (scope) optional that contains a scope pointer to the found element. */
 	template<class _XScopeContainerPointer> using xscope_range_get_ref_if_ptr_type = typename impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer, decltype(impl::find_if_ptr_placeholder_predicate())>::item_pointer_type;
+	/* This function returns a (scope) optional that contains a scope pointer to the found element. */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_if_ptr(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 		return impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
@@ -278,8 +278,8 @@ namespace mse {
 		return xscope_range_get_ref_if_ptr(_XscpPtr, pred2);
 	}
 
-	/* This function returns a scope pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
 	template<class _XScopeContainerPointer> using xscope_range_get_ref_to_element_known_to_be_present_ptr_type = typename impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer, decltype(impl::find_if_ptr_placeholder_predicate())>::item_pointer_type;
+	/* This function returns a scope pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_to_element_known_to_be_present_ptr(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 		return impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
@@ -298,6 +298,111 @@ namespace mse {
 		return xscope_range_get_ref_if(_XscpPtr, _Pred, args...);
 	}
 
+#if 0
+	namespace rsv {
+		namespace impl {
+			inline auto find_if_ptr_placeholder_predicate() {
+				auto retval = [](auto) { return true; };
+				return retval;
+			};
+			template<class _InIt, class _Pr, class... Args>
+			class c_find_if_ptr {
+			public:
+				//typedef item_pointer_type_from_iterator<_InIt> item_pointer_type;
+				typedef mse::impl::remove_reference_t<_InIt> result_type;
+				result_type result;
+				c_find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) : result(eval(_First, _Last, _Pred, args...)) {}
+			private:
+				static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
+					const auto xs_iters = make_xslta_specialized_first_and_last(_First, _Last);
+					auto current = xs_iters.first();
+					for (; current != xs_iters.last(); ++current) {
+						if (_Pred(current, args...)) {
+							break;
+						}
+					}
+					return _First + (current - xs_iters.first());
+				}
+			};
+
+			template<class _ContainerPointer, class _Pr, class... Args>
+			class xslta_c_range_get_ref_if_ptr {
+			public:
+				//typedef item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
+				typedef mse::rsv::xslta_optional<decltype(mse::rsv::us::unsafe_make_xslta_pointer_to(*std::declval<item_pointer_type>()))> result_type;
+				result_type result;
+				xslta_c_range_get_ref_if_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
+					: result(eval(_XscpPtr, _Pred, args...)) {}
+			private:
+				static result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
+					/* Note that since we're returning a (wrapped const) reference, we need to be careful that it refers to an
+					element in the original container, not an (ephemeral) copy. */
+					const auto xs_iters = make_xslta_range_iter_provider(_XscpPtr);
+					auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr, Args...>(xs_iters.begin(), xs_iters.end(), _Pred, args...).result;
+					if (xs_iters.end() == res_it) {
+						return result_type{};
+					}
+					else {
+						return result_type(mse::rsv::us::unsafe_make_xslta_pointer_to(*res_it));
+					}
+				}
+			};
+
+			template<class _ContainerPointer, class _Pr, class... Args>
+			class xslta_c_range_get_ref_to_element_known_to_be_present_ptr {
+			public:
+				typedef item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
+				typedef decltype(mse::rsv::us::unsafe_make_xslta_pointer_to(*std::declval<item_pointer_type>())) result_type;
+				result_type result;
+				xslta_c_range_get_ref_to_element_known_to_be_present_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
+					: result(eval(_XscpPtr, _Pred, args...)) {}
+			private:
+				static result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
+					/* Note that since we're returning a (const) reference, we need to be careful that it refers to an
+					element in the original container, not an (ephemeral) copy. */
+					const auto xs_iters = make_xslta_range_iter_provider(_XscpPtr);
+					auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr, Args...>(xs_iters.begin(), xs_iters.end(), _Pred, args...).result;
+					if (xs_iters.end() == res_it) {
+						MSE_THROW(std::logic_error("element not found - xslta_c_range_get_ref_to_element_known_to_be_present"));
+					}
+					else {
+						return mse::rsv::us::unsafe_make_xslta_pointer_to(*res_it);
+					}
+				}
+			};
+		}
+
+		template<class _XSLTAContainerPointer> using xslta_range_get_ref_if_ptr_type = typename impl::xslta_c_range_get_ref_if_ptr<_XSLTAContainerPointer, decltype(impl::find_if_ptr_placeholder_predicate())>::item_pointer_type;
+		/* This function returns a (slta) optional that contains a slta pointer to the found element. */
+		template<class _XSLTAContainerPointer, class _Pr, class... Args>
+		inline auto xslta_range_get_ref_if_ptr(const _XSLTAContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
+			return impl::xslta_c_range_get_ref_if_ptr<_XSLTAContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
+		}
+
+		/* This function returns a (slta) optional that contains a slta pointer to the found element. */
+		template<class _XSLTAContainerPointer, class _Pr, class... Args>
+		inline auto xslta_range_get_ref_if(const _XSLTAContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
+			MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xslta_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
+			return xslta_range_get_ref_if_ptr(_XscpPtr, pred2);
+		}
+
+		template<class _XSLTAContainerPointer> using xslta_range_get_ref_to_element_known_to_be_present_ptr_type = typename impl::xslta_c_range_get_ref_to_element_known_to_be_present_ptr<_XSLTAContainerPointer, decltype(impl::find_if_ptr_placeholder_predicate())>::item_pointer_type;
+		/* This function returns a slta pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
+		template<class _XSLTAContainerPointer, class _Pr, class... Args>
+		inline auto xslta_range_get_ref_to_element_known_to_be_present_ptr(const _XSLTAContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
+			return impl::xslta_c_range_get_ref_to_element_known_to_be_present_ptr<_XSLTAContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
+		}
+
+		/* This function returns a slta pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
+		template<class _XSLTAContainerPointer, class _Pr, class... Args>
+		inline auto xslta_range_get_ref_to_element_known_to_be_present(const _XSLTAContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
+			MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xslta_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
+			return xslta_range_get_ref_to_element_known_to_be_present_ptr(_XscpPtr, pred2);
+		}
+	}
+#endif // 0
+
+
 	/* for_each() */
 
 	namespace impl {
@@ -313,7 +418,9 @@ namespace mse {
 			result_type result MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 			c_for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args) : result(eval(_First, _Last, _Func, args...)) {}
 		private:
-			static result_type eval(const _InIt& _First, const _InIt& _Last, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args) {
+			static result_type eval(const _InIt& _First, const _InIt& _Last, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }")
+			{
 				const auto xs_iters = make_xscope_specialized_first_and_last(_First, _Last);
 				auto current = xs_iters.first();
 				for (; current != xs_iters.last(); ++current) {

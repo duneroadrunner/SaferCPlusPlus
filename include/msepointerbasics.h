@@ -28,6 +28,9 @@
 #define MSE_HAS_CXX17
 #if _MSVC_LANG > 201703L || (defined(_HAS_CXX20) && (_HAS_CXX20 >= 1))
 #define MSE_HAS_CXX20
+#if _MSVC_LANG > 202002L || (defined(_HAS_CXX23) && (_HAS_CXX23 >= 1))
+#define MSE_HAS_CXX23
+#endif // _MSVC_LANG > 202002L || (defined(_HAS_CXX23) && (_HAS_CXX23 >= 1))
 #endif // _MSVC_LANG > 201703L || (defined(_HAS_CXX20) && (_HAS_CXX20 >= 1))
 #endif // _MSVC_LANG >= 201703L || (defined(_HAS_CXX17) && (_HAS_CXX17 >= 1))
 #if (1700 > _MSC_VER)

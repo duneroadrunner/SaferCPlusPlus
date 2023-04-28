@@ -378,7 +378,35 @@ namespace std {
 
 namespace mse {
 	namespace rsv {
-		;
+		namespace us {
+			/* (Unsafely) obtain a slta pointer to any object. */
+			template<typename _Ty>
+			TXSLTAPointer<_Ty> unsafe_make_xslta_pointer_to(_Ty& ref) {
+				return TXSLTAPointer<_Ty>(std::addressof(ref));
+			}
+			template<typename _Ty>
+			TXSLTAConstPointer<_Ty> unsafe_make_xslta_const_pointer_to(const _Ty& cref) {
+				return TXSLTAConstPointer<_Ty>(std::addressof(cref));
+			}
+			template<typename _Ty>
+			TXSLTAConstPointer<_Ty> unsafe_make_xslta_pointer_to(const _Ty& cref) {
+				return unsafe_make_xslta_const_pointer_to(cref);
+			}
+		}
+
+		/* Obtain a slta pointer to any object. Requires static verification. */
+		template<typename _Ty>
+		TXSLTAPointer<_Ty> make_xslta_pointer_to(_Ty& ref) {
+			return mse::rsv::us::unsafe_make_xslta_pointer_to(ref);
+		}
+		template<typename _Ty>
+		TXSLTAConstPointer<_Ty> make_xslta_const_pointer_to(const _Ty& cref) {
+			return mse::rsv::us::unsafe_make_xslta_const_pointer_to(cref);
+		}
+		template<typename _Ty>
+		TXSLTAConstPointer<_Ty> make_xslta_pointer_to(const _Ty& cref) {
+			return make_xslta_const_pointer_to(cref);
+		}
 	}
 }
 

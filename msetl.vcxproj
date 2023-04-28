@@ -303,6 +303,7 @@
     <ClInclude Include="include\mseregisteredproxy.h" />
     <ClInclude Include="include\msescope.h" />
     <ClInclude Include="include\msescopeatomic.h" />
+    <ClInclude Include="include\mseslta.h" />
     <ClInclude Include="include\msestaticimmutable.h" />
     <ClInclude Include="include\msesuppresschecks.h" />
     <ClInclude Include="include\msethreadlocal.h" />

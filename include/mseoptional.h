@@ -2999,6 +2999,345 @@ namespace mse {
 		return xscope_st_optional<X&>(v.get());
 	}
 
+	namespace rsv {
+
+		template <class T>
+		class xslta_optional : public mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag>, public mse::us::impl::XSLTATagBase
+			, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(T, xslta_optional<T>)
+		{
+		public:
+			typedef mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag> base_class;
+			typedef typename base_class::value_type value_type;
+
+			xslta_optional(const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) : base_class(src_ref) {}
+			xslta_optional(T&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) : base_class(MSE_FWD(src_ref)) {}
+
+			xslta_optional(const xslta_optional& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
+			xslta_optional(xslta_optional&& src_ref) : base_class(mse::us::impl::as_ref<base_class>(MSE_FWD(src_ref))) {}
+			//xslta_optional(const mstd::optional<T>& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
+
+			/* If an initialization value is not given, any lifetimes will be "deduced" to be a (minimum) default value. */
+			constexpr xslta_optional() noexcept {}
+			constexpr xslta_optional(nullopt_t) noexcept {}
+
+			xslta_optional& operator=(nullopt_t) noexcept {
+				base_class::clear();
+				return *this;
+			}
+			xslta_optional& operator=(const xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) {
+				base_class::operator=(mse::us::impl::as_ref<base_class>(rhs));
+				return *this;
+			}
+			xslta_optional& operator=(xslta_optional&& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) noexcept(std::is_nothrow_move_assignable<T>::value&& std::is_nothrow_move_constructible<T>::value) {
+				base_class::operator=(mse::us::impl::as_ref<base_class>(MSE_FWD(rhs)));
+				return *this;
+			}
+			void reset() noexcept {
+				base_class::reset();
+			}
+			void swap(xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
+				base_class::swap(rhs);
+			}
+
+			/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
+			template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
+				(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
+				)> MSE_IMPL_EIS >
+			void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
+
+			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+
+		private:
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class T>
+		xslta_optional(T) -> xslta_optional<T>;
+#endif /* MSE_HAS_CXX17 */
+
+		template <class T>
+		constexpr xslta_optional<typename std::decay<T>::type> make_xslta_optional(T&& v) {
+			return xslta_optional<typename std::decay<T>::type>(constexpr_forward<T>(v));
+		}
+
+
+#if 0
+		template <class T>
+		class xslta_mt_optional : public mse::us::impl::ns_optional::optional_base2<T, mse::shareable_dynamic_container_mutex, mse::us::impl::ns_optional::optional_base2_const_lockable_tag>, public mse::us::impl::XSLTATagBase
+			, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(T, xslta_mt_optional<T>)
+		{
+		public:
+			typedef mse::us::impl::ns_optional::optional_base2<T, mse::shareable_dynamic_container_mutex, mse::us::impl::ns_optional::optional_base2_const_lockable_tag> base_class;
+			typedef typename base_class::value_type value_type;
+
+#ifdef MSE_HAS_CXX17
+#ifdef MSE_OPTIONAL_IMPLEMENTATION1
+
+			MSE_OPTIONAL_USING(xslta_mt_optional, base_class);
+
+			template<class... Tpes, class = std::enable_if_t<std::is_constructible_v<T, Tpes...> > >
+			constexpr explicit xslta_mt_optional(mse::in_place_t, Tpes&&... _Args) : base_class(mse::in_place, std::forward<Tpes>(_Args)...) {}
+			template<class _Elem, class... Tpes, class = std::enable_if_t<std::is_constructible_v<T, std::initializer_list<_Elem>&, Tpes...> > >
+			constexpr explicit xslta_mt_optional(mse::in_place_t, std::initializer_list<_Elem> _Ilist, Tpes&&... _Args)
+				: base_class(mse::in_place, _Ilist, std::forward<Tpes>(_Args)...) {}
+
+			template<class T2>
+			using _AllowDirectConversion = std::integral_constant<bool, std::conjunction_v<
+				//std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, xslta_mt_optional>>,
+				std::negation<std::is_base_of<base_class, std::remove_cv_t<std::remove_reference_t<T2>>>>,
+				std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, mse::in_place_t>>,
+				std::is_constructible<T, T2> > >;
+			template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::is_convertible<T2, T>>, int> = 0>
+			constexpr xslta_mt_optional(T2&& _Right) : base_class(mse::in_place, std::forward<T2>(_Right)) {}
+			template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::negation<std::is_convertible<T2, T> > >, int> = 0>
+			constexpr explicit xslta_mt_optional(T2&& _Right) : base_class(mse::in_place, std::forward<T2>(_Right)) {}
+
+#else // MSE_OPTIONAL_IMPLEMENTATION1
+			using base_class::base_class;
+			template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_t<xslta_mt_optional, T2> >
+			explicit xslta_mt_optional(T2&& _X) : base_class(MSE_FWD(_X)) {}
+#endif // MSE_OPTIONAL_IMPLEMENTATION1
+
+			xslta_mt_optional(const base_class& src) : base_class(src) {}
+			xslta_mt_optional(base_class&& src) : base_class(MSE_FWD(src)) {}
+
+#else // MSE_HAS_CXX17
+			using base_class::base_class;
+			MSE_OPTIONAL_USING(xslta_mt_optional, base_class);
+			template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_t<xslta_mt_optional, T2> >
+			explicit xslta_mt_optional(T2&& _X) : base_class(MSE_FWD(_X)) {}
+#endif // MSE_HAS_CXX17
+
+			xslta_mt_optional(const xslta_mt_optional& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
+			//xslta_mt_optional(const mstd::optional<T>& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
+
+			xslta_mt_optional& operator=(nullopt_t) noexcept {
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::clear();
+				return *this;
+			}
+			xslta_mt_optional& operator=(const xslta_mt_optional& rhs) {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::operator=(rhs);
+				return *this;
+			}
+			xslta_mt_optional& operator=(xslta_mt_optional&& rhs) noexcept(std::is_nothrow_move_assignable<T>::value&& std::is_nothrow_move_constructible<T>::value) {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::operator=(mse::us::impl::as_ref<base_class>(MSE_FWD(rhs)));
+				return *this;
+			}
+			template <class U, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_t<xslta_mt_optional, U> >
+			auto operator=(U&& v) -> mse::impl::enable_if_t<std::is_same<typename std::decay<U>::type, T>::value, xslta_mt_optional&> {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::operator=(std::forward<U>(v));
+				return *this;
+			}
+			template <class... Args>
+			void emplace(Args&&... args) {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::emplace(std::forward<Args>(args)...);
+			}
+			template <class U, class... Args>
+			void emplace(std::initializer_list<U> il, Args&&... args) {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::emplace(il, std::forward<Args>(args)...);
+			}
+			void reset() noexcept {
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::reset();
+			}
+			void swap(xslta_mt_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::swap(rhs);
+			}
+
+			/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
+			template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
+				(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
+				)> MSE_IMPL_EIS >
+			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
+			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+		private:
+			/* If T is "marked" as containing a slta reference, then the following member function
+			will not instantiate, causing an (intended) compile error. */
+			template<class T2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+				&& (mse::impl::potentially_does_not_contain_non_owning_slta_reference<T2>::value)> MSE_IMPL_EIS >
+			void valid_if_T_is_not_marked_as_containing_a_slta_reference() const {}
+
+			/* If T is "marked" as containing an accessible "slta address of" operator, then the following member function
+			will not instantiate, causing an (intended) compile error. */
+			template<class T2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+				&& (mse::impl::is_potentially_not_referenceable_by_slta_pointer<T2>::value)
+			> MSE_IMPL_EIS >
+			void valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator() const {}
+
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+		};
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class T>
+		xslta_mt_optional(T) -> xslta_mt_optional<T>;
+#endif /* MSE_HAS_CXX17 */
+
+		template <class T>
+		constexpr xslta_mt_optional<typename std::decay<T>::type> make_xslta_mt_optional(T&& v) {
+			return xslta_mt_optional<typename std::decay<T>::type>(constexpr_forward<T>(v));
+		}
+		template <class X>
+		constexpr xslta_mt_optional<X&> make_xslta_mt_optional(std::reference_wrapper<X> v) {
+			return xslta_mt_optional<X&>(v.get());
+		}
+
+
+		template <class T>
+		class xslta_st_optional : public mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_const_lockable_tag>, public mse::us::impl::XSLTATagBase
+			, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(T, xslta_st_optional<T>)
+		{
+		public:
+			typedef mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_const_lockable_tag> base_class;
+			typedef typename base_class::value_type value_type;
+
+#ifdef MSE_HAS_CXX17
+#ifdef MSE_OPTIONAL_IMPLEMENTATION1
+
+			MSE_OPTIONAL_USING(xslta_st_optional, base_class);
+
+			template<class... Tpes, class = std::enable_if_t<std::is_constructible_v<T, Tpes...> > >
+			constexpr explicit xslta_st_optional(mse::in_place_t, Tpes&&... _Args) : base_class(mse::in_place, std::forward<Tpes>(_Args)...) {}
+			template<class _Elem, class... Tpes, class = std::enable_if_t<std::is_constructible_v<T, std::initializer_list<_Elem>&, Tpes...> > >
+			constexpr explicit xslta_st_optional(mse::in_place_t, std::initializer_list<_Elem> _Ilist, Tpes&&... _Args)
+				: base_class(mse::in_place, _Ilist, std::forward<Tpes>(_Args)...) {}
+
+			template<class T2>
+			using _AllowDirectConversion = std::integral_constant<bool, std::conjunction_v<
+				//std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, xslta_st_optional>>,
+				std::negation<std::is_base_of<base_class, std::remove_cv_t<std::remove_reference_t<T2>>>>,
+				std::negation<std::is_same<std::remove_cv_t<std::remove_reference_t<T2>>, mse::in_place_t>>,
+				std::is_constructible<T, T2> > >;
+			template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::is_convertible<T2, T>>, int> = 0>
+			constexpr xslta_st_optional(T2&& _Right) : base_class(mse::in_place, std::forward<T2>(_Right)) {}
+			template<class T2 = T, std::enable_if_t<std::conjunction_v<_AllowDirectConversion<T2>, std::negation<std::is_convertible<T2, T> > >, int> = 0>
+			constexpr explicit xslta_st_optional(T2&& _Right) : base_class(mse::in_place, std::forward<T2>(_Right)) {}
+
+#else // MSE_OPTIONAL_IMPLEMENTATION1
+			using base_class::base_class;
+			template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_t<xslta_st_optional, T2> >
+			explicit xslta_st_optional(T2&& _X) : base_class(MSE_FWD(_X)) {}
+#endif // MSE_OPTIONAL_IMPLEMENTATION1
+
+			xslta_st_optional(const base_class& src) : base_class(src) {}
+			xslta_st_optional(base_class&& src) : base_class(MSE_FWD(src)) {}
+
+#else // MSE_HAS_CXX17
+			using base_class::base_class;
+			MSE_OPTIONAL_USING(xslta_st_optional, base_class);
+			template<class T2, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_t<xslta_st_optional, T2> >
+			explicit xslta_st_optional(T2&& _X) : base_class(MSE_FWD(_X)) {}
+#endif // MSE_HAS_CXX17
+
+			xslta_st_optional(const xslta_st_optional& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
+			//xslta_st_optional(const mstd::optional<T>& src_ref) : base_class(static_cast<const base_class&>(src_ref)) {}
+
+			xslta_st_optional& operator=(nullopt_t) noexcept {
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::clear();
+				return *this;
+			}
+			xslta_st_optional& operator=(const xslta_st_optional& rhs) {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::operator=(rhs);
+				return *this;
+			}
+			xslta_st_optional& operator=(xslta_st_optional&& rhs) noexcept(std::is_nothrow_move_assignable<T>::value&& std::is_nothrow_move_constructible<T>::value) {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::operator=(mse::us::impl::as_ref<base_class>(MSE_FWD(rhs)));
+				return *this;
+			}
+			template <class U, class = mse::impl::disable_if_is_a_pair_with_the_first_a_base_of_the_second_t<xslta_st_optional, U> >
+			auto operator=(U&& v) -> mse::impl::enable_if_t<std::is_same<typename std::decay<U>::type, T>::value, xslta_st_optional&> {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::operator=(std::forward<U>(v));
+				return *this;
+			}
+			template <class... Args>
+			void emplace(Args&&... args) {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::emplace(std::forward<Args>(args)...);
+			}
+			template <class U, class... Args>
+			void emplace(std::initializer_list<U> il, Args&&... args) {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::emplace(il, std::forward<Args>(args)...);
+			}
+			void reset() noexcept {
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::reset();
+			}
+			void swap(xslta_st_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
+				valid_if_T_is_not_marked_as_containing_a_slta_reference<T>();
+				valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator<T>();
+				base_class::swap(rhs);
+			}
+
+			/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
+			template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
+				(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
+				)> MSE_IMPL_EIS >
+			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+		private:
+			/* If T is "marked" as containing a slta reference, then the following member function
+			will not instantiate, causing an (intended) compile error. */
+			template<class T2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+				&& (mse::impl::potentially_does_not_contain_non_owning_slta_reference<T2>::value)> MSE_IMPL_EIS >
+			void valid_if_T_is_not_marked_as_containing_a_slta_reference() const {}
+
+			/* If T is "marked" as containing an accessible "slta address of" operator, then the following member function
+			will not instantiate, causing an (intended) compile error. */
+			template<class T2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
+				&& (mse::impl::is_potentially_not_referenceable_by_slta_pointer<T2>::value)
+			> MSE_IMPL_EIS >
+			void valid_if_T_is_not_marked_as_containing_an_accessible_slta_addressof_operator() const {}
+
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+		};
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class T>
+		xslta_st_optional(T) -> xslta_st_optional<T>;
+#endif /* MSE_HAS_CXX17 */
+
+		template <class T>
+		constexpr xslta_st_optional<typename std::decay<T>::type> make_xslta_st_optional(T&& v) {
+			return xslta_st_optional<typename std::decay<T>::type>(constexpr_forward<T>(v));
+		}
+		template <class X>
+		constexpr xslta_st_optional<X&> make_xslta_st_optional(std::reference_wrapper<X> v) {
+			return xslta_st_optional<X&>(v.get());
+		}
+#endif // 0
+	}
+
+
 #endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 
 
