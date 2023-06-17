@@ -14,6 +14,7 @@
 #include "msepointerbasics.h"
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 #include "msescope.h"
+#include "mseslta.h"
 #endif // !MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 
 #include <atomic>
@@ -1720,6 +1721,10 @@ namespace mse {
 
 	template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
 	class xscope_borrowing_fixed_optional;
+	namespace rsv {
+		template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
+		class xslta_borrowing_fixed_optional;
+	}
 
 	namespace us {
 		namespace impl {
@@ -1970,6 +1975,8 @@ namespace mse {
 					friend class mse::us::impl::Txscope_const_optional_structure_lock_guard<_Myt>;
 					template <class _TLender2, class T2>
 					friend class mse::xscope_borrowing_fixed_optional;
+					template <class _TLender2, class T2>
+					friend class mse::rsv::xslta_borrowing_fixed_optional;
 				};
 
 				// 20.5.8, Relational operators
@@ -3009,8 +3016,8 @@ namespace mse {
 			typedef mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag> base_class;
 			typedef typename base_class::value_type value_type;
 
-			xslta_optional(const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) : base_class(src_ref) {}
-			xslta_optional(T&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) : base_class(MSE_FWD(src_ref)) {}
+			xslta_optional(const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(src_ref) {}
+			xslta_optional(T&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(MSE_FWD(src_ref)) {}
 
 			xslta_optional(const xslta_optional& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
 			xslta_optional(xslta_optional&& src_ref) : base_class(mse::us::impl::as_ref<base_class>(MSE_FWD(src_ref))) {}
@@ -3019,23 +3026,25 @@ namespace mse {
 			/* If an initialization value is not given, any lifetimes will be "deduced" to be a (minimum) default value. */
 			constexpr xslta_optional() noexcept {}
 			constexpr xslta_optional(nullopt_t) noexcept {}
+			/* Constructs an empty container, uses the second argument only to deduce lifetime. */
+			constexpr xslta_optional(nullopt_t, const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept {}
 
 			xslta_optional& operator=(nullopt_t) noexcept {
 				base_class::clear();
 				return *this;
 			}
-			xslta_optional& operator=(const xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) {
+			xslta_optional& operator=(const xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
 				base_class::operator=(mse::us::impl::as_ref<base_class>(rhs));
 				return *this;
 			}
-			xslta_optional& operator=(xslta_optional&& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) noexcept(std::is_nothrow_move_assignable<T>::value&& std::is_nothrow_move_constructible<T>::value) {
+			xslta_optional& operator=(xslta_optional&& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept(std::is_nothrow_move_assignable<T>::value&& std::is_nothrow_move_constructible<T>::value) {
 				base_class::operator=(mse::us::impl::as_ref<base_class>(MSE_FWD(rhs)));
 				return *this;
 			}
 			void reset() noexcept {
 				base_class::reset();
 			}
-			void swap(xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
+			void swap(xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
 				base_class::swap(rhs);
 			}
 
@@ -3046,6 +3055,7 @@ namespace mse {
 			void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
 
 			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		private:
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
@@ -3058,8 +3068,20 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 
 		template <class T>
-		constexpr xslta_optional<typename std::decay<T>::type> make_xslta_optional(T&& v) {
+		constexpr xslta_optional<typename std::decay<T>::type> make_xslta_optional(T&& v MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
+		{
 			return xslta_optional<typename std::decay<T>::type>(constexpr_forward<T>(v));
+		}
+
+		/* Constructs an empty container, uses the second argument only to deduce lifetime. */
+		template <class T>
+		constexpr xslta_optional<typename std::decay<T>::type> make_xslta_optional(nullopt_t, const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
+		{
+			return xslta_optional<typename std::decay<T>::type>(nullopt, src_ref);
 		}
 
 
@@ -3345,6 +3367,10 @@ namespace mse {
 	class fixed_optional;
 	template<class T>
 	class xscope_fixed_optional;
+	namespace rsv {
+		template<class T>
+		class xslta_fixed_optional;
+	}
 
 	namespace us {
 		namespace impl {
@@ -3491,6 +3517,7 @@ namespace mse {
 
 					friend class fixed_optional<T>;
 					friend class xscope_fixed_optional<T>;
+					friend class mse::rsv::xslta_fixed_optional<T>;
 				};
 
 				// 20.5.8, Relational operators
@@ -3936,6 +3963,111 @@ namespace mse {
 		return xscope_fixed_optional<X&>(v.get());
 	}
 
+	namespace rsv {
+		template<class T>
+		class xslta_fixed_optional : public mse::us::impl::ns_optional::fixed_optional_base2<T>, public mse::us::impl::XScopeTagBase
+			, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(T, xslta_fixed_optional<T>)
+		{
+		public:
+			typedef mse::us::impl::ns_optional::fixed_optional_base2<T> base_class;
+			typedef mse::us::impl::ns_optional::optional_base1<T> std_optional;
+			typedef std_optional _MO;
+			typedef xslta_fixed_optional _Myt;
+			typedef typename base_class::value_type value_type;
+
+		private:
+			const _MO& contained_optional() const& { return base_class::contained_optional(); }
+			//const _MO& contained_optional() const&& { return base_class::contained_optional(); }
+			_MO& contained_optional()& { return base_class::contained_optional(); }
+			_MO&& contained_optional()&& { return std::forward<_MO>(base_class::contained_optional()); }
+
+		public:
+			xslta_fixed_optional(const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(src_ref) {}
+			xslta_fixed_optional(T&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(MSE_FWD(src_ref)) {}
+
+			xslta_fixed_optional(const xslta_fixed_optional& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
+			xslta_fixed_optional(xslta_fixed_optional&& src_ref) : base_class(mse::us::impl::as_ref<base_class>(MSE_FWD(src_ref))) {}
+			//xslta_fixed_optional(const mstd::optional<T>& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
+
+			/* If an initialization value is not given, any lifetimes will be "deduced" to be a (minimum) default value. */
+			constexpr xslta_fixed_optional() noexcept {}
+			constexpr xslta_fixed_optional(nullopt_t) noexcept {}
+			/* Constructs an empty container, uses the second argument only to deduce lifetime. */
+			constexpr xslta_fixed_optional(nullopt_t, const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept {}
+
+			_NODISCARD constexpr const T& value() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return contained_optional().value();
+			}
+			_NODISCARD constexpr T& value()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return contained_optional().value();
+			}
+			_NODISCARD constexpr T&& value()&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::move(MSE_FWD(contained_optional()).value());
+			}
+			_NODISCARD constexpr const T&& value() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::move(MSE_FWD(contained_optional()).value());
+			}
+
+			template <class _Ty2>
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return contained_optional().value_or(std::forward<_Ty2>(_Right));
+			}
+			template <class _Ty2>
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])"))&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return contained_optional().value_or(std::forward<_Ty2>(_Right));
+			}
+
+			_NODISCARD constexpr const T* operator->() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::addressof((*this).value());
+			}
+			_NODISCARD constexpr const T* operator->() const&& = delete;
+			_NODISCARD constexpr T* operator->()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::addressof((*this).value());
+			}
+			_NODISCARD constexpr const T* operator->() && = delete;
+			_NODISCARD constexpr const T& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return (*this).value();
+			}
+			_NODISCARD constexpr T& operator*()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return (*this).value();
+			}
+			_NODISCARD constexpr T&& operator*()&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::move((*this).value());
+			}
+			_NODISCARD constexpr const T&& operator*() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::move((*this).value());
+			}
+
+			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		private:
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+#ifdef MSE_HAS_CXX17
+		template<class _Ty>
+		xslta_fixed_optional(_Ty) -> xslta_fixed_optional<_Ty>;
+#endif /* MSE_HAS_CXX17 */
+
+		template <class T>
+		constexpr xslta_fixed_optional<typename std::decay<T>::type> make_xslta_fixed_optional(T&& v MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
+		{
+			return xslta_fixed_optional<typename std::decay<T>::type>(constexpr_forward<T>(v));
+		}
+
+		/* Constructs an empty container, uses the second argument only to deduce lifetime. */
+		template <class T>
+		constexpr xslta_fixed_optional<typename std::decay<T>::type> make_xslta_fixed_optional(nullopt_t, const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
+		{
+			return xslta_fixed_optional<typename std::decay<T>::type>(nullopt, src_ref);
+	}
+	}
+
 #ifdef MSE_HAS_CXX17
 #else // MSE_HAS_CXX17
 	/* The xscope_borrowing_fixed_* types "should" be unmoveable (as well as uncopyable). But since C++14 doesn't
@@ -4055,6 +4187,128 @@ namespace mse {
 		return mse::TXScopeObj<xscope_borrowing_fixed_optional<_TLender> >(src_xs_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	namespace rsv {
+		template <class _TLender, class T = mse::impl::target_type<_TLender> >
+		class xslta_borrowing_fixed_optional {
+		public:
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			xslta_borrowing_fixed_optional(xslta_borrowing_fixed_optional&&) = delete;
+#define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ref(*src_xs_ptr)
+			~xslta_borrowing_fixed_optional() {
+				src_ref().access_unlock(); src_ref().structure_change_unlock();
+			}
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			xslta_borrowing_fixed_optional(xslta_borrowing_fixed_optional&& src MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ptr(MSE_FWD(src).m_src_ptr) {
+				src.m_src_ptr = nullptr;
+			}
+#define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))
+			~xslta_borrowing_fixed_optional() {
+				if (m_src_ptr) {
+					src_ref().access_unlock(); src_ref().structure_change_unlock();
+				}
+			}
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+			xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99[alias_11$])")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
+				src_ref().structure_change_lock(); src_ref().access_lock();
+			}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+				xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99[alias_11$])")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
+					src_ref().structure_change_lock(); src_ref().access_lock();
+			}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+				constexpr explicit operator bool() const noexcept {
+				return bool(src_ref().unchecked_contained_optional());
+			}
+			_NODISCARD constexpr bool has_value() const noexcept {
+				return src_ref().unchecked_contained_optional().has_value();
+			}
+
+			_NODISCARD constexpr const T& value() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return src_ref().unchecked_contained_optional().value();
+			}
+			_NODISCARD constexpr T& value()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return src_ref().unchecked_contained_optional().value();
+			}
+			_NODISCARD constexpr T&& value()&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return std::move(MSE_FWD(src_ref().unchecked_contained_optional()).value());
+			}
+			_NODISCARD constexpr const T&& value() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return std::move(MSE_FWD(src_ref().unchecked_contained_optional()).value());
+			}
+
+			template <class _Ty2>
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
+			}
+			template <class _Ty2>
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
+			}
+
+			_NODISCARD constexpr const T* operator->() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return std::addressof((*this).value());
+			}
+			_NODISCARD constexpr const T* operator->() const&& = delete;
+			_NODISCARD constexpr T* operator->()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return std::addressof((*this).value());
+			}
+			_NODISCARD constexpr const T* operator->() && = delete;
+			_NODISCARD constexpr const T& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return (*this).value();
+			}
+			_NODISCARD constexpr T& operator*()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return (*this).value();
+			}
+			_NODISCARD constexpr T&& operator*()&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return std::move((*this).value());
+			}
+			_NODISCARD constexpr const T&& operator*() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return std::move((*this).value());
+			}
+
+			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
+
+		private:
+			xslta_borrowing_fixed_optional(const xslta_borrowing_fixed_optional&) = delete;
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			_TLender& m_src_ref;
+			auto& src_ref() const { return m_src_ref; }
+			auto& src_ref() { return m_src_ref; }
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			_TLender* m_src_ptr = nullptr;
+			auto& src_ref() const { assert(m_src_ptr); return *m_src_ptr; }
+			auto& src_ref() { assert(m_src_ptr); return *m_src_ptr; }
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TLender, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(99, alias_11$)");
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class _TLender>
+		xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender>) -> xslta_borrowing_fixed_optional<_TLender>;
+#endif /* MSE_HAS_CXX17 */
+
+		template<class _TLender>
+		xslta_borrowing_fixed_optional<_TLender> make_xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TLender, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99, alias_11$); return_value(99, alias_11$) }")
+		{
+			return xslta_borrowing_fixed_optional<_TLender>(src_xs_ptr);
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _TLender>
+		xslta_borrowing_fixed_optional<_TLender> make_xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TLender, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99, alias_11$); return_value(99, alias_11$) }")
+		{
+			return xslta_borrowing_fixed_optional<_TLender>(src_xs_ptr);
+		}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	}
 }
 
 namespace std
