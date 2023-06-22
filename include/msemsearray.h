@@ -4719,7 +4719,8 @@ namespace mse {
 			}
 
 			void swap(_Myt& _Other MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }") {	// swap contents with _Other
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }")
+			{	// swap contents with _Other
 
 				base_class::swap(_Other);
 			}

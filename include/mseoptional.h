@@ -3029,22 +3029,24 @@ namespace mse {
 			/* Constructs an empty container, uses the second argument only to deduce lifetime. */
 			constexpr xslta_optional(nullopt_t, const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept {}
 
-			xslta_optional& operator=(nullopt_t) noexcept {
+			xslta_optional& operator=(nullopt_t) noexcept MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				base_class::clear();
 				return *this;
 			}
-			xslta_optional& operator=(const xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+			xslta_optional& operator=(const xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				base_class::operator=(mse::us::impl::as_ref<base_class>(rhs));
 				return *this;
 			}
-			xslta_optional& operator=(xslta_optional&& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept(std::is_nothrow_move_assignable<T>::value&& std::is_nothrow_move_constructible<T>::value) {
+			xslta_optional& operator=(xslta_optional&& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept(std::is_nothrow_move_assignable<T>::value&& std::is_nothrow_move_constructible<T>::value) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				base_class::operator=(mse::us::impl::as_ref<base_class>(MSE_FWD(rhs)));
 				return *this;
 			}
 			void reset() noexcept {
 				base_class::reset();
 			}
-			void swap(xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
+			void swap(xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])")) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>())))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }")
+			{
 				base_class::swap(rhs);
 			}
 
@@ -4009,11 +4011,15 @@ namespace mse {
 			}
 
 			template <class _Ty2>
-			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) const&
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_12$); labels(alias_12$); this(_[alias_12$]); return_value(alias_12$) }")
+			{
 				return contained_optional().value_or(std::forward<_Ty2>(_Right));
 			}
 			template <class _Ty2>
-			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])"))&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])"))&&
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_12$); labels(alias_12$); this(_[alias_12$]); return_value(alias_12$) }")
+			{
 				return contained_optional().value_or(std::forward<_Ty2>(_Right));
 			}
 
@@ -4209,17 +4215,16 @@ namespace mse {
 				}
 			}
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-
-			xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99[alias_11$])")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
+			xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
 				src_ref().structure_change_lock(); src_ref().access_lock();
 			}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99[alias_11$])")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
-					src_ref().structure_change_lock(); src_ref().access_lock();
+			xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
+				src_ref().structure_change_lock(); src_ref().access_lock();
 			}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-				constexpr explicit operator bool() const noexcept {
+			constexpr explicit operator bool() const noexcept {
 				return bool(src_ref().unchecked_contained_optional());
 			}
 			_NODISCARD constexpr bool has_value() const noexcept {
@@ -4240,11 +4245,15 @@ namespace mse {
 			}
 
 			template <class _Ty2>
-			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) const&
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_11$); labels(alias_11$); this(_[ _[alias_11$] ]); return_value(alias_11$) }")
+			{
 				return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
 			}
 			template <class _Ty2>
-			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) &&
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_11$); labels(alias_11$); this(_[ _[alias_11$] ]); return_value(alias_11$) }")
+			{
 				return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
 			}
 
@@ -4283,8 +4292,7 @@ namespace mse {
 			auto& src_ref() const { assert(m_src_ptr); return *m_src_ptr; }
 			auto& src_ref() { assert(m_src_ptr); return *m_src_ptr; }
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TLender, alias_11$)")
-			MSE_ATTR_STR("mse::lifetime_labels(99, alias_11$)");
+		} MSE_ATTR_STR("mse::lifetime_labels(99)");
 
 #ifdef MSE_HAS_CXX17
 		/* deduction guides */
@@ -4293,17 +4301,15 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 
 		template<class _TLender>
-		xslta_borrowing_fixed_optional<_TLender> make_xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99[alias_11$])"))
-			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TLender, alias_11$)")
-			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99, alias_11$); return_value(99, alias_11$) }")
+		xslta_borrowing_fixed_optional<_TLender> make_xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
 		{
 			return xslta_borrowing_fixed_optional<_TLender>(src_xs_ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _TLender>
-		xslta_borrowing_fixed_optional<_TLender> make_xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99[alias_11$])"))
-			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TLender, alias_11$)")
-			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99, alias_11$); return_value(99, alias_11$) }")
+		xslta_borrowing_fixed_optional<_TLender> make_xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
 		{
 			return xslta_borrowing_fixed_optional<_TLender>(src_xs_ptr);
 		}
@@ -4375,6 +4381,72 @@ namespace std
 	{
 		typedef typename hash<T>::result_type result_type;
 		typedef mse::xscope_optional<T&> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::rsv::xslta_optional<T>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::rsv::xslta_optional<T> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::rsv::xslta_optional<T&>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::rsv::xslta_optional<T&> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::rsv::xslta_fixed_optional<T>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::rsv::xslta_fixed_optional<T> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::rsv::xslta_fixed_optional<T&>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::rsv::xslta_fixed_optional<T&> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::rsv::xslta_borrowing_fixed_optional<T>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::rsv::xslta_borrowing_fixed_optional<T> argument_type;
+
+		constexpr result_type operator()(argument_type const& arg) const {
+			return arg ? std::hash<T>{}(*arg) : result_type{};
+		}
+	};
+
+	template <typename T>
+	struct hash<mse::rsv::xslta_borrowing_fixed_optional<T&>>
+	{
+		typedef typename hash<T>::result_type result_type;
+		typedef mse::rsv::xslta_borrowing_fixed_optional<T&> argument_type;
 
 		constexpr result_type operator()(argument_type const& arg) const {
 			return arg ? std::hash<T>{}(*arg) : result_type{};

@@ -252,10 +252,6 @@ namespace mse {
 		}
 	}
 
-	/* nii_vector<> is a vector that is eligible to be shared among threads and does not support implicit iterators. */
-	template<class _Ty, class _A = std::allocator<_Ty>>
-	using nii_vector = mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex>;
-
 	namespace us {
 		template<class _Ty, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/>
 		class msevector;
@@ -1381,7 +1377,7 @@ namespace mse {
 					mse::impl::destructor_lock_guard1<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
 
 					/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
-					valid_if_Ty_is_not_an_xscope_type();
+					//valid_if_Ty_is_not_an_xscope_type();
 					valid_if_Ty_is_not_bool();
 				}
 
@@ -2316,7 +2312,7 @@ namespace mse {
 				friend void swap(_Myt& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
 				friend void swap(_Myt& a, _MV& b) _NOEXCEPT_OP(_NOEXCEPT_OP(a.swap(b))) { a.swap(b); }
 				friend void swap(_MV& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
-			} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
+			};
 
 #ifdef MSE_HAS_CXX17
 			/* deduction guides */
@@ -2582,9 +2578,118 @@ namespace mse {
 	}
 
 
+	/* nii_vector<> is a vector that is eligible to be shared among threads and does not support implicit iterators. */
+	template<class _Ty, class _A = std::allocator<_Ty> >
+	//using nii_vector = mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex>;
+	class nii_vector : public mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex> {
+	public:
+		typedef mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex> base_class;
+		typedef mse::non_thread_safe_shared_mutex _TStateMutex;
+		typedef nii_vector _Myt;
+
+		typedef typename base_class::allocator_type allocator_type;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
+
+		typedef typename base_class::iterator iterator;
+		typedef typename base_class::const_iterator const_iterator;
+		typedef typename base_class::reverse_iterator reverse_iterator;
+		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
+
+		template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
+		using Tss_const_iterator_type = typename base_class::template Tss_const_iterator_type<_TVectorConstPointer>;
+		template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
+		using Tss_iterator_type = typename base_class::template Tss_iterator_type<_TVectorPointer>;
+		template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
+		using Tss_reverse_iterator_type = typename base_class::template Tss_reverse_iterator_type<_TVectorPointer>;
+		template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
+		using Tss_const_reverse_iterator_type = typename base_class::template Tss_const_reverse_iterator_type<_TVectorConstPointer>;
+		typedef typename base_class::ss_iterator_type ss_iterator_type;
+		typedef typename base_class::ss_const_iterator_type ss_const_iterator_type;
+		typedef typename base_class::ss_reverse_iterator_type ss_reverse_iterator_type;
+		typedef typename base_class::ss_const_reverse_iterator_type ss_const_reverse_iterator_type;
+
+		typedef typename base_class::xscope_ss_const_iterator_type xscope_ss_const_iterator_type;
+		typedef typename base_class::xscope_ss_iterator_type xscope_ss_iterator_type;
+
+		//typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type<_Myt> xscope_const_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+		typedef typename base_class::xscope_iterator xscope_iterator;
+
+		MSE_USING(nii_vector, base_class);
+
+		nii_vector(_XSTD initializer_list<value_type> _Ilist, const _A& _Al = _A()) : base_class(_Ilist, _Al) {}
+
+		nii_vector(const nii_vector&) = default;
+		nii_vector(nii_vector&&) = default;
+
+		~nii_vector() {
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			mse::impl::T_valid_if_not_an_xscope_type<_Ty>();
+		}
+
+		nii_vector& operator=(nii_vector&& _X) = default;
+		nii_vector& operator=(const nii_vector& _X) = default;
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
+
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
+
+
 	/* mtnii_vector<> is a vector that is eligible to be shared among threads and does not support implicit iterators. */
 	template<class _Ty, class _A = std::allocator<_Ty> >
-	using mtnii_vector = mse::us::impl::gnii_vector<_Ty, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type, mse::us::impl::gnii_vector_const_lockable_tag>;
+	//using mtnii_vector = mse::us::impl::gnii_vector<_Ty, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type, mse::us::impl::gnii_vector_const_lockable_tag>;
+	class mtnii_vector : public mse::us::impl::gnii_vector<_Ty, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type, mse::us::impl::gnii_vector_const_lockable_tag> {
+	public:
+		typedef mse::us::impl::gnii_vector<_Ty, _A, mse::shareable_dynamic_container_mutex, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type, mse::us::impl::gnii_vector_const_lockable_tag> base_class;
+		typedef mse::shareable_dynamic_container_mutex _TStateMutex;
+		typedef mtnii_vector _Myt;
+
+		typedef typename base_class::allocator_type allocator_type;
+		MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
+
+		typedef typename base_class::iterator iterator;
+		typedef typename base_class::const_iterator const_iterator;
+		typedef typename base_class::reverse_iterator reverse_iterator;
+		typedef typename base_class::const_reverse_iterator const_reverse_iterator;
+
+		template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
+		using Tss_const_iterator_type = typename base_class::template Tss_const_iterator_type<_TVectorConstPointer>;
+		template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
+		using Tss_iterator_type = typename base_class::template Tss_iterator_type<_TVectorPointer>;
+		template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
+		using Tss_reverse_iterator_type = typename base_class::template Tss_reverse_iterator_type<_TVectorPointer>;
+		template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
+		using Tss_const_reverse_iterator_type = typename base_class::template Tss_const_reverse_iterator_type<_TVectorConstPointer>;
+		typedef typename base_class::ss_iterator_type ss_iterator_type;
+		typedef typename base_class::ss_const_iterator_type ss_const_iterator_type;
+		typedef typename base_class::ss_reverse_iterator_type ss_reverse_iterator_type;
+		typedef typename base_class::ss_const_reverse_iterator_type ss_const_reverse_iterator_type;
+
+		typedef typename base_class::xscope_ss_const_iterator_type xscope_ss_const_iterator_type;
+		typedef typename base_class::xscope_ss_iterator_type xscope_ss_iterator_type;
+
+		//typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type<_Myt> xscope_const_iterator;
+		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+		typedef typename base_class::xscope_iterator xscope_iterator;
+
+		MSE_USING(mtnii_vector, base_class);
+
+		mtnii_vector(_XSTD initializer_list<value_type> _Ilist, const _A& _Al = _A()) : base_class(_Ilist, _Al) {}
+
+		mtnii_vector(const mtnii_vector&) = default;
+		mtnii_vector(mtnii_vector&&) = default;
+
+		~mtnii_vector() {
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			mse::impl::T_valid_if_not_an_xscope_type<_Ty>();
+		}
+
+		mtnii_vector& operator=(mtnii_vector&& _X) = default;
+		mtnii_vector& operator=(const mtnii_vector& _X) = default;
+
+		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
+
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
 
 	namespace impl {
 		namespace ns_mtnii_vector {
@@ -2685,6 +2790,17 @@ namespace mse {
 
 		stnii_vector(_XSTD initializer_list<value_type> _Ilist, const _A& _Al = _A()) : base_class(_Ilist, _Al) {}
 
+		stnii_vector(const stnii_vector&) = default;
+		stnii_vector(stnii_vector&&) = default;
+
+		~stnii_vector() {
+			/* This is just a no-op function that will cause a compile error when _Ty is not an eligible type. */
+			mse::impl::T_valid_if_not_an_xscope_type<_Ty>();
+		}
+
+		stnii_vector& operator=(stnii_vector&& _X) = default;
+		stnii_vector& operator=(const stnii_vector& _X) = default;
+
 		/* We don't want just to inherit the comparison operators because the base class (template) has a deleted
 		<=> operator and distinct const and non-const implementations that aren't entirely appropriate for this
 		class. */
@@ -2704,7 +2820,7 @@ namespace mse {
 			return spaceship_operator_equivalent<base_class>(_Left_cref, _Right_cref);
 		}
 #endif // !MSE_HAS_CXX20
-	};
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
 
 	namespace impl {
 		namespace ns_stnii_vector {
@@ -2747,6 +2863,88 @@ namespace mse {
 		return mse::impl::ns_stnii_vector::xscope_structure_lock_guard<stnii_vector<_Ty, _A> >(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	namespace rsv {
+		template<class _Ty, class _A>
+		class xslta_nii_vector : public mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex>, public mse::us::impl::XSLTATagBase {
+			typedef mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex> base_class;
+			typedef mse::non_thread_safe_shared_mutex _TStateMutex;
+			typedef xslta_nii_vector _Myt;
+
+			typedef typename base_class::allocator_type allocator_type;
+			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			explicit xslta_nii_vector(size_type _N, const _Ty& _V MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _A& _Al = _A()) : base_class(_N, _V, _Al) {}
+
+			/* If an initialization value is not given, any lifetimes will be "deduced" to be a (minimum) default value. */
+			explicit xslta_nii_vector(const _A& _Al = _A()) : base_class(_Al) {}
+			explicit xslta_nii_vector(nullopt_t, const _A& _Al = _A()) : base_class(_Al) {}
+			/* Constructs an empty container, uses the second argument only to deduce lifetime. */
+			explicit xslta_nii_vector(nullopt_t, const _Ty& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _A& _Al = _A()) : base_class(_Al) {}
+			template<class _Iter
+				//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
+				, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			xslta_nii_vector(const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+
+			xslta_nii_vector(const xslta_nii_vector& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) = default;
+			xslta_nii_vector(xslta_nii_vector&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) = default;
+
+			xslta_nii_vector& operator=(xslta_nii_vector&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") = default;
+			xslta_nii_vector& operator=(const xslta_nii_vector& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") = default;
+
+			xslta_nii_vector& operator=(nullopt_t) noexcept MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::clear();
+				return *this;
+			}
+
+			void resize(size_type _N, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::resize(_N, _X);
+			}
+			void push_back(_Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::push_back(MSE_FWD(_X));
+			}
+			void push_back(const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::push_back(_X);
+			}
+			template<class _Iter>
+			void assign(const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last) {	// assign [_First, _Last)
+				base_class::assign(_First, _Last);
+			}
+			void assign(size_type _N, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::assign(_N, _X);
+			}
+
+			void swap(xslta_nii_vector& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])")) noexcept(std::is_nothrow_move_constructible<_Ty>::value && noexcept(std::swap(std::declval<_Ty&>(), std::declval<_Ty&>())))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }")
+			{
+				base_class::swap(rhs);
+			}
+
+			xslta_nii_vector(_XSTD initializer_list<value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"), const _A& _Al = _A())
+				: base_class(_Ilist, _Al) {	// construct from initializer_list
+				/*m_debug_size = size();*/
+			}
+			_Myt& operator=(_XSTD initializer_list<value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) {	// assign initializer_list
+				base_class::operator=(_Ilist);
+				return (*this);
+			}
+			void assign(_XSTD initializer_list<value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) {	// assign initializer_list
+				base_class::assign(_Ilist);
+				/*m_debug_size = size();*/
+			}
+
+			/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
+			template<class T2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, _Ty>::value) && (
+				(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
+				)> MSE_IMPL_EIS >
+			void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
+
+			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+	}
 
 	template<class _Ty, class _A>
 	class fixed_nii_vector;
