@@ -51,6 +51,22 @@
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
 
+#ifndef _NODISCARD
+#ifdef MSE_HAS_CXX17
+#define _NODISCARD [[nodiscard]]
+#else // MSE_HAS_CXX17
+#define _NODISCARD
+#endif // MSE_HAS_CXX17
+#endif // !_NODISCARD
+
+#ifndef _CONSTEXPR17
+#ifdef MSE_HAS_CXX17
+#define _CONSTEXPR17 constexpr
+#else // MSE_HAS_CXX17
+#define _CONSTEXPR17
+#endif // MSE_HAS_CXX17
+#endif // !_NODISCARD
+
 #if __cpp_exceptions >= 199711
 #define MSE_TRY try
 #define MSE_CATCH(x) catch(x)

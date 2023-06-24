@@ -32,14 +32,6 @@
 #define MSE_THROW(x) throw(x)
 #endif // MSE_CUSTOM_THROW_DEFINITION
 
-#ifndef _NODISCARD
-#ifdef MSE_HAS_CXX17
-#define _NODISCARD [[nodiscard]]
-#else // MSE_HAS_CXX17
-#define _NODISCARD
-#endif // MSE_HAS_CXX17
-#endif // !_NODISCARD
-
 #ifdef _MSC_VER
 #pragma warning( push )  
 #pragma warning( disable : 4702 4189 )

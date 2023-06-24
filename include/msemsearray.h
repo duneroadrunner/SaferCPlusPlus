@@ -4746,6 +4746,25 @@ namespace mse {
 			typedef TXSLTACSSSXSRAConstIterator<_Myt> xslta_const_iterator;
 			typedef TXSLTACSSSXSRAIterator<_Myt> xslta_iterator;
 
+			xslta_iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/);
+			}
+			xslta_const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cbegin();
+			}
+			xslta_const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/);
+			}
+			xslta_iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/) + (*this).size();
+			}
+			xslta_const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cend();
+			}
+			xslta_const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/) + (*this).size();
+			}
+
 			template<typename _TArrayPointer>
 			static auto ss_begin(const _TArrayPointer& owner_ptr) {
 				return base_class::template ss_begin(owner_ptr);
@@ -10124,11 +10143,13 @@ namespace mse {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-braces"
 #pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif /*__GNUC__*/
 #endif /*__clang__*/
@@ -10191,6 +10212,65 @@ namespace mse {
 				for (int& x : myarray) { std::cout << ' ' << x; }
 
 				std::cout << '\n';
+			}
+			{
+				int i1 = 3;
+				int i2 = 5;
+				int i3 = 7;
+				auto ilaptr1 = mse::rsv::TXSLTAPointer<int>{ &i2 };
+				auto arrwp1 = mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i1, &i2 };
+				auto ilaptr2 = arrwp1.front();
+				ilaptr2 = &i3;
+				ilaptr2 = &i1;
+				auto ilaptr2b = arrwp1.back();
+				ilaptr2b = &i3;
+				ilaptr2b = &i1;
+
+				auto arr2 = mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i1, &i2 };
+				auto ilaptr3 = arr2.front();
+				ilaptr3 = &i3;
+				ilaptr3 = &i1;
+
+				auto arr3 = mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i2, &i2 };
+				std::swap(arr2, arr3);
+				arr2.swap(arr3);
+
+				auto arr4 = mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i3, &i1 };
+				std::swap(arr2, arr4);
+				arr2.swap(arr4);
+
+				{
+					auto xslta_iter1 = mse::rsv::make_xslta_begin_iterator(mse::rsv::xslta_ifptr_to(arr2));
+					auto xslta_iter2 = mse::rsv::make_xslta_end_iterator(mse::rsv::xslta_ifptr_to(arr2));
+
+					auto xslta_citer3 = mse::rsv::make_xslta_begin_const_iterator(mse::rsv::xslta_ifptr_to(arr2));
+					xslta_citer3 = xslta_iter1;
+					xslta_citer3 = mse::rsv::make_xslta_begin_const_iterator(mse::rsv::xslta_ifptr_to(arr2));
+					xslta_citer3 += 1;
+					auto res1 = *(*xslta_citer3);
+					auto res2 = *(xslta_citer3[0]);
+					*xslta_iter1 = &i3;
+					*xslta_iter1 = &i1;
+					auto ilaptr4 = *xslta_iter1;
+					ilaptr4 = &i3;
+					ilaptr4 = &i1;
+				}
+				{
+					auto xslta_iter1 = std::begin(arr2);
+					auto xslta_iter2 = std::end(arr2);
+
+					auto xslta_citer3 = std::cbegin(arr2);
+					xslta_citer3 = xslta_iter1;
+					xslta_citer3 = std::cbegin(arr2);
+					xslta_citer3 += 1;
+					auto res1 = *(*xslta_citer3);
+					auto res2 = *(xslta_citer3[0]);
+					*xslta_iter1 = &i3;
+					*xslta_iter1 = &i1;
+					auto ilaptr4 = *xslta_iter1;
+					ilaptr4 = &i3;
+					ilaptr4 = &i1;
+				}
 			}
 #endif // MSE_SELF_TESTS
 		}

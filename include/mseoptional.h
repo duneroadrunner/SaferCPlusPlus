@@ -3029,6 +3029,9 @@ namespace mse {
 			/* Constructs an empty container, uses the second argument only to deduce lifetime. */
 			constexpr xslta_optional(nullopt_t, const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept {}
 
+			void emplace(T&& arg MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::emplace(std::forward<T>(arg));
+			}
 			xslta_optional& operator=(nullopt_t) noexcept MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				base_class::clear();
 				return *this;

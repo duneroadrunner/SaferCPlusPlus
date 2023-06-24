@@ -275,6 +275,19 @@ namespace mse {
 			_Ty* m_ptr MSE_ATTR_STR("mse::lifetime_label(99)");
 		} MSE_ATTR_STR("mse::lifetime_label(99)");
 
+		template<typename _Ty>
+		auto xslta_ifptr_to(_Ty&& _X) {
+			return TXSLTAPointer<_Ty>(std::addressof(_X));
+		}
+		template<typename _Ty>
+		auto xslta_ifptr_to(_Ty& _X) {
+			return TXSLTAPointer<_Ty>(std::addressof(_X));
+		}
+		template<typename _Ty>
+		auto xslta_ifptr_to(const _Ty& _X) {
+			return TXSLTAConstPointer<_Ty>(std::addressof(_X));
+		}
+
 
 		template<typename _Ty> class TXSLTAOwnerPointer;
 		template <class X, class... Args>
