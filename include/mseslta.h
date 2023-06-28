@@ -276,15 +276,15 @@ namespace mse {
 		} MSE_ATTR_STR("mse::lifetime_label(99)");
 
 		template<typename _Ty>
-		auto xslta_ifptr_to(_Ty&& _X) {
+		auto xslta_ptr_to(_Ty&& _X) {
 			return TXSLTAPointer<_Ty>(std::addressof(_X));
 		}
 		template<typename _Ty>
-		auto xslta_ifptr_to(_Ty& _X) {
+		auto xslta_ptr_to(_Ty& _X) {
 			return TXSLTAPointer<_Ty>(std::addressof(_X));
 		}
 		template<typename _Ty>
-		auto xslta_ifptr_to(const _Ty& _X) {
+		auto xslta_ptr_to(const _Ty& _X) {
 			return TXSLTAConstPointer<_Ty>(std::addressof(_X));
 		}
 

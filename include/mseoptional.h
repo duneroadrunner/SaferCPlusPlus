@@ -4208,7 +4208,7 @@ namespace mse {
 				src_ref().access_unlock(); src_ref().structure_change_unlock();
 			}
 #else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-			xslta_borrowing_fixed_optional(xslta_borrowing_fixed_optional&& src MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ptr(MSE_FWD(src).m_src_ptr) {
+			xslta_borrowing_fixed_optional(xslta_borrowing_fixed_optional&& src MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) : m_src_ptr(MSE_FWD(src).m_src_ptr) {
 				src.m_src_ptr = nullptr;
 			}
 #define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))

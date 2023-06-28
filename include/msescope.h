@@ -1237,8 +1237,8 @@ namespace mse {
 			const TXScopeFixedConstPointer<_TROy, lt_info1> operator&() const& {
 				return TXScopeObjFixedConstPointer<_TROy, lt_info1>(*this);
 			}
-			const TXScopeFixedPointer<_TROy, lt_info1> mse_xscope_ifptr()& { return &(*this); }
-			const TXScopeFixedConstPointer<_TROy, lt_info1> mse_xscope_ifptr() const& { return &(*this); }
+			const TXScopeFixedPointer<_TROy, lt_info1> mse_xscope_fptr()& { return &(*this); }
+			const TXScopeFixedConstPointer<_TROy, lt_info1> mse_xscope_fptr() const& { return &(*this); }
 
 			TXScopeCagedItemFixedConstPointerToRValue<_TROy, lt_info1> operator&()&& {
 				//return TXScopeFixedConstPointer<_TROy, lt_info1>(TXScopeObjFixedPointer<_TROy, lt_info1>(&(*static_cast<base_class*>(this))));
@@ -1247,8 +1247,8 @@ namespace mse {
 			TXScopeCagedItemFixedConstPointerToRValue<_TROy, lt_info1> operator&() const&& {
 				return TXScopeObjFixedConstPointer<_TROy, lt_info1>(TXScopeObjConstPointer<_TROy, lt_info1>(&(*static_cast<const base_class*>(this))));
 			}
-			const TXScopeCagedItemFixedConstPointerToRValue<_TROy, lt_info1> mse_xscope_ifptr()&& { return &(*this); }
-			const TXScopeCagedItemFixedConstPointerToRValue<_TROy, lt_info1> mse_xscope_ifptr() const&& { return &(*this); }
+			const TXScopeCagedItemFixedConstPointerToRValue<_TROy, lt_info1> mse_xscope_fptr()&& { return &(*this); }
+			const TXScopeCagedItemFixedConstPointerToRValue<_TROy, lt_info1> mse_xscope_fptr() const&& { return &(*this); }
 
 			void xscope_tag() const {}
 			//void xscope_contains_accessible_scope_addressof_operator_tag() const {}
@@ -1275,12 +1275,12 @@ namespace mse {
 	}
 
 	template<typename _Ty>
-	auto xscope_ifptr_to(_Ty&& _X) {
-		return _X.mse_xscope_ifptr();
+	auto xscope_fptr_to(_Ty&& _X) {
+		return _X.mse_xscope_fptr();
 	}
 	template<typename _Ty>
-	auto xscope_ifptr_to(const _Ty& _X) {
-		return _X.mse_xscope_ifptr();
+	auto xscope_fptr_to(const _Ty& _X) {
+		return _X.mse_xscope_fptr();
 	}
 
 

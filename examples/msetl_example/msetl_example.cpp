@@ -180,6 +180,9 @@ int main(int argc, char* argv[]) {
 	mse::msevector_test msevector_test;
 	msevector_test.run_all();
 
+	mse::msevector_test2 msevector_test2;
+	msevector_test2.test1();
+
 	{
 		/**********************/
 		/*   mstd::vector<>   */
