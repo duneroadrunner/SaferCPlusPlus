@@ -2861,558 +2861,31 @@ namespace mse {
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
+	namespace impl {
+		template<class _TContainer>
+		using container_element_type = mse::impl::remove_reference_t<decltype(*mse::make_xscope_begin_iterator(std::declval<mse::TXScopeFixedPointer<_TContainer> >()))>;
+
+		template<class T, class EqualTo>
+		struct HasAllocatorMemberType_vc_impl
+		{
+			template<class U, class V>
+			static auto test(U* u) -> decltype(std::declval<typename U::allocator_type>(), std::declval<V>(), bool(true));
+			template<typename, typename>
+			static auto test(...) -> std::false_type;
+
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasAllocatorMemberType_vc : HasAllocatorMemberType_vc_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+		template<class _TContainer>
+		using container_allocator_type_if_available = typename std::conditional<HasAllocatorMemberType_vc<_TContainer>::value, typename _TContainer::allocator_type, std::allocator<container_element_type<_TContainer> > >::type;
+	}
+
 	namespace rsv {
-		template<class _TLender2, class _Ty2, class _A2> class xslta_borrowing_fixed_vector;
-
-		template <typename _TRAContainerPointer> class TXSLTADynamicContainerRAConstIterator;
-		template <typename _TRAContainerPointer> class TXSLTADynamicContainerRAIterator;
-		namespace us {
-			/* A couple of unsafe functions for internal use. */
-			template<class _TRAContainerPointer>
-			TXSLTADynamicContainerRAIterator<_TRAContainerPointer> unsafe_make_xslta_dynamic_container_ra_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXSLTADynamicContainerRAIterator<_TRAContainerPointer>::size_type index/* = 0*/);
-			template<class _TRAContainerPointer>
-			TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer> unsafe_make_xslta_dynamic_container_ra_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer>::size_type index/* = 0*/);
-		}
-
-		template <typename _TRAContainerPointer>
-		class TXSLTADynamicContainerRAIterator : public TXSLTARAIterator<_TRAContainerPointer> {
-		public:
-			typedef TXSLTARAIterator<_TRAContainerPointer> base_class;
-			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-
-			TXSLTADynamicContainerRAIterator(const TXSLTADynamicContainerRAIterator& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
-			TXSLTADynamicContainerRAIterator(TXSLTADynamicContainerRAIterator&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
-
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAIterator(TXSLTADynamicContainerRAIterator<_Ty2>&& src) : base_class(MSE_FWD(src)) {}
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAIterator(const TXSLTADynamicContainerRAIterator<_Ty2>& src) : base_class(src) {}
-
-			TXSLTADynamicContainerRAIterator(const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index) : base_class(ra_container_pointer, index) {}
-			TXSLTADynamicContainerRAIterator(_TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index) : base_class(MSE_FWD(ra_container_pointer), index) {}
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAIterator(const _Ty2& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index) : base_class(ra_container_pointer, index) {}
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAIterator(_Ty2&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index) : base_class(MSE_FWD(ra_container_pointer), index) {}
-
-			TXSLTADynamicContainerRAIterator(const TXSLTARAIterator<_TRAContainerPointer>& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(xs_ra_iter) {}
-			TXSLTADynamicContainerRAIterator(TXSLTARAIterator<_TRAContainerPointer>&& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(xs_ra_iter)) {}
-
-			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTADynamicContainerRAIterator);
-			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTADynamicContainerRAIterator);
-			//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-
-			/* Dereference operators of dynamic container iterators, by default, can't provide (minimum) lifetime
-			guarantees for their return values. It could be argued that they shouldn't even have dereference operators. */
-			reference operator*() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return base_class::operator*();
-			}
-			typedef typename std::add_pointer<value_type>::type pointer_t;
-			pointer_t operator->() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return base_class::operator->();
-			}
-			reference operator[](difference_type _Off) const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return base_class::operator[](_Off);
-			}
-
-			bool is_valid() const {
-				return ((0 <= (*this).position()) && (difference_type(mse::container_size(*(*this).target_container_ptr())) >= (*this).position()));
-			}
-
-			MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
-			void xslta_iterator_tag() const {}
-			void xslta_tag() const {}
-			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
-
-		private:
-			class unsafe_t {};
-			TXSLTADynamicContainerRAIterator(unsafe_t, const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(ra_container_pointer, index) {}
-			TXSLTADynamicContainerRAIterator(unsafe_t, _TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
-
-			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
-
-			friend class TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer>;
-			template<class _TRAContainerPointer2> friend TXSLTADynamicContainerRAIterator<_TRAContainerPointer2> mse::rsv::us::unsafe_make_xslta_dynamic_container_ra_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTADynamicContainerRAIterator<_TRAContainerPointer2>::size_type index);
-		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
-
-		template <typename _TRAContainerPointer>
-		class TXSLTADynamicContainerRAConstIterator : public TXSLTARAConstIterator<_TRAContainerPointer> {
-		public:
-			typedef TXSLTARAConstIterator<_TRAContainerPointer> base_class;
-			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-
-			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAConstIterator& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
-			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAConstIterator&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
-
-			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAIterator<_TRAContainerPointer>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
-			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAIterator<_TRAContainerPointer>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
-
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAConstIterator<_Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAConstIterator<_Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
-
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAIterator<_Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAIterator<_Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
-
-			TXSLTADynamicContainerRAConstIterator(const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(ra_container_pointer, index) {}
-			TXSLTADynamicContainerRAConstIterator(_TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAConstIterator(const _Ty2& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(ra_container_pointer, index) {}
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAConstIterator(_Ty2&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
-
-			TXSLTADynamicContainerRAConstIterator(const TXSLTARAConstIterator<_TRAContainerPointer>& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(xs_ra_iter) {}
-			TXSLTADynamicContainerRAConstIterator(TXSLTARAConstIterator<_TRAContainerPointer>&& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(xs_ra_iter)) {}
-			/*
-			TXSLTADynamicContainerRAConstIterator(const TXSLTARAIterator<_TRAContainerPointer>& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(xs_ra_iter) {}
-			TXSLTADynamicContainerRAConstIterator(TXSLTARAIterator<_TRAContainerPointer>&& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(xs_ra_iter)) {}
-			*/
-
-			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTADynamicContainerRAConstIterator);
-			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTADynamicContainerRAConstIterator);
-			//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
-
-			/* Dereference operators of dynamic container iterators, by default, can't provide (minimum) lifetime 
-			guarantees for their return values. It could be argued that they shouldn't even have dereference operators. */
-			const_reference operator*() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return base_class::operator*();
-			}
-			typedef typename std::add_pointer<typename std::add_const<value_type>::type>::type const_pointer_t;
-			const_pointer_t operator->() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return base_class::operator->();
-			}
-			const_reference operator[](difference_type _Off) const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return base_class::operator[](_Off);
-			}
-
-			bool is_valid() const {
-				return ((0 <= (*this).position()) && (difference_type(mse::container_size(*(*this).target_container_ptr())) >= (*this).position()));
-			}
-
-			MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
-			void xslta_iterator_tag() const {}
-			void xslta_tag() const {}
-			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
-
-		private:
-			class unsafe_t {};
-			TXSLTADynamicContainerRAConstIterator(unsafe_t, const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(ra_container_pointer, index) {}
-			TXSLTADynamicContainerRAConstIterator(unsafe_t, _TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
-
-			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
-
-			template<class _TRAContainerPointer2> friend TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer2> mse::rsv::us::unsafe_make_xslta_dynamic_container_ra_const_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer2>::size_type index);
-		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
-
-		template<class _Ty, class _A = std::allocator<_Ty> >
-		class xslta_vector : public mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex>, public mse::us::impl::XSLTATagBase {
-		public:
-			typedef mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex> base_class;
-			typedef mse::non_thread_safe_shared_mutex _TStateMutex;
-			typedef xslta_vector _Myt;
-			typedef typename base_class::std_vector std_vector;
-
-			typedef typename base_class::allocator_type allocator_type;
-			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
-
-			explicit xslta_vector(size_type _N, const _Ty& _V MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _A& _Al = _A()) : base_class(_N, _V, _Al) {}
-
-			/* If an initialization value is not given, any lifetimes will be "deduced" to be a (minimum) default value. */
-			explicit xslta_vector(const _A& _Al = _A()) : base_class(_Al) {}
-			/* Constructs an empty container, uses the second argument only to deduce lifetime. */
-			explicit xslta_vector(nullopt_t, const _Ty& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _A& _Al = _A()) : base_class(_Al) {}
-			template<class _Iter
-				//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
-				, class = mse::impl::_mse_RequireInputIter<_Iter> >
-			xslta_vector(const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
-
-			xslta_vector(const xslta_vector& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) = default;
-			xslta_vector(xslta_vector&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) = default;
-
-			xslta_vector(std_vector&& _X) : base_class(MSE_FWD(_X)) {}
-			xslta_vector(const std_vector& _X) : base_class(_X) {}
-
-			xslta_vector& operator=(xslta_vector&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") = default;
-			xslta_vector& operator=(const xslta_vector& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") = default;
-
-			xslta_vector& operator=(nullopt_t) noexcept MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				base_class::clear();
-				return *this;
-			}
-
-			void resize(size_type _N, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
-				base_class::resize(_N, _X);
-			}
-			void push_back(_Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
-				base_class::push_back(MSE_FWD(_X));
-			}
-			void push_back(const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
-				base_class::push_back(_X);
-			}
-			template<class _Iter>
-			void assign(const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last) {	// assign [_First, _Last)
-				base_class::assign(_First, _Last);
-			}
-			void assign(size_type _N, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
-				base_class::assign(_N, _X);
-			}
-
-			void swap(xslta_vector& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])")) noexcept(std::is_nothrow_move_constructible<_Ty>::value && noexcept(std::swap(std::declval<_Ty&>(), std::declval<_Ty&>())))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }")
-			{
-				base_class::swap(rhs);
-			}
-
-			xslta_vector(_XSTD initializer_list<value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"), const _A& _Al = _A())
-				: base_class(_Ilist, _Al) {	// construct from initializer_list
-				/*m_debug_size = size();*/
-			}
-			_Myt& operator=(_XSTD initializer_list<value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// assign initializer_list
-				base_class::operator=(_Ilist);
-				return (*this);
-			}
-			void assign(_XSTD initializer_list<value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) {	// assign initializer_list
-				base_class::assign(_Ilist);
-				/*m_debug_size = size();*/
-			}
-
-
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				s_assert_valid_index(this_ptr, pos);
-				msev_size_t original_pos = pos;
-				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
-				(*this_ptr).insert(_P, _X);
-				auto retval = mse::make_begin_iterator(this_ptr);
-				retval.advance(msev_int(original_pos));
-				return retval;
-			}
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos, size_type _M, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-				
-				s_assert_valid_index(this_ptr, pos);
-				msev_size_t original_pos = pos;
-				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
-				(*this_ptr).insert(_P, _M, _X);
-				auto retval = mse::make_begin_iterator(this_ptr);
-				retval.advance(msev_int(original_pos));
-				return retval;
-			}
-			template<typename _TVectorPointer1, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos, const _Iter MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])") _First, const _Iter _Last)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				s_assert_valid_index(this_ptr, pos);
-				msev_size_t original_pos = pos;
-				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
-				(*this_ptr).insert(_P, _First, _Last);
-				auto retval = mse::make_begin_iterator(this_ptr);
-				retval.advance(msev_int(original_pos));
-				return retval;
-			}
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				s_assert_valid_index(this_ptr, pos);
-				msev_size_t original_pos = pos;
-				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
-				(*this_ptr).insert(_P, _Ilist);
-				auto retval = mse::make_begin_iterator(this_ptr);
-				retval.advance(msev_int(original_pos));
-				return retval;
-			}
-			template<typename _TVectorPointer1>
-			static auto emplace(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos, _Ty&& _Val MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }")
-			{	// insert by moving _Val at _Where
-				s_assert_valid_index(this_ptr, pos);
-				msev_size_t original_pos = pos;
-				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
-				(*this_ptr).emplace(_P, std::forward<_Ty>(_Val));
-				auto retval = mse::make_begin_iterator(this_ptr);
-				retval.advance(msev_int(original_pos));
-				return retval;
-			}
-			template<typename _TVectorPointer1>
-			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				s_assert_valid_index(this_ptr, pos);
-				auto pos_index = pos;
-
-				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
-				(*this_ptr).erase(_P);
-
-				auto retval = mse::make_begin_iterator(this_ptr);
-				retval.advance(typename decltype(retval)::difference_type(pos_index));
-				return retval;
-			}
-			template<typename _TVectorPointer1>
-			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type start, size_type end)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				if (start > end) { MSE_THROW(gnii_vector_range_error("invalid arguments - void erase() - gnii_vector")); }
-				auto pos_index = start;
-
-				typename std_vector::const_iterator _F = (*this_ptr).contained_vector().cbegin() + difference_type(start);
-				typename std_vector::const_iterator _L = (*this_ptr).contained_vector().cbegin() + difference_type(end);
-				(*this_ptr).erase(_F, _L);
-
-				auto retval = mse::make_begin_iterator(this_ptr);
-				retval.advance(typename decltype(retval)::difference_type(pos_index));
-				return retval;
-			}
-
-			template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
-			using Tss_const_iterator_type = typename base_class::template Tss_const_iterator_type<_TVectorConstPointer>;
-			template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
-			using Tss_iterator_type = typename base_class::template Tss_iterator_type<_TVectorPointer>;
-
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, _Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, pos.position(), MSE_FWD(_X));
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, const _Ty& _X)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, pos.position(), _X);
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, size_type _M, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, pos.position(), _M, _X);
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, pos.position(), _First, _Last);
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, pos.position(), _Ilist);
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto emplace(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, _Ty&& _Val)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return emplace(this_ptr, pos.position(), std::forward<_Ty>(_Val));
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return erase(this_ptr, pos.position());
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& start, const Tss_const_iterator_type<_TVectorPointer2>& end)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return erase(this_ptr, start.position(), end.position());
-			}
-
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, _Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), MSE_FWD(_X));
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _X);
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, size_type _M, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _M, _X);
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _First, _Last);
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _Ilist);
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto emplace(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, _Ty&& _Val)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return emplace(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), std::forward<_Ty>(_Val));
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return erase(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos));
-			}
-			template<typename _TVectorPointer1, typename _TVectorPointer2>
-			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& start, const Tss_iterator_type<_TVectorPointer2>& end)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return erase(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(start), Tss_const_iterator_type<_TVectorPointer2>(end));
-			}
-
-
-			typedef TXSLTADynamicContainerRAConstIterator<mse::rsv::TXSLTAConstPointer<_Myt> > xslta_const_iterator;
-			typedef TXSLTADynamicContainerRAIterator<mse::rsv::TXSLTAPointer<_Myt> > xslta_iterator;
-
-			xslta_iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
-				return xslta_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/);
-			}
-			xslta_const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
-				return cbegin();
-			}
-			xslta_const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
-				return xslta_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/);
-			}
-			xslta_iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
-				return xslta_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/) + (*this).size();
-			}
-			xslta_const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
-				return cend();
-			}
-			xslta_const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
-				return xslta_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/) + (*this).size();
-			}
-
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, _Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, pos.position(), MSE_FWD(_X));
-			}
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, pos.position(), _X);
-			}
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, size_type _M, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, pos.position(), _M, _X);
-			}
-			template<typename _TVectorPointer1, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, pos.position(), _First, _Last);
-			}
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, pos.position(), _Ilist);
-			}
-			template<typename _TVectorPointer1>
-			static auto emplace(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, _Ty&& _Val MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return emplace(this_ptr, pos.position(), std::forward<_Ty>(_Val));
-			}
-			template<typename _TVectorPointer1>
-			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return erase(this_ptr, pos.position());
-			}
-			template<typename _TVectorPointer1>
-			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& start, const xslta_const_iterator& end)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return erase(this_ptr, start.position(), end.position());
-			}
-
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, _Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, xslta_const_iterator(pos), MSE_FWD(_X));
-			}
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, xslta_const_iterator(pos), _X);
-			}
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, size_type _M, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, xslta_const_iterator(pos), _M, _X);
-			}
-			template<typename _TVectorPointer1, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, xslta_const_iterator(pos), _First, _Last);
-			}
-			template<typename _TVectorPointer1>
-			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return insert(this_ptr, xslta_const_iterator(pos), _Ilist);
-			}
-			template<typename _TVectorPointer1>
-			static auto emplace(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, _Ty&& _Val MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return emplace(this_ptr, xslta_const_iterator(pos), std::forward<_Ty>(_Val));
-			}
-			template<typename _TVectorPointer1>
-			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return erase(this_ptr, xslta_const_iterator(pos));
-			}
-			template<typename _TVectorPointer1>
-			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& start, const xslta_iterator& end)
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
-
-				return erase(this_ptr, xslta_const_iterator(start), xslta_const_iterator(end));
-			}
-
-
-			/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
-			template<class T2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, _Ty>::value) && (
-				(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
-				)> MSE_IMPL_EIS >
-			void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
-
-			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
-			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-
-		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
-			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
-
-#ifdef MSE_HAS_CXX17
-		/* deduction guides */
-		template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type> >
-		xslta_vector(_Iter, _Iter, _Alloc = _Alloc())
-			-> xslta_vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
-#endif /* MSE_HAS_CXX17 */
+		template<class _Ty, class _A = std::allocator<_Ty> > class xslta_vector;
 	}
 
 	template<class _Ty, class _A>
@@ -4191,12 +3664,7 @@ namespace mse {
 		->xscope_fixed_nii_vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
 
-	namespace impl {
-		template<class _TContainer>
-		using container_element_type = mse::impl::remove_reference_t<decltype(*mse::make_xscope_begin_iterator(std::declval<mse::TXScopeFixedPointer<_TContainer> >()))>;
-	}
-
-	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = std::allocator<_Ty>/*todo: replace with an mse::impl::container_allocator_type<_TLender>*/>
+	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = std::allocator<_Ty>/*todo: replace with an mse::impl::container_allocator_type_if_available<_TLender>*/>
 	class xscope_borrowing_fixed_nii_vector : public xscope_fixed_nii_vector<_Ty, _A>
 		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xscope_fixed_nii_vector<_Ty, _A>, xscope_borrowing_fixed_nii_vector<_TLender, _Ty, _A> >
 	{
@@ -4936,7 +4404,7 @@ namespace mse {
 			-> xslta_fixed_vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
 
-		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = std::allocator<_Ty>/*todo: replace with an mse::impl::container_allocator_type<_TLender>*/>
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
 		class xslta_borrowing_fixed_vector : public xslta_fixed_vector<_Ty, _A>
 			, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xslta_fixed_vector<_Ty, _A>, xslta_borrowing_fixed_vector<_TLender, _Ty, _A> >
 		{
@@ -4968,10 +4436,8 @@ namespace mse {
 			xslta_borrowing_fixed_vector(xslta_borrowing_fixed_vector&&) = default;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
-			xslta_borrowing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xslta_borrowing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+			xslta_borrowing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+			xslta_borrowing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
 			~xslta_borrowing_fixed_vector() {
 				m_src_ref = std::move((*this).contained_vector());
 			}
@@ -4983,7 +4449,7 @@ namespace mse {
 
 			_TLender& m_src_ref;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
-			MSE_ATTR_STR("mse::lifetime_labels(99, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
 
 #ifdef MSE_HAS_CXX17
@@ -4992,18 +4458,828 @@ namespace mse {
 		xslta_borrowing_fixed_vector(mse::rsv::TXSLTAPointer<_TLender>) -> xslta_borrowing_fixed_vector<_TLender>;
 #endif /* MSE_HAS_CXX17 */
 
-		template<class _TLender>
-		auto make_xslta_borrowing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender>& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
-			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		auto make_xslta_borrowing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 		{
 			return xslta_borrowing_fixed_vector<_TLender>(src_xs_ptr);
 		}
-		template<class _TLender>
-		auto make_xslta_borrowing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
-			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		auto make_xslta_borrowing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 		{
 			return xslta_borrowing_fixed_vector<_TLender>(src_xs_ptr);
 		}
+
+
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender> >
+		class xslta_accessing_fixed_vector : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+		public:
+			typedef xslta_fixed_vector<_Ty> corresponding_xslta_fixed_vector_t;
+
+			//typedef typename corresponding_xslta_fixed_vector_t::std_vector std_vector;
+			//typedef typename corresponding_xslta_fixed_vector_t::_MV _MV;
+			typedef xslta_accessing_fixed_vector _Myt;
+
+			//typedef typename corresponding_xslta_fixed_vector_t::allocator_type allocator_type;
+			typedef typename corresponding_xslta_fixed_vector_t::value_type value_type;
+			typedef typename corresponding_xslta_fixed_vector_t::size_type size_type;
+			typedef typename corresponding_xslta_fixed_vector_t::difference_type difference_type;
+			typedef typename corresponding_xslta_fixed_vector_t::pointer pointer;
+			typedef typename corresponding_xslta_fixed_vector_t::const_pointer const_pointer;
+			typedef typename corresponding_xslta_fixed_vector_t::reference reference;
+			typedef typename corresponding_xslta_fixed_vector_t::const_reference const_reference;
+
+			typedef typename corresponding_xslta_fixed_vector_t::iterator iterator;
+			typedef typename corresponding_xslta_fixed_vector_t::const_iterator const_iterator;
+
+			typedef typename corresponding_xslta_fixed_vector_t::reverse_iterator reverse_iterator;
+			typedef typename corresponding_xslta_fixed_vector_t::const_reverse_iterator const_reverse_iterator;
+
+		private:
+			const auto& contained_vector() const { return m_src_ref; }
+			auto& contained_vector() { return m_src_ref; }
+
+		public:
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			xslta_accessing_fixed_vector(xslta_accessing_fixed_vector&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			xslta_accessing_fixed_vector(xslta_accessing_fixed_vector&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+			xslta_accessing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ref(*src_xs_ptr)
+				, m_xs_structure_lock_guard(_TLender::s_make_xscope_structure_lock_guard(*src_xs_ptr)) {}
+			xslta_accessing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ref(*src_xs_ptr)
+				, m_xs_structure_lock_guard(_TLender::s_make_xscope_structure_lock_guard(*src_xs_ptr)) {}
+
+			const_reference operator[](msev_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return (*this).at(msev_as_a_size_t(_P));
+			}
+			reference operator[](msev_size_t _P) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return (*this).at(msev_as_a_size_t(_P));
+			}
+			reference front() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return first element of mutable sequence
+				//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - reference front() - xslta_fixed_vector_base")); }
+				return contained_vector().front();
+			}
+			const_reference front() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return first element of nonmutable sequence
+				//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - const_reference front() - xslta_fixed_vector_base")); }
+				return contained_vector().front();
+			}
+			reference back() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return last element of mutable sequence
+				//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - reference back() - xslta_fixed_vector_base")); }
+				return contained_vector().back();
+			}
+			const_reference back() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return last element of nonmutable sequence
+				//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - const_reference back() - xslta_fixed_vector_base")); }
+				return contained_vector().back();
+			}
+
+			size_type size() const _NOEXCEPT
+			{	// return length of sequence
+				return contained_vector().size();
+			}
+
+			bool empty() const _NOEXCEPT
+			{	// test if sequence is empty
+				return contained_vector().empty();
+			}
+
+			reference at(msev_size_t _Pos) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
+			{	// subscript mutable sequence with checking
+				return contained_vector().at(msev_as_a_size_t(_Pos));
+			}
+
+			const_reference at(msev_size_t _Pos) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
+			{	// subscript nonmutable sequence with checking
+				return contained_vector().at(msev_as_a_size_t(_Pos));
+			}
+
+			value_type* data() _NOEXCEPT MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
+			{	// return pointer to mutable data vector
+				return contained_vector().data();
+			}
+
+			const value_type* data() const _NOEXCEPT MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
+			{	// return pointer to nonmutable data vector
+				return contained_vector().data();
+			}
+
+			size_type max_size() const _NOEXCEPT
+			{	// return maximum possible length of sequence
+				return contained_vector().max_size();
+			}
+
+			//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(corresponding_xslta_fixed_vector_t);
+
+		private:
+			xslta_accessing_fixed_vector(const xslta_accessing_fixed_vector&) = delete;
+
+			_TLender& m_src_ref;
+			typename _TLender::xscope_structure_lock_guard_t m_xs_structure_lock_guard;
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class _TLender>
+		xslta_accessing_fixed_vector(mse::rsv::TXSLTAPointer<_TLender>) -> xslta_accessing_fixed_vector<_TLender>;
+#endif /* MSE_HAS_CXX17 */
+
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		auto make_xslta_accessing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+		{
+			return xslta_accessing_fixed_vector<_TLender>(src_xs_ptr);
+		}
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		auto make_xslta_accessing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+		{
+			return xslta_accessing_fixed_vector<_TLender>(src_xs_ptr);
+		}
+
+
+		template<class TAccessingFixed, class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		class TXSLTADynamicRAContainerElementProxyRef : public mse::us::impl::XSLTATagBase {
+		public:
+			typedef TAccessingFixed accessing_fixed_type;
+			typedef _TLender lender_type;
+			typedef _Ty element_type;
+			typedef _A allocator_type;
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyRef(TXSLTADynamicRAContainerElementProxyRef&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyRef(TXSLTADynamicRAContainerElementProxyRef&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyRef(const TXSLTADynamicRAContainerElementProxyRef&) = delete;
+
+			TXSLTADynamicRAContainerElementProxyRef(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_bf_container(src_xs_ptr), m_index(index) {}
+			TXSLTADynamicRAContainerElementProxyRef(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_bf_container(src_xs_ptr), m_index(index) {}
+			operator _Ty() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return m_bf_container[m_index];
+			}
+			void operator=(const _Ty& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) && {
+				m_bf_container[m_index] = src_ref;
+			}
+			void operator=(_Ty&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) && {
+				m_bf_container[m_index] = MSE_FWD(src_ref);
+			}
+			void operator=(const _Ty& src_ref)& = delete;
+			void operator=(_Ty&& src_ref)& = delete;
+			void operator=(const TXSLTADynamicRAContainerElementProxyRef& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
+				m_bf_container[m_index] = _Ty(src_ref);
+			}
+
+		private:
+			TAccessingFixed m_bf_container MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+			size_t m_index = 0;
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+		template<class TElementProxyRef, class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		class TXSLTADynamicRAContainerElementProxyPtr : public mse::us::impl::XSLTATagBase {
+		public:
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyPtr(TXSLTADynamicRAContainerElementProxyPtr&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyPtr(TXSLTADynamicRAContainerElementProxyPtr&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyPtr(const TXSLTADynamicRAContainerElementProxyPtr&) = delete;
+
+			TXSLTADynamicRAContainerElementProxyPtr(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_proxy_ref(src_xs_ptr, index) {}
+			TXSLTADynamicRAContainerElementProxyPtr(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_proxy_ref(src_xs_ptr, index) {}
+			auto operator->() const && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::addressof(m_proxy_ref);
+			}
+			auto operator->() && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::addressof(m_proxy_ref);
+			}
+
+		private:
+			TElementProxyRef m_proxy_ref MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+
+		template <typename _TRAContainerPointer> class TXSLTADynamicContainerRAConstIterator;
+		template <class TElementProxyRef, typename _TRAContainerPointer> class TXSLTADynamicContainerRAIterator;
+		namespace us {
+			/* A couple of unsafe functions for internal use. */
+			template<class TElementProxyRef, class _TRAContainerPointer>
+			TXSLTADynamicContainerRAIterator<TElementProxyRef, _TRAContainerPointer> unsafe_make_xslta_dynamic_container_ra_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXSLTADynamicContainerRAIterator<TElementProxyRef, _TRAContainerPointer>::size_type index/* = 0*/);
+			template<class _TRAContainerPointer>
+			TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer> unsafe_make_xslta_dynamic_container_ra_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer>::size_type index/* = 0*/);
+		}
+
+		template <class TElementProxyRef, typename _TRAContainerPointer>
+		class TXSLTADynamicContainerRAIterator : public TXSLTARAIterator<_TRAContainerPointer> {
+		public:
+			typedef TXSLTARAIterator<_TRAContainerPointer> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			TXSLTADynamicContainerRAIterator(const TXSLTADynamicContainerRAIterator& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
+			TXSLTADynamicContainerRAIterator(TXSLTADynamicContainerRAIterator&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
+
+			template<class TElementProxyRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAIterator(TXSLTADynamicContainerRAIterator<TElementProxyRef2, _Ty2>&& src) : base_class(MSE_FWD(src)) {}
+			template<class TElementProxyRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAIterator(const TXSLTADynamicContainerRAIterator<TElementProxyRef2, _Ty2>& src) : base_class(src) {}
+
+			TXSLTADynamicContainerRAIterator(const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index) : base_class(ra_container_pointer, index) {}
+			TXSLTADynamicContainerRAIterator(_TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index) : base_class(MSE_FWD(ra_container_pointer), index) {}
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAIterator(const _Ty2& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index) : base_class(ra_container_pointer, index) {}
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAIterator(_Ty2&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index) : base_class(MSE_FWD(ra_container_pointer), index) {}
+
+			TXSLTADynamicContainerRAIterator(const TXSLTARAIterator<_TRAContainerPointer>& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(xs_ra_iter) {}
+			TXSLTADynamicContainerRAIterator(TXSLTARAIterator<_TRAContainerPointer>&& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(xs_ra_iter)) {}
+
+			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTADynamicContainerRAIterator);
+			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTADynamicContainerRAIterator);
+			//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+
+			/* Dereference operators of dynamic container iterators, by default, can't provide (minimum) lifetime
+			guarantees for their return values. It could be argued that they shouldn't even have dereference operators. */
+			TElementProxyRef operator*() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
+				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyRef, alias_11$)")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[alias_11$]); return_value(alias_11$) }")
+			{
+				return TElementProxyRef(mse::rsv::xslta_ptr_to(*(this->target_container_ptr())), this->position());
+				//return base_class::operator*();
+			}
+			typedef typename std::add_pointer<value_type>::type pointer_t;
+			typedef TXSLTADynamicRAContainerElementProxyPtr<TElementProxyRef, typename TElementProxyRef::lender_type, typename TElementProxyRef::element_type, typename TElementProxyRef::allocator_type> TElementProxyPtr;
+			TElementProxyPtr operator->() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
+				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyRef, alias_11$)")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[alias_11$]); return_value(alias_11$) }")
+			{
+				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*(this->target_container_ptr())), this->position());
+				//return base_class::operator->();
+			}
+			reference operator[](difference_type _Off) const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
+				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyRef, alias_11$)")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[alias_11$]); return_value(alias_11$) }")
+			{
+				return TElementProxyRef(mse::rsv::xslta_ptr_to(*(this->target_container_ptr())), difference_type(this->position()) + _Off);
+				//return base_class::operator[](_Off);
+			}
+
+			bool is_valid() const {
+				return ((0 <= (*this).position()) && (difference_type(mse::container_size(*(*this).target_container_ptr())) >= (*this).position()));
+			}
+
+			MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+			void xslta_iterator_tag() const {}
+			void xslta_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+		private:
+			class unsafe_t {};
+			TXSLTADynamicContainerRAIterator(unsafe_t, const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(ra_container_pointer, index) {}
+			TXSLTADynamicContainerRAIterator(unsafe_t, _TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
+
+			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
+
+			friend class TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer>;
+			template<class TElementProxyRef2, class _TRAContainerPointer2> friend TXSLTADynamicContainerRAIterator<TElementProxyRef2, _TRAContainerPointer2> mse::rsv::us::unsafe_make_xslta_dynamic_container_ra_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTADynamicContainerRAIterator<TElementProxyRef2, _TRAContainerPointer2>::size_type index);
+		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
+
+		template <typename _TRAContainerPointer>
+		class TXSLTADynamicContainerRAConstIterator : public TXSLTARAConstIterator<_TRAContainerPointer> {
+		public:
+			typedef TXSLTARAConstIterator<_TRAContainerPointer> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAConstIterator& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
+			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAConstIterator&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
+
+			//TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAIterator<_TRAContainerPointer>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
+			//TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAIterator<_TRAContainerPointer>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
+
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAConstIterator<_Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAConstIterator<_Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
+
+			template<class TElementProxyRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAIterator<TElementProxyRef2, _Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
+			template<class TElementProxyRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAIterator<TElementProxyRef2, _Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
+
+			TXSLTADynamicContainerRAConstIterator(const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(ra_container_pointer, index) {}
+			TXSLTADynamicContainerRAConstIterator(_TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAConstIterator(const _Ty2& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(ra_container_pointer, index) {}
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAConstIterator(_Ty2&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
+
+			TXSLTADynamicContainerRAConstIterator(const TXSLTARAConstIterator<_TRAContainerPointer>& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(xs_ra_iter) {}
+			TXSLTADynamicContainerRAConstIterator(TXSLTARAConstIterator<_TRAContainerPointer>&& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(xs_ra_iter)) {}
+
+			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTADynamicContainerRAConstIterator);
+			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTADynamicContainerRAConstIterator);
+			//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+
+			/* Dereference operators of dynamic container iterators, by default, can't provide (minimum) lifetime
+			guarantees for their return values. It could be argued that they shouldn't even have dereference operators. */
+			const_reference operator*() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
+				return base_class::operator*();
+			}
+			typedef typename std::add_pointer<typename std::add_const<value_type>::type>::type const_pointer_t;
+			const_pointer_t operator->() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
+				return base_class::operator->();
+			}
+			const_reference operator[](difference_type _Off) const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
+				return base_class::operator[](_Off);
+			}
+
+			bool is_valid() const {
+				return ((0 <= (*this).position()) && (difference_type(mse::container_size(*(*this).target_container_ptr())) >= (*this).position()));
+			}
+
+			MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(base_class);
+			void xslta_iterator_tag() const {}
+			void xslta_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+		private:
+			class unsafe_t {};
+			TXSLTADynamicContainerRAConstIterator(unsafe_t, const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(ra_container_pointer, index) {}
+			TXSLTADynamicContainerRAConstIterator(unsafe_t, _TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
+
+			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
+
+			template<class _TRAContainerPointer2> friend TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer2> mse::rsv::us::unsafe_make_xslta_dynamic_container_ra_const_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer2>::size_type index);
+		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
+
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		using TXSLTAVectorElementProxyRef = mse::rsv::TXSLTADynamicRAContainerElementProxyRef<mse::rsv::xslta_accessing_fixed_vector<_TLender, _Ty>, _TLender, _Ty>;
+
+
+		template<class _Ty, class _A/* = std::allocator<_Ty>*/>
+		class xslta_vector : public mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex>, public mse::us::impl::XSLTATagBase {
+		public:
+			typedef mse::us::impl::gnii_vector<_Ty, _A, mse::non_thread_safe_shared_mutex> base_class;
+			typedef mse::non_thread_safe_shared_mutex _TStateMutex;
+			typedef xslta_vector _Myt;
+			typedef typename base_class::std_vector std_vector;
+
+			typedef typename base_class::allocator_type allocator_type;
+			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			explicit xslta_vector(size_type _N, const _Ty& _V MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _A& _Al = _A()) : base_class(_N, _V, _Al) {}
+
+			/* If an initialization value is not given, any lifetimes will be "deduced" to be a (minimum) default value. */
+			explicit xslta_vector(const _A& _Al = _A()) : base_class(_Al) {}
+			/* Constructs an empty container, uses the second argument only to deduce lifetime. */
+			explicit xslta_vector(nullopt_t, const _Ty& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _A& _Al = _A()) : base_class(_Al) {}
+			template<class _Iter
+				//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
+				, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			xslta_vector(const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+
+			xslta_vector(const xslta_vector& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) = default;
+			xslta_vector(xslta_vector&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) = default;
+
+			xslta_vector(std_vector&& _X) : base_class(MSE_FWD(_X)) {}
+			xslta_vector(const std_vector& _X) : base_class(_X) {}
+
+			xslta_vector& operator=(xslta_vector&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") = default;
+			xslta_vector& operator=(const xslta_vector& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") = default;
+
+			xslta_vector& operator=(nullopt_t) noexcept MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::clear();
+				return *this;
+			}
+
+			void resize(size_type _N, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::resize(_N, _X);
+			}
+			void push_back(_Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::push_back(MSE_FWD(_X));
+			}
+			void push_back(const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::push_back(_X);
+			}
+			template<class _Iter>
+			void assign(const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last) {	// assign [_First, _Last)
+				base_class::assign(_First, _Last);
+			}
+			void assign(size_type _N, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::assign(_N, _X);
+			}
+
+			void swap(xslta_vector& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])")) noexcept(std::is_nothrow_move_constructible<_Ty>::value && noexcept(std::swap(std::declval<_Ty&>(), std::declval<_Ty&>())))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }")
+			{
+				base_class::swap(rhs);
+			}
+
+			xslta_vector(_XSTD initializer_list<value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"), const _A& _Al = _A())
+				: base_class(_Ilist, _Al) {	// construct from initializer_list
+				/*m_debug_size = size();*/
+			}
+			_Myt& operator=(_XSTD initializer_list<value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// assign initializer_list
+				base_class::operator=(_Ilist);
+				return (*this);
+			}
+			void assign(_XSTD initializer_list<value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) {	// assign initializer_list
+				base_class::assign(_Ilist);
+				/*m_debug_size = size();*/
+			}
+
+			auto operator[](msev_size_t _P) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return TXSLTAVectorElementProxyRef<_Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), _P);
+				//return (*this).at(msev_as_a_size_t(_P));
+			}
+			typename std_vector::const_reference operator[](msev_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
+				return (*this).at(msev_as_a_size_t(_P));
+			}
+#if 0
+			typename std_vector::reference operator[](msev_size_t _P) {
+				return (*this).at(msev_as_a_size_t(_P));
+			}
+			typename std_vector::reference front() {	// return first element of mutable sequence
+				if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - typename std_vector::reference front() - gnii_vector")); }
+				return contained_vector().front();
+			}
+			typename std_vector::const_reference front() const {	// return first element of nonmutable sequence
+				if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - typename std_vector::const_reference front() - gnii_vector")); }
+				return contained_vector().front();
+			}
+			typename std_vector::reference back() {	// return last element of mutable sequence
+				if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - typename std_vector::reference back() - gnii_vector")); }
+				return contained_vector().back();
+			}
+			typename std_vector::const_reference back() const {	// return last element of nonmutable sequence
+				if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - typename std_vector::const_reference back() - gnii_vector")); }
+				return contained_vector().back();
+			}
+
+			reference at(msev_size_t _Pos)
+			{	// subscript mutable sequence with checking
+				return contained_vector().at(msev_as_a_size_t(_Pos));
+			}
+
+			const_reference at(msev_size_t _Pos) const
+			{	// subscript nonmutable sequence with checking
+				return contained_vector().at(msev_as_a_size_t(_Pos));
+			}
+#endif // 0
+
+
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				s_assert_valid_index(this_ptr, pos);
+				msev_size_t original_pos = pos;
+				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
+				(*this_ptr).insert(_P, _X);
+				auto retval = mse::make_begin_iterator(this_ptr);
+				retval.advance(msev_int(original_pos));
+				return retval;
+			}
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos, size_type _M, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				s_assert_valid_index(this_ptr, pos);
+				msev_size_t original_pos = pos;
+				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
+				(*this_ptr).insert(_P, _M, _X);
+				auto retval = mse::make_begin_iterator(this_ptr);
+				retval.advance(msev_int(original_pos));
+				return retval;
+			}
+			template<typename _TVectorPointer1, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos, const _Iter MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])") _First, const _Iter _Last)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				s_assert_valid_index(this_ptr, pos);
+				msev_size_t original_pos = pos;
+				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
+				(*this_ptr).insert(_P, _First, _Last);
+				auto retval = mse::make_begin_iterator(this_ptr);
+				retval.advance(msev_int(original_pos));
+				return retval;
+			}
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				s_assert_valid_index(this_ptr, pos);
+				msev_size_t original_pos = pos;
+				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
+				(*this_ptr).insert(_P, _Ilist);
+				auto retval = mse::make_begin_iterator(this_ptr);
+				retval.advance(msev_int(original_pos));
+				return retval;
+			}
+			template<typename _TVectorPointer1>
+			static auto emplace(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos, _Ty&& _Val MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }")
+			{	// insert by moving _Val at _Where
+				s_assert_valid_index(this_ptr, pos);
+				msev_size_t original_pos = pos;
+				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
+				(*this_ptr).emplace(_P, std::forward<_Ty>(_Val));
+				auto retval = mse::make_begin_iterator(this_ptr);
+				retval.advance(msev_int(original_pos));
+				return retval;
+			}
+			template<typename _TVectorPointer1>
+			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type pos)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				s_assert_valid_index(this_ptr, pos);
+				auto pos_index = pos;
+
+				typename std_vector::const_iterator _P = (*this_ptr).contained_vector().cbegin() + difference_type(pos);
+				(*this_ptr).erase(_P);
+
+				auto retval = mse::make_begin_iterator(this_ptr);
+				retval.advance(typename decltype(retval)::difference_type(pos_index));
+				return retval;
+			}
+			template<typename _TVectorPointer1>
+			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), size_type start, size_type end)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				if (start > end) { MSE_THROW(gnii_vector_range_error("invalid arguments - void erase() - gnii_vector")); }
+				auto pos_index = start;
+
+				typename std_vector::const_iterator _F = (*this_ptr).contained_vector().cbegin() + difference_type(start);
+				typename std_vector::const_iterator _L = (*this_ptr).contained_vector().cbegin() + difference_type(end);
+				(*this_ptr).erase(_F, _L);
+
+				auto retval = mse::make_begin_iterator(this_ptr);
+				retval.advance(typename decltype(retval)::difference_type(pos_index));
+				return retval;
+			}
+
+			template<typename _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
+			using Tss_const_iterator_type = typename base_class::template Tss_const_iterator_type<_TVectorConstPointer>;
+			template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
+			using Tss_iterator_type = typename base_class::template Tss_iterator_type<_TVectorPointer>;
+
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, _Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, pos.position(), MSE_FWD(_X));
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, const _Ty& _X)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, pos.position(), _X);
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, size_type _M, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, pos.position(), _M, _X);
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, pos.position(), _First, _Last);
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, pos.position(), _Ilist);
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto emplace(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos, _Ty&& _Val)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return emplace(this_ptr, pos.position(), std::forward<_Ty>(_Val));
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& pos)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return erase(this_ptr, pos.position());
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_const_iterator_type<_TVectorPointer2>& start, const Tss_const_iterator_type<_TVectorPointer2>& end)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return erase(this_ptr, start.position(), end.position());
+			}
+
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, _Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), MSE_FWD(_X));
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _X);
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, size_type _M, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _M, _X);
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _First, _Last);
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), _Ilist);
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto emplace(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos, _Ty&& _Val)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return emplace(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos), std::forward<_Ty>(_Val));
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& pos)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return erase(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(pos));
+			}
+			template<typename _TVectorPointer1, typename _TVectorPointer2>
+			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const Tss_iterator_type<_TVectorPointer2>& start, const Tss_iterator_type<_TVectorPointer2>& end)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return erase(this_ptr, Tss_const_iterator_type<_TVectorPointer2>(start), Tss_const_iterator_type<_TVectorPointer2>(end));
+			}
+
+			typedef TXSLTADynamicContainerRAConstIterator<mse::rsv::TXSLTAConstPointer<_Myt> > xslta_const_iterator;
+			typedef TXSLTADynamicContainerRAIterator<TXSLTAVectorElementProxyRef<_Myt, _Ty, _A>, mse::rsv::TXSLTAPointer<_Myt> > xslta_iterator;
+
+			xslta_iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return xslta_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/);
+			}
+			xslta_const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cbegin();
+			}
+			xslta_const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return xslta_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/);
+			}
+			xslta_iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return xslta_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/) + (*this).size();
+			}
+			xslta_const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cend();
+			}
+			xslta_const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return xslta_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/) + (*this).size();
+			}
+
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, _Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, pos.position(), MSE_FWD(_X));
+			}
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, pos.position(), _X);
+			}
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, size_type _M, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, pos.position(), _M, _X);
+			}
+			template<typename _TVectorPointer1, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, pos.position(), _First, _Last);
+			}
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, pos.position(), _Ilist);
+			}
+			template<typename _TVectorPointer1>
+			static auto emplace(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos, _Ty&& _Val MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return emplace(this_ptr, pos.position(), std::forward<_Ty>(_Val));
+			}
+			template<typename _TVectorPointer1>
+			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& pos)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return erase(this_ptr, pos.position());
+			}
+			template<typename _TVectorPointer1>
+			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_const_iterator& start, const xslta_const_iterator& end)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return erase(this_ptr, start.position(), end.position());
+			}
+
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, _Ty&& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, xslta_const_iterator(pos), MSE_FWD(_X));
+			}
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, xslta_const_iterator(pos), _X);
+			}
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, size_type _M, const _Ty& _X MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, xslta_const_iterator(pos), _M, _X);
+			}
+			template<typename _TVectorPointer1, class _Iter, class = mse::impl::_mse_RequireInputIter<_Iter> >
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, const _Iter _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _Iter _Last)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, xslta_const_iterator(pos), _First, _Last);
+			}
+			template<typename _TVectorPointer1>
+			static auto insert(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, _XSTD initializer_list<typename std_vector::value_type> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return insert(this_ptr, xslta_const_iterator(pos), _Ilist);
+			}
+			template<typename _TVectorPointer1>
+			static auto emplace(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos, _Ty&& _Val MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return emplace(this_ptr, xslta_const_iterator(pos), std::forward<_Ty>(_Val));
+			}
+			template<typename _TVectorPointer1>
+			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& pos)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return erase(this_ptr, xslta_const_iterator(pos));
+			}
+			template<typename _TVectorPointer1>
+			static auto erase(_TVectorPointer1 this_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(42)"), const xslta_iterator& start, const xslta_iterator& end)
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TVectorPointer1, _[alias_11$]); label(42, alias_11$); return_value(42) }") {
+
+				return erase(this_ptr, xslta_const_iterator(start), xslta_const_iterator(end));
+			}
+
+
+			/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
+			template<class T2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, _Ty>::value) && (
+				(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
+				)> MSE_IMPL_EIS >
+			void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
+
+			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		private:
+
+			typedef mse::us::impl::Txscope_structure_lock_guard<base_class> xscope_structure_lock_guard_t;
+			static auto s_make_xscope_structure_lock_guard(_Myt& vec_ref) -> xscope_structure_lock_guard_t {
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(vec_ref));
+			}
+			//typedef mse::us::impl::Txscope_const_structure_lock_guard<base_class> xscope_const_structure_lock_guard_t;
+
+			friend class mse::us::impl::Txscope_structure_lock_guard<_Myt>;
+			friend class mse::us::impl::Txscope_const_structure_lock_guard<_Myt>;
+			template<class _TLender2, class _Ty2> friend class xslta_accessing_fixed_vector;
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class _Iter, class _Alloc = std::allocator<typename std::iterator_traits<_Iter>::value_type> >
+		xslta_vector(_Iter, _Iter, _Alloc = _Alloc())
+			-> xslta_vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
+#endif /* MSE_HAS_CXX17 */
 	}
 
 	namespace mstd {
@@ -7435,9 +7711,26 @@ namespace mse {
 					auto res2 = *(xslta_citer3[0]);
 					*xslta_iter1 = &i3;
 					*xslta_iter1 = &i1;
-					auto ilaptr4 = *xslta_iter1;
+					auto ilaptr4 = typename decltype(vec4)::value_type(*xslta_iter1);
 					ilaptr4 = &i3;
 					ilaptr4 = &i1;
+
+					{
+						auto bf_vec2a = mse::rsv::make_xslta_borrowing_fixed_vector(&vec2);
+						auto& elem_ref1 = bf_vec2a.at(0);
+						auto& elem_ref2 = bf_vec2a[0];
+					}
+					{
+						auto af_vec2a = mse::rsv::make_xslta_accessing_fixed_vector(&vec2);
+						auto& elem_ref1a = af_vec2a.at(0);
+						auto& elem_ref2a = af_vec2a[0];
+
+						auto af_vec2b = mse::rsv::make_xslta_accessing_fixed_vector(&vec2);
+						auto& elem_ref1b = af_vec2b.at(0);
+						auto& elem_ref2b = af_vec2b[0];
+					}
+					vec2[0] = vec2[1];
+					vec2[0] = ilaptr1;
 				}
 				{
 					auto xslta_iter1 = std::begin(vec2);
@@ -7451,13 +7744,17 @@ namespace mse {
 					auto res2 = *(xslta_citer3[0]);
 					*xslta_iter1 = &i3;
 					*xslta_iter1 = &i1;
-					auto ilaptr4 = *xslta_iter1;
+					auto ilaptr4 = typename decltype(vec4)::value_type(*xslta_iter1);
 					ilaptr4 = &i3;
 					ilaptr4 = &i1;
 				}
 				{
 					auto fxdvec1 = mse::rsv::xslta_fixed_vector<mse::rsv::TXSLTAPointer<int> >(vec2);
 					auto bfxdvec1 = mse::rsv::make_xslta_borrowing_fixed_vector(&vec2);
+					bool b1 = mse::impl::HasAllocatorMemberType_vc<std::vector<int> >::value;
+					bool b2 = mse::impl::HasAllocatorMemberType_vc<int>::value;
+					//typedef mse::impl::container_allocator_type_if_available<std::vector<int> > test_type1;
+					int q = 5;
 				}
 			}
 #endif // MSE_SELF_TESTS

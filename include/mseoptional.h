@@ -4074,7 +4074,7 @@ namespace mse {
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return xslta_fixed_optional<typename std::decay<T>::type>(nullopt, src_ref);
-	}
+		}
 	}
 
 #ifdef MSE_HAS_CXX17
