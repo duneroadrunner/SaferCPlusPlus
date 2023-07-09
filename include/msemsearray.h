@@ -4508,6 +4508,9 @@ namespace mse {
 					//typedef xslta_ss_iterator_type xslta_iterator;
 					typedef TXSLTACSSSXSRAConstIterator<_Myt> xslta_const_iterator;
 					typedef TXSLTACSSSXSRAIterator<_Myt> xslta_iterator;
+					typedef xslta_const_iterator const_iterator;
+					typedef xslta_iterator iterator;
+
 
 					template<typename _TArrayConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value)> MSE_IMPL_EIS >
 					using Tss_const_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
@@ -10245,47 +10248,39 @@ namespace mse {
 				int i1 = 3;
 				int i2 = 5;
 				int i3 = 7;
-				auto ilaptr1 = mse::rsv::TXSLTAPointer<int>{ &i2 };
-				auto arrwp1 = mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i1, &i2 };
-				auto ilaptr2 = arrwp1.front();
-				ilaptr2 = &i3;
-				ilaptr2 = &i1;
-				auto ilaptr2b = arrwp1.back();
-				ilaptr2b = &i3;
-				ilaptr2b = &i1;
 
+				/* The lifetime (lower bound) associated with the rsv::xslta_array<>, and each of its
+				contained elements, is the lower bound of all of the lifetimes of the elements in the initializer
+				list. */
 				auto arr2 = mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i1, &i2 };
 				auto ilaptr3 = arr2.front();
-				ilaptr3 = &i3;
+				//ilaptr3 = &i3;    // scpptool would complain (because i3 does not live long enough)
 				ilaptr3 = &i1;
 
+				/* Note that although the initializer list used in the declaration of arr3 is different than the
+				initializer list used for arr2, the lower bound of the lifetimes of both initializer lists is
+				the same. */
 				auto arr3 = mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i2, &i2 };
+
+				/* Since the (lower bound) lifetime values of arr2 and arr3 are the same, their values can be
+				safely swapped.*/
 				std::swap(arr2, arr3);
 				arr2.swap(arr3);
 
+				/* The lower bound lifetime of arr4's initializer list is not the same as that of arr2. */
 				auto arr4 = mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 2>{ &i3, &i1 };
-				std::swap(arr2, arr4);
-				arr2.swap(arr4);
+
+				/* Since the (lower bound) lifetime values of arr2 and arr4 are not the same, their values
+				cannot be safely swapped.*/
+				//std::swap(arr2, arr4);    // scpptool would complain
+				//arr2.swap(arr4);    // scpptool would complain
 
 				{
-					auto xslta_iter1 = mse::rsv::make_xslta_begin_iterator(mse::rsv::xslta_ptr_to(arr2));
-					auto xslta_iter2 = mse::rsv::make_xslta_end_iterator(mse::rsv::xslta_ptr_to(arr2));
-
-					auto xslta_citer3 = mse::rsv::make_xslta_begin_const_iterator(mse::rsv::xslta_ptr_to(arr2));
-					xslta_citer3 = xslta_iter1;
-					xslta_citer3 = mse::rsv::make_xslta_begin_const_iterator(mse::rsv::xslta_ptr_to(arr2));
-					xslta_citer3 += 1;
-					auto res1 = *(*xslta_citer3);
-					auto res2 = *(xslta_citer3[0]);
-					*xslta_iter1 = &i3;
-					*xslta_iter1 = &i1;
-					auto ilaptr4 = *xslta_iter1;
-					ilaptr4 = &i3;
-					ilaptr4 = &i1;
-				}
-				{
+					/* The standard iterator operations. */
 					auto xslta_iter1 = std::begin(arr2);
 					auto xslta_iter2 = std::end(arr2);
+					//xslta_iter1[0] = &i3;    // scpptool would complain
+					xslta_iter1[0] = &i1;
 
 					auto xslta_citer3 = std::cbegin(arr2);
 					xslta_citer3 = xslta_iter1;
@@ -10293,11 +10288,27 @@ namespace mse {
 					xslta_citer3 += 1;
 					auto res1 = *(*xslta_citer3);
 					auto res2 = *(xslta_citer3[0]);
-					*xslta_iter1 = &i3;
-					*xslta_iter1 = &i1;
-					auto ilaptr4 = *xslta_iter1;
-					ilaptr4 = &i3;
-					ilaptr4 = &i1;
+
+					std::cout << "\n";
+					for (auto xslta_iter5 = xslta_iter1; xslta_iter2 != xslta_iter5; ++xslta_iter5) {
+						std::cout << *(*xslta_iter5) << " ";
+					}
+					std::cout << "\n";
+				}
+				{
+					/* The same iterator operations using the SaferCPlusPlus library's make_*_iterator() functions. */
+					auto arr2_xsltaptr = mse::rsv::TXSLTAPointer<decltype(arr2)>{ &arr2 };
+					auto xslta_iter1 = mse::rsv::make_xslta_begin_iterator(arr2_xsltaptr);
+					auto xslta_iter2 = mse::rsv::make_xslta_end_iterator(arr2_xsltaptr);
+					//xslta_iter1[0] = &i3;    // scpptool would complain
+					xslta_iter1[0] = &i1;
+
+					auto xslta_citer3 = mse::rsv::make_xslta_begin_const_iterator(arr2_xsltaptr);
+					xslta_citer3 = xslta_iter1;
+					xslta_citer3 = mse::rsv::make_xslta_begin_const_iterator(arr2_xsltaptr);
+					xslta_citer3 += 1;
+					auto res1 = *(*xslta_citer3);
+					auto res2 = *(xslta_citer3[0]);
 				}
 			}
 #endif // MSE_SELF_TESTS
