@@ -7103,34 +7103,67 @@ namespace mse {
 					int i1 = 3;
 					int i2 = 5;
 					int i3 = 7;
-					auto ilaptr1 = mse::rsv::TXSLTAPointer<int>{ &i2 };
-
 					auto ilaptr4 = mse::rsv::TXSLTAPointer<int>{ &i2 };
 					auto ilaptr5 = mse::rsv::TXSLTAPointer<int>{ &i1 };
-					std::swap(ilaptr4, ilaptr1);
-					std::swap(ilaptr5, ilaptr1);
 
-					mse::rsv::xslta_optional<mse::rsv::TXSLTAPointer<int> > maybe_int_xsltaptr;
-					mse::rsv::xslta_optional<mse::rsv::TXSLTAPointer<int> > maybe_int_xsltaptr2(mse::nullopt, ilaptr4);
 					mse::rsv::xslta_optional<mse::rsv::TXSLTAPointer<int> > maybe_int_xsltaptr3(ilaptr4);
-					mse::rsv::xslta_optional<int> maybe_int;
+
+					/* Even when you want to construct an empty rsv::xslta_optional<>, if the element type has an annotated
+					lifetime, you would still need to provide (a reference to) an initialization element object from which
+					a lower bound lifetime can be inferred. You could just initialize the option with a value, then reset()
+					the rsv::xslta_optional<>. Alternatively, you can pass mse::nullopt as the first constructor parameter,
+					in which case the lower bound lifetime will be inferred from the second (otherwise unused) parameter. */
+					mse::rsv::xslta_optional<mse::rsv::TXSLTAPointer<int> > maybe_int_xsltaptr2(mse::nullopt, ilaptr4);
+					//mse::rsv::xslta_optional<mse::rsv::TXSLTAPointer<int> > maybe_int_xsltaptr;    // scpptool would complain
+					mse::rsv::xslta_optional<int> maybe_int;    // fine, the element type does not have an annotated lifetime
+
 					auto maybe_int_xsltaptr5 = mse::rsv::make_xslta_optional(mse::nullopt, ilaptr4);
 					auto maybe_int_xsltaptr6 = mse::rsv::make_xslta_optional(ilaptr4);
-					auto ilaptr6 = typename decltype(maybe_int_xsltaptr6)::value_type(maybe_int_xsltaptr6.value());
-					std::swap(ilaptr6, ilaptr1);
-					std::swap(ilaptr5, ilaptr6);
+					{
+						/* As with rsv::xslta_vector<>, the preferred way of accessing the contents of an rsv::xslta_optional<> 
+						is via an associated rsv::xslta_borrowing_fixed_optional<> (which, while it exists, "borrows" exclusive 
+						access to the contents of the given optional and (efficiently) prevents the element (if any) from being
+						removed). */
+						auto bfmaybe_int_xsltaptr6 = mse::rsv::make_xslta_borrowing_fixed_optional(&maybe_int_xsltaptr6);
+						auto ilaptr26 = bfmaybe_int_xsltaptr6.value();
+						std::swap(ilaptr26, ilaptr4);
 
-					auto bfmaybe_int_xsltaptr6 = mse::rsv::make_xslta_borrowing_fixed_optional(&maybe_int_xsltaptr6);
-					auto ilaptr26 = bfmaybe_int_xsltaptr6.value();
-					std::swap(ilaptr26, ilaptr1);
-					std::swap(ilaptr5, ilaptr26);
-					auto ilaptr27 = bfmaybe_int_xsltaptr6.value_or(ilaptr4);
-					std::swap(ilaptr27, ilaptr1);
-					std::swap(ilaptr5, ilaptr27);
-					auto ilaptr7 = mse::rsv::TXSLTAPointer<int>{ &i3 };
-					auto ilaptr28 = bfmaybe_int_xsltaptr6.value_or(ilaptr7);
-					std::swap(ilaptr28, ilaptr1);
-					std::swap(ilaptr7, ilaptr28);
+						auto ilaptr7 = mse::rsv::TXSLTAPointer<int>{ &i3 };
+						auto ilaptr28 = bfmaybe_int_xsltaptr6.value_or(ilaptr7);
+						//std::swap(ilaptr28, ilaptr4);    // scpptool would complain
+						std::swap(ilaptr7, ilaptr28);
+					}
+
+					/* While not the preferred method, rsv::xslta_optional<> does (currently) have limited support for accessing
+					its element (pseudo-)directly. */
+
+					/* As with rsv::xslta_vector<>, rsv::xslta_optional<>'s non-const accessor methods and operators do not
+					return a raw reference. They return a "proxy reference" object that (while it exists, prevents the addition
+					or removal of a value and) behaves like a (raw) reference in some situations. For example, like a reference,
+					it can be cast to the element type. */
+					typename decltype(maybe_int_xsltaptr6)::value_type ilaptr6 = (maybe_int_xsltaptr6.value());
+					ilaptr6 = &i2;
+					//ilaptr6 = &i3; // scpptool would complain (because i3 does not live long enough)
+
+					/* The returned "proxy reference" object also has limited support for assignment operations. */
+					maybe_int_xsltaptr6.value() = &i1;
+					//maybe_int_xsltaptr6.value() = &i3;    // scpptool would complain (because i3 does not live long enough)
+
+					/* Note that these returned "proxy reference" objects are designed to be used as temporary (rvalue) objects,
+					not as (lvalue) declared variables or stored objects. */
+
+					/* Note again that we've been using a non-const rsv::xslta_optional<>. Perhaps unintuitively, the contents of
+					an rsv::xslta_optional<> cannot be safely accessed via const reference to the optional. */
+					auto const& maybe_int_xsltaptr6_cref1 = maybe_int_xsltaptr6;
+					//typename decltype(maybe_int_xsltaptr6)::value_type ilaptr3b = maybe_int_xsltaptr6_cref1.value();    // scpptool would complain
+
+					{
+						/* rsv::xslta_fixed_optional<> is a (lifetime annotated) optional that doesn't support any operations that
+						could resize the optional or move its contents (subsequent to initialization). */
+						auto f_maybe_int_xsltaptr1 = mse::rsv::xslta_fixed_optional<typename decltype(maybe_int_xsltaptr6)::value_type>(maybe_int_xsltaptr6.value());
+					}
+
+
 
 					mse::rsv::xslta_fixed_optional<mse::rsv::TXSLTAPointer<int> > fmaybe_int_xsltaptr;
 					mse::rsv::xslta_fixed_optional<mse::rsv::TXSLTAPointer<int> > fmaybe_int_xsltaptr2(mse::nullopt, ilaptr4);
@@ -7138,16 +7171,16 @@ namespace mse {
 					mse::rsv::xslta_fixed_optional<int> fmaybe_int;
 					auto fmaybe_int_xsltaptr15 = mse::rsv::make_xslta_fixed_optional(mse::nullopt, ilaptr4);
 					auto fmaybe_int_xsltaptr16 = mse::rsv::make_xslta_fixed_optional(ilaptr4);
-					auto ilaptr16 = fmaybe_int_xsltaptr16.value();
-					std::swap(ilaptr16, ilaptr1);
-					std::swap(ilaptr5, ilaptr16);
-					auto ilaptr17 = fmaybe_int_xsltaptr16.value_or(ilaptr4);
-					std::swap(ilaptr17, ilaptr1);
-					std::swap(ilaptr5, ilaptr17);
-					auto ilaptr19 = mse::rsv::TXSLTAPointer<int>{ &i3 };
-					auto ilaptr18 = fmaybe_int_xsltaptr16.value_or(ilaptr19);
-					std::swap(ilaptr18, ilaptr1);
-					std::swap(ilaptr19, ilaptr18);
+					auto ilaptr46 = fmaybe_int_xsltaptr16.value();
+					std::swap(ilaptr46, ilaptr4);
+					std::swap(ilaptr5, ilaptr46);
+					auto ilaptr47 = fmaybe_int_xsltaptr16.value_or(ilaptr4);
+					std::swap(ilaptr47, ilaptr4);
+					std::swap(ilaptr5, ilaptr47);
+					auto ilaptr49 = mse::rsv::TXSLTAPointer<int>{ &i3 };
+					auto ilaptr48 = fmaybe_int_xsltaptr16.value_or(ilaptr49);
+					std::swap(ilaptr48, ilaptr4);
+					std::swap(ilaptr49, ilaptr48);
 				}
 
 #endif // MSE_SELF_TESTS

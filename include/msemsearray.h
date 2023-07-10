@@ -8920,6 +8920,294 @@ namespace mse {
 
 
 	namespace rsv {
+		template <typename _TRAIterator> class TXSLTARASectionIterator;
+		template <typename _TRAIterator> class TXSLTARASectionConstIterator;
+
+		namespace us {
+			namespace impl {
+				template <typename _TRAIterator> class TXSLTARASectionIteratorBaseFriend1;
+
+				template <typename _TRAIterator> class TXSLTARASectionConstIteratorBase;
+
+				template <typename _TRAIterator>
+				class TXSLTARASectionIteratorBase : public mse::impl::random_access_iterator_base_from_ra_iterator<_TRAIterator>
+					, MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(_TRAIterator, TXSLTARASectionIteratorBase<_TRAIterator>)
+				{
+				public:
+					typedef mse::impl::random_access_iterator_base_from_ra_iterator<_TRAIterator> base_class;
+					MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+					typedef _TRAIterator iterator_type;
+
+				private:
+					const _TRAIterator m_ra_iterator MSE_ATTR_STR("mse::lifetime_labels(99)");
+					const size_type m_count = 0;
+					difference_type m_index = 0;
+
+				public:
+					TXSLTARASectionIteratorBase(const TXSLTARASectionIteratorBase& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
+						: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
+					TXSLTARASectionIteratorBase(_TRAIterator ra_iterator MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"), size_type count, size_type index = 0)
+						: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+
+					void bounds_check(difference_type index) const {
+						if ((0 > index) || (difference_type(mse::msear_as_a_size_t(m_count)) <= index)) {
+							MSE_THROW(msearray_range_error("out of bounds index - void bounds_check() - TXSLTARASectionIteratorBase"));
+						}
+					}
+					void dereference_bounds_check() const {
+						bounds_check(m_index);
+					}
+					auto operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+						dereference_bounds_check();
+						return m_ra_iterator[m_index];
+					}
+					auto operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+						dereference_bounds_check();
+						return std::addressof(m_ra_iterator[m_index]);
+					}
+					auto operator[](difference_type _Off) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+						bounds_check(_Off);
+						return m_ra_iterator[_Off];
+					}
+					TXSLTARASectionIteratorBase& operator +=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+						m_index += (x);
+						return (*this);
+					}
+					TXSLTARASectionIteratorBase& operator -=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(-x); return (*this); }
+					TXSLTARASectionIteratorBase& operator ++() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(1); return (*this); }
+					TXSLTARASectionIteratorBase operator ++(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+					TXSLTARASectionIteratorBase& operator --() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator -=(1); return (*this); }
+					TXSLTARASectionIteratorBase operator --(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+					TXSLTARASectionIteratorBase operator+(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto retval = (*this); retval += n; return retval; }
+					TXSLTARASectionIteratorBase operator-(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { return ((*this) + (-n)); }
+					difference_type operator-(const TXSLTARASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
+						return (TXSLTARASectionConstIteratorBase<_TRAIterator>(*this) - _Right_cref);
+					}
+
+					MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(TXSLTARASectionIteratorBase, TXSLTARASectionConstIteratorBase<_TRAIterator>)
+
+					TXSLTARASectionIteratorBase& operator=(const TXSLTARASectionIteratorBase& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+						if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TXSLTARASectionIteratorBase& operator=() - TXSLTARASectionIteratorBase")); }
+						m_index = _Right_cref.m_index;
+						return (*this);
+					}
+
+					friend class TXSLTARASectionConstIteratorBase<_TRAIterator>;
+					template <typename _TRAIterator2>
+					friend class TXSLTARASectionIterator;
+					template <typename _TRAIterator2>
+					friend class TXSLTARASectionIteratorBaseFriend1;
+				} MSE_ATTR_STR("mse::lifetime_labels(99)");
+
+				template <typename _TRAIterator>
+				class TXSLTARASectionIteratorBaseFriend1 {
+				public:
+#if 0
+					static auto xslta_pointer(const TXSLTARASectionIteratorBase<_TRAIterator>& ra_section_iter) {
+						ra_section_iter.dereference_bounds_check();
+						auto ra_iter = ra_section_iter.m_ra_iterator + ra_section_iter.m_index;
+						return mse::xslta_pointer(ra_iter);
+					}
+					static auto xslta_pointer(TXSLTARASectionIteratorBase<_TRAIterator>&& ra_section_iter) {
+						ra_section_iter.dereference_bounds_check();
+						return mse::xslta_pointer(MSE_FWD(ra_section_iter).m_ra_iterator + ra_section_iter.m_index);
+					}
+					static auto xslta_const_pointer(const TXSLTARASectionIteratorBase<_TRAIterator>& ra_section_iter) {
+						ra_section_iter.dereference_bounds_check();
+						auto ra_iter = ra_section_iter.m_ra_iterator + ra_section_iter.m_index;
+						return mse::xslta_const_pointer(ra_iter);
+					}
+					static auto xslta_const_pointer(TXSLTARASectionIteratorBase<_TRAIterator>&& ra_section_iter) {
+						ra_section_iter.dereference_bounds_check();
+						return mse::xslta_const_pointer(MSE_FWD(ra_section_iter).m_ra_iterator + ra_section_iter.m_index);
+					}
+#endif // 0
+				};
+			}
+		}
+
+		template <typename _TRAIterator>
+		class TXSLTARASectionIterator : public mse::rsv::us::impl::TXSLTARASectionIteratorBase<_TRAIterator>, public mse::us::impl::XSLTATagBase {
+		public:
+			typedef mse::rsv::us::impl::TXSLTARASectionIteratorBase<_TRAIterator> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			typedef typename base_class::iterator_type iterator_type;
+
+			TXSLTARASectionIterator(const mse::rsv::us::impl::TXSLTARASectionIteratorBase<_TRAIterator>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
+				: base_class(src) {}
+			TXSLTARASectionIterator(_TRAIterator ra_iterator MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"), size_type count, size_type index = 0)
+				: base_class(ra_iterator, count, index) {}
+
+			TXSLTARASectionIterator& operator +=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::operator +=(x);
+				return (*this);
+			}
+			TXSLTARASectionIterator& operator -=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(-x); return (*this); }
+			TXSLTARASectionIterator& operator ++() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(1); return (*this); }
+			TXSLTARASectionIterator operator ++(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+			TXSLTARASectionIterator& operator --() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator -=(1); return (*this); }
+			TXSLTARASectionIterator operator --(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+			TXSLTARASectionIterator operator+(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto retval = (*this); retval += n; return retval; }
+			TXSLTARASectionIterator operator-(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { return ((*this) + (-n)); }
+			difference_type operator-(const mse::rsv::us::impl::TXSLTARASectionIteratorBase<_TRAIterator>& _Right_cref) const {
+				return base_class::operator-(_Right_cref);
+			}
+
+			TXSLTARASectionIterator& operator=(const mse::rsv::us::impl::TXSLTARASectionIteratorBase<_TRAIterator>& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::operator=(_Right_cref);
+				return (*this);
+			}
+
+			void xslta_tag() const {}
+			void xslta_iterator_tag() const {}
+			void async_not_shareable_and_not_passable_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+		private:
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
+
+		namespace us {
+			namespace impl {
+				template <typename _TRAIterator> class TXSLTARASectionConstIteratorBaseFriend1;
+
+				template <typename _TRAIterator>
+				class TXSLTARASectionConstIteratorBase : public mse::impl::random_access_const_iterator_base_from_ra_iterator<_TRAIterator>
+					, MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(_TRAIterator, TXSLTARASectionConstIteratorBase<_TRAIterator>)
+				{
+				public:
+					typedef mse::impl::random_access_const_iterator_base_from_ra_iterator<_TRAIterator> base_class;
+					MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+					typedef _TRAIterator iterator_type;
+
+				private:
+					const _TRAIterator m_ra_iterator MSE_ATTR_STR("mse::lifetime_labels(99)");
+					const size_type m_count = 0;
+					difference_type m_index = 0;
+
+				public:
+					TXSLTARASectionConstIteratorBase(const TXSLTARASectionConstIteratorBase& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
+						: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
+					TXSLTARASectionConstIteratorBase(const TXSLTARASectionIteratorBase<_TRAIterator>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
+						: m_ra_iterator(src.m_ra_iterator), m_count(src.m_count), m_index(src.m_index) {}
+					TXSLTARASectionConstIteratorBase(_TRAIterator ra_iterator MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"), size_type count, size_type index = 0)
+						: m_ra_iterator(ra_iterator), m_count(count), m_index(difference_type(mse::msear_as_a_size_t(index))) {}
+
+					void bounds_check(difference_type index) const {
+						if ((0 > index) || (difference_type(mse::msear_as_a_size_t(m_count)) <= index)) {
+							MSE_THROW(msearray_range_error("out of bounds index - void bounds_check() - TXSLTARASectionConstIteratorBase"));
+						}
+					}
+					void dereference_bounds_check() const {
+						bounds_check(m_index);
+					}
+					auto operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+						dereference_bounds_check();
+						return m_ra_iterator[m_index];
+					}
+					auto operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+						dereference_bounds_check();
+						return std::addressof(m_ra_iterator[m_index]);
+					}
+					auto operator[](difference_type _Off) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+						bounds_check(_Off);
+						return m_ra_iterator[_Off];
+					}
+					TXSLTARASectionConstIteratorBase& operator +=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+						m_index += (x);
+						return (*this);
+					}
+					TXSLTARASectionConstIteratorBase& operator -=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(-x); return (*this); }
+					TXSLTARASectionConstIteratorBase& operator ++() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(1); return (*this); }
+					TXSLTARASectionConstIteratorBase operator ++(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+					TXSLTARASectionConstIteratorBase& operator --() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator -=(1); return (*this); }
+					TXSLTARASectionConstIteratorBase operator --(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+					TXSLTARASectionConstIteratorBase operator+(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto retval = (*this); retval += n; return retval; }
+					TXSLTARASectionConstIteratorBase operator-(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { return ((*this) + (-n)); }
+					difference_type operator-(const TXSLTARASectionConstIteratorBase& _Right_cref) const {
+						if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - difference_type operator-() - TXSLTARASectionConstIteratorBase")); }
+						return m_index - _Right_cref.m_index;
+					}
+
+					MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(TXSLTARASectionConstIteratorBase)
+
+					TXSLTARASectionConstIteratorBase& operator=(const TXSLTARASectionConstIteratorBase& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+						if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TXSLTARASectionConstIteratorBase& operator=() - TXSLTARASectionConstIteratorBase")); }
+						m_index = _Right_cref.m_index;
+						return (*this);
+					}
+
+					template <typename _TRAIterator2>
+					friend class TXSLTARASectionConstIterator;
+					template <typename _TRAIterator2>
+					friend class TXSLTARASectionConstIteratorBaseFriend1;
+				} MSE_ATTR_STR("mse::lifetime_labels(99)");
+
+				template <typename _TRAIterator>
+				class TXSLTARASectionConstIteratorBaseFriend1 {
+				public:
+#if 0
+					static auto xslta_const_pointer(const TXSLTARASectionConstIteratorBase<_TRAIterator>& ra_section_iter) {
+						ra_section_iter.dereference_bounds_check();
+						auto ra_iter = ra_section_iter.m_ra_iterator + ra_section_iter.m_index;
+						return mse::xslta_const_pointer(ra_iter);
+					}
+					static auto xslta_const_pointer(TXSLTARASectionConstIteratorBase<_TRAIterator>&& ra_section_iter) {
+						ra_section_iter.dereference_bounds_check();
+						return mse::xslta_const_pointer(MSE_FWD(ra_section_iter).m_ra_iterator + ra_section_iter.m_index);
+					}
+#endif // 0
+				};
+			}
+		}
+
+		template <typename _TRAIterator>
+		class TXSLTARASectionConstIterator : public mse::rsv::us::impl::TXSLTARASectionConstIteratorBase<_TRAIterator>, public mse::us::impl::XSLTATagBase {
+		public:
+			typedef mse::rsv::us::impl::TXSLTARASectionConstIteratorBase<_TRAIterator> base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			typedef typename base_class::iterator_type iterator_type;
+
+			TXSLTARASectionConstIterator(const mse::rsv::us::impl::TXSLTARASectionConstIteratorBase<_TRAIterator>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
+				: base_class(src) {}
+			TXSLTARASectionConstIterator(_TRAIterator ra_iterator MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"), size_type count, size_type index = 0)
+				: base_class(ra_iterator, count, index) {}
+
+			TXSLTARASectionConstIterator& operator +=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::operator +=(x);
+				return (*this);
+			}
+			TXSLTARASectionConstIterator& operator -=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(-x); return (*this); }
+			TXSLTARASectionConstIterator& operator ++() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(1); return (*this); }
+			TXSLTARASectionConstIterator operator ++(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto _Tmp = *this; operator +=(1); return (_Tmp); }
+			TXSLTARASectionConstIterator& operator --() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator -=(1); return (*this); }
+			TXSLTARASectionConstIterator operator --(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto _Tmp = *this; operator -=(1); return (_Tmp); }
+
+			TXSLTARASectionConstIterator operator+(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto retval = (*this); retval += n; return retval; }
+			TXSLTARASectionConstIterator operator-(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { return ((*this) + (-n)); }
+			difference_type operator-(const mse::rsv::us::impl::TXSLTARASectionConstIteratorBase<_TRAIterator>& _Right_cref) const {
+				return base_class::operator-(_Right_cref);
+			}
+
+			TXSLTARASectionConstIterator& operator=(const mse::rsv::us::impl::TXSLTARASectionConstIteratorBase<_TRAIterator>& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				base_class::operator=(_Right_cref);
+				return (*this);
+			}
+
+			void xslta_tag() const {}
+			void xslta_iterator_tag() const {}
+			void async_not_shareable_and_not_passable_tag() const {}
+			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+		private:
+			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
+	}
+
+	namespace rsv {
 		/* TAsyncShareableObj is intended as a transparent wrapper for other classes/objects. */
 		template<typename _TROy>
 		class TAsyncShareableObj : public _TROy {

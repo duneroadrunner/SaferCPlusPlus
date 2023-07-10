@@ -2270,7 +2270,7 @@ namespace mse {
 				template<class _Mutex>
 				class noop_or_structure_no_change_guard<std::true_type, _Mutex> {
 				public:
-					noop_or_structure_no_change_guard(_Mutex& _Mtx) {}
+					noop_or_structure_no_change_guard(_Mutex&) {}
 				};
 				/* The purpose of the CNoopOrReadLockedSrcRefHolder class is to either do essentially nothing (aka "no-op"), or obtain (and
 				hold) a "structure" lock on the source object. Used in the copy constructor. */
@@ -7583,18 +7583,22 @@ namespace mse {
 				//std::swap(vec2, vec4);    // scpptool would complain
 				//vec2.swap(vec4);    // scpptool would complain
 
-				/* Even when you want to construct an empty rsv::xslta_vector<>, you may still need to provide (a 
-				reference to) an initialization element object from which the lower bound lifetime can be inferred. 
-				You could just initialize the vector with a (non-empty) initializer list, then clear() the vector. 
-				Alternatively, you can pass mse::nullopt as the first constructor parameter, in which case the 
-				lower bound lifetime will be inferred from the second (otherwise unused) parameter. */
+				/* Even when you want to construct an empty rsv::xslta_vector<>, if the element type has an annotated 
+				lifetime, you would still need to provide (a reference to) an initialization element object from which 
+				a lower bound lifetime can be inferred. You could just initialize the vector with a (non-empty) 
+				initializer list, then clear() the vector. Alternatively, you can pass mse::nullopt as the first 
+				constructor parameter, in which case the lower bound lifetime will be inferred from the second 
+				(otherwise unused) parameter. */
 				auto vec5 = mse::rsv::xslta_vector<mse::rsv::TXSLTAPointer<int> >(mse::nullopt, &i2);
 				assert(0 == vec5.size());
+				//auto vec6 = mse::rsv::xslta_vector<mse::rsv::TXSLTAPointer<int> >{};    // scpptool would complain
+				auto vec7 = mse::rsv::xslta_vector<int>{};    // fine, the element type does not have an annotated lifetime
 
 				{
 					/* The preferred way of accessing the contents of an rsv::xslta_vector<> is via an associated 
-					rsv::xslta_borrowing_fixed_vector<> (which, while in use, (efficiently) prevents any of the 
-					elements from being deallocated or relocated). */
+					rsv::xslta_borrowing_fixed_vector<> (which, while it exists, "borrows" exclusive access to the
+					contents of the given vector and (efficiently) prevents any of the elements from being 
+					removed or relocated). */
 					auto bf_vec2a = mse::rsv::make_xslta_borrowing_fixed_vector(&vec2);
 					// or
 					//auto bf_vec2a = mse::rsv::xslta_borrowing_fixed_vector(&vec2);
