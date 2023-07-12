@@ -661,6 +661,7 @@ namespace impl {
 
 			class ContainsNonOwningScopeReferenceTagBase {};
 			class XScopeContainsNonOwningScopeReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase, public XScopeTagBase {};
+			typedef XScopeContainsNonOwningScopeReferenceTagBase XSLTAContainsNonOwningScopeReferenceTagBase;
 
 			template<typename _Ty, typename _TID/* = TPointerID*/>
 			class TPointer;
