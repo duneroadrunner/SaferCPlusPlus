@@ -9242,6 +9242,11 @@ namespace mse {
 
 			return xs_section.xslta_subsection_pv(pos, n);
 		}
+		template <typename _TSection>
+		auto make_subsection(const _TSection& section, typename _TSection::size_type pos = 0, typename _TSection::size_type n = _TSection::npos)
+			-> decltype(section.subsection_pv(pos, n)) {
+			return section.subsection_pv(pos, n);
+		}
 
 		template <typename _TRAIterator> class TXSLTARandomAccessSection;
 		template <typename _TRAIterator> class TXSLTARandomAccessConstSection;
@@ -9571,7 +9576,7 @@ namespace mse {
 				}
 			}
 		}
-		/* We're forward declaring this function here because it is used by the mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<> class that follows.
+		/* We're forward declaring this function here because it is used by the TXSLTARandomAccessConstSectionBase<> class that follows.
 		Note that this function has other overloads and bretheren that do not need to be forward declared. */
 		template <typename _TRALoneParam> auto make_xslta_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(
 			/*typename mse::rsv::impl::is_instantiation_of_TXSLTACagedItemFixedConstPointerToRValue<_TRALoneParam>::type()*/std::false_type(), param));
@@ -9579,11 +9584,11 @@ namespace mse {
 		namespace us {
 			namespace impl {
 				namespace ns_ra_section {
-					template <typename _TRAIterator> class TRandomAccessSectionBase;
+					template <typename _TRAIterator> class TXSLTARandomAccessSectionBase;
 
 					template <typename _TRAIterator>
-					class TRandomAccessConstSectionBase : public mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase
-						, MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(_TRAIterator, TRandomAccessConstSectionBase<_TRAIterator>)
+					class TXSLTARandomAccessConstSectionBase : public mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase
+						, MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(_TRAIterator, TXSLTARandomAccessConstSectionBase<_TRAIterator>)
 					{
 					public:
 						typedef _TRAIterator iterator_type;
@@ -9591,41 +9596,61 @@ namespace mse {
 						MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
 							mse::impl::random_access_const_iterator_base<mse::impl::remove_reference_t<decltype(std::declval<_TRAIterator>()[0])> >);
 
-						//TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) = default;
-						TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
-						TRandomAccessConstSectionBase(const TRandomAccessSectionBase<_TRAIterator>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
-						TRandomAccessConstSectionBase(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type count) : m_count(count), m_start_iter(start_iter) {}
+						//TXSLTARandomAccessConstSectionBase(const TXSLTARandomAccessConstSectionBase& src) = default;
+						TXSLTARandomAccessConstSectionBase(const TXSLTARandomAccessConstSectionBase& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
+						TXSLTARandomAccessConstSectionBase(const TXSLTARandomAccessSectionBase<_TRAIterator>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
+						TXSLTARandomAccessConstSectionBase(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type count) : m_count(count), m_start_iter(start_iter) {}
 
 						template <typename _TRAIterator2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_convertible<_TRAIterator2, _TRAIterator>::value)> MSE_IMPL_EIS>
-						TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase<_TRAIterator2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
+						TXSLTARandomAccessConstSectionBase(const TXSLTARandomAccessConstSectionBase<_TRAIterator2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
 						template <typename _TRAIterator2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_convertible<_TRAIterator2, _TRAIterator>::value)> MSE_IMPL_EIS>
-						TRandomAccessConstSectionBase(const TRandomAccessSectionBase<_TRAIterator2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
+						TXSLTARandomAccessConstSectionBase(const TXSLTARandomAccessSectionBase<_TRAIterator2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
 
-						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
-						explicit TRandomAccessConstSectionBase(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
-							/* _TRALoneParam being either another TRandomAccess(Const)SectionBase<> or a pointer to "random access" container is
-							supported. Different initialization implementations are required for each of the two cases. */
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<mse::rsv::TXSLTAConstPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
+						TXSLTARandomAccessConstSectionBase(const mse::rsv::TXSLTAConstPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 							: m_count(s_count_from_lone_param(param))
 							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
-						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
-						explicit TRandomAccessConstSectionBase(_TRALoneParam&& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<mse::rsv::TXSLTAPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
+						explicit TXSLTARandomAccessConstSectionBase(const mse::rsv::TXSLTAPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+							: m_count(s_count_from_lone_param(param))
+							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRAContainer const*>()))>::value)> MSE_IMPL_EIS>
+						TXSLTARandomAccessConstSectionBase(_TRAContainer const * param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+							: m_count(s_count_from_lone_param(param))
+							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRAContainer*>()))>::value)> MSE_IMPL_EIS>
+						explicit TXSLTARandomAccessConstSectionBase(_TRAContainer * param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+							: m_count(s_count_from_lone_param(param))
+							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
+
+#if 0
+						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+							&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+						explicit TXSLTARandomAccessConstSectionBase(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
+							/* _TRALoneParam being a pointer to "random access" container is supported. */
+							: m_count(s_count_from_lone_param(param))
+							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
+						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+							&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+						explicit TXSLTARandomAccessConstSectionBase(_TRALoneParam&& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
 							: m_count(s_count_from_lone_param(param))
 							, m_start_iter(s_xslta_iter_from_lone_param(MSE_FWD(param))) {}
+#endif // 0
 
 						typedef decltype(std::declval<_TRAIterator>()[0]) deref_return_type;
 						deref_return_type operator[](size_type _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-							if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TRandomAccessConstSectionBase")); }
+							if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TXSLTARandomAccessConstSectionBase")); }
 							return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
 						}
 						deref_return_type at(size_type _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							return (*this)[_P];
 						}
 						deref_return_type front() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-							if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - deref_return_type front() const - TRandomAccessConstSectionBase")); }
+							if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - deref_return_type front() const - TXSLTARandomAccessConstSectionBase")); }
 							return (*this)[0];
 						}
 						deref_return_type back() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-							if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - deref_return_type back() const - TRandomAccessConstSectionBase")); }
+							if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - deref_return_type back() const - TXSLTARandomAccessConstSectionBase")); }
 							return (*this)[(*this).size() - 1];
 						}
 						size_type size() const _NOEXCEPT {
@@ -9671,7 +9696,7 @@ namespace mse {
 						}
 						template <typename _TRAIterator2>
 						bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-							auto sv = mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
+							auto sv = TXSLTARandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
 							return subsection(pos1, n1).equal(sv);
 						}
 
@@ -9696,38 +9721,38 @@ namespace mse {
 							return subsection(pos1, n1).lexicographical_compare(sv);
 						}
 
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator==(const _TRAParam& ra_param) const {
 							return equal(ra_param);
 						}
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator!=(const _TRAParam& ra_param) const {
 							return !((*this) == ra_param);
 						}
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator<(const _TRAParam& ra_param) const {
 							auto sv = mse::rsv::make_xslta_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 							return lexicographical_compare(sv);
 						}
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator>(const _TRAParam& ra_param) const {
 							auto sv = mse::rsv::make_xslta_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 							return sv.lexicographical_compare(*this);
 						}
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessConstSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
 
-						friend bool operator==(const TRandomAccessConstSectionBase& _Left_cref, const TRandomAccessConstSectionBase& _Right_cref) { return _Left_cref.equal(_Right_cref); }
-						MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TRandomAccessConstSectionBase)
+						friend bool operator==(const TXSLTARandomAccessConstSectionBase& _Left_cref, const TXSLTARandomAccessConstSectionBase& _Right_cref) { return _Left_cref.equal(_Right_cref); }
+						MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TXSLTARandomAccessConstSectionBase)
 #ifndef MSE_HAS_CXX20
-							friend bool operator<(const TRandomAccessConstSectionBase& _Left_cref, const TRandomAccessConstSectionBase& _Right_cref) {
+							friend bool operator<(const TXSLTARandomAccessConstSectionBase& _Left_cref, const TXSLTARandomAccessConstSectionBase& _Right_cref) {
 							auto sv = mse::rsv::make_xslta_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
 							return _Left_cref.lexicographical_compare(sv);
 						}
 #else // !MSE_HAS_CXX20
-							friend std::strong_ordering operator<=>(const TRandomAccessConstSectionBase& _Left_cref, const TRandomAccessConstSectionBase& _Right_cref) {
+							friend std::strong_ordering operator<=>(const TXSLTARandomAccessConstSectionBase& _Left_cref, const TXSLTARandomAccessConstSectionBase& _Right_cref) {
 							signed char res = 0;
 							if (!_Left_cref.equal(_Right_cref)) {
 								if (_Left_cref.lexicographical_compare(_Right_cref)) {
@@ -9759,22 +9784,22 @@ namespace mse {
 						}
 
 						void remove_prefix(size_type n) /*_NOEXCEPT*/ {
-							if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_prefix() - TRandomAccessConstSectionBase")); }
+							if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_prefix() - TXSLTARandomAccessConstSectionBase")); }
 							m_count -= n;
 							m_start_iter += n;
 						}
 						void remove_suffix(size_type n) /*_NOEXCEPT*/ {
-							if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_suffix() - TRandomAccessConstSectionBase")); }
+							if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_suffix() - TXSLTARandomAccessConstSectionBase")); }
 							m_count -= n;
 						}
 
-						template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TRandomAccessConstSectionBase, _Ty2>::value&& mse::impl::HasOrInheritsAssignmentOperator_pb<_TRAIterator>::value> MSE_IMPL_EIS >
-						void swap(_Ty2& _Other MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) _NOEXCEPT_OP(_NOEXCEPT_OP(TRandomAccessConstSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
-							TRandomAccessConstSectionBase& _Other2 = _Other;
+						template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TXSLTARandomAccessConstSectionBase, _Ty2>::value&& mse::impl::HasOrInheritsAssignmentOperator_pb<_TRAIterator>::value> MSE_IMPL_EIS >
+						void swap(_Ty2& _Other MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) _NOEXCEPT_OP(_NOEXCEPT_OP(TXSLTARandomAccessConstSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
+							TXSLTARandomAccessConstSectionBase& _Other2 = _Other;
 							std::swap((*this), _Other2);
 						}
 
-						size_type find(const mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+						size_type find(const TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -9791,7 +9816,7 @@ namespace mse {
 							auto cit1 = std::find(xslta_cbegin(), xslta_cend(), c);
 							return (xslta_cend() == cit1) ? npos : (cit1 - xslta_cbegin());
 						}
-						size_type rfind(const mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+						size_type rfind(const TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -9819,7 +9844,7 @@ namespace mse {
 							}
 							return npos;
 						}
-						size_type find_first_of(const mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+						size_type find_first_of(const TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -9832,7 +9857,7 @@ namespace mse {
 						size_type find_first_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
 							return find(c, pos);
 						}
-						size_type find_last_of(const mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+						size_type find_last_of(const TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -9856,7 +9881,7 @@ namespace mse {
 						size_type find_last_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
 							return rfind(c, pos);
 						}
-						size_type find_first_not_of(const mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+						size_type find_first_not_of(const TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -9890,7 +9915,7 @@ namespace mse {
 							}
 							return (cit - (*this).xslta_cbegin());
 						}
-						size_type find_last_not_of(const mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+						size_type find_last_not_of(const TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -9931,13 +9956,13 @@ namespace mse {
 							return npos;
 						}
 
-						bool starts_with(const mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+						bool starts_with(const TXSLTARandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
 							return (size() >= s.size()) && equal(0, s.size(), s);
 						}
 						bool starts_with(const value_type& c) const _NOEXCEPT {
 							return (!empty()) && (front() == c);
 						}
-						bool ends_with(const mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+						bool ends_with(const TXSLTARandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
 							return (size() >= s.size()) && equal(size() - s.size(), npos, s);
 						}
 						bool ends_with(const value_type& c) const _NOEXCEPT {
@@ -9965,7 +9990,7 @@ namespace mse {
 							MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, xslta_const_iterator);
 						private:
 							xslta_const_iterator(const _TRAIterator& iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type count, size_type index) : base_class(iter, count, index) {}
-							friend class TRandomAccessConstSectionBase;
+							friend class TXSLTARandomAccessConstSectionBase;
 						} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 						typedef xslta_const_iterator xslta_iterator;
 						xslta_const_iterator xslta_begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { return (*this).xslta_cbegin(); }
@@ -9997,9 +10022,9 @@ namespace mse {
 						}
 
 					protected:
-						TRandomAccessConstSectionBase subsection(size_type pos = 0, size_type n = npos) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-							if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessConstSectionBase subsection() const - TRandomAccessConstSectionBase")); }
-							return TRandomAccessConstSectionBase((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+						TXSLTARandomAccessConstSectionBase subsection(size_type pos = 0, size_type n = npos) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+							if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TXSLTARandomAccessConstSectionBase subsection() const - TXSLTARandomAccessConstSectionBase")); }
+							return TXSLTARandomAccessConstSectionBase((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 						}
 
 					private:
@@ -10010,12 +10035,12 @@ namespace mse {
 
 						friend class TXSLTARandomAccessConstSection<_TRAIterator>;
 						friend class TRandomAccessConstSection<_TRAIterator>;
-						template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
-						/* We're friending mse::us::impl::ns_ra_section::TRandomAccessSectionBase<> because at the moment we're using its "constructor
+						template<typename _TRAIterator1> friend class TXSLTARandomAccessConstSectionBase;
+						/* We're friending mse::us::impl::ns_ra_section::TXSLTARandomAccessSectionBase<> because at the moment we're using its "constructor
 						helper" (static) member functions, instead of duplicating them here, and those functions will need access to
 						the private data members of this class. */
-						template<typename _TRAIterator1> friend class TRandomAccessSectionBase;
-						template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
+						template<typename _TRAIterator1> friend class TXSLTARandomAccessSectionBase;
+						template<typename _TRAIterator1> friend class TXSLTARandomAccessConstSectionBase;
 						friend struct mse::rsv::impl::ra_const_section_helpers;
 						friend struct mse::rsv::impl::ra_section_helpers;
 					} MSE_ATTR_STR("mse::lifetime_labels(99)");
@@ -10024,9 +10049,9 @@ namespace mse {
 		}
 
 		template <typename _TRAIterator>
-		class TXSLTARandomAccessConstSection : public mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>, public mse::us::impl::XSLTAContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+		class TXSLTARandomAccessConstSection : public mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>, public mse::us::impl::XSLTAContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
-			typedef mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator> base_class;
+			typedef mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator> base_class;
 			typedef _TRAIterator iterator_type;
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
@@ -10039,11 +10064,28 @@ namespace mse {
 			template <typename _TRAIterator2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_convertible<_TRAIterator2, _TRAIterator>::value)> MSE_IMPL_EIS>
 			TXSLTARandomAccessConstSection(const TXSLTARandomAccessSection<_TRAIterator2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
 
-			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
+			template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<mse::rsv::TXSLTAConstPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
+			TXSLTARandomAccessConstSection(const mse::rsv::TXSLTAConstPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+				: base_class(param) {}
+			template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<mse::rsv::TXSLTAPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
+			explicit TXSLTARandomAccessConstSection(const mse::rsv::TXSLTAPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+				: base_class(param) {}
+			template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRAContainer const*>()))>::value)> MSE_IMPL_EIS>
+			TXSLTARandomAccessConstSection(_TRAContainer const* param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+				: base_class(param) {}
+			template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRAContainer*>()))>::value)> MSE_IMPL_EIS>
+			explicit TXSLTARandomAccessConstSection(_TRAContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+				: base_class(param) {}
+
+			/*
+			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+				&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
 			explicit TXSLTARandomAccessConstSection(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(param) {}
-			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
+			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+				&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
 			explicit TXSLTARandomAccessConstSection(_TRALoneParam&& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
 				: base_class(MSE_FWD(param)) {}
+			*/
 
 			//MSE_USING(TXSLTARandomAccessConstSection, base_class);
 
@@ -10096,10 +10138,10 @@ namespace mse {
 			namespace impl {
 				namespace ns_ra_section {
 					template <typename _TRAIterator>
-					class TRandomAccessSectionBase : public mse::us::impl::ns_ra_section::RandomAccessSectionTagBase
-						, MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(_TRAIterator, TRandomAccessSectionBase<_TRAIterator>)
-						, std::conditional<mse::impl::is_static_structure_iterator<mse::impl::remove_reference_t<_TRAIterator> >::value || mse::impl::is_structure_locking_iterator<mse::impl::remove_reference_t<_TRAIterator> >::value, mse::us::impl::StaticStructureContainerTagBase, mse::impl::TPlaceHolder<mse::us::impl::StaticStructureContainerTagBase, TRandomAccessSectionBase<_TRAIterator> > >::type
-						, std::conditional<mse::impl::is_contiguous_sequence_iterator<mse::impl::remove_reference_t<_TRAIterator> >::value, mse::us::impl::ContiguousSequenceContainerTagBase, mse::impl::TPlaceHolder<mse::us::impl::ContiguousSequenceContainerTagBase, TRandomAccessSectionBase<_TRAIterator> > >::type
+					class TXSLTARandomAccessSectionBase : public mse::us::impl::ns_ra_section::RandomAccessSectionTagBase
+						, MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(_TRAIterator, TXSLTARandomAccessSectionBase<_TRAIterator>)
+						, std::conditional<mse::impl::is_static_structure_iterator<mse::impl::remove_reference_t<_TRAIterator> >::value || mse::impl::is_structure_locking_iterator<mse::impl::remove_reference_t<_TRAIterator> >::value, mse::us::impl::StaticStructureContainerTagBase, mse::impl::TPlaceHolder<mse::us::impl::StaticStructureContainerTagBase, TXSLTARandomAccessSectionBase<_TRAIterator> > >::type
+						, std::conditional<mse::impl::is_contiguous_sequence_iterator<mse::impl::remove_reference_t<_TRAIterator> >::value, mse::us::impl::ContiguousSequenceContainerTagBase, mse::impl::TPlaceHolder<mse::us::impl::ContiguousSequenceContainerTagBase, TXSLTARandomAccessSectionBase<_TRAIterator> > >::type
 					{
 					public:
 						typedef _TRAIterator iterator_type;
@@ -10107,36 +10149,49 @@ namespace mse {
 						MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
 							mse::impl::random_access_iterator_base<mse::impl::remove_reference_t<decltype(std::declval<_TRAIterator>()[0])> >);
 
-						//TRandomAccessSectionBase(const TRandomAccessSectionBase& src) = default;
-						TRandomAccessSectionBase(const TRandomAccessSectionBase& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
-						TRandomAccessSectionBase(const _TRAIterator& start_iter, size_type count) : m_count(count), m_start_iter(start_iter) {}
+						//TXSLTARandomAccessSectionBase(const TXSLTARandomAccessSectionBase& src) = default;
+						TXSLTARandomAccessSectionBase(const TXSLTARandomAccessSectionBase& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
+						TXSLTARandomAccessSectionBase(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type count) : m_count(count), m_start_iter(start_iter) {}
 
 						template <typename _TRAIterator2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_convertible<_TRAIterator2, _TRAIterator>::value)> MSE_IMPL_EIS>
-						TRandomAccessSectionBase(const TRandomAccessSectionBase<_TRAIterator2>& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
+						TXSLTARandomAccessSectionBase(const TXSLTARandomAccessSectionBase<_TRAIterator2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
 
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<mse::rsv::TXSLTAPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
+						explicit TXSLTARandomAccessSectionBase(const mse::rsv::TXSLTAPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+							: m_count(s_count_from_lone_param(param))
+							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRAContainer*>()))>::value)> MSE_IMPL_EIS>
+						explicit TXSLTARandomAccessSectionBase(_TRAContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+							: m_count(s_count_from_lone_param(param))
+							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
+
+						/*
 						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
-						explicit TRandomAccessSectionBase(const _TRALoneParam& param)
+						explicit TXSLTARandomAccessSectionBase(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
 							: m_count(s_count_from_lone_param(param)), m_start_iter(s_xslta_iter_from_lone_param(param)) {}
 						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
-						explicit TRandomAccessSectionBase(_TRALoneParam&& param)
+						explicit TXSLTARandomAccessSectionBase(_TRALoneParam&& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
 							: m_count(s_count_from_lone_param(param)), m_start_iter(s_xslta_iter_from_lone_param(MSE_FWD(param))) {}
+						*/
+
 						/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 						template<size_t Tn>
-						TRandomAccessSectionBase(value_type(&native_array)[Tn]) : m_count(Tn), m_start_iter(native_array) {}
+						TXSLTARandomAccessSectionBase(value_type(&native_array)[Tn]) : m_count(Tn), m_start_iter(native_array) {}
 
-						reference operator[](size_type _P) const {
-							if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TRandomAccessSectionBase")); }
+						typedef decltype(std::declval<_TRAIterator>()[0]) deref_return_type;
+						deref_return_type operator[](size_type _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+							if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TXSLTARandomAccessSectionBase")); }
 							return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
 						}
-						reference at(size_type _P) const {
+						deref_return_type at(size_type _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							return (*this)[_P];
 						}
-						reference front() const {
-							if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - reference front() const - TRandomAccessSectionBase")); }
+						deref_return_type front() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+							if (0 == (*this).size()) { MSE_THROW(msearray_range_error("front() on empty - reference front() const - TXSLTARandomAccessSectionBase")); }
 							return (*this)[0];
 						}
-						reference back() const {
-							if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - reference back() const - TRandomAccessSectionBase")); }
+						deref_return_type back() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+							if (0 == (*this).size()) { MSE_THROW(msearray_range_error("back() on empty - reference back() const - TXSLTARandomAccessSectionBase")); }
 							return (*this)[(*this).size() - 1];
 						}
 						size_type size() const _NOEXCEPT {
@@ -10182,7 +10237,7 @@ namespace mse {
 						}
 						template <typename _TRAIterator2>
 						bool equal(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-							auto sv = mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
+							auto sv = mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator2>(mse::rsv::as_an_fparam(s), n2);
 							return subsection(pos1, n1).equal(sv);
 						}
 
@@ -10207,40 +10262,40 @@ namespace mse {
 							return subsection(pos1, n1).lexicographical_compare(sv);
 						}
 
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator==(const _TRAParam& ra_param) const {
 							return equal(ra_param);
 						}
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator!=(const _TRAParam& ra_param) const {
 							return !((*this) == ra_param);
 						}
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator<(const _TRAParam& ra_param) const {
 							auto sv = mse::rsv::make_xslta_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 							return lexicographical_compare(sv);
 						}
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator>(const _TRAParam& ra_param) const {
 							auto sv = mse::rsv::make_xslta_random_access_const_section(mse::rsv::as_an_fparam(ra_param));
 							return sv.lexicographical_compare(*this);
 						}
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator<=(const _TRAParam& ra_param) const { return !((*this) > ra_param); }
-						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TRandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
+						template<typename _TRAParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TRAParam*, TXSLTARandomAccessSectionBase const*>::value)> MSE_IMPL_EIS>
 						bool operator>=(const _TRAParam& ra_param) const { return !((*this) < ra_param); }
 
-						MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(TRandomAccessSectionBase, TRandomAccessConstSectionBase<_TRAIterator>)
+						MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(TXSLTARandomAccessSectionBase, TXSLTARandomAccessConstSectionBase<_TRAIterator>)
 	#if 0
-						friend bool operator==(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) { return _Left_cref.equal(_Right_cref); }
-						MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TRandomAccessSectionBase)
+						friend bool operator==(const TXSLTARandomAccessSectionBase& _Left_cref, const TXSLTARandomAccessSectionBase& _Right_cref) { return _Left_cref.equal(_Right_cref); }
+						MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TXSLTARandomAccessSectionBase)
 	#ifndef MSE_HAS_CXX20
-						friend bool operator<(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) {
+						friend bool operator<(const TXSLTARandomAccessSectionBase& _Left_cref, const TXSLTARandomAccessSectionBase& _Right_cref) {
 							auto sv = mse::rsv::make_xslta_random_access_const_section(mse::rsv::as_an_fparam(_Right_cref));
 							return _Left_cref.lexicographical_compare(sv);
 						}
 	#else // !MSE_HAS_CXX20
-						friend std::strong_ordering operator<=>(const TRandomAccessSectionBase& _Left_cref, const TRandomAccessSectionBase& _Right_cref) {
+						friend std::strong_ordering operator<=>(const TXSLTARandomAccessSectionBase& _Left_cref, const TXSLTARandomAccessSectionBase& _Right_cref) {
 							signed char res = 0;
 							if (!_Left_cref.equal(_Right_cref)) {
 								if (_Left_cref.lexicographical_compare(_Right_cref)) {
@@ -10255,7 +10310,7 @@ namespace mse {
 	#endif // !MSE_HAS_CXX20
 	#endif // 0
 
-						int compare(const mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
+						int compare(const mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>& sv) const _NOEXCEPT {
 							size_type rlen = std::min(size(), sv.size());
 
 							int retval = 0;
@@ -10269,15 +10324,15 @@ namespace mse {
 								retval = size() == sv.size() ? 0 : (size() < sv.size() ? -1 : 1);
 							return retval;
 						}
-						int compare(size_type pos1, size_type n1, mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator> sv) const {
+						int compare(size_type pos1, size_type n1, mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator> sv) const {
 							return subsection(pos1, n1).compare(sv);
 						}
-						int compare(size_type pos1, size_type n1, mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
+						int compare(size_type pos1, size_type n1, mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator> sv, size_type pos2, size_type n2) const {
 							return subsection(pos1, n1).compare(sv.subsection(pos2, n2));
 						}
 						template <typename _TRAIterator2>
 						int compare(size_type pos1, size_type n1, const _TRAIterator2& s, size_type n2) const {
-							return subsection(pos1, n1).compare(us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>(s, n2));
+							return subsection(pos1, n1).compare(us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>(s, n2));
 						}
 
 						template <typename _TRAIterator2>
@@ -10298,22 +10353,22 @@ namespace mse {
 						}
 
 						void remove_prefix(size_type n) /*_NOEXCEPT*/ {
-							if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_prefix() - TRandomAccessSectionBase")); }
+							if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_prefix() - TXSLTARandomAccessSectionBase")); }
 							m_count -= n;
 							m_start_iter += n;
 						}
 						void remove_suffix(size_type n) /*_NOEXCEPT*/ {
-							if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_suffix() - TRandomAccessSectionBase")); }
+							if (n > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - void remove_suffix() - TXSLTARandomAccessSectionBase")); }
 							m_count -= n;
 						}
 
-						template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TRandomAccessSectionBase, _Ty2>::value&& mse::impl::HasOrInheritsAssignmentOperator_pb<_TRAIterator>::value> MSE_IMPL_EIS >
-						void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TRandomAccessSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
-							TRandomAccessSectionBase& _Other2 = _Other;
+						template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TXSLTARandomAccessSectionBase, _Ty2>::value&& mse::impl::HasOrInheritsAssignmentOperator_pb<_TRAIterator>::value> MSE_IMPL_EIS >
+						void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TXSLTARandomAccessSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
+							TXSLTARandomAccessSectionBase& _Other2 = _Other;
 							std::swap((*this), _Other2);
 						}
 
-						size_type find(const mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+						size_type find(const mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -10330,7 +10385,7 @@ namespace mse {
 							auto cit1 = std::find(xslta_cbegin(), xslta_cend(), c);
 							return (xslta_cend() == cit1) ? npos : (cit1 - xslta_cbegin());
 						}
-						size_type rfind(const mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+						size_type rfind(const mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -10358,7 +10413,7 @@ namespace mse {
 							}
 							return npos;
 						}
-						size_type find_first_of(const mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+						size_type find_first_of(const mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -10371,7 +10426,7 @@ namespace mse {
 						size_type find_first_of(const value_type& c, size_type pos = 0) const _NOEXCEPT {
 							return find(c, pos);
 						}
-						size_type find_last_of(const mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+						size_type find_last_of(const mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -10395,7 +10450,7 @@ namespace mse {
 						size_type find_last_of(const value_type& c, size_type pos = npos) const _NOEXCEPT {
 							return rfind(c, pos);
 						}
-						size_type find_first_not_of(const mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
+						size_type find_first_not_of(const mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = 0) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -10429,7 +10484,7 @@ namespace mse {
 							}
 							return (cit - (*this).xslta_cbegin());
 						}
-						size_type find_last_not_of(const mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
+						size_type find_last_not_of(const mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>& s, size_type pos = npos) const _NOEXCEPT {
 							if ((1 > s.size()) || (1 > (*this).size())) {
 								return npos;
 							}
@@ -10470,13 +10525,13 @@ namespace mse {
 							return npos;
 						}
 
-						bool starts_with(const mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+						bool starts_with(const mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
 							return (size() >= s.size()) && equal(0, s.size(), s);
 						}
 						bool starts_with(const value_type& c) const _NOEXCEPT {
 							return (!empty()) && (front() == c);
 						}
-						bool ends_with(const mse::rsv::us::impl::ns_ra_section::TRandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
+						bool ends_with(const mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessConstSectionBase<_TRAIterator>& s) const _NOEXCEPT {
 							return (size() >= s.size()) && equal(size() - s.size(), npos, s);
 						}
 						bool ends_with(const value_type& c) const _NOEXCEPT {
@@ -10498,12 +10553,12 @@ namespace mse {
 
 							//MSE_USING(xslta_iterator, base_class);
 							template<class _TRASectionPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_base_of<base_class, _TRASectionPointer>::value> MSE_IMPL_EIS >
-							xslta_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+							xslta_iterator(const _TRASectionPointer& ptr MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
 							MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, xslta_iterator);
 						private:
-							xslta_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
-							friend class TRandomAccessSectionBase;
-						};
+							xslta_iterator(const _TRAIterator& iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type count, size_type index) : base_class(iter, count, index) {}
+							friend class TXSLTARandomAccessSectionBase;
+						} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
 						/*
 						typedef mse::impl::conditional_t<mse::impl::is_instantiation_of<_TRAIterator, mse::rsv::TXSLTACSSSStrongRAConstIterator>::value
@@ -10521,47 +10576,45 @@ namespace mse {
 
 							//MSE_USING(xslta_const_iterator, base_class);
 							template<class _TRASectionPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_base_of<base_class, _TRASectionPointer>::value> MSE_IMPL_EIS >
-							xslta_const_iterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+							xslta_const_iterator(const _TRASectionPointer& ptr MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
 						private:
-							xslta_const_iterator(const _TRAIterator& iter, size_type count, size_type index) : base_class(iter, count, index) {}
-							friend class TRandomAccessSectionBase;
-						};
-						xslta_iterator xslta_begin() const { return xslta_iterator((*this).m_start_iter, (*this).m_count, 0); }
-						xslta_const_iterator xslta_cbegin() const { return xslta_const_iterator((*this).m_start_iter, (*this).m_count, 0); }
-						xslta_iterator xslta_end() const {
+							xslta_const_iterator(const _TRAIterator& iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type count, size_type index) : base_class(iter, count, index) {}
+							friend class TXSLTARandomAccessSectionBase;
+						} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
+						xslta_iterator xslta_begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { return xslta_iterator((*this).m_start_iter, (*this).m_count, 0); }
+						xslta_const_iterator xslta_cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { return xslta_const_iterator((*this).m_start_iter, (*this).m_count, 0); }
+						xslta_iterator xslta_end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							auto retval(xslta_iterator((*this).m_start_iter, (*this).m_count, 0));
 							retval += mse::msear_as_a_size_t((*this).m_count);
 							return retval;
 						}
-						xslta_const_iterator xslta_cend() const {
+						xslta_const_iterator xslta_cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							auto retval(xslta_const_iterator((*this).m_start_iter, (*this).m_count, 0));
 							retval += mse::msear_as_a_size_t((*this).m_count);
 							return retval;
 						}
 
 						template <typename _TRALoneParam>
-						static auto s_xslta_iter_from_lone_param(const _TRALoneParam& param)
-							-> decltype(mse::rsv::impl::ra_section_helpers::s_xslta_iter_from_lone_param(param)) {
+						static auto s_xslta_iter_from_lone_param(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							return mse::rsv::impl::ra_section_helpers::s_xslta_iter_from_lone_param(param);
 						}
 						template <typename _TRALoneParam>
-						static auto s_xslta_iter_from_lone_param(_TRALoneParam&& param)
-							-> decltype(mse::rsv::impl::ra_section_helpers::s_xslta_iter_from_lone_param(MSE_FWD(param))) {
+						static auto s_xslta_iter_from_lone_param(_TRALoneParam&& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							return mse::rsv::impl::ra_section_helpers::s_xslta_iter_from_lone_param(MSE_FWD(param));
 						}
 						template <typename _TRALoneParam>
-						static auto s_iter_from_lone_param(const _TRALoneParam& param) {
+						static auto s_iter_from_lone_param(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							return mse::rsv::impl::ra_section_helpers::s_iter_from_lone_param(param);
 						}
 						template <typename _TRALoneParam>
-						static auto s_count_from_lone_param(const _TRALoneParam& param) {
+						static auto s_count_from_lone_param(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							return mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(param);
 						}
 
 					protected:
-						TRandomAccessSectionBase subsection(size_type pos = 0, size_type n = npos) const {
-							if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TRandomAccessSectionBase subsection() const - TRandomAccessSectionBase")); }
-							return TRandomAccessSectionBase((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
+						TXSLTARandomAccessSectionBase subsection(size_type pos = 0, size_type n = npos) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+							if (pos > (*this).size()) { MSE_THROW(msearray_range_error("out of bounds index - TXSLTARandomAccessSectionBase subsection() const - TXSLTARandomAccessSectionBase")); }
+							return TXSLTARandomAccessSectionBase((*this).m_start_iter + mse::msear_as_a_size_t(pos), std::min(mse::msear_as_a_size_t(n), mse::msear_as_a_size_t((*this).size()) - mse::msear_as_a_size_t(pos)));
 						}
 
 					private:
@@ -10569,35 +10622,53 @@ namespace mse {
 						MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 						size_type m_count = 0;
-						_TRAIterator m_start_iter;
+						_TRAIterator m_start_iter MSE_ATTR_STR("mse::lifetime_labels(99)");
 
 						friend class mse::rsv::TXSLTARandomAccessSection<_TRAIterator>;
 						friend class mse::TRandomAccessSection<_TRAIterator>;
-						template<typename _TRAIterator1> friend class TXSLTATRandomAccessConstSectionBase;
-						template<typename _TRAIterator1> friend class TXSLTATRandomAccessSectionBase;
-						template<typename _TRAIterator1> friend class TRandomAccessConstSectionBase;
-						template<typename _TRAIterator1> friend class TRandomAccessSectionBase;
+						template<typename _TRAIterator1> friend class TXSLTATXSLTARandomAccessConstSectionBase;
+						template<typename _TRAIterator1> friend class TXSLTATXSLTARandomAccessSectionBase;
+						template<typename _TRAIterator1> friend class TXSLTARandomAccessConstSectionBase;
+						template<typename _TRAIterator1> friend class TXSLTARandomAccessSectionBase;
 						friend struct mse::rsv::impl::ra_const_section_helpers;
 						friend struct mse::rsv::impl::ra_section_helpers;
-					};
+					} MSE_ATTR_STR("mse::lifetime_labels(99)");
 				}
 			}
 		}
 
 		template <typename _TRAIterator>
-		class TXSLTARandomAccessSection : public mse::rsv::us::impl::ns_ra_section::TRandomAccessSectionBase<_TRAIterator>, public mse::us::impl::XSLTAContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
+		class TXSLTARandomAccessSection : public mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessSectionBase<_TRAIterator>, public mse::us::impl::XSLTAContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase {
 		public:
-			typedef mse::rsv::us::impl::ns_ra_section::TRandomAccessSectionBase<_TRAIterator> base_class;
+			typedef mse::rsv::us::impl::ns_ra_section::TXSLTARandomAccessSectionBase<_TRAIterator> base_class;
 			typedef _TRAIterator iterator_type;
 			MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
 
-			//TXSLTARandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter,count) {}
-			//TXSLTARandomAccessSection(const TXSLTARandomAccessSection& src) = default;
-			//template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xslta<_TRAIterator>::value)> MSE_IMPL_EIS >
-			//TXSLTARandomAccessSection(const TRandomAccessSection<_TRAIterator>& src) : base_class(src) {}
-			//TXSLTARandomAccessSection(const base_class& src) : base_class(src) {}
+			TXSLTARandomAccessSection(const base_class& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
+			TXSLTARandomAccessSection(const TXSLTARandomAccessSection& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
+			TXSLTARandomAccessSection(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type count) : base_class(start_iter, count) {}
 
-			MSE_USING(TXSLTARandomAccessSection, base_class);
+			template <typename _TRAIterator2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_convertible<_TRAIterator2, _TRAIterator>::value)> MSE_IMPL_EIS>
+			TXSLTARandomAccessSection(const TXSLTARandomAccessSection<_TRAIterator2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
+
+			template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<mse::rsv::TXSLTAPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
+			explicit TXSLTARandomAccessSection(const mse::rsv::TXSLTAPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+				: base_class(param) {}
+			template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRAContainer*>()))>::value)> MSE_IMPL_EIS>
+			explicit TXSLTARandomAccessSection(_TRAContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+				: base_class(param) {}
+
+			/*
+			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+				&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+			explicit TXSLTARandomAccessSection(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(param) {}
+			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+				&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+			explicit TXSLTARandomAccessSection(_TRALoneParam&& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
+				: base_class(MSE_FWD(param)) {}
+			*/
+
+			//MSE_USING(TXSLTARandomAccessSection, base_class);
 
 			/* use the make_xslta_subsection() free function instead */
 			MSE_DEPRECATED TXSLTARandomAccessSection xslta_subsection(size_type pos = 0, size_type n = npos) const {
@@ -10644,6 +10715,113 @@ namespace mse {
 			friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
 				-> decltype(section.subsection_pv(pos, n));
 		};
+
+		template <typename _TRAIterator>
+		auto make_xslta_random_access_const_section(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), typename TXSLTARandomAccessConstSection<_TRAIterator>::size_type count)
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			return TXSLTARandomAccessConstSection<_TRAIterator>(start_iter, count);
+		}
+
+		template <typename _TRAContainer>
+		auto make_xslta_random_access_const_section(const mse::rsv::TXSLTAConstPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			typedef decltype(mse::rsv::impl::ra_const_section_helpers::s_iter_from_lone_param(param)) iter_t;
+			return TXSLTARandomAccessConstSection<iter_t>(param);
+		}
+		template <typename _TRAContainer>
+		auto make_xslta_random_access_const_section(const mse::rsv::TXSLTAPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			typedef decltype(mse::rsv::impl::ra_const_section_helpers::s_iter_from_lone_param(param)) iter_t;
+			return TXSLTARandomAccessConstSection<iter_t>(param);
+		}
+		template <typename _TRAContainer>
+		auto make_xslta_random_access_const_section(_TRAContainer const * param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			typedef decltype(mse::rsv::impl::ra_const_section_helpers::s_iter_from_lone_param(param)) iter_t;
+			return TXSLTARandomAccessConstSection<iter_t>(param);
+		}
+		template <typename _TRAContainer>
+		auto make_xslta_random_access_const_section(_TRAContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			typedef decltype(mse::rsv::impl::ra_const_section_helpers::s_iter_from_lone_param(param)) iter_t;
+			return TXSLTARandomAccessConstSection<iter_t>(param);
+		}
+
+		/*
+		template <typename _TRALoneParam>
+		auto make_xslta_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(std::false_type(), param)) {
+			return mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(std::false_type(), param);
+		}
+		template <typename _TRALoneParam, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRALoneParam)>
+		auto make_xslta_random_access_const_section(_TRALoneParam&& param) -> decltype(mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(std::false_type(), MSE_FWD(param))) {
+			return mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(std::false_type(), MSE_FWD(param));
+		}
+		*/
+
+		/* Overloads for rsv::TReturnableFParam<>. */
+		//MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xslta_random_access_const_section)
+
+
+		template <typename _TRAIterator>
+		auto make_xslta_random_access_section(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), typename TXSLTARandomAccessSection<_TRAIterator>::size_type count)
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			return TXSLTARandomAccessSection<_TRAIterator>(start_iter, count);
+		}
+
+		template <typename _TRAContainer>
+		auto make_xslta_random_access_section(const mse::rsv::TXSLTAPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			typedef decltype(mse::rsv::impl::ra_section_helpers::s_iter_from_lone_param(param)) iter_t;
+			return TXSLTARandomAccessSection<iter_t>(param);
+		}
+		template <typename _TRAContainer>
+		auto make_xslta_random_access_section(_TRAContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			typedef decltype(mse::rsv::impl::ra_section_helpers::s_iter_from_lone_param(param)) iter_t;
+			return TXSLTARandomAccessSection<iter_t>(param);
+		}
+
+
+		/* This function basically just calls the give section's subsection() member function and returns the value.  */
+		template<typename _Ty>
+		auto random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
+			return make_subsection(ra_section, std::get<0>(start_and_length), std::get<1>(start_and_length));
+		}
+		template<typename _Ty>
+		auto xslta_random_access_subsection(const _Ty& ra_section MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos })
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }") {
+			return make_xslta_subsection(ra_section, std::get<0>(start_and_length), std::get<1>(start_and_length));
+		}
+
+#ifdef MSE_HAS_CXX17
+		/* deduction guides */
+		template<class _TRAIterator>
+		TXSLTARandomAccessSection(_TRAIterator, typename TXSLTARandomAccessSection<_TRAIterator>::size_type)
+			-> TXSLTARandomAccessSection<_TRAIterator>;
+		/*
+		template<class _TRALoneParam>
+		TXSLTARandomAccessSection(_TRALoneParam)
+			-> TXSLTARandomAccessSection<typename decltype(make_xslta_random_access_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		*/
+
+		template<class _TRAIterator>
+		TXSLTARandomAccessConstSection(_TRAIterator, typename TXSLTARandomAccessConstSection<_TRAIterator>::size_type)
+			-> TXSLTARandomAccessConstSection<_TRAIterator>;
+		/*
+		template<class _TRALoneParam>
+		TXSLTARandomAccessConstSection(_TRALoneParam)
+			-> TXSLTARandomAccessConstSection<typename decltype(make_xslta_random_access_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		*/
+#endif /* MSE_HAS_CXX17 */
+
 
 #if 0
 
@@ -10768,30 +10946,6 @@ namespace mse {
 			friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
 				-> decltype(section.subsection_pv(pos, n));
 		} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)");
-
-		template <typename _TRAIterator>
-		auto make_xslta_random_access_const_section(const _TRAIterator& start_iter, typename TXSLTARandomAccessConstSection<_TRAIterator>::size_type count) {
-			return TXSLTARandomAccessConstSection<_TRAIterator>(start_iter, count);
-		}
-
-		template <typename _TRALoneParam>
-		auto make_xslta_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(
-			typename mse::rsv::impl::is_instantiation_of_TXSLTACagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param)) {
-
-			return mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(
-				typename mse::rsv::impl::is_instantiation_of_TXSLTACagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), param);
-		}
-
-		template <typename _TRALoneParam, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRALoneParam)>
-		auto make_xslta_random_access_const_section(_TRALoneParam&& param) -> decltype(mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(
-			typename mse::rsv::impl::is_instantiation_of_TXSLTACagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), MSE_FWD(param))) {
-
-			return mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(
-				typename mse::rsv::impl::is_instantiation_of_TXSLTACagedItemFixedConstPointerToRValue<_TRALoneParam>::type(), MSE_FWD(param));
-		}
-
-		/* Overloads for rsv::TReturnableFParam<>. */
-		MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xslta_random_access_const_section)
 
 			template <typename _TRAIterator>
 		auto make_random_access_const_section(const _TRAIterator& start_iter, typename TRandomAccessConstSection<_TRAIterator>::size_type count) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
