@@ -259,6 +259,15 @@ namespace mse {
 		using std::logic_error::logic_error;
 	};
 
+#define MSE_IMPL_MACRO_TEXT_CONCAT_PB2(a,b)  a##b
+#define MSE_IMPL_MACRO_TEXT_CONCAT_PB(a,b)  MSE_IMPL_MACRO_TEXT_CONCAT_PB2(a, b)
+#define MSE_IMPL_MACRO_TEXT_CONCAT_THREE_ARGS_PB2(a,b,c)  a##b##c
+#define MSE_IMPL_MACRO_TEXT_CONCAT_THREE_ARGS_PB(a,b,c)  MSE_IMPL_MACRO_TEXT_CONCAT_THREE_ARGS_PB2(a,b,c)
+#define MSE_IMPL_STRINGIZE(x) #x
+#define MSE_IMPL_MACRO_TEXT_EXPAND_THREE_ARGS_PB2(a,b,c)  a b c
+#define MSE_IMPL_MACRO_TEXT_EXPAND_THREE_ARGS_PB(a,b,c)  MSE_IMPL_MACRO_TEXT_EXPAND_THREE_ARGS_PB2(a,b,c)
+
+
 	/* This automatic (potential) definition of MSE_CHECK_USE_BEFORE_SET is also done in mseprimitives.h */
 #ifndef MSE_SUPPRESS_CHECK_USE_BEFORE_SET
 #ifndef MSE_CHECK_USE_BEFORE_SET

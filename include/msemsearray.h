@@ -4026,21 +4026,39 @@ namespace std {
 }
 
 
-#define MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, this_class) \
+#if defined(__clang__)
+#define MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, this_class, lifetime_labels) \
 	this_class& operator +=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { \
 		base_class::operator +=(x); \
 		return (*this); \
 	} \
 	this_class& operator -=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { operator +=(-x); return (*this); } \
 	this_class& operator ++() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { operator +=(1); return (*this); } \
-	this_class operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); } \
+	this_class operator ++(int) __attribute__((annotate("mse::lifetime_notes{ return_value(" lifetime_labels ") }"))) { auto _Tmp = *this; operator +=(1); return (_Tmp); } \
 	this_class& operator --() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { operator -=(1); return (*this); } \
-	this_class operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); } \
-	this_class operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; } \
-	this_class operator-(difference_type n) const { return ((*this) + (-n)); } \
+	this_class operator --(int) __attribute__((annotate("mse::lifetime_notes{ return_value(" lifetime_labels ") }"))) { auto _Tmp = *this; operator -=(1); return (_Tmp); } \
+	this_class operator+(difference_type n) const __attribute__((annotate("mse::lifetime_notes{ return_value(" lifetime_labels ") }"))) { auto retval = (*this); retval += n; return retval; } \
+	this_class operator-(difference_type n) const __attribute__((annotate("mse::lifetime_notes{ return_value(" lifetime_labels ") }"))) { return ((*this) + (-n)); } \
 	difference_type operator-(const base_class& _Right_cref) const { \
 		return base_class::operator-(_Right_cref); \
 	}
+#else // defined(__clang__)
+#define MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, this_class, lifetime_labels) \
+	this_class& operator +=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { \
+		base_class::operator +=(x); \
+		return (*this); \
+	} \
+	this_class& operator -=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { operator +=(-x); return (*this); } \
+	this_class& operator ++() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { operator +=(1); return (*this); } \
+	this_class operator ++(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(" lifetime_labels ") }") { auto _Tmp = *this; operator +=(1); return (_Tmp); } \
+	this_class& operator --() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_iliaof_42); this(mse_iliaof_42); return_value(mse_iliaof_42) }") { operator -=(1); return (*this); } \
+	this_class operator --(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(" lifetime_labels ") }") { auto _Tmp = *this; operator -=(1); return (_Tmp); } \
+	this_class operator+(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(" lifetime_labels ") }") { auto retval = (*this); retval += n; return retval; } \
+	this_class operator-(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(" lifetime_labels ") }") { return ((*this) + (-n)); } \
+	difference_type operator-(const base_class& _Right_cref) const { \
+		return base_class::operator-(_Right_cref); \
+	}
+#endif // defined(__clang__)
 
 namespace mse {
 	namespace rsv {
@@ -4238,8 +4256,8 @@ namespace mse {
 				mse::impl::T_valid_if_is_contiguous_sequence_static_structure_strong_iterator_msemsearray<TXSLTARAIterator<_TRAContainerPointer> >();
 			}
 
-			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTACSSSStrongRAIterator);
-			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTACSSSStrongRAIterator);
+			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTACSSSStrongRAIterator, "99");
+			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTACSSSStrongRAIterator, "99");
 			//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 			bool is_valid() const {
@@ -4314,8 +4332,8 @@ namespace mse {
 			}
 			*/
 
-			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTACSSSStrongRAConstIterator);
-			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTACSSSStrongRAConstIterator);
+			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTACSSSStrongRAConstIterator, "99");
+			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTACSSSStrongRAConstIterator, "99");
 			//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 			bool is_valid() const {
@@ -4520,6 +4538,8 @@ namespace mse {
 					typedef TXSLTACSSSXSRAIterator<_Myt> xslta_iterator;
 					typedef xslta_const_iterator const_iterator;
 					typedef xslta_iterator iterator;
+					typedef std::reverse_iterator<iterator> reverse_iterator;
+					typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
 
 					template<typename _TArrayConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value)> MSE_IMPL_EIS >
@@ -4796,6 +4816,10 @@ namespace mse {
 
 			typedef TXSLTACSSSXSRAConstIterator<_Myt> xslta_const_iterator;
 			typedef TXSLTACSSSXSRAIterator<_Myt> xslta_iterator;
+			typedef xslta_const_iterator const_iterator;
+			typedef xslta_iterator iterator;
+			typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+			typedef std::reverse_iterator<iterator> reverse_iterator;
 
 			xslta_iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/);
@@ -4814,6 +4838,25 @@ namespace mse {
 			}
 			xslta_const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/) + (*this).size();
+			}
+
+			reverse_iterator rbegin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return end();
+			}
+			const_reverse_iterator rbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return crbegin();
+			}
+			const_reverse_iterator crbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cend();
+			}
+			reverse_iterator rend() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return begin();
+			}
+			const_reverse_iterator rend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return crend();
+			}
+			const_reverse_iterator crend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cbegin();
 			}
 
 			template<typename _TArrayPointer>
@@ -9099,6 +9142,13 @@ namespace mse {
 			namespace impl {
 				template <typename _TRAIterator> class TXSLTARASectionConstIteratorBaseFriend1;
 
+				template <typename T, typename U> struct arrow_return_type_helper2 {
+					typedef T type;
+				};
+				template <typename T> struct arrow_return_type_helper2<T, std::false_type> {
+					typedef void type;
+				};
+
 				template <typename _TRAIterator>
 				class TXSLTARASectionConstIteratorBase : public mse::impl::random_access_const_iterator_base_from_ra_iterator<_TRAIterator>
 					, MSE_INHERIT_COMMON_XSCOPE_ITERATOR_TAG_BASE_SET_FROM(_TRAIterator, TXSLTARASectionConstIteratorBase<_TRAIterator>)
@@ -9134,8 +9184,13 @@ namespace mse {
 						dereference_bounds_check();
 						return m_ra_iterator[m_index];
 					}
-					typedef decltype(std::addressof(m_ra_iterator[0])) arrow_return_type;
-					arrow_return_type operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+
+					typedef typename arrow_return_type_helper2<deref_return_type, typename std::is_reference<deref_return_type>::type>::type arrow_return_type;
+
+					/* operator->() is available only when return type of operator*() is a reference (which is most of the time, 
+					but not with some dynamic containers like rsv::xslta_vector<>). */
+					template<typename arrow_return_type2 = arrow_return_type, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<arrow_return_type2, arrow_return_type>::value) && (!std::is_same<arrow_return_type2, void>::value)> MSE_IMPL_EIS>
+					arrow_return_type2 operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 						dereference_bounds_check();
 						return std::addressof(m_ra_iterator[m_index]);
 					}
@@ -9241,11 +9296,6 @@ namespace mse {
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }") {
 
 			return xs_section.xslta_subsection_pv(pos, n);
-		}
-		template <typename _TSection>
-		auto make_subsection(const _TSection& section, typename _TSection::size_type pos = 0, typename _TSection::size_type n = _TSection::npos)
-			-> decltype(section.subsection_pv(pos, n)) {
-			return section.subsection_pv(pos, n);
 		}
 
 		template <typename _TRAIterator> class TXSLTARandomAccessSection;
@@ -9576,10 +9626,17 @@ namespace mse {
 				}
 			}
 		}
+
 		/* We're forward declaring this function here because it is used by the TXSLTARandomAccessConstSectionBase<> class that follows.
 		Note that this function has other overloads and bretheren that do not need to be forward declared. */
-		template <typename _TRALoneParam> auto make_xslta_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(
-			/*typename mse::rsv::impl::is_instantiation_of_TXSLTACagedItemFixedConstPointerToRValue<_TRALoneParam>::type()*/std::false_type(), param));
+		template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam const *>()))>::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+		auto make_xslta_random_access_const_section(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			typedef decltype(mse::rsv::impl::ra_const_section_helpers::s_iter_from_lone_param(std::addressof(param))) iter_t;
+			return TXSLTARandomAccessConstSection<iter_t>(std::addressof(param));
+		}
 
 		namespace us {
 			namespace impl {
@@ -9987,7 +10044,8 @@ namespace mse {
 							//MSE_USING(xslta_const_iterator, base_class);
 							template<class _TRASectionPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_base_of<base_class, _TRASectionPointer>::value> MSE_IMPL_EIS >
 							xslta_const_iterator(const _TRASectionPointer& ptr MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
-							MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, xslta_const_iterator);
+							MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, xslta_const_iterator, "99");
+							MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, xslta_const_iterator, "99");
 						private:
 							xslta_const_iterator(const _TRAIterator& iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type count, size_type index) : base_class(iter, count, index) {}
 							friend class TXSLTARandomAccessConstSectionBase;
@@ -10077,15 +10135,12 @@ namespace mse {
 			explicit TXSLTARandomAccessConstSection(_TRAContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 				: base_class(param) {}
 
-			/*
-			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
-				&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
-			explicit TXSLTARandomAccessConstSection(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(param) {}
-			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
-				&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
-			explicit TXSLTARandomAccessConstSection(_TRALoneParam&& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
-				: base_class(MSE_FWD(param)) {}
-			*/
+			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam const *>()))>::value)
+				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+			explicit TXSLTARandomAccessConstSection(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) : TXSLTARandomAccessConstSection(std::addressof(param)) {}
+			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam*>()))>::value)
+				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+			explicit TXSLTARandomAccessConstSection(_TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) : TXSLTARandomAccessConstSection(std::addressof(param)) {}
 
 			//MSE_USING(TXSLTARandomAccessConstSection, base_class);
 
@@ -10103,13 +10158,50 @@ namespace mse {
 			//typedef typename base_class::xslta_iterator xslta_iterator;
 			typedef typename base_class::xslta_const_iterator xslta_const_iterator;
 
-			/* These are here because some standard algorithms require them. Prefer the "xslta_" prefixed versions to
-			acknowledge that scope iterators are returned. */
+
 			typedef xslta_const_iterator const_iterator;
-			auto begin() const { return (*this).xslta_cbegin(); }
-			auto cbegin() const { return (*this).xslta_cbegin(); }
-			auto end() const { return (*this).xslta_cend(); }
-			auto cend() const { return (*this).xslta_cend(); }
+			typedef const_iterator iterator;
+			typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+			typedef std::reverse_iterator<iterator> reverse_iterator;
+
+			iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return (*this).xslta_begin();
+			}
+			const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cbegin();
+			}
+			const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return (*this).xslta_cbegin();
+			}
+			iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return (*this).xslta_end();
+			}
+			const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cend();
+			}
+			const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return (*this).xslta_cend();
+			}
+
+			reverse_iterator rbegin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return end();
+			}
+			const_reverse_iterator rbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return crbegin();
+			}
+			const_reverse_iterator crbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cend();
+			}
+			reverse_iterator rend() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return begin();
+			}
+			const_reverse_iterator rend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return crend();
+			}
+			const_reverse_iterator crend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cbegin();
+			}
+
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
@@ -10128,10 +10220,9 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 			template <typename _TSection>
-			friend auto make_xslta_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xslta_subsection_pv(pos, n));
-			template <typename _TSection>
-			friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
-				-> decltype(section.subsection_pv(pos, n));
+			friend decltype(std::declval<_TSection>().xslta_subsection_pv(0, 0)) make_xslta_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/);
+			//template <typename _TSection>
+			//friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(section.subsection_pv(pos, n));
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
 		namespace us {
@@ -10554,7 +10645,8 @@ namespace mse {
 							//MSE_USING(xslta_iterator, base_class);
 							template<class _TRASectionPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_base_of<base_class, _TRASectionPointer>::value> MSE_IMPL_EIS >
 							xslta_iterator(const _TRASectionPointer& ptr MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
-							MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, xslta_iterator);
+							MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, xslta_iterator, "99");
+							MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, xslta_iterator, "99");
 						private:
 							xslta_iterator(const _TRAIterator& iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type count, size_type index) : base_class(iter, count, index) {}
 							friend class TXSLTARandomAccessSectionBase;
@@ -10577,6 +10669,8 @@ namespace mse {
 							//MSE_USING(xslta_const_iterator, base_class);
 							template<class _TRASectionPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_base_of<base_class, _TRASectionPointer>::value> MSE_IMPL_EIS >
 							xslta_const_iterator(const _TRASectionPointer& ptr MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+							MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, xslta_const_iterator, "99");
+							MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, xslta_const_iterator, "99");
 						private:
 							xslta_const_iterator(const _TRAIterator& iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type count, size_type index) : base_class(iter, count, index) {}
 							friend class TXSLTARandomAccessSectionBase;
@@ -10658,15 +10752,12 @@ namespace mse {
 			explicit TXSLTARandomAccessSection(_TRAContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 				: base_class(param) {}
 
-			/*
-			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
-				&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
-			explicit TXSLTARandomAccessSection(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(param) {}
-			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
-				&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
-			explicit TXSLTARandomAccessSection(_TRALoneParam&& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
-				: base_class(MSE_FWD(param)) {}
-			*/
+			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam const *>()))>::value)
+				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+			explicit TXSLTARandomAccessSection(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : TXSLTARandomAccessSection(std::addressof(param)) {}
+			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam*>()))>::value)
+				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+			explicit TXSLTARandomAccessSection(_TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : TXSLTARandomAccessSection(std::addressof(param)) {}
 
 			//MSE_USING(TXSLTARandomAccessSection, base_class);
 
@@ -10684,14 +10775,49 @@ namespace mse {
 			typedef typename base_class::xslta_iterator xslta_iterator;
 			typedef typename base_class::xslta_const_iterator xslta_const_iterator;
 
-			/* These are here because some standard algorithms require them. Prefer the "xslta_" prefixed versions to
-			acknowledge that scope iterators are returned. */
-			typedef xslta_iterator iterator;
 			typedef xslta_const_iterator const_iterator;
-			auto begin() const { return (*this).xslta_begin(); }
-			auto cbegin() const { return (*this).xslta_cbegin(); }
-			auto end() const { return (*this).xslta_end(); }
-			auto cend() const { return (*this).xslta_cend(); }
+			typedef xslta_iterator iterator;
+			typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+			typedef std::reverse_iterator<iterator> reverse_iterator;
+
+			iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return (*this).xslta_begin();
+			}
+			const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cbegin();
+			}
+			const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return (*this).xslta_cbegin();
+			}
+			iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return (*this).xslta_end();
+			}
+			const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cend();
+			}
+			const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return (*this).xslta_cend();
+			}
+
+			reverse_iterator rbegin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return end();
+			}
+			const_reverse_iterator rbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return crbegin();
+			}
+			const_reverse_iterator crbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cend();
+			}
+			reverse_iterator rend() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return begin();
+			}
+			const_reverse_iterator rend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return crend();
+			}
+			const_reverse_iterator crend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cbegin();
+			}
+
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 		private:
@@ -10710,11 +10836,11 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 			template <typename _TSection>
-			friend auto make_xslta_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xslta_subsection_pv(pos, n));
+			friend decltype(std::declval<_TSection>().xslta_subsection_pv(0, 0)) make_xslta_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/);
 			template <typename _TSection>
 			friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
 				-> decltype(section.subsection_pv(pos, n));
-		};
+		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
 		template <typename _TRAIterator>
 		auto make_xslta_random_access_const_section(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), typename TXSLTARandomAccessConstSection<_TRAIterator>::size_type count)
@@ -10752,16 +10878,24 @@ namespace mse {
 			return TXSLTARandomAccessConstSection<iter_t>(param);
 		}
 
-		/*
-		template <typename _TRALoneParam>
-		auto make_xslta_random_access_const_section(const _TRALoneParam& param) -> decltype(mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(std::false_type(), param)) {
-			return mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(std::false_type(), param);
+#if 0
+		/* This one was moved to before the definition of TXSLTARandomAccessConstSectionBase<> because it depends on 
+		this function. */
+		template <typename _TRALoneParam, typename/*MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam const*>()))>::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS*/>
+		auto make_xslta_random_access_const_section(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			return make_xslta_random_access_const_section(std::addressof(param));
 		}
-		template <typename _TRALoneParam, class = MSE_IMPL_ENABLE_IF_NOT_RETURNABLE_FPARAM(_TRALoneParam)>
-		auto make_xslta_random_access_const_section(_TRALoneParam&& param) -> decltype(mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(std::false_type(), MSE_FWD(param))) {
-			return mse::rsv::impl::ra_section::make_xslta_random_access_const_section_helper1(std::false_type(), MSE_FWD(param));
+#endif // 0
+		template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam*>()))>::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+		auto make_xslta_random_access_const_section(_TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
+			return make_xslta_random_access_const_section(std::addressof(param));
 		}
-		*/
 
 		/* Overloads for rsv::TReturnableFParam<>. */
 		//MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xslta_random_access_const_section)
@@ -10792,12 +10926,9 @@ namespace mse {
 
 		/* This function basically just calls the give section's subsection() member function and returns the value.  */
 		template<typename _Ty>
-		auto random_access_subsection(const _Ty& ra_section, std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos }) {
-			return make_subsection(ra_section, std::get<0>(start_and_length), std::get<1>(start_and_length));
-		}
-		template<typename _Ty>
 		auto xslta_random_access_subsection(const _Ty& ra_section MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), std::tuple<typename _Ty::size_type, typename _Ty::size_type> start_and_length = { 0U, _Ty::npos })
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }") {
+
 			return make_xslta_subsection(ra_section, std::get<0>(start_and_length), std::get<1>(start_and_length));
 		}
 

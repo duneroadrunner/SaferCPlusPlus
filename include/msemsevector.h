@@ -3771,12 +3771,6 @@ namespace mse {
 					typedef typename std_vector::reference reference;
 					typedef typename std_vector::const_reference const_reference;
 
-					typedef typename std_vector::iterator iterator;
-					typedef typename std_vector::const_iterator const_iterator;
-
-					typedef typename std_vector::reverse_iterator reverse_iterator;
-					typedef typename std_vector::const_reverse_iterator const_reverse_iterator;
-
 				private:
 					const _MV& contained_vector() const& { return (*this).value(); }
 					//const _MV& contained_vector() const&& { return (*this).value(); }
@@ -4133,9 +4127,6 @@ namespace mse {
 						if (_Myt_ref(*this_ptr).size() < index) { MSE_THROW(gnii_vector_range_error("invalid index - void assert_valid_index() const - xslta_fixed_vector_base")); }
 					}
 
-					typedef TXSLTACSSSXSRAConstIterator<_Myt> xslta_const_iterator;
-					typedef TXSLTACSSSXSRAIterator<_Myt> xslta_iterator;
-
 					friend bool operator==(const _Myt& _Left, const _Myt& _Right) {
 						return (_Left.contained_vector() == _Right.contained_vector());
 					}
@@ -4212,12 +4203,6 @@ namespace mse {
 			typedef typename std_vector::reference reference;
 			typedef typename std_vector::const_reference const_reference;
 
-			typedef typename std_vector::iterator iterator;
-			typedef typename std_vector::const_iterator const_iterator;
-
-			typedef typename std_vector::reverse_iterator reverse_iterator;
-			typedef typename std_vector::const_reverse_iterator const_reverse_iterator;
-
 		private:
 			const _MV& contained_vector() const& { return base_class::contained_vector(); }
 			//const _MV& contained_vector() const&& { return base_class::contained_vector(); }
@@ -4274,26 +4259,49 @@ namespace mse {
 			typedef mse::impl::ns_gnii_vector::Tgnii_vector_rp_ss_reverse_iterator_type<_Myt> ss_reverse_iterator_type;
 			typedef mse::impl::ns_gnii_vector::Tgnii_vector_rp_ss_const_reverse_iterator_type<_Myt> ss_const_reverse_iterator_type;
 
-			typedef TXScopeCSSSXSRAConstIterator<_Myt> xslta_const_iterator;
-			typedef TXScopeCSSSXSRAIterator<_Myt> xslta_iterator;
+			typedef TXSLTACSSSXSRAConstIterator<_Myt> xslta_const_iterator;
+			typedef TXSLTACSSSXSRAIterator<_Myt> xslta_iterator;
+			typedef xslta_const_iterator const_iterator;
+			typedef xslta_iterator iterator;
+			typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+			typedef std::reverse_iterator<iterator> reverse_iterator;
 
-			xslta_iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/);
 			}
-			xslta_const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 				return cbegin();
 			}
-			xslta_const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/);
 			}
-			xslta_iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/) + (*this).size();
 			}
-			xslta_const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 				return cend();
 			}
-			xslta_const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/) + (*this).size();
+			}
+
+			reverse_iterator rbegin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return end();
+			}
+			const_reverse_iterator rbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return crbegin();
+			}
+			const_reverse_iterator crbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cend();
+			}
+			reverse_iterator rend() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return begin();
+			}
+			const_reverse_iterator rend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return crend();
+			}
+			const_reverse_iterator crend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+				return cbegin();
 			}
 
 			typedef _Myt& _Myt_ref;
@@ -4716,8 +4724,8 @@ namespace mse {
 			TXSLTADynamicContainerRAIterator(const TXSLTARAIterator<_TRAContainerPointer>& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(xs_ra_iter) {}
 			TXSLTADynamicContainerRAIterator(TXSLTARAIterator<_TRAContainerPointer>&& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(xs_ra_iter)) {}
 
-			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTADynamicContainerRAIterator);
-			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTADynamicContainerRAIterator);
+			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTADynamicContainerRAIterator, "99");
+			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTADynamicContainerRAIterator, "99");
 			//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 			/* Dereference operators of dynamic container iterators, by default, can't provide (minimum) lifetime
@@ -4798,8 +4806,8 @@ namespace mse {
 			TXSLTADynamicContainerRAConstIterator(const TXSLTARAConstIterator<_TRAContainerPointer>& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(xs_ra_iter) {}
 			TXSLTADynamicContainerRAConstIterator(TXSLTARAConstIterator<_TRAContainerPointer>&& xs_ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(xs_ra_iter)) {}
 
-			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTADynamicContainerRAConstIterator);
-			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTADynamicContainerRAConstIterator);
+			MSE_INHERIT_LTA_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXSLTADynamicContainerRAConstIterator, "99");
+			MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, TXSLTADynamicContainerRAConstIterator, "99");
 			//MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 
 			/* Dereference operators of dynamic container iterators, by default, can't provide (minimum) lifetime

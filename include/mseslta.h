@@ -76,15 +76,27 @@
 #endif // MSE_SLTAPOINTER_DISABLED
 
 
-#define MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, this_class) \
-	this_class& operator=(const this_class& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_ilaof_42); this(mse_ilaof_42); return_value(mse_ilaof_42) }") { \
+#if defined(__clang__)
+#define MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, this_class, lifetime_labels) \
+	this_class& operator=(const this_class& _Right_cref  __attribute__((annotate("mse::lifetime_labels(_[" lifetime_labels "])")))) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_ilaof_42); this(mse_ilaof_42); return_value(mse_ilaof_42) }") { \
 		base_class::operator=(_Right_cref); \
 		return (*this); \
 	} \
-	this_class& operator=(this_class&& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_ilaof_42); this(mse_ilaof_42); return_value(mse_ilaof_42) }") { \
+	this_class& operator=(this_class&& _Right_cref  __attribute__((annotate("mse::lifetime_labels(_[" lifetime_labels "])")))) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_ilaof_42); this(mse_ilaof_42); return_value(mse_ilaof_42) }") { \
 		base_class::operator=(MSE_FWD(_Right_cref)); \
 		return (*this); \
 	}
+#else // defined(__clang__)
+#define MSE_INHERIT_LTA_ASSIGNMENT_OPERATOR_FROM(base_class, this_class, lifetime_labels) \
+this_class& operator=(const this_class& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(" lifetime_labels ")")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_ilaof_42); this(mse_ilaof_42); return_value(mse_ilaof_42) }") { \
+		base_class::operator=(_Right_cref); \
+		return (*this); \
+} \
+this_class& operator=(this_class&& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(" lifetime_labels ")")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(mse_ilaof_42); this(mse_ilaof_42); return_value(mse_ilaof_42) }") { \
+			base_class::operator=(MSE_FWD(_Right_cref)); \
+			return (*this); \
+	}
+#endif // defined(__clang__)
 
 namespace mse {
 	namespace us {
