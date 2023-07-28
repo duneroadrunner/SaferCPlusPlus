@@ -10164,41 +10164,41 @@ namespace mse {
 			typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 			typedef std::reverse_iterator<iterator> reverse_iterator;
 
-			iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return (*this).xslta_begin();
 			}
-			const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return cbegin();
 			}
-			const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return (*this).xslta_cbegin();
 			}
-			iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return (*this).xslta_end();
 			}
-			const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return cend();
 			}
-			const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return (*this).xslta_cend();
 			}
 
-			reverse_iterator rbegin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			reverse_iterator rbegin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return end();
 			}
-			const_reverse_iterator rbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_reverse_iterator rbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return crbegin();
 			}
-			const_reverse_iterator crbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_reverse_iterator crbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return cend();
 			}
-			reverse_iterator rend() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			reverse_iterator rend() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return begin();
 			}
-			const_reverse_iterator rend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_reverse_iterator rend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return crend();
 			}
-			const_reverse_iterator crend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_reverse_iterator crend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return cbegin();
 			}
 
@@ -10780,41 +10780,41 @@ namespace mse {
 			typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 			typedef std::reverse_iterator<iterator> reverse_iterator;
 
-			iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return (*this).xslta_begin();
 			}
-			const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return cbegin();
 			}
-			const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return (*this).xslta_cbegin();
 			}
-			iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return (*this).xslta_end();
 			}
-			const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return cend();
 			}
-			const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return (*this).xslta_cend();
 			}
 
-			reverse_iterator rbegin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			reverse_iterator rbegin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return end();
 			}
-			const_reverse_iterator rbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_reverse_iterator rbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return crbegin();
 			}
-			const_reverse_iterator crbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_reverse_iterator crbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return cend();
 			}
-			reverse_iterator rend() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			reverse_iterator rend() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return begin();
 			}
-			const_reverse_iterator rend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_reverse_iterator rend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return crend();
 			}
-			const_reverse_iterator crend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+			const_reverse_iterator crend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return cbegin();
 			}
 

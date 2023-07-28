@@ -2180,6 +2180,70 @@ auto res12 = iptrwbv2[2];
 			std::cout << "\n";
 		}
 	}
+
+	{
+		/*********************************/
+		/*  TXSLTARandomAccessSection<>  */
+		/*********************************/
+
+		mse::rsv::xslta_array<int, 4> array1{ 1, 2, 3, 4 };
+		mse::rsv::xslta_vector<int> vec1{ 10, 11, 12, 13, 14 };
+		auto bfvec1 = mse::rsv::make_xslta_borrowing_fixed_vector(&vec1);
+
+		auto xslta_ra_section1 = mse::rsv::make_xslta_random_access_section(array1.begin(), 2);
+		J::foo13(xslta_ra_section1);
+
+		auto xslta_ra_const_section2 = mse::rsv::make_xslta_random_access_const_section(++bfvec1.begin(), 3);
+		auto res6 = J::foo15(xslta_ra_const_section2);
+		auto res7 = J::foo14(xslta_ra_const_section2);
+
+		auto xslta_ra_section1_xslta_iter1 = xslta_ra_section1.begin();
+		auto xslta_ra_section1_xslta_iter2 = xslta_ra_section1.end();
+		auto xslta_ra_section1_xslta_iter1b = xslta_ra_section1.xslta_begin();
+		auto xslta_ra_section1_xslta_iter2b = xslta_ra_section1.xslta_end();
+		auto res8 = xslta_ra_section1_xslta_iter2 - xslta_ra_section1_xslta_iter1;
+		bool res9 = (xslta_ra_section1_xslta_iter1 < xslta_ra_section1_xslta_iter2);
+
+		auto xslta_ra_section3 = mse::rsv::xslta_random_access_subsection(xslta_ra_section1, std::make_tuple(0, xslta_ra_section1.length() / 2));
+		assert(xslta_ra_section3.length() == 1);
+
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+		{
+			class CD {
+			public:
+				typedef decltype(mse::rsv::make_xslta_random_access_const_section(mse::rsv::xslta_vector<int>{ 1, 2, 3})) xslta_ra_csection_t;
+				static bool second_is_longer(xslta_ra_csection_t xslta_ra_csection1, xslta_ra_csection_t xslta_ra_csection2) {
+
+					return (xslta_ra_csection1.size() > xslta_ra_csection2.size()) ? false : true;
+				}
+
+				/* Here we will demonstrate the creation of type-erased random access sections by instantiation with
+				type-erased iterators. (TXSLTAAnyRandomAccessConstIterator<> is not yet implemented at the time of writing,
+				so we'll just use TXScopeAnyRandomAccessConstIterator<> for now.) */
+				static bool second_is_longer_any(mse::rsv::TXSLTARandomAccessConstSection<mse::TXScopeAnyRandomAccessConstIterator<int> > xslta_ra_csection1
+					, mse::rsv::TXSLTARandomAccessConstSection<mse::TXScopeAnyRandomAccessConstIterator<int> > xslta_ra_csection2) {
+					return (xslta_ra_csection1.size() > xslta_ra_csection2.size()) ? false : true;
+				}
+			};
+
+			mse::rsv::xslta_vector<int> vector1(mse::rsv::xslta_vector<int>{ 1, 2, 3});
+			auto xslta_ra_csection1 = mse::rsv::make_xslta_random_access_const_section(&vector1);
+
+			typedef decltype(xslta_ra_csection1) xslta_ra_csection1_t;
+			/* You can (also) construct a TXSLTARandomAccessSection<> by passing (a reference to) the container, or a
+			pointer to the container. (The former is for compatibility with std::span<>, etc..) */
+			auto xslta_ra_csection1b = xslta_ra_csection1_t(vector1);
+			auto xslta_ra_csection1c = xslta_ra_csection1_t(&vector1);
+
+			auto res1 = CD::second_is_longer(xslta_ra_csection1, mse::rsv::make_xslta_random_access_const_section(
+				mse::rsv::xslta_vector<int>{ 1, 2, 3, 4}));
+			auto res2 = J::second_is_longer(xslta_ra_csection1, mse::rsv::make_xslta_random_access_const_section(
+				mse::rsv::xslta_vector<int>{ 1, 2, 3, 4}));
+			auto res3 = CD::second_is_longer_any(xslta_ra_csection1, mse::rsv::make_xslta_random_access_const_section(
+				mse::rsv::xslta_vector<int>{ 1, 2, 3, 4}));
+		}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+	}
 }
 
 
