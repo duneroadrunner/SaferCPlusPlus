@@ -634,7 +634,7 @@ namespace mse {
 					virtual ~TCommonPointerInterface() {}
 					virtual _Ty& operator*() const = 0;
 					virtual _Ty* operator->() const = 0;
-					virtual operator bool() const = 0;
+					virtual explicit operator bool() const = 0;
 				};
 
 				template <typename _Ty, typename _TPointer1>
@@ -651,7 +651,7 @@ namespace mse {
 					_Ty* operator->() const {
 						return std::addressof(mse::us::impl::raw_reference_to<_Ty>(*m_pointer));
 					}
-					operator bool() const {
+					explicit operator bool() const {
 						//return bool(m_pointer);
 						return mse::us::impl::xsrtc::operator_bool_helper1<_TPointer1>(typename std::is_convertible<_TPointer1, bool>::type(), m_pointer);
 					}
@@ -679,7 +679,7 @@ namespace mse {
 					_Ty* operator->() const {
 						return std::addressof(*(*common_pointer_interface_ptr()));
 					}
-					operator bool() const {
+					explicit operator bool() const {
 						return bool(*common_pointer_interface_ptr());
 					}
 
@@ -743,7 +743,7 @@ namespace mse {
 					virtual ~TCommonConstPointerInterface() {}
 					virtual const _Ty& operator*() const = 0;
 					virtual const _Ty* operator->() const = 0;
-					virtual operator bool() const = 0;
+					virtual explicit operator bool() const = 0;
 				};
 
 				template <typename _Ty, typename _TConstPointer1>
@@ -760,7 +760,7 @@ namespace mse {
 					const _Ty* operator->() const {
 						return std::addressof(mse::us::impl::raw_reference_to<const _Ty>(*m_const_pointer));
 					}
-					operator bool() const {
+					explicit operator bool() const {
 						//return bool(m_const_pointer);
 						return mse::us::impl::xsrtc::operator_bool_helper1<_TConstPointer1>(typename std::is_convertible<_TConstPointer1, bool>::type(), m_const_pointer);
 					}
@@ -787,7 +787,7 @@ namespace mse {
 					const _Ty* operator->() const {
 						return std::addressof(*(*common_pointer_interface_const_ptr()));
 					}
-					operator bool() const {
+					explicit operator bool() const {
 						return bool(*common_pointer_interface_const_ptr());
 					}
 
@@ -1043,7 +1043,7 @@ namespace mse {
 			TXScopeObjPointer<_Ty, lt_info1>& operator=(const TXScopeObjPointer<_Ty, lt_info1>& _Right_cref) {
 				return mse::us::impl::TXScopeObjPointerBase<_Ty, lt_info1>::operator=(_Right_cref);
 			}
-			operator bool() const {
+			explicit operator bool() const {
 				bool retval = (bool(*static_cast<const mse::us::impl::TXScopeObjPointerBase<_Ty, lt_info1>*>(this)));
 				return retval;
 			}
@@ -1084,7 +1084,7 @@ namespace mse {
 			TXScopeObjConstPointer<_Ty, lt_info1>& operator=(const TXScopeObjConstPointer<_Ty, lt_info1>& _Right_cref) {
 				return mse::us::impl::TXScopeItemConstPointerBase<_Ty>::operator=(_Right_cref);
 			}
-			operator bool() const {
+			explicit operator bool() const {
 				bool retval = (bool(*static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty, lt_info1>*>(this)));
 				return retval;
 			}
@@ -1118,7 +1118,7 @@ namespace mse {
 				TXScopeObjPointer<_Ty, lt_info1>::operator=(_Right_cref);
 				return (*this);
 			}
-			operator bool() const { return (*static_cast<const TXScopeObjPointer<_Ty, lt_info1>*>(this)); }
+			explicit operator bool() const { return bool(*static_cast<const TXScopeObjPointer<_Ty, lt_info1>*>(this)); }
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -1139,7 +1139,7 @@ namespace mse {
 			//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			//TXScopeObjNotNullConstPointer(const TXScopeObjNotNullPointer<_Ty2>& src_cref) : TXScopeObjConstPointer<_Ty, lt_info1>(src_cref) {}
 			TXScopeObjNotNullConstPointer(const TXScopeObj<_Ty>& scpobj_cref) : TXScopeObjConstPointer<_Ty, lt_info1>(scpobj_cref) {}
-			operator bool() const { return (*static_cast<const TXScopeObjConstPointer<_Ty, lt_info1>*>(this)); }
+			explicit operator bool() const { return bool(*static_cast<const TXScopeObjConstPointer<_Ty, lt_info1>*>(this)); }
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -1155,7 +1155,7 @@ namespace mse {
 			//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			//TXScopeObjFixedPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : TXScopeObjNotNullPointer<_Ty>(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedPointer() {}
-			operator bool() const { return (*static_cast<const TXScopeObjNotNullPointer<_Ty>*>(this)); }
+			explicit operator bool() const { return bool(*static_cast<const TXScopeObjNotNullPointer<_Ty>*>(this)); }
 			void xscope_tag() const {}
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
@@ -1188,7 +1188,7 @@ namespace mse {
 			//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			//TXScopeObjFixedConstPointer(const TXScopeObjFixedPointer<_Ty2>& src_cref) : TXScopeObjNotNullConstPointer<_Ty>(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeObjFixedConstPointer() {}
-			operator bool() const { return (*static_cast<const TXScopeObjNotNullConstPointer<_Ty>*>(this)); }
+			explicit operator bool() const { return bool(*static_cast<const TXScopeObjNotNullConstPointer<_Ty>*>(this)); }
 			void xscope_tag() const {}
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
@@ -1346,7 +1346,7 @@ namespace mse {
 
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {}
 
-			operator bool() const { return true; }
+			explicit operator bool() const { return true; }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 			MSE_DEPRECATED explicit operator _Ty* () const { return std::addressof(*(*this))/*base_class::operator _Ty*()*/; }
 			void xscope_tag() const {}
@@ -1396,7 +1396,7 @@ namespace mse {
 
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {}
 
-			operator bool() const { return true; }
+			explicit operator bool() const { return true; }
 			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 			MSE_DEPRECATED explicit operator const _Ty* () const { return std::addressof(*(*this))/*base_class::operator const _Ty*()*/; }
 			void xscope_tag() const {}
@@ -1623,7 +1623,7 @@ namespace mse {
 			template<class specified_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedPointer(const TXScopeOwnerPointer<specified_type2> & src_cref) : TXScopeFixedPointer(&(*src_cref)) {} \
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {} \
-			operator bool() const { return true; } \
+			explicit operator bool() const { return true; } \
 			void xscope_tag() const {} \
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION \
 		private: \
@@ -1657,7 +1657,7 @@ namespace mse {
 			template<class specified_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<specified_type2*, specified_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeOwnerPointer<specified_type2> & src_cref) : TXScopeFixedConstPointer(&(*src_cref)) {} \
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {} \
-			operator bool() const { return true; } \
+			explicit operator bool() const { return true; } \
 			void xscope_tag() const {} \
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION \
 		private: \
@@ -1729,7 +1729,7 @@ namespace mse {
 			template<class arithmetic_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<arithmetic_type2*, arithmetic_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedPointer(const TXScopeOwnerPointer<arithmetic_type2> & src_cref) : TXScopeFixedPointer(&(*src_cref)) {} \
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {} \
-			operator bool() const { return true; } \
+			explicit operator bool() const { return true; } \
 			void xscope_tag() const {} \
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION \
 		private: \
@@ -1763,7 +1763,7 @@ namespace mse {
 			template<class arithmetic_type2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<arithmetic_type2*, arithmetic_type*>::value> MSE_IMPL_EIS > \
 			TXScopeFixedConstPointer(const TXScopeOwnerPointer<arithmetic_type2> & src_cref) : TXScopeFixedConstPointer(&(*src_cref)) {} \
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {} \
-			operator bool() const { return true; } \
+			explicit operator bool() const { return true; } \
 			void xscope_tag() const {} \
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION \
 		private: \

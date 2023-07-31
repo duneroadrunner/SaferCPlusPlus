@@ -536,9 +536,9 @@ namespace mse {
 	}
 
 #define MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type) \
-	template<typename TPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<TPointer, this_type>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TPointer) \
-	&& (std::is_convertible<typename std::decay<TPointer>::type, bool>::value)> MSE_IMPL_EIS > \
-	friend bool operator==(const this_type& _Left_cref, const TPointer& _Right_cref) { \
+	template<typename TPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<TPointer_ecwapt, this_type>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TPointer_ecwapt) \
+	&& (std::is_convertible<typename std::decay<TPointer_ecwapt>::type, bool>::value)> MSE_IMPL_EIS > \
+	friend bool operator==(const this_type& _Left_cref, const TPointer_ecwapt& _Right_cref) { \
 		if (!bool(_Left_cref)) { \
 			if (!bool(_Right_cref)) { \
 				return true; \
@@ -562,9 +562,9 @@ namespace mse {
 
 #define MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(this_type) \
 	MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type) \
-	template<typename TPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointer>::value) \
-	&& (std::is_convertible<typename std::decay<TPointer>::type, bool>::value)> MSE_IMPL_EIS > \
-	friend bool operator!=(const this_type& _Left_cref, const TPointer& _Right_cref) { return !(_Left_cref == _Right_cref); }
+	template<typename TPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<TPointer_ecwapt, this_type>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TPointer_ecwapt) \
+	&& (std::is_convertible<typename std::decay<TPointer_ecwapt>::type, bool>::value)> MSE_IMPL_EIS > \
+	friend bool operator!=(const this_type& _Left_cref, const TPointer_ecwapt& _Right_cref) { return !(_Left_cref == _Right_cref); }
 
 #else // !MSE_HAS_CXX20
 
@@ -1222,15 +1222,13 @@ namespace impl {
 					m_ptr = _Right_cref.m_ptr;
 					return (*this);
 				}
-				bool operator==(const TPointer<_Ty, _TID> &_Right_cref) const { /*assert_initialized();*/ return (_Right_cref.m_ptr == m_ptr); }
-#ifndef MSE_HAS_CXX20
-				//bool operator==(const _Ty* _Right_cref) const { assert_initialized(); return (_Right_cref == m_ptr); }
-				bool operator!=(const _Ty* _Right_cref) const { /*assert_initialized();*/ return (!(m_ptr == _Right_cref)); }
-				bool operator!=(const TPointer<_Ty, _TID>& _Right_cref) const { /*assert_initialized();*/ return (!((*this) == _Right_cref.m_ptr)); }
-#endif // !MSE_HAS_CXX20
+
+				MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TPointer);
+				MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TPointer)
+				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TPointer)
 
 				bool operator!() const { assert_initialized(); return (!m_ptr); }
-				operator bool() const {
+				explicit operator bool() const {
 					assert_initialized();
 					return (m_ptr != nullptr);
 				}
@@ -1296,6 +1294,7 @@ namespace impl {
 					m_ptr = ptr;
 					return (*this);
 				}
+
 #ifndef MSE_HAS_CXX20
 				/* With C++20, resolultion of the "==" operator seems to use the (implicit) "operator _Ty*() const" to cast
 				to raw pointer, then use the raw pointer's "==" operator. */
@@ -1307,7 +1306,7 @@ namespace impl {
 
 				bool operator!() const { assert_initialized(); return (!m_ptr); }
 #ifndef MSE_HAS_CXX20
-				operator bool() const {
+				explicit operator bool() const {
 					assert_initialized();
 					return (m_ptr != nullptr);
 				}
@@ -1411,7 +1410,7 @@ namespace impl {
 			bool operator!=(const TSaferPtr<_Ty> &_Right_cref) const { assert_initialized(); return (!((*this) == _Right_cref)); }
 
 			bool operator!() const { assert_initialized(); return (!m_ptr); }
-			operator bool() const {
+			explicit operator bool() const {
 				assert_initialized();
 				return (m_ptr != nullptr);
 			}
@@ -1480,7 +1479,7 @@ namespace impl {
 				m_ptr = ptr;
 				return (*this);
 			}
-			//operator bool() const { return m_ptr; }
+			//explicit operator bool() const { return m_ptr; }
 
 			operator _Ty*() const {
 				assert_initialized();
@@ -1577,7 +1576,7 @@ namespace impl {
 				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TSyncWeakFixedPointer)
 
 				bool operator!() const { return (!m_target_pointer); }
-			operator bool() const {
+			explicit operator bool() const {
 				return (m_target_pointer != nullptr);
 			}
 
@@ -1641,7 +1640,7 @@ namespace impl {
 				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TSyncWeakFixedConstPointer)
 
 				bool operator!() const { return (!m_target_pointer); }
-			operator bool() const {
+			explicit operator bool() const {
 				return (m_target_pointer != nullptr);
 			}
 
@@ -1836,7 +1835,7 @@ namespace mse {
 			MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TStrongFixedPointer)
 
 			bool operator!() const { return (!m_target_pointer); }
-			operator bool() const {
+			explicit operator bool() const {
 				return (m_target_pointer != nullptr);
 			}
 
@@ -1913,7 +1912,7 @@ namespace mse {
 			MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TStrongFixedConstPointer)
 
 			bool operator!() const { return (!m_target_pointer); }
-			operator bool() const {
+			explicit operator bool() const {
 				return (m_target_pointer != nullptr);
 			}
 

@@ -204,7 +204,7 @@ namespace mse {
 		MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(msear_pointer)
 
 		bool operator!() const { return (!m_ptr); }
-		operator bool() const { return (m_ptr != nullptr); }
+		explicit operator bool() const { return (m_ptr != nullptr); }
 
 		explicit operator _Ty*() const { return m_ptr; }
 
@@ -11665,7 +11665,7 @@ namespace mse {
 		TXScopePassablePointer(const TXScopePassablePointer& src) = delete;
 		TXScopePassablePointer(TXScopePassablePointer&& src) = default;
 
-		operator bool() const {
+		explicit operator bool() const {
 			return (nullptr != m_obj_ptr);
 		}
 		auto& operator*() const {
@@ -11703,7 +11703,7 @@ namespace mse {
 		TXScopePassableConstPointer(const TXScopePassableConstPointer& src) = default;
 		TXScopePassableConstPointer(TXScopePassableConstPointer&& src) = default;
 
-		operator bool() const {
+		explicit operator bool() const {
 			return (nullptr != m_obj_ptr);
 		}
 		const _Ty& operator*() const {

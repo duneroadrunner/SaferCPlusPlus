@@ -278,7 +278,11 @@ namespace mse {
 					return std::addressof(*m_ptr);
 				}
 
-				operator bool() const { return !(!m_ptr); }
+				MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TGNoradPointer);
+				MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TGNoradPointer)
+				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TGNoradPointer)
+
+				explicit operator bool() const { return !(!m_ptr); }
 				/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 				MSE_DEPRECATED explicit operator _Ty*() {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
@@ -397,7 +401,11 @@ namespace mse {
 					return std::addressof(*m_ptr);
 				}
 
-				operator bool() const { return !(!m_ptr); }
+				MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TGNoradConstPointer);
+				MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TGNoradConstPointer)
+				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TGNoradConstPointer)
+
+				explicit operator bool() const { return !(!m_ptr); }
 				/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 				MSE_DEPRECATED explicit operator const _Ty*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
@@ -980,7 +988,7 @@ namespace mse {
 			return std::addressof(*((*this).m_ptr));
 		}
 
-		operator bool() const { return !(!((*this).m_ptr)); }
+		explicit operator bool() const { return !(!((*this).m_ptr)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		operator _Ty*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
@@ -1073,7 +1081,7 @@ namespace mse {
 			return std::addressof(*((*this).m_ptr));
 		}
 
-		operator bool() const { return !(!((*this).m_ptr)); }
+		explicit operator bool() const { return !(!((*this).m_ptr)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator const _Ty*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1

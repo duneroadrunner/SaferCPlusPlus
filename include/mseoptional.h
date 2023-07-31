@@ -4835,7 +4835,7 @@ namespace mse {
 					valid_if_TAccessMutex_is_supported<_TAccessMutex>();
 				}
 
-				operator bool() const {
+				explicit operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledPointerBase")); }
 					return (nullptr != m_obj_ptr);
 				}
@@ -4988,7 +4988,7 @@ namespace mse {
 					valid_if_TAccessMutex_is_supported<_TAccessMutex>();
 				}
 
-				operator bool() const {
+				explicit operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledConstPointerBase")); }
 					return (nullptr != m_obj_ptr);
 				}
@@ -5137,7 +5137,7 @@ namespace mse {
 					valid_if_TAccessMutex_is_supported<_TAccessMutex>();
 				}
 
-				operator bool() const {
+				explicit operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAccessControlledExclusivePointerBase")); }
 					return (nullptr != m_obj_ptr);
 				}
@@ -6608,7 +6608,7 @@ namespace mse {
 		bool operator!=(const value_t* _Right_cref) const { return (!((*this) == _Right_cref)); }
 		bool operator==(const TOptionalElementFixedPointer &_Right_cref) const { return ((*this) == std::addressof(*_Right_cref)); }
 		bool operator!=(const TOptionalElementFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
-		operator bool() const { return true; }
+		explicit operator bool() const { return true; }
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -6652,7 +6652,7 @@ namespace mse {
 		bool operator!=(const value_t* _Right_cref) const { return (!((*this) == _Right_cref)); }
 		bool operator==(const TOptionalElementFixedConstPointer &_Right_cref) const { return ((*this) == std::addressof(*_Right_cref)); }
 		bool operator!=(const TOptionalElementFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
-		operator bool() const { return true; }
+		explicit operator bool() const { return true; }
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -6867,7 +6867,7 @@ namespace mse {
 #endif // !MSE_HAS_CXX20
 
 
-		operator bool() const {
+		explicit operator bool() const {
 			return (!is_null());
 		}
 

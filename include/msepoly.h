@@ -696,7 +696,7 @@ namespace mse {
 				}
 
 			protected:
-				operator bool() const {
+				explicit operator bool() const {
 					return m_pointer.bool_operator();
 				}
 
@@ -934,7 +934,7 @@ namespace mse {
 				}
 
 			protected:
-				operator bool() const {
+				explicit operator bool() const {
 					return m_pointer.bool_operator();
 				}
 
@@ -2375,7 +2375,7 @@ namespace mse {
 #endif // !MSE_HAS_CXX20
 
 
-		operator bool() const {
+		explicit operator bool() const {
 			return (!m_is_null);
 		}
 
@@ -2438,7 +2438,7 @@ namespace mse {
 		bool operator!=(const TXScopeNullableAnyPointer& rhs) const { return !((*this) == rhs); }
 #endif // !MSE_HAS_CXX20
 
-		operator bool() const {
+		explicit operator bool() const {
 			return (!m_is_null);
 		}
 

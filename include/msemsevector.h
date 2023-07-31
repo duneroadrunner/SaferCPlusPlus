@@ -152,7 +152,7 @@ namespace mse {
 		//bool operator!=(const _Ty* _Right_cref) const { return (!((*this) == _Right_cref)); }
 
 		bool operator!() const { return (!m_ptr); }
-		operator bool() const { return (m_ptr != nullptr); }
+		explicit operator bool() const { return (m_ptr != nullptr); }
 
 		explicit operator _Ty*() const { return m_ptr; }
 
@@ -912,8 +912,8 @@ namespace mse {
 				bool operator==(const Txscope_structure_lock_guard& rhs) const {
 					return (rhs.m_stored_ptr == m_stored_ptr);
 				}
-				operator bool() const {
-					return m_stored_ptr;
+				explicit operator bool() const {
+					return bool(m_stored_ptr);
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
@@ -996,8 +996,8 @@ namespace mse {
 				bool operator==(const Txscope_const_structure_lock_guard& rhs) const {
 					return (rhs.m_stored_ptr == m_stored_ptr);
 				}
-				operator bool() const {
-					return m_stored_ptr;
+				explicit operator bool() const {
+					return bool(m_stored_ptr);
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
@@ -1079,7 +1079,7 @@ namespace mse {
 				bool operator==(const Txscope_ewconst_structure_lock_guard& rhs) const {
 					return (rhs.m_stored_ptr == m_stored_ptr);
 				}
-				operator bool() const {
+				explicit operator bool() const {
 					return m_stored_ptr;
 				}
 
@@ -1161,8 +1161,8 @@ namespace mse {
 				bool operator==(const Txscope_structure_lock_guard_of_wrapper& rhs) const {
 					return (rhs.m_stored_ptr == m_stored_ptr);
 				}
-				operator bool() const {
-					return m_stored_ptr;
+				explicit operator bool() const {
+					return bool(m_stored_ptr);
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}
@@ -1240,8 +1240,8 @@ namespace mse {
 				bool operator==(const Txscope_const_structure_lock_guard_of_wrapper& rhs) const {
 					return (rhs.m_stored_ptr == m_stored_ptr);
 				}
-				operator bool() const {
-					return m_stored_ptr;
+				explicit operator bool() const {
+					return bool(m_stored_ptr);
 				}
 
 				void async_not_shareable_and_not_passable_tag() const {}

@@ -744,9 +744,9 @@ namespace mse {
 				TAsyncSharedV2ReadWritePointerBase(TAsyncSharedV2ReadWritePointerBase&& src) = default;
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ReadWritePointerBase() {}
 
-				operator bool() const {
+				explicit operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointerBase")); }
-					return m_shptr.operator bool();
+					return bool(m_shptr);
 				}
 				typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
 				/* gcc5 crashes if you uncomment the explicit return type declaration (Nov 2017). */
@@ -784,7 +784,7 @@ namespace mse {
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				bool is_valid() const {
-					bool retval = m_shptr.operator bool();
+					bool retval = bool(m_shptr);
 					return retval;
 				}
 
@@ -855,9 +855,9 @@ namespace mse {
 				TAsyncSharedV2ReadWriteConstPointerBase(const mse::us::impl::TAsyncSharedV2ReadWritePointerBase<_TAccessLease>& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ReadWriteConstPointerBase() {}
 
-				operator bool() const {
+				explicit operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWriteConstPointerBase")); }
-					return m_shptr.operator bool();
+					return bool(m_shptr);
 				}
 				typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
 				const auto& operator*() const/* -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type*/ {
@@ -894,7 +894,7 @@ namespace mse {
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				bool is_valid() const {
-					bool retval = m_shptr.operator bool();
+					bool retval = bool(m_shptr);
 					return retval;
 				}
 
@@ -963,9 +963,9 @@ namespace mse {
 				TAsyncSharedV2ExclusiveReadWritePointerBase(TAsyncSharedV2ExclusiveReadWritePointerBase&& src) = default;
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ExclusiveReadWritePointerBase() {}
 
-				operator bool() const {
+				explicit operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ExclusiveReadWritePointerBase")); }
-					return m_shptr.operator bool();
+					return bool(m_shptr);
 				}
 				typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
 				auto& operator*() const/* -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type*/ {
@@ -1002,7 +1002,7 @@ namespace mse {
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				bool is_valid() const {
-					bool retval = m_shptr.operator bool();
+					bool retval = bool(m_shptr);
 					return retval;
 				}
 
@@ -1436,9 +1436,9 @@ namespace mse {
 				//TAsyncSharedV2ReadOnlyConstPointerBase(const TAsyncSharedV2ReadOnlyPointerBase<_TAccessLease>& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2ReadOnlyConstPointerBase() {}
 
-				operator bool() const {
+				explicit operator bool() const {
 					//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadOnlyConstPointerBase")); }
-					return m_shptr.operator bool();
+					return bool(m_shptr);
 				}
 				typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
 				const auto& operator*() const/* -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type*/ {
@@ -1475,7 +1475,7 @@ namespace mse {
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 				bool is_valid() const {
-					bool retval = m_shptr.operator bool();
+					bool retval = bool(m_shptr);
 					return retval;
 				}
 
@@ -1979,8 +1979,8 @@ namespace mse {
 			valid_if_Ty_is_not_an_xscope_type();
 		}
 
-		operator bool() const {
-			return m_shptr.operator bool();
+		explicit operator bool() const {
+			return bool(m_shptr);
 		}
 		const auto& operator*() const {
 			return (*m_shptr);
@@ -2041,8 +2041,8 @@ namespace mse {
 			valid_if_Ty_is_not_an_xscope_type();
 		}
 
-		operator bool() const {
-			return m_shptr.operator bool();
+		explicit operator bool() const {
+			return bool(m_shptr);
 		}
 		auto& operator*() const {
 			return (*m_shptr);
@@ -3022,9 +3022,9 @@ namespace mse {
 		TAsyncSharedReadWritePointer(TAsyncSharedReadWritePointer&& src) = default; /* Note, the move constructor is only safe when std::move() is prohibited. */
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedReadWritePointer() {}
 
-		operator bool() const {
+		explicit operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWritePointer")); }
-			return m_shptr.operator bool();
+			return bool(m_shptr);
 		}
 		mse::impl::conditional_t<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&> operator*() const {
@@ -3061,7 +3061,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		bool is_valid() const {
-			bool retval = m_shptr.operator bool();
+			bool retval = bool(m_shptr);
 			return retval;
 		}
 
@@ -3081,9 +3081,9 @@ namespace mse {
 		TAsyncSharedReadWriteConstPointer(const TAsyncSharedReadWritePointer<_Ty>& src) : m_shptr(src.m_shptr), m_unique_lock(src.m_shptr->m_mutex1) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedReadWriteConstPointer() {}
 
-		operator bool() const {
+		explicit operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
-			return m_shptr.operator bool();
+			return bool(m_shptr);
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadWriteConstPointer")); }
@@ -3120,7 +3120,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		bool is_valid() const {
-			bool retval = m_shptr.operator bool();
+			bool retval = bool(m_shptr);
 			return retval;
 		}
 
@@ -3138,9 +3138,9 @@ namespace mse {
 		TAsyncSharedExclusiveReadWritePointer(TAsyncSharedExclusiveReadWritePointer&& src) = default;
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedExclusiveReadWritePointer() {}
 
-		operator bool() const {
+		explicit operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedExclusiveReadWritePointer")); }
-			return m_shptr.operator bool();
+			return bool(m_shptr);
 		}
 		mse::impl::conditional_t<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&> operator*() const {
@@ -3177,7 +3177,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		bool is_valid() const {
-			bool retval = m_shptr.operator bool();
+			bool retval = bool(m_shptr);
 			return retval;
 		}
 
@@ -3291,9 +3291,9 @@ namespace mse {
 		TAsyncSharedReadOnlyConstPointer(TAsyncSharedReadOnlyConstPointer&& src) = default;
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedReadOnlyConstPointer() {}
 
-		operator bool() const {
+		explicit operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
-			return m_shptr.operator bool();
+			return bool(m_shptr);
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedReadOnlyConstPointer")); }
@@ -3330,7 +3330,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		bool is_valid() const {
-			bool retval = m_shptr.operator bool();
+			bool retval = bool(m_shptr);
 			return retval;
 		}
 
@@ -3404,9 +3404,9 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer&& src) = default;
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer() {}
 
-		operator bool() const {
+		explicit operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer")); }
-			return m_shptr.operator bool();
+			return bool(m_shptr);
 		}
 		mse::impl::conditional_t<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&> operator*() const {
@@ -3443,7 +3443,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		bool is_valid() const {
-			bool retval = m_shptr.operator bool();
+			bool retval = bool(m_shptr);
 			return retval;
 		}
 
@@ -3463,9 +3463,9 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer(const TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWritePointer<_Ty>& src) : m_shptr(src.m_shptr), m_shared_lock(src.m_shptr->m_mutex1) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer() {}
 
-		operator bool() const {
+		explicit operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
-			return m_shptr.operator bool();
+			return bool(m_shptr);
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadWriteConstPointer")); }
@@ -3502,7 +3502,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		bool is_valid() const {
-			bool retval = m_shptr.operator bool();
+			bool retval = bool(m_shptr);
 			return retval;
 		}
 
@@ -3520,9 +3520,9 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer&& src) = default;
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer() {}
 
-		operator bool() const {
+		explicit operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesExclusiveReadWritePointer")); }
-			return m_shptr.operator bool();
+			return bool(m_shptr);
 		}
 		mse::impl::conditional_t<std::is_const<_Ty>::value
 			, const TAsyncSharedObj<_Ty>&, TAsyncSharedObj<_Ty>&> operator*() const {
@@ -3559,7 +3559,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		bool is_valid() const {
-			bool retval = m_shptr.operator bool();
+			bool retval = bool(m_shptr);
 			return retval;
 		}
 
@@ -3668,9 +3668,9 @@ namespace mse {
 		TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer(TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer&& src) = default;
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer() {}
 
-		operator bool() const {
+		explicit operator bool() const {
 			//assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
-			return m_shptr.operator bool();
+			return bool(m_shptr);
 		}
 		const TAsyncSharedObj<const _Ty>& operator*() const {
 			assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedObjectThatYouAreSureHasNoUnprotectedMutablesReadOnlyConstPointer")); }
@@ -3707,7 +3707,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		bool is_valid() const {
-			bool retval = m_shptr.operator bool();
+			bool retval = bool(m_shptr);
 			return retval;
 		}
 

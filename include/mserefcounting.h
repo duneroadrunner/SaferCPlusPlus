@@ -154,7 +154,7 @@ namespace mse {
 			m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
 			r.m_ref_with_target_obj_ptr = nullptr;
 		}
-		operator bool() const { return nullptr != get(); }
+		explicit operator bool() const { return nullptr != get(); }
 		void clear() { (*this) = TRefCountingPointer<X>(nullptr); }
 		TRefCountingPointer& operator=(const TRefCountingPointer& r) {
 			if (this != &r) {
@@ -400,7 +400,7 @@ namespace mse {
 			m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
 			r.m_ref_with_target_obj_ptr = nullptr;
 		}
-		operator bool() const { return nullptr != get(); }
+		explicit operator bool() const { return nullptr != get(); }
 		void clear() { (*this) = TRefCountingConstPointer<X>(nullptr); }
 		TRefCountingConstPointer& operator=(const TRefCountingConstPointer& r) {
 			if (this != &r) {

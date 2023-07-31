@@ -245,7 +245,7 @@ namespace mse {
 		TXScopeAtomicPointer<_Ty>& operator=(const TXScopeAtomicPointer<_Ty>& _Right_cref) {
 			return mse::us::impl::TXScopeAtomicPointerBase<_Ty>::operator=(_Right_cref);
 		}
-		operator bool() const {
+		explicit operator bool() const {
 			bool retval = (bool(*static_cast<const mse::us::impl::TXScopeAtomicPointerBase<_Ty>*>(this)));
 			return retval;
 		}
@@ -290,7 +290,7 @@ namespace mse {
 		TXScopeAtomicConstPointer<_Ty>& operator=(const TXScopeAtomicConstPointer<_Ty>& _Right_cref) {
 			return mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>::operator=(_Right_cref);
 		}
-		operator bool() const {
+		explicit operator bool() const {
 			bool retval = (bool(*static_cast<const mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>*>(this)));
 			return retval;
 		}
@@ -325,7 +325,7 @@ namespace mse {
 			TXScopeAtomicPointer<_Ty>::operator=(_Right_cref);
 			return (*this);
 		}
-		operator bool() const { return (*static_cast<const TXScopeAtomicPointer<_Ty>*>(this)); }
+		explicit operator bool() const { return bool(*static_cast<const TXScopeAtomicPointer<_Ty>*>(this)); }
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -346,7 +346,7 @@ namespace mse {
 		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeAtomicNotNullConstPointer(const TXScopeAtomicNotNullPointer<_Ty2>& src_cref) : TXScopeAtomicConstPointer<_Ty>(src_cref) {}
 		TXScopeAtomicNotNullConstPointer(const TXScopeAtomicObj<_Ty>& scpobj_cref) : TXScopeAtomicConstPointer<_Ty>(scpobj_cref) {}
-		operator bool() const { return (*static_cast<const TXScopeAtomicConstPointer<_Ty>*>(this)); }
+		explicit operator bool() const { return bool(*static_cast<const TXScopeAtomicConstPointer<_Ty>*>(this)); }
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -362,7 +362,7 @@ namespace mse {
 		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeAtomicFixedPointer(const TXScopeAtomicFixedPointer<_Ty2>& src_cref) : TXScopeAtomicNotNullPointer<_Ty>(src_cref) {}
 		~TXScopeAtomicFixedPointer() {}
-		operator bool() const { return (*static_cast<const TXScopeAtomicNotNullPointer<_Ty>*>(this)); }
+		explicit operator bool() const { return bool(*static_cast<const TXScopeAtomicNotNullPointer<_Ty>*>(this)); }
 		void xscope_tag() const {}
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
@@ -396,7 +396,7 @@ namespace mse {
 		//template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 		//TXScopeAtomicFixedConstPointer(const TXScopeAtomicFixedPointer<_Ty2>& src_cref) : TXScopeAtomicNotNullConstPointer<_Ty>(src_cref) {}
 		~TXScopeAtomicFixedConstPointer() {}
-		operator bool() const { return (*static_cast<const TXScopeAtomicNotNullConstPointer<_Ty>*>(this)); }
+		explicit operator bool() const { return bool(*static_cast<const TXScopeAtomicNotNullConstPointer<_Ty>*>(this)); }
 		void xscope_tag() const {}
 		void xscope_async_passable_tag() const {} /* Indication that this type is eligible to be passed between threads. */
 		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
@@ -524,7 +524,7 @@ namespace mse {
 
 		~TXScopeAtomicItemFixedPointer() {}
 
-		operator bool() const { return true; }
+		explicit operator bool() const { return true; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator std::atomic<_Ty>*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>::operator _Ty*()*/; }
 		void xscope_tag() const {}
@@ -564,7 +564,7 @@ namespace mse {
 
 		~TXScopeAtomicItemFixedConstPointer() {}
 
-		operator bool() const { return true; }
+		explicit operator bool() const { return true; }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator const std::atomic<_Ty>*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>::operator const _Ty*()*/; }
 		void xscope_tag() const {}

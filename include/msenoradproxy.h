@@ -168,7 +168,7 @@ namespace mse {
 			return std::addressof(*(*contained_pointer()));
 		}
 
-		operator bool() const { return bool(contained_pointer()) && bool(*contained_pointer()); }
+		explicit operator bool() const { return bool(contained_pointer()) && bool(*contained_pointer()); }
 		operator mse::TXScopeFixedPointer<_Ty>() const {
 			return (*contained_pointer());
 		}
@@ -236,7 +236,7 @@ namespace mse {
 			return std::addressof(*(*contained_pointer()));
 		}
 
-		operator bool() const { return bool(contained_pointer()) && bool(*contained_pointer()); }
+		explicit operator bool() const { return bool(contained_pointer()) && bool(*contained_pointer()); }
 		operator mse::TXScopeFixedConstPointer<_Ty>() const {
 			return (*contained_pointer());
 		}

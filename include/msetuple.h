@@ -614,7 +614,7 @@ namespace mse {
 		bool operator!=(const value_t* _Right_cref) const { return (!((*this) == _Right_cref)); }
 		bool operator==(const TTupleElementByIndexFixedPointer &_Right_cref) const { return ((*this) == std::addressof(*_Right_cref)); }
 		bool operator!=(const TTupleElementByIndexFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
-		operator bool() const { return true; }
+		explicit operator bool() const { return true; }
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -660,7 +660,7 @@ namespace mse {
 		bool operator!=(const value_t* _Right_cref) const { return (!((*this) == _Right_cref)); }
 		bool operator==(const TTupleElementByIndexFixedConstPointer &_Right_cref) const { return ((*this) == std::addressof(*_Right_cref)); }
 		bool operator!=(const TTupleElementByIndexFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
-		operator bool() const { return true; }
+		explicit operator bool() const { return true; }
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -815,7 +815,7 @@ namespace mse {
 		bool operator!=(const value_t* _Right_cref) const { return (!((*this) == _Right_cref)); }
 		bool operator==(const TTupleElementFixedPointer &_Right_cref) const { return ((*this) == std::addressof(*_Right_cref)); }
 		bool operator!=(const TTupleElementFixedPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
-		operator bool() const { return true; }
+		explicit operator bool() const { return true; }
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -861,7 +861,7 @@ namespace mse {
 		bool operator!=(const value_t* _Right_cref) const { return (!((*this) == _Right_cref)); }
 		bool operator==(const TTupleElementFixedConstPointer &_Right_cref) const { return ((*this) == std::addressof(*_Right_cref)); }
 		bool operator!=(const TTupleElementFixedConstPointer &_Right_cref) const { return (!((*this) == _Right_cref)); }
-		operator bool() const { return true; }
+		explicit operator bool() const { return true; }
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;

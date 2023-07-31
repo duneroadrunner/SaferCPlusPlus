@@ -261,7 +261,7 @@ namespace mse {
 		TNDRegisteredPointer<_Ty>& operator=(const TNDRegisteredPointer<_Ty2>& _Right_cref) {
 			return (*this).operator=(TNDRegisteredPointer(_Right_cref));
 		}
-		operator bool() const { return !(!((*this).m_ptr)); }
+		explicit operator bool() const { return !(!((*this).m_ptr)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator _Ty*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1
@@ -355,7 +355,7 @@ namespace mse {
 			return (*this).operator=(TNDRegisteredConstPointer(_Right_cref));
 		}
 
-		operator bool() const { return !(!((*this).m_ptr)); }
+		explicit operator bool() const { return !(!((*this).m_ptr)); }
 		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
 		MSE_DEPRECATED explicit operator const _Ty*() const {
 #ifdef NATIVE_PTR_DEBUG_HELPER1

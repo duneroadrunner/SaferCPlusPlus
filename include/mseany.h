@@ -3002,7 +3002,7 @@ namespace mse {
 		MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TAnyElementFixedPointer)
 		MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TAnyElementFixedPointer)
 		MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TAnyElementFixedPointer)
-		operator bool() const { return true; }
+		explicit operator bool() const { return true; }
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -3051,7 +3051,7 @@ namespace mse {
 		MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TAnyElementFixedConstPointer)
 		MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TAnyElementFixedConstPointer)
 		MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TAnyElementFixedConstPointer)
-		operator bool() const { return true; }
+		explicit operator bool() const { return true; }
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -3257,7 +3257,7 @@ namespace mse {
 				virtual ~TCommonPointerInterface() {}
 				virtual _Ty& operator*() const = 0;
 				virtual _Ty* operator->() const = 0;
-				virtual operator bool() const = 0;
+				virtual explicit operator bool() const = 0;
 			};
 
 			template <typename _Ty, typename _TPointer1>
@@ -3274,7 +3274,7 @@ namespace mse {
 				_Ty* operator->() const {
 					return std::addressof(mse::us::impl::raw_reference_to<_Ty>(*m_pointer));
 				}
-				operator bool() const {
+				explicit operator bool() const {
 					//return bool(m_pointer);
 					return mse::impl::operator_bool_helper1<_TPointer1>(typename std::is_convertible<_TPointer1, bool>::type(), m_pointer);
 				}
@@ -3300,7 +3300,7 @@ namespace mse {
 				_Ty* operator->() const {
 					return std::addressof(*(*common_pointer_interface_ptr()));
 				}
-				operator bool() const {
+				explicit operator bool() const {
 					return bool(*common_pointer_interface_ptr());
 				}
 
@@ -3390,7 +3390,7 @@ namespace mse {
 				virtual ~TCommonConstPointerInterface() {}
 				virtual const _Ty& operator*() const = 0;
 				virtual const _Ty* operator->() const = 0;
-				virtual operator bool() const = 0;
+				virtual explicit operator bool() const = 0;
 			};
 
 			template <typename _Ty, typename _TConstPointer1>
@@ -3407,7 +3407,7 @@ namespace mse {
 				const _Ty* operator->() const {
 					return std::addressof(mse::us::impl::raw_reference_to<const _Ty>(*m_const_pointer));
 				}
-				operator bool() const {
+				explicit operator bool() const {
 					//return bool(m_const_pointer);
 					return mse::impl::operator_bool_helper1<_TConstPointer1>(typename std::is_convertible<_TConstPointer1, bool>::type(), m_const_pointer);
 				}
@@ -3434,7 +3434,7 @@ namespace mse {
 				const _Ty* operator->() const {
 					return std::addressof(*(*common_pointer_interface_const_ptr()));
 				}
-				operator bool() const {
+				explicit operator bool() const {
 					return bool(*common_pointer_interface_const_ptr());
 				}
 

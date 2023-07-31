@@ -199,7 +199,7 @@ namespace mse {
 				base_class::operator=(_Right_cref);
 				return *this;
 			}
-			operator bool() const {
+			explicit operator bool() const {
 				bool retval = (bool(*static_cast<const base_class*>(this)));
 				return retval;
 			}
@@ -255,7 +255,7 @@ namespace mse {
 				base_class::operator=(_Right_cref);
 				return *this;
 			}
-			operator bool() const {
+			explicit operator bool() const {
 				bool retval = (bool(*static_cast<const base_class*>(this)));
 				return retval;
 			}
@@ -306,7 +306,7 @@ namespace mse {
 		public:
 			typedef TThreadLocalPointer<_Ty> base_class;
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalNotNullPointer() {}
-			operator bool() const { return (*static_cast<const base_class*>(this)); }
+			explicit operator bool() const { return bool(*static_cast<const base_class*>(this)); }
 #ifndef MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
 			operator mse::TXScopeFixedPointer<_Ty>() const {
 				return mse::us::unsafe_make_xscope_pointer_to(*(*this));
@@ -343,7 +343,7 @@ namespace mse {
 		public:
 			typedef TThreadLocalConstPointer<_Ty> base_class;
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalNotNullConstPointer() {}
-			operator bool() const { return (*static_cast<const base_class*>(this)); }
+			explicit operator bool() const { return bool(*static_cast<const base_class*>(this)); }
 #ifndef MSE_THREADLOCAL_NO_XSCOPE_DEPENDENCE
 			operator mse::TXScopeFixedConstPointer<_Ty>() const {
 				return mse::us::unsafe_make_xscope_const_pointer_to(*(*this));
@@ -381,7 +381,7 @@ namespace mse {
 			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TThreadLocalFixedPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedPointer() {}
-			operator bool() const { return (*static_cast<const base_class*>(this)); }
+			explicit operator bool() const { return bool(*static_cast<const base_class*>(this)); }
 			void thread_local_tag() const {}
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
@@ -410,7 +410,7 @@ namespace mse {
 			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 			TThreadLocalFixedConstPointer(const TThreadLocalFixedPointer<_Ty2>& src_cref) : base_class(src_cref) {}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TThreadLocalFixedConstPointer() {}
-			operator bool() const { return (*static_cast<const base_class*>(this)); }
+			explicit operator bool() const { return bool(*static_cast<const base_class*>(this)); }
 			void thread_local_tag() const {}
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
