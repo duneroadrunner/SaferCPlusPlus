@@ -683,7 +683,9 @@ namespace mse {
 						return bool(*common_pointer_interface_ptr());
 					}
 
-					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
+					MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TAnyPointerBaseV1);
+
+					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
 					bool operator==(const _TPointer1& _Right_cref) const {
 						if (!bool(*this)) {
 							if (!bool(_Right_cref)) {
@@ -697,9 +699,9 @@ namespace mse {
 						safety of those pointers to ensure the safety of the dereference operations. */
 						return ((void*)(std::addressof(*(*this))) == (void*)(std::addressof(*_Right_cref)));
 					}
+#ifndef MSE_HAS_CXX20
 					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
 					bool operator!=(const _TPointer1& _Right_cref) const { return !((*this) == _Right_cref); }
-#ifndef MSE_HAS_CXX20
 #ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 					template <typename _TPointer1, typename _TPointer2, MSE_IMPL_EIP mse::impl::enable_if_t<
 						(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
@@ -789,7 +791,9 @@ namespace mse {
 						return bool(*common_pointer_interface_const_ptr());
 					}
 
-					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
+					MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TAnyConstPointerBaseV1);
+
+					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
 					bool operator==(const _TPointer1& _Right_cref) const {
 						if (!bool(*this)) {
 							if (!bool(_Right_cref)) {

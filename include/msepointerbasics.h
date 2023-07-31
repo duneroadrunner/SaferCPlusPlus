@@ -481,6 +481,25 @@ namespace mse {
 	}
 
 
+#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20) && !defined(MSE_MSC_CONFORMANCE_MODE)
+	/* Jan 2022: The microsoft compiler seems to default to "permissive" mode (/permissive+) for C++17 and lower. When
+	compiling in "conformance" mode (/permissive-) with C++17 and lower, you should define the MSE_MSC_CONFORMANCE_MODE
+	preprocessor symbol. */
+#define MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20) && !defined(MSE_MSC_CONFORMANCE_MODE)
+
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) mse::impl::IsDereferenceable_pb<x>::value
+#define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) mse::impl::target_can_be_referenced_as<pointer_t, target_t>::value
+#else // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+	/* Jan 2022: The microsoft compiler in "permissive" mode (/permissive+) seems to have some strange behavior (that
+	results in "ambiguous overload" compile errors when we attempt to filter for "dereferenceability" (i.e. require
+	the type to be some sort of pointer). So we substitute it with a simpler (and looser) criteria. */
+#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) ((!std::is_same<decltype(NULL), x>::value) && (!std::is_same<decltype(0), x>::value))
+#define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(pointer_t)
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+
+
 #define MSE_IMPL_MEMBER_GETTER_DECLARATIONS(member, getter_name) \
 	const decltype(member)& getter_name() const& { return member; } \
 	const decltype(member)& getter_name() const&& { return member; } \
@@ -517,7 +536,7 @@ namespace mse {
 	}
 
 #define MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type) \
-	template<typename TPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointer>::value) \
+	template<typename TPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<TPointer, this_type>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TPointer) \
 	&& (std::is_convertible<typename std::decay<TPointer>::type, bool>::value)> MSE_IMPL_EIS > \
 	friend bool operator==(const this_type& _Left_cref, const TPointer& _Right_cref) { \
 		if (!bool(_Left_cref)) { \
@@ -558,25 +577,6 @@ namespace mse {
 	MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type)
 
 #endif // !MSE_HAS_CXX20
-
-
-#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20) && !defined(MSE_MSC_CONFORMANCE_MODE)
-/* Jan 2022: The microsoft compiler seems to default to "permissive" mode (/permissive+) for C++17 and lower. When
-compiling in "conformance" mode (/permissive-) with C++17 and lower, you should define the MSE_MSC_CONFORMANCE_MODE
-preprocessor symbol. */
-#define MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20) && !defined(MSE_MSC_CONFORMANCE_MODE)
-
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) mse::impl::IsDereferenceable_pb<x>::value
-#define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) mse::impl::target_can_be_referenced_as<pointer_t, target_t>::value
-#else // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-/* Jan 2022: The microsoft compiler in "permissive" mode (/permissive+) seems to have some strange behavior (that
-results in "ambiguous overload" compile errors when we attempt to filter for "dereferenceability" (i.e. require
-the type to be some sort of pointer). So we substitute it with a simpler (and looser) criteria. */
-#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) ((!std::is_same<decltype(NULL), x>::value) && (!std::is_same<decltype(0), x>::value))
-#define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(pointer_t)
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 
 
 namespace impl {

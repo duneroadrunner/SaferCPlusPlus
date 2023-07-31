@@ -3304,43 +3304,9 @@ namespace mse {
 					return bool(*common_pointer_interface_ptr());
 				}
 
-				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
-				bool operator==(const _TPointer1& _Right_cref) const {
-					if (!bool(*this)) {
-						if (!bool(_Right_cref)) {
-							return true;
-						}
-						else {
-							return false;
-						}
-					}
-					/* Note that both underlying stored pointers are dereferenced here and we may be relying on the intrinsic
-					safety of those pointers to ensure the safety of the dereference operations. */
-					return ((void*)(std::addressof(*(*this))) == (void*)(std::addressof(*_Right_cref)));
-				}
-				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
-				bool operator!=(const _TPointer1& _Right_cref) const { return !((*this) == _Right_cref); }
-#ifndef MSE_HAS_CXX20
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-				template <typename _TPointer1, typename _TPointer2, MSE_IMPL_EIP mse::impl::enable_if_t<
-					(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
-					&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
-					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
-					&& std::is_convertible<_TPointer2*, TAnyPointerBaseV1 const*>::value
-				> MSE_IMPL_EIS >
-					friend bool operator==(const _TPointer1& _Left_cref, const TAnyPointerBaseV1& _Right_cref) {
-					return _Right_cref.operator==(_Left_cref);
-				}
-				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
-					(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
-					&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
-					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
-				> MSE_IMPL_EIS >
-					friend bool operator!=(const _TPointer1& _Left_cref, const TAnyPointerBaseV1& _Right_cref) {
-					return !(_Right_cref.operator==(_Left_cref));
-			}
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-#endif // !MSE_HAS_CXX20
+				MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TAnyPointerBaseV1)
+				MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TAnyPointerBaseV1)
+				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TAnyPointerBaseV1)
 
 			protected:
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -3472,43 +3438,9 @@ namespace mse {
 					return bool(*common_pointer_interface_const_ptr());
 				}
 
-				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
-				bool operator==(const _TPointer1& _Right_cref) const {
-					if (!bool(*this)) {
-						if (!bool(_Right_cref)) {
-							return true;
-						}
-						else {
-							return false;
-						}
-					}
-					/* Note that both underlying stored pointers are dereferenced here and we may be relying on the intrinsic
-					safety of those pointers to ensure the safety of the dereference operations. */
-					return (std::addressof(*(*this)) == std::addressof(*_Right_cref));
-				}
-				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)> MSE_IMPL_EIS >
-				bool operator !=(const _TPointer1& _Right_cref) const { return !((*this) == _Right_cref); }
-#ifndef MSE_HAS_CXX20
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-				template <typename _TPointer1, typename _TPointer2, MSE_IMPL_EIP mse::impl::enable_if_t<
-					(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
-					&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
-					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
-					&& std::is_convertible<_TPointer2*, TAnyConstPointerBaseV1 const*>::value
-				> MSE_IMPL_EIS >
-					friend bool operator==(const _TPointer1& _Left_cref, const TAnyConstPointerBaseV1& _Right_cref) {
-					return _Right_cref.operator==(_Left_cref);
-				}
-				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
-					(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
-					&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
-					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
-				> MSE_IMPL_EIS >
-					friend bool operator!=(const _TPointer1& _Left_cref, const TAnyConstPointerBaseV1& _Right_cref) {
-					return !(_Right_cref.operator==(_Left_cref));
-			}
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-#endif // !MSE_HAS_CXX20
+				MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TAnyConstPointerBaseV1);
+				MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TAnyConstPointerBaseV1)
+				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TAnyConstPointerBaseV1)
 
 			protected:
 				MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
