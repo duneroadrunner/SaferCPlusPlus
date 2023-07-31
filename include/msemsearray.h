@@ -10761,16 +10761,22 @@ namespace mse {
 
 			//MSE_USING(TXSLTARandomAccessSection, base_class);
 
-			/* use the make_xslta_subsection() free function instead */
-			MSE_DEPRECATED TXSLTARandomAccessSection xslta_subsection(size_type pos = 0, size_type n = npos) const {
+			TXSLTARandomAccessSection xslta_subsection(size_type pos = 0, size_type n = npos) const {
 				return xslta_subsection_pv(pos, n);
 			}
+		private:
 			/* prefer the make_subsection() free function instead */
 			auto subsection(size_type pos = 0, size_type n = npos) const {
 				return subsection_pv(pos, n);
 			}
-			auto first(size_type count) const { return subsection_pv(0, count); }
-			auto last(size_type count) const { return subsection_pv(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
+		public:
+			/* Just for compatibility with std::span<>. */
+			TXSLTARandomAccessSection subspan(size_type Offset, size_type Count = npos) const {
+				return xslta_subsection(Offset, Count);
+			}
+
+			auto first(size_type count) const { return xslta_subsection_pv(0, count); }
+			auto last(size_type count) const { return xslta_subsection_pv(std::max(difference_type(mse::msear_as_a_size_t((*this).size())) - difference_type(mse::msear_as_a_size_t(count)), 0), count); }
 
 			typedef typename base_class::xslta_iterator xslta_iterator;
 			typedef typename base_class::xslta_const_iterator xslta_const_iterator;

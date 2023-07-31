@@ -196,16 +196,7 @@ namespace mse {
 			_Ty* operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return /*mse::return_value*/(m_ptr);
 			}
-			TXSLTAPointer& operator=(_Ty* ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				m_ptr = ptr;
-				return /*mse::return_value*/(*this);
-			}
 			TXSLTAPointer& operator=(const TXSLTAPointer& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				m_ptr = _Right_cref.m_ptr;
-				return /*mse::return_value*/(*this);
-			}
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
-			TXSLTAPointer& operator=(const TXSLTAPointer<_Ty2 >& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				m_ptr = _Right_cref.m_ptr;
 				return /*mse::return_value*/(*this);
 			}
@@ -217,7 +208,7 @@ namespace mse {
 #endif // !MSE_HAS_CXX20
 
 			bool operator!() const { return (!m_ptr); }
-			operator bool() const {
+			explicit operator bool() const {
 				return (m_ptr != nullptr);
 			}
 
@@ -252,16 +243,7 @@ namespace mse {
 			_Ty* operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return /*mse::return_value*/(m_ptr);
 			}
-			TXSLTAConstPointer& operator=(_Ty* ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				m_ptr = ptr;
-				return /*mse::return_value*/(*this);
-			}
 			TXSLTAConstPointer& operator=(const TXSLTAConstPointer& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				m_ptr = _Right_cref.m_ptr;
-				return /*mse::return_value*/(*this);
-			}
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
-			TXSLTAConstPointer& operator=(const TXSLTAConstPointer<_Ty2 >& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				m_ptr = _Right_cref.m_ptr;
 				return /*mse::return_value*/(*this);
 			}
@@ -273,7 +255,7 @@ namespace mse {
 #endif // !MSE_HAS_CXX20
 
 			bool operator!() const { return (!m_ptr); }
-			operator bool() const {
+			explicit operator bool() const {
 				return (m_ptr != nullptr);
 			}
 
