@@ -2239,24 +2239,7 @@ auto res12 = iptrwbv2[2];
 
 #ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{
-			class CD {
-			public:
-				typedef decltype(mse::rsv::make_xslta_random_access_const_section(mse::rsv::xslta_vector<mse::rsv::TXSLTAPointer<int> >{ std::declval<mse::rsv::TXSLTAPointer<int> >() })) xslta_ra_csection_t;
-				static bool second_is_longer(xslta_ra_csection_t xslta_ra_csection1, xslta_ra_csection_t xslta_ra_csection2) {
-
-					return (xslta_ra_csection1.size() > xslta_ra_csection2.size()) ? false : true;
-				}
-
-				/* Here we will demonstrate the creation of type-erased random access sections by instantiation with
-				type-erased iterators. (TXSLTAAnyRandomAccessConstIterator<> is not yet implemented at the time of writing,
-				so we'll just use TXScopeAnyRandomAccessConstIterator<> for now.) */
-				static bool second_is_longer_any(mse::rsv::TXSLTARandomAccessConstSection<mse::TXScopeAnyRandomAccessConstIterator<mse::rsv::TXSLTAPointer<int> > > xslta_ra_csection1
-					, mse::rsv::TXSLTARandomAccessConstSection<mse::TXScopeAnyRandomAccessConstIterator<mse::rsv::TXSLTAPointer<int> > > xslta_ra_csection2) {
-					return (xslta_ra_csection1.size() > xslta_ra_csection2.size()) ? false : true;
-				}
-			};
-
-			mse::rsv::xslta_vector<mse::rsv::TXSLTAPointer<int> > vector1(mse::rsv::xslta_vector<mse::rsv::TXSLTAPointer<int> >{ &i1, & i2, & i3 });
+			auto vector1 = mse::rsv::xslta_fixed_vector<mse::rsv::TXSLTAPointer<int> >{ &i1, &i2, &i3 };
 			auto xslta_ra_csection1 = mse::rsv::make_xslta_random_access_const_section(&vector1);
 
 			typedef decltype(xslta_ra_csection1) xslta_ra_csection1_t;
@@ -2265,12 +2248,26 @@ auto res12 = iptrwbv2[2];
 			auto xslta_ra_csection1b = xslta_ra_csection1_t(vector1);
 			auto xslta_ra_csection1c = xslta_ra_csection1_t(&vector1);
 
+			class CD {
+			public:
+				static bool second_is_longer(xslta_ra_csection1_t xslta_ra_csection1, xslta_ra_csection1_t xslta_ra_csection2) {
+
+					return (xslta_ra_csection1.size() > xslta_ra_csection2.size()) ? false : true;
+				}
+
+				/* Here we will demonstrate the creation of type-erased random access sections by instantiation with
+				type-erased iterators. */
+				static bool second_is_longer_CSSSXSTE(mse::rsv::TXSLTARandomAccessConstSection<mse::rsv::TXSLTACSSSXSTERAConstIterator<mse::rsv::TXSLTAPointer<int> > > xslta_ra_csection1
+					, mse::rsv::TXSLTARandomAccessConstSection<mse::rsv::TXSLTACSSSXSTERAConstIterator<mse::rsv::TXSLTAPointer<int> > > xslta_ra_csection2) {
+					return (xslta_ra_csection1.size() > xslta_ra_csection2.size()) ? false : true;
+				}
+			};
+
 			auto res1 = CD::second_is_longer(xslta_ra_csection1, mse::rsv::make_xslta_random_access_const_section(
-				mse::rsv::xslta_vector<mse::rsv::TXSLTAPointer<int> >{ &i1, & i2, & i3, & i4 }));
-			auto res2 = J::second_is_longer(xslta_ra_csection1, mse::rsv::make_xslta_random_access_const_section(
-				mse::rsv::xslta_vector<mse::rsv::TXSLTAPointer<int> >{ &i1, & i2, & i3, & i4 }));
-			auto res3 = CD::second_is_longer_any(xslta_ra_csection1, mse::rsv::make_xslta_random_access_const_section(
-				mse::rsv::xslta_vector<mse::rsv::TXSLTAPointer<int> >{ &i1, & i2, & i3, & i4 }));
+				mse::rsv::xslta_fixed_vector<mse::rsv::TXSLTAPointer<int> >{ &i1, & i2, & i3, & i4 }));
+
+			auto res2 = CD::second_is_longer_CSSSXSTE(mse::rsv::make_xslta_random_access_const_section(mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 3>{ &i1, & i2, & i3 })
+				, mse::rsv::make_xslta_random_access_const_section(mse::rsv::xslta_fixed_vector<mse::rsv::TXSLTAPointer<int> >{ &i1, & i2, & i3, & i4 }));
 		}
 #endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
