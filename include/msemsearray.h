@@ -2375,7 +2375,7 @@ namespace mse {
 		TXScopeCSSSXSTERAIterator(TXScopeCSSSXSTERAIterator&& src) : base_class(MSE_FWD(src)) {}
 
 		template <typename _TRAContainer2>
-		TXScopeCSSSXSTERAIterator(const TXScopeCSSSXSRAIterator<_TRAContainer2>& src) : base_class(construction_helper1(src.target_container_ptr()), src.position()) {}
+		TXScopeCSSSXSTERAIterator(const TXScopeCSSSXSRAIterator<_TRAContainer2>& src) : base_class(construction_helper3(src.target_container_ptr()), src.position()) {}
 
 		template<typename _TRAIterator2>
 		TXScopeCSSSXSTERAIterator(const _TRAIterator2& ra_iter, size_type index = 0)
@@ -4069,9 +4069,9 @@ namespace mse {
 		public:
 			typedef mse::us::impl::ns_ra_iter::TRAIteratorBase<mse::impl::remove_reference_t<_TRAContainerPointer> > base_class;
 			typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
-			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class)
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-				MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TXSLTARAIterator);
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TXSLTARAIterator);
 
 			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
 			TXSLTARAIterator(TXSLTARAIterator<_Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
@@ -4138,9 +4138,9 @@ namespace mse {
 		public:
 			typedef mse::us::impl::ns_ra_iter::TRAConstIteratorBase<mse::impl::remove_reference_t<_TRAContainerPointer> > base_class;
 			typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
-			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class)
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-				MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TXSLTARAConstIterator);
+			MSE_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(TXSLTARAConstIterator);
 
 			TXSLTARAConstIterator(const TXSLTARAIterator<_TRAContainerPointer>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
 			TXSLTARAConstIterator(TXSLTARAIterator<_TRAContainerPointer>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
@@ -4489,7 +4489,8 @@ namespace mse {
 			typedef TXSLTACSSSStrongRAIterator<mse::us::impl::TXScopeRuntimeRawArrayProxyAndSelfPointer<_TElement> > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-		private:
+		//private:
+		public:
 			struct CDummy {};
 			template<typename _Ty2, typename _TRAIterator2>
 			struct container_pointer_type_from_iterator_type {
@@ -4507,19 +4508,19 @@ namespace mse {
 			};
 
 			template<typename _Ty2, typename _TRAIterator2, typename _TRAContainer2 = typename container_type_from_iterator_type<_TRAIterator2>::type>
-			struct is_convertible_to_TXSLTACSSSXSRAIterator_helper1 : std::is_convertible<_TRAIterator2, TXSLTACSSSXSRAIterator<_TRAContainer2> > {};
+			struct TXSLTACSSSXSRAIterator_can_be_constructed_from_helper1 : std::is_constructible<TXSLTACSSSXSRAIterator<_TRAContainer2>, _TRAIterator2> {};
 			template<typename _TRAIterator2>
-			struct is_convertible_to_TXSLTACSSSXSRAIterator_helper1<std::false_type, _TRAIterator2> : std::integral_constant<bool, false> {};
+			struct TXSLTACSSSXSRAIterator_can_be_constructed_from_helper1<std::false_type, _TRAIterator2> : std::integral_constant<bool, false> {};
 			template<typename _TRAIterator2>
-			struct is_convertible_to_TXSLTACSSSXSRAIterator : std::integral_constant<bool
-				, is_convertible_to_TXSLTACSSSXSRAIterator_helper1<typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRAIterator2>::type, _TRAIterator2>::value> {};
+			struct TXSLTACSSSXSRAIterator_can_be_constructed_from : std::integral_constant<bool
+				, TXSLTACSSSXSRAIterator_can_be_constructed_from_helper1<typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRAIterator2>::type, _TRAIterator2>::value> {};
 
 		public:
 			TXSLTACSSSXSTERAIterator(const TXSLTACSSSXSTERAIterator& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
 			TXSLTACSSSXSTERAIterator(TXSLTACSSSXSTERAIterator&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
 
 			template <typename _TRAContainer2>
-			TXSLTACSSSXSTERAIterator(const TXSLTACSSSXSRAIterator<_TRAContainer2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(construction_helper1(src.target_container_ptr()), src.position()) {}
+			TXSLTACSSSXSTERAIterator(const TXSLTACSSSXSRAIterator<_TRAContainer2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(construction_helper3(src.target_container_ptr()), src.position()) {}
 
 			template<typename _TRAIterator2>
 			TXSLTACSSSXSTERAIterator(const _TRAIterator2& ra_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0)
@@ -4612,7 +4613,7 @@ namespace mse {
 			}
 			template<typename _TRAIterator2>
 			static auto construction_helper2(std::true_type, const _TRAIterator2& ra_iter, const size_type index = 0) {
-				assert(0 == index); return base_class(construction_helper3(static_cast<const TXSLTACSSSXSRAIterator<typename container_type_from_iterator_type<_TRAIterator2>::type>&>(ra_iter).target_container_ptr()), ra_iter.position());
+				assert(0 == index); return base_class(construction_helper3(TXSLTACSSSXSRAIterator<typename container_type_from_iterator_type<_TRAIterator2>::type>(ra_iter).target_container_ptr()), ra_iter.position());
 			}
 			template<typename _TParam1>
 			static auto construction_helper2(std::false_type, const _TParam1& param1, const size_type index = 0) {
@@ -4627,11 +4628,11 @@ namespace mse {
 			static auto construction_helper1(std::true_type, TXSLTACSSSXSTERAIterator&& ra_iter, const size_type index = 0) { assert(0 == index); return base_class(MSE_FWD(ra_iter)); }
 			template<typename _TParam1>
 			static auto construction_helper1(std::false_type, const _TParam1& param1, const size_type index = 0) {
-				return construction_helper2(typename is_convertible_to_TXSLTACSSSXSRAIterator<const _TParam1&>::type(), param1, index);
+				return construction_helper2(typename TXSLTACSSSXSRAIterator_can_be_constructed_from<const _TParam1&>::type(), param1, index);
 			}
 			template<typename _TParam1>
 			static auto construction_helper1(std::false_type, _TParam1&& param1, const size_type index = 0) {
-				return construction_helper2(typename is_convertible_to_TXSLTACSSSXSRAIterator<decltype(param1)>::type(), MSE_FWD(param1), index);
+				return construction_helper2(typename TXSLTACSSSXSRAIterator_can_be_constructed_from<decltype(param1)>::type(), MSE_FWD(param1), index);
 			}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
@@ -4803,11 +4804,11 @@ namespace mse {
 			}
 			template<typename _TParam1>
 			static auto construction_helper2(std::false_type, const _TParam1& param1, const size_type index = 0) {
-				return construction_helper4(typename TXSLTACSSSXSTERAIterator<_TElement>::template is_convertible_to_TXSLTACSSSXSRAIterator<const _TParam1&>::type(), param1, index);
+				return construction_helper4(typename TXSLTACSSSXSTERAIterator<_TElement>::template TXSLTACSSSXSRAIterator_can_be_constructed_from<const _TParam1&>::type(), param1, index);
 			}
 			template<typename _TParam1>
 			static auto construction_helper2(std::false_type, _TParam1&& param1, const size_type index = 0) {
-				return construction_helper4(typename TXSLTACSSSXSTERAIterator<_TElement>::template is_convertible_to_TXSLTACSSSXSRAIterator<decltype(param1)>::type(), param1, index);
+				return construction_helper4(typename TXSLTACSSSXSTERAIterator<_TElement>::template TXSLTACSSSXSRAIterator_can_be_constructed_from<decltype(param1)>::type(), param1, index);
 			}
 
 			static auto construction_helper1(std::true_type, const TXSLTACSSSXSTERAConstIterator& ra_iter, const size_type index = 0) { assert(0 == index); return base_class(ra_iter); }
@@ -6649,13 +6650,13 @@ namespace mse {
 					return nullptr;
 				}
 				template <typename _TRALoneParam>
-				auto xslta_begin_iter_from_lone_param3(std::true_type, const _TRALoneParam& ra_container) {
-					return mse::make_xscope(std::begin(ra_container));
+				auto xslta_begin_iter_from_lone_param3(std::true_type, _TRALoneParam& ra_container) {
+					return std::begin(ra_container);
 				}
 				template <typename _TRALoneParam>
-				std::nullptr_t xslta_begin_iter_from_lone_param2(std::false_type, const _TRALoneParam& ra_container) {
+				auto xslta_begin_iter_from_lone_param2(std::false_type, _TRALoneParam& ra_container) {
 					/* The parameter doesn't seem to be a pointer. */
-					return nullptr;
+					return xslta_begin_iter_from_lone_param3(typename mse::impl::SupportsStdBegin_msemsearray<_TRALoneParam>::type(), ra_container);
 				}
 				template <typename _TRAPointer>
 				auto xslta_begin_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
@@ -6719,9 +6720,18 @@ namespace mse {
 				}
 
 				template <typename _TRALoneParam>
-				std::nullptr_t xslta_begin_const_iter_from_lone_param2(std::false_type, const _TRALoneParam& ra_container) {
-					/* The parameter doesn't seem to be a pointer. */
+				std::nullptr_t xslta_begin_const_iter_from_lone_param3(std::false_type, const _TRALoneParam& ra_container) {
+					/* We don't seem to be able to make an iterator from the given parameter. */
 					return nullptr;
+				}
+				template <typename _TRALoneParam>
+				auto xslta_begin_const_iter_from_lone_param3(std::true_type, _TRALoneParam& ra_container) {
+					return std::cbegin(ra_container);
+				}
+				template <typename _TRALoneParam>
+				auto xslta_begin_const_iter_from_lone_param2(std::false_type, const _TRALoneParam& ra_container) {
+					/* The parameter doesn't seem to be a pointer. */
+					return xslta_begin_const_iter_from_lone_param3(typename mse::impl::SupportsStdBegin_msemsearray<_TRALoneParam>::type(), ra_container);
 				}
 				template <typename _TRAPointer>
 				auto xslta_begin_const_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
@@ -6776,8 +6786,8 @@ namespace mse {
 		{
 			return mse::rsv::impl::iterator::xslta_begin_iter_from_rvalue_lone_param(MSE_FWD(param));
 		}
-		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(std::addressof(std::declval<_TContainer>())))>::value> MSE_IMPL_EIS >
-		auto make_xslta_iterator(const _TContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
+		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(std::declval<typename std::add_pointer<_TContainer>::type>()))>::value> MSE_IMPL_EIS >
+		auto make_xslta_iterator(_TContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(param);
@@ -6880,7 +6890,7 @@ namespace mse {
 			}
 			template<class _TContainerPointer>
 			auto make_xslta_end_iterator_helper1(std::false_type, const _TContainerPointer& param) {
-				return mse::make_xscope(std::end(*param));
+				return std::end(*param);
 			}
 			template<class _TContainerPointer>
 			auto make_xslta_end_iterator_helper02(std::true_type, const _TContainerPointer& param) {
@@ -6894,11 +6904,11 @@ namespace mse {
 			}
 			template<class _TContainer>
 			auto make_xslta_end_iterator_helper02(std::false_type, const _TContainer& param) {
-				return mse::make_xscope(std::end(param));
+				return std::end(param);
 			}
 			template<class _TContainer>
 			auto make_xslta_end_iterator_helper02(std::false_type, _TContainer&& param) {
-				return mse::make_xscope(std::end(param));
+				return std::end(param);
 			}
 			template<class _TContainerPointer>
 			auto make_xslta_end_iterator_from_lvalue_helper01(_TContainerPointer& param) {
@@ -11458,6 +11468,28 @@ namespace mse {
 		using TXSLTACSSSXSTERandomAccessConstSection = TXSLTARandomAccessConstSection<TXSLTACSSSXSTERAConstIterator<_TElement> >;
 		template <typename _TElement>
 		using TXSLTACSSSXSTERandomAccessSection = TXSLTARandomAccessSection<TXSLTACSSSXSTERAIterator<_TElement> >;
+
+		template <typename _TRAIterator>
+		auto make_xslta_csssxste_random_access_const_section(const _TRAIterator& start_iter, typename TXSLTARandomAccessConstSection<_TRAIterator>::size_type count) {
+			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*start_iter)> > _TElement;
+			return TXSLTACSSSXSTERandomAccessConstSection<_TElement>(TXSLTACSSSXSTERAConstIterator<_TElement>(start_iter), count);
+		}
+		template <typename _TRALoneParam>
+		auto make_xslta_csssxste_random_access_const_section(const _TRALoneParam& param) {
+			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_const_section(param)[0])> > _TElement;
+			return TXSLTACSSSXSTERandomAccessConstSection<_TElement>(make_xslta_random_access_const_section(param));
+		}
+
+		template <typename _TRAIterator>
+		auto make_xslta_csssxste_random_access_section(const _TRAIterator& start_iter, typename TXSLTARandomAccessSection<_TRAIterator>::size_type count) {
+			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*start_iter)> > _TElement;
+			return TXSLTACSSSXSTERandomAccessSection<_TElement>(TXSLTACSSSXSTERAIterator<_TElement>(start_iter), count);
+		}
+		template <typename _TRALoneParam>
+		auto make_xslta_csssxste_random_access_section(const _TRALoneParam& param) {
+			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_section(param)[0])> > _TElement;
+			return TXSLTACSSSXSTERandomAccessSection<_TElement>(make_xslta_random_access_section(param));
+		}
 
 	}
 

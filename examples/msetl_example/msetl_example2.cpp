@@ -2216,8 +2216,8 @@ auto res12 = iptrwbv2[2];
 		int i4 = 11;
 		int i5 = 13;
 
-		mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 4> array1{ &i1, &i2, &i3, &i4 };
-		mse::rsv::xslta_vector<mse::rsv::TXSLTAPointer<int> > vec1{ &i1, &i2, &i3, &i4, &i5 };
+		auto array1 = mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 4>{ &i1, &i2, &i3, &i4 };
+		auto vec1 = mse::rsv::xslta_vector<mse::rsv::TXSLTAPointer<int> >{ &i1, &i2, &i3, &i4, &i5 };
 		auto bfvec1 = mse::rsv::make_xslta_borrowing_fixed_vector(&vec1);
 
 		auto xslta_ra_section1 = mse::rsv::make_xslta_random_access_section(array1.begin(), 2);
@@ -2269,6 +2269,158 @@ auto res12 = iptrwbv2[2];
 			auto res2 = CD::second_is_longer_CSSSXSTE(mse::rsv::make_xslta_random_access_const_section(mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 3>{ &i1, & i2, & i3 })
 				, mse::rsv::make_xslta_random_access_const_section(mse::rsv::xslta_fixed_vector<mse::rsv::TXSLTAPointer<int> >{ &i1, & i2, & i3, & i4 }));
 		}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+	}
+	
+	{
+		/********************************************/
+		/*  TXSLTACSSSXSTERandomAccessIterator<>   */
+		/*  & TXSLTACSSSXSTERandomAccessSection<>  */
+		/********************************************/
+
+		/* TXSLTACSSSXSTERandomAccessIterator<> and TXSLTACSSSXSTERandomAccessSection<> are "type-erased" template classes
+		that function much like TXSLTAAnyRandomAccessIterator<> and TXSLTAAnyRandomAccessSection<> in that they can be
+		used to enable functions to take as arguments iterators or sections of various container types (like an arrays or
+		vectors) without making the functions in to template functions. But in this case there are limitations on what types
+		can be converted. In exchange for these limitations, these types require less overhead. The "CSSSXSTE" part of the
+		typenames stands for "Contiguous Sequence, Static Structure, XSLTA, Type-Erased". So the first restriction is that
+		the target container must be recognized as a "contiguous sequence" (basically an array or vector). It also must be
+		recognized as having a "static structure". This essentially means that the container cannot be resized. Note that
+		while vectors support resizing, the ones in the library can be "structure locked" at run-time to ensure that they
+		are not resized (i.e. have a "static structure") during certain periods. And only the "scope" versions of the
+		iterators and sections are supported. */
+
+		auto array1 = mse::rsv::xslta_array<int, 4>{ 1, 2, 3, 4 };
+		auto array2 = mse::rsv::xslta_array<int, 5>{ 5, 6, 7, 8, 9 };
+		auto vec1 = mse::rsv::xslta_fixed_vector<int>{ 10, 11, 12, 13, 14 };
+		class B {
+		public:
+			static void foo1(mse::rsv::TXSLTACSSSXSTERandomAccessIterator<int> ra_iter1) {
+				ra_iter1[1] = 15;
+			}
+			static int foo2(mse::rsv::TXSLTACSSSXSTERandomAccessConstIterator<int> const_ra_iter1) {
+				const_ra_iter1 += 2;
+				--const_ra_iter1;
+				const_ra_iter1--;
+				return const_ra_iter1[2];
+			}
+			static int foo2b(mse::rsv::TFParam<mse::rsv::TXSLTACSSSXSTERandomAccessConstIterator<int> > const_ra_iter1) {
+				return foo2(const_ra_iter1);
+			}
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+			static void foo3(mse::rsv::TXSLTACSSSXSTERandomAccessSection<int> ra_section) {
+				for (mse::rsv::TXSLTACSSSXSTERandomAccessSection<int>::size_type i = 0; i < ra_section.size(); i += 1) {
+					ra_section[i] = 0;
+				}
+			}
+			static int foo4(mse::rsv::TXSLTACSSSXSTERandomAccessConstSection<int> const_ra_section) {
+				int retval = 0;
+				for (mse::rsv::TXSLTACSSSXSTERandomAccessSection<int>::size_type i = 0; i < const_ra_section.size(); i += 1) {
+					retval += const_ra_section[i];
+				}
+				return retval;
+			}
+			static int foo5(mse::rsv::TXSLTACSSSXSTERandomAccessConstSection<int> const_ra_section) {
+				int retval = 0;
+				for (const auto& const_item : const_ra_section) {
+					retval += const_item;
+				}
+				return retval;
+			}
+#endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+		};
+
+		auto xs_mstd_array_iter1 = mse::rsv::make_xslta_begin_iterator(&array1);
+		xs_mstd_array_iter1++;
+
+		auto res1 = B::foo2(xs_mstd_array_iter1);
+		B::foo1(xs_mstd_array_iter1);
+
+		auto xs_msearray_const_iter2 = mse::rsv::make_xslta_begin_const_iterator(&array2);
+		xs_msearray_const_iter2 += 2;
+		auto res2 = B::foo2(xs_msearray_const_iter2);
+
+		auto vec1_citer1 = mse::rsv::make_xslta_begin_const_iterator(&vec1);
+		auto res3 = B::foo2(vec1_citer1);
+		/*
+		Note that attempting to combine the previous two lines into a single expression like so:
+		auto res3b = B::foo2(mse::rsv::make_xslta_begin_const_iterator(&vec1));
+		is not supported and would result in a compile error.
+
+		In the case of dynamic containers, like vectors and strings, the (scope) iterators can only be converted to
+		TXSLTACSSSXSTERandomAccessIterator<>s if they are lvalues, not temporaries/rvalues. This is because scope iterators
+		hold a "structure lock" that prevents the container from being resized. If the scope iterator you're attempting to
+		convert from is a temporary (rvalue) one, then the structure lock would be just as temporary and it would not be safe
+		to create a TXSLTACSSSXSTERandomAccessIterator<> that outlives the period when the container is "structure locked".
+		"Non-resizable" containers, like arrays, do not have the same issue, so this restriction does not apply to their
+		(scope) iterators.
+		*/
+
+		auto res3c = B::foo2b(mse::rsv::make_xslta_begin_const_iterator(&vec1));
+		/*
+		However, note that, unlike B::foo2(), B::foo2b() "annotates" its (non-returnable) parameter with the rsv::TFParam<>
+		template wrapper. This allows it to accept temporary/rvalue (scope) iterators of dynamic containers. This is safe
+		because we know that (even temporary) function arguments will outlive their corresponding (non-returnable) parameter
+		values.
+		*/
+
+		auto vec1_iter2 = ++mse::rsv::make_xslta_begin_iterator(&vec1);
+		B::foo1(vec1_iter2);
+		auto vec1_iter1 = mse::rsv::make_xslta_begin_iterator(&vec1);
+		auto res4 = B::foo2(vec1_iter1);
+
+		auto vec1_begin_iter1 = mse::rsv::make_xslta_begin_iterator(&vec1);
+		mse::rsv::TXSLTACSSSXSTERandomAccessIterator<int> xs_te_iter1 = vec1_begin_iter1;
+		auto vec1_end_iter1 = mse::rsv::make_xslta_end_iterator(&vec1);
+		mse::rsv::TXSLTACSSSXSTERandomAccessIterator<int> xs_te_iter2 = vec1_end_iter1;
+		auto res5 = xs_te_iter2 - xs_te_iter1;
+		xs_te_iter2 = xs_te_iter1;
+
+		{
+			auto std_array1 = std::array<int, 4>{ 1, 2, 3, 4 };
+			mse::rsv::TXSLTACSSSXSTERandomAccessIterator<int> xs_te_iter1(mse::rsv::make_xslta_begin_iterator(&std_array1));
+			mse::rsv::TXSLTACSSSXSTERandomAccessIterator<int> xs_te_iter2 = mse::rsv::make_xslta_end_iterator(&std_array1);
+			auto res5 = xs_te_iter2 - xs_te_iter1;
+			xs_te_iter1 = xs_te_iter2;
+		}
+
+		mse::rsv::xslta_array<int, 4> mstd_array3_scpobj = mse::rsv::xslta_array<int, 4>({ 1, 2, 3, 4 });
+		auto mstd_array_scpiter3 = mse::rsv::make_xslta_begin_iterator(&mstd_array3_scpobj);
+		++mstd_array_scpiter3;
+		B::foo1(mstd_array_scpiter3);
+
+#ifndef EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
+		mse::rsv::TXSLTACSSSXSTERandomAccessSection<int> xscp_ra_section1(xs_mstd_array_iter1++, 2);
+		B::foo3(xscp_ra_section1);
+		auto xs_mstd_vec_iter1 = mse::rsv::make_xslta_begin_iterator(&vec1);
+		mse::rsv::TXSLTACSSSXSTERandomAccessSection<int> xscp_ra_section2(++xs_mstd_vec_iter1, 3);
+		/*
+		Note that had we instead used the postfix increment operator on the xs_mstd_vec_iter1 argument in the previous line
+		like so:
+		mse::rsv::TXSLTACSSSXSTERandomAccessSection<int> xscp_ra_section2b(xs_mstd_vec_iter1++, 3);
+		we would have gotten a compile error. That's because unlike the prefix increment operator, the postfix increment
+		operator returns a temporary (rvalue) copy of the iterator, and as noted earlier, in the case of dynamic containers,
+		like vectors and strings, conversion/construction from temporary (rvalue) versions of their iterators could be unsafe
+		and is not supported.
+		*/
+
+		auto res6 = B::foo5(xscp_ra_section2);
+		B::foo3(xscp_ra_section2);
+		auto res7 = B::foo4(xscp_ra_section2);
+
+		auto xs_ra_section1 = mse::rsv::make_xslta_random_access_section(xs_mstd_array_iter1, 2);
+		B::foo3(xs_ra_section1);
+		auto xs_ra_const_section2 = mse::rsv::make_xslta_random_access_const_section(mse::rsv::make_xslta_begin_const_iterator(&vec1), 2);
+		B::foo4(xs_ra_const_section2);
+
+		auto nii_array4_scpobj = mse::rsv::xslta_array<int, 4>{ 1, 2, 3, 4 };
+		auto xscp_ra_section3 = mse::rsv::make_xslta_csssxste_random_access_section(&nii_array4_scpobj);
+
+		auto xscp_ra_section1_xscp_iter1 = mse::rsv::make_xslta_begin_iterator(xscp_ra_section1);
+		auto xscp_ra_section1_xscp_iter2 = mse::rsv::make_xslta_end_iterator(xscp_ra_section1);
+		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
+		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+
 #endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
 }
