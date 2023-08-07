@@ -12,6 +12,7 @@
 #include "msenorad.h"
 #ifdef MSE_SELF_TESTS
 #include <string>
+#include "msemsearray.h"
 #endif // MSE_SELF_TESTS
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED

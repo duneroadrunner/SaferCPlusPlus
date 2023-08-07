@@ -4112,11 +4112,11 @@ namespace mse {
 				return base_class::operator-(_Right_cref);
 			}
 
-			TXSLTARAIterator& operator=(const TXSLTARAIterator& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+			TXSLTARAIterator& operator=(const TXSLTARAIterator& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				base_class::operator=(_Right_cref);
 				return (*this);
 			}
-			TXSLTARAIterator& operator=(TXSLTARAIterator&& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+			TXSLTARAIterator& operator=(TXSLTARAIterator&& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				base_class::operator=(MSE_FWD(_Right_cref));
 				return (*this);
 			}
@@ -4189,11 +4189,11 @@ namespace mse {
 				return base_class::operator-(_Right_cref);
 			}
 
-			TXSLTARAConstIterator& operator=(const TXSLTARAConstIterator& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+			TXSLTARAConstIterator& operator=(const TXSLTARAConstIterator& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				base_class::operator=(_Right_cref);
 				return (*this);
 			}
-			TXSLTARAConstIterator& operator=(TXSLTARAConstIterator&& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+			TXSLTARAConstIterator& operator=(TXSLTARAConstIterator&& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				base_class::operator=(MSE_FWD(_Right_cref));
 				return (*this);
 			}
