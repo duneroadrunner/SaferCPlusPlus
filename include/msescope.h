@@ -170,8 +170,8 @@ namespace mse {
 	template<typename _Ty> using TXScopeCagedItemFixedConstPointerToRValue = const _Ty* /*const*/;
 	//template<typename _TROy> using TXScopeReturnValue = _TROy;
 
-	template<typename _Ty> auto xscope_ifptr_to(_Ty&& _X) { return std::addressof(_X); }
-	template<typename _Ty> auto xscope_ifptr_to(const _Ty& _X) { return std::addressof(_X); }
+	template<typename _Ty> auto xscope_fptr_to(_Ty&& _X) { return std::addressof(_X); }
+	template<typename _Ty> auto xscope_fptr_to(const _Ty& _X) { return std::addressof(_X); }
 
 	namespace us {
 		template<typename _Ty>
@@ -1807,7 +1807,7 @@ namespace mse {
 
 #endif /*MSEPRIMITIVES_H*/
 
-			/* end of template specializations */
+		/* end of template specializations */
 	}
 
 #endif /*MSE_SCOPEPOINTER_DISABLED*/
@@ -2935,6 +2935,41 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
+
+
+
+
+#define MSE_SCOPE_IMPL_RETURNVALUE_INHERIT_ASSIGNMENT_OPERATOR(class_name) \
+		auto& operator=(class_name&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); } \
+		auto& operator=(const class_name& _X) { base_class::operator=(_X); return (*this); } \
+		template<class _Ty2> auto& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); } \
+		template<class _Ty2> auto& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
+
+#define MSE_SCOPE_IMPL_RETURNVALUE_SPECIALIZATION_DEFINITIONS1(class_name) \
+		class_name(const class_name&) = default; \
+		class_name(class_name&&) = default; \
+		MSE_SCOPE_IMPL_RETURNVALUE_INHERIT_ASSIGNMENT_OPERATOR(class_name);
+
+
+#ifdef MSEPRIMITIVES_H
+
+#define MSE_SCOPE_IMPL_RETURNVALUE_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
+		template<> \
+		class TReturnValue<arithmetic_type> : public TReturnValue<template_wrapper<arithmetic_type>> { \
+		public: \
+			typedef TReturnValue<template_wrapper<arithmetic_type>> base_class; \
+			MSE_USING(TReturnValue, base_class); \
+		};
+
+#define MSE_SCOPE_IMPL_RETURNVALUE_ARITHMETIC_SPECIALIZATIONS(arithmetic_type, template_wrapper) \
+		MSE_SCOPE_IMPL_RETURNVALUE_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper); \
+		MSE_SCOPE_IMPL_RETURNVALUE_ARITHMETIC_SPECIALIZATION(typename std::add_const<arithmetic_type>::type, template_wrapper);
+
+	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_SCOPE_IMPL_RETURNVALUE_ARITHMETIC_SPECIALIZATIONS)
+
+#endif /*MSEPRIMITIVES_H*/
+
+
 
 
 	/* deprecated aliases */
