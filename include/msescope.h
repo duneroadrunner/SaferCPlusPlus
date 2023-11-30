@@ -1367,7 +1367,7 @@ namespace mse {
 			template<class _TTargetType, class _Ty2>
 			friend TXScopeFixedPointer<_TTargetType> make_xscope_pointer_to_member(_TTargetType& target, const TXScopeFixedPointer<_Ty2>& lease_pointer);
 
-			template<class _Ty2> friend TXScopeFixedPointer<_Ty2> us::unsafe_make_xscope_pointer_to(_Ty2& ref);
+			template<class _Ty2> friend TXScopeFixedPointer<_Ty2> mse::us::unsafe_make_xscope_pointer_to(_Ty2& ref);
 		};
 
 		template<typename _Ty, lifetime_info1_t lt_info1/* = no_lifetime_info1*/>
@@ -1431,7 +1431,7 @@ namespace mse {
 			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedPointer<_Ty2>& lease_pointer);
 			template<class _TTargetType, class _Ty2>
 			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType& target, const TXScopeFixedConstPointer<_Ty2>& lease_pointer);
-			template<class _Ty2> friend TXScopeFixedConstPointer<_Ty2> us::unsafe_make_xscope_const_pointer_to(const _Ty2& cref);
+			template<class _Ty2> friend TXScopeFixedConstPointer<_Ty2> mse::us::unsafe_make_xscope_const_pointer_to(const _Ty2& cref);
 		};
 
 		/* TXScopeCagedItemFixedPointerToRValue<> holds a TXScopeFixedPointer<> that points to an r-value which can only be
@@ -1605,7 +1605,7 @@ namespace mse {
 			MSE_SCOPE_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(TXScopeObj); \
 		};
 
-	/* To achieve compatibility with the us::unsafe_make_xscope_pointer() functions, these specializations make use of
+	/* To achieve compatibility with the mse::us::unsafe_make_xscope_pointer() functions, these specializations make use of
 	reinterpret_cast<>s in certain situations. The safety of these reinterpret_cast<>s rely on the 'mapped_type'
 	being safely "reinterpretable" as a 'specified_type'. */
 #define MSE_SCOPE_IMPL_PTR_SPECIALIZATION(specified_type, mapped_type) \
@@ -1635,7 +1635,7 @@ namespace mse {
 			template<class specified_type2, class _TMemberObjectPointer> \
 			friend auto mse::make_xscope_pointer_to_member_v2(const TXScopeFixedPointer<specified_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
 				->impl::make_xscope_pointer_to_member_v2_return_type1<specified_type2, _TMemberObjectPointer>; \
-			template<class _Ty2> friend TXScopeFixedPointer<_Ty2> us::unsafe_make_xscope_pointer_to(_Ty2 & ref); \
+			template<class _Ty2> friend TXScopeFixedPointer<_Ty2> mse::us::unsafe_make_xscope_pointer_to(_Ty2 & ref); \
 		}; \
 		template<typename _Ty> \
 		class TXScopeFixedConstPointer<specified_type> : public TXScopeFixedConstPointer<mapped_type> { \
@@ -1688,7 +1688,7 @@ namespace mse {
 			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeFixedPointer<specified_type2> & lease_pointer); \
 			template<class _TTargetType, class specified_type2> \
 			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeFixedConstPointer<specified_type2> & lease_pointer); \
-			template<class specified_type2> friend TXScopeFixedConstPointer<specified_type2> us::unsafe_make_xscope_const_pointer_to(const specified_type2 & cref); \
+			template<class specified_type2> friend TXScopeFixedConstPointer<specified_type2> mse::us::unsafe_make_xscope_const_pointer_to(const specified_type2 & cref); \
 		};
 
 #define MSE_SCOPE_IMPL_PTR_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
@@ -1711,7 +1711,7 @@ namespace mse {
 			MSE_USING(TXScopeObj, base_class); \
 		};
 
-		/* To achieve compatibility with the us::unsafe_make_xscope_pointer() functions, these specializations make use of
+		/* To achieve compatibility with the mse::us::unsafe_make_xscope_pointer() functions, these specializations make use of
 		reinterpret_cast<>s in certain situations. The safety of these reinterpret_cast<>s rely on 'template_wrapper<arithmetic_type>'
 		being safely "reinterpretable" as an 'arithmetic_type'. */
 #define MSE_SCOPE_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
@@ -1741,7 +1741,7 @@ namespace mse {
 			template<class arithmetic_type2, class _TMemberObjectPointer> \
 			friend auto mse::make_xscope_pointer_to_member_v2(const TXScopeFixedPointer<arithmetic_type2> & lease_pointer, const _TMemberObjectPointer & member_object_ptr) \
 				->impl::make_xscope_pointer_to_member_v2_return_type1<arithmetic_type2, _TMemberObjectPointer>; \
-			template<class arithmetic_type2> friend TXScopeFixedPointer<arithmetic_type2> us::unsafe_make_xscope_pointer_to(arithmetic_type2 & ref); \
+			template<class arithmetic_type2> friend TXScopeFixedPointer<arithmetic_type2> mse::us::unsafe_make_xscope_pointer_to(arithmetic_type2 & ref); \
 		}; \
 		template<> \
 		class TXScopeFixedConstPointer<arithmetic_type> : public mse::us::impl::TXScopeItemConstPointerBase<arithmetic_type>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase { \
@@ -1794,7 +1794,7 @@ namespace mse {
 			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeFixedPointer<arithmetic_type2> & lease_pointer); \
 			template<class _TTargetType, class arithmetic_type2> \
 			friend TXScopeFixedConstPointer<_TTargetType> make_xscope_const_pointer_to_member(const _TTargetType & target, const TXScopeFixedConstPointer<arithmetic_type2> & lease_pointer); \
-			template<class arithmetic_type2> friend TXScopeFixedConstPointer<arithmetic_type2> us::unsafe_make_xscope_const_pointer_to(const arithmetic_type2 & cref); \
+			template<class arithmetic_type2> friend TXScopeFixedConstPointer<arithmetic_type2> mse::us::unsafe_make_xscope_const_pointer_to(const arithmetic_type2 & cref); \
 		};
 
 #define MSE_SCOPE_IMPL_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
