@@ -28,6 +28,7 @@
 #include<stdexcept>
 #include <shared_mutex>
 #include <mutex>
+#include <system_error>
 #ifdef MSE_HAS_CXX17
 #include<optional>
 #include <variant>
