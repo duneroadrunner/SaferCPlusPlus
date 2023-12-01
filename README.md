@@ -288,12 +288,12 @@ Although registered pointers are more general and flexible, it's expected that [
 
 ### TRegisteredPointer
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/1W5KnxvY4))
 
 ```cpp
     #include "mseregistered.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         class CA {
         public:
             CA(int x) : m_x(x) {}
@@ -342,7 +342,7 @@ usage example:
 ```cpp
     #include "mseregistered.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         class CA {
         public:
             CA(std::string str) : m_str(str) {}
@@ -380,7 +380,7 @@ usage example:
     #include "mseprimitives.h"
     #include "mseregistered.h"
 
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         /* This example originally comes from http://www.cplusplus.com/reference/functional/reference_wrapper/. */
         mse::TRegisteredObj<mse::CInt> a(10), b(20), c(30);
         // an array of "references":
@@ -398,12 +398,12 @@ usage example:
 
 ### TCRegisteredPointer
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/P87sdKf4h))
 
 ```cpp
     #include "msecregistered.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         
         class C;
     
@@ -448,12 +448,12 @@ So for those cases, `TNDRegisteredPointer<>` and `TNDCRegisteredPointer` are jus
 
 ### TNoradPointer
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/shYeoPs5T))
 
 ```cpp
     #include "msenorad.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         class C;
 
@@ -553,7 +553,7 @@ usage example:
 ```cpp
 	#include "mserefcounting.h"
 	
-	void main(int argc, char* argv[]) {
+	int main(int argc, char* argv[]) {
 		class A {
 		public:
 			A() {}
@@ -617,7 +617,7 @@ Generally you're going to want to obtain a "strong" pointer from the weak pointe
     #include "mseregistered.h"
     #include <iostream>
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
 
         typedef mse::TRefCountingFixedPointer<std::string> str_rc_ptr_t; // owning pointer of a string
         typedef mse::TNDRegisteredObj<str_rc_ptr_t> str_rc_ptr_regobj_t; // registered version of above so that you can obtain a (weak)
@@ -657,7 +657,7 @@ This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_p
     #include "msecregistered.h"
     #include "mseregistered.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
 
         class CRCNode;
 
@@ -749,7 +749,7 @@ usage example:
 ```cpp
     #include "msescope.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         class A {
         public:
             A(int x) : b(x) {}
@@ -790,7 +790,7 @@ usage example:
 ```cpp
     #include "msescope.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         class A {
         public:
             A(int x) : b(x) {}
@@ -827,7 +827,7 @@ usage example:
     #include "msescope.h"
     #include "mserefcounting.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         class A {
         public:
             A(int x) : b(x) {}
@@ -873,7 +873,7 @@ usage example:
     #include "mseregisteredproxy.h"
     #include "msemsestring.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         class CB {
         public:
             static void foo1(mse::TXScopeFixedPointer<mse::nii_string> xscope_ptr1) {
@@ -935,7 +935,7 @@ usage example:
     #include "msenoradproxy.h"
     #include "msemsestring.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         class CB {
         public:
             static void foo1(mse::TXScopeFixedPointer<mse::nii_string> xscope_ptr1) {
@@ -995,7 +995,7 @@ For safety reasons, non-owning scope pointers (or any objects containing a scope
 ```cpp
     #include "msescope.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         class A {
         public:
@@ -1109,7 +1109,7 @@ public:
     }
 };
     
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     mse::TXScopeObj<mse::nii_string> xscope_string1 = "abc";
     mse::TXScopeObj<mse::nii_string> xscope_string2 = "abcd";
 
@@ -1157,7 +1157,7 @@ public:
     }
 };
     
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     class CD {
     public:
         static bool second_is_longer(const mse::rsv::TXScopeFParam<mse::TXScopeFixedConstPointer<mse::nii_string> > string1_xscpptr
@@ -1219,7 +1219,7 @@ usage example:
         }
     };
     
-    void main() {
+    int main() {
         class CB {
         public:
             /* It's generally not necessary for a function return type to be a scope type. Even if the return value
@@ -1272,7 +1272,7 @@ example:
 #include "msescope.h"
 #include "mseoptional.h"
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
     /* Defining your own scope types. */
 
@@ -1339,7 +1339,7 @@ usage example:
         mse::nii_string m_string1 = "initial text";
     };
     
-    void main() {
+    int main() {
         /* To demonstrate, first we'll declare some objects such that we can obtain safe pointers to those
         objects. For better or worse, this library provides a bunch of different safe pointers types. */
         mse::TXScopeObj<H> h_scpobj;
@@ -1439,7 +1439,7 @@ usage example:
 ```cpp
     #include "msepoly.h"
     
-    void main() {
+    int main() {
         class A {
         public:
             A() {}
@@ -1659,7 +1659,7 @@ protected:
 	~H() {}
 };
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 	/* The TAsyncShared data types are used to safely share objects between asynchronous threads. */
 
 	class A {
@@ -1904,7 +1904,7 @@ public:
 	}
 };
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 	/* This block demonstrates safely allowing different threads to (simultaneously) modify different
 	sections of a vector. (We use vectors in this example, but it works just as well with arrays.) */
 
@@ -2054,7 +2054,7 @@ public:
 	}
 };
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
 	/* Here we demonstrate safely sharing an existing stack allocated object among threads. */
 
@@ -2135,7 +2135,7 @@ public:
     }
 };
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
     class A {
     public:
@@ -2211,7 +2211,7 @@ usage example:
 #include "msemsestring.h"
 #include <iostream>
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
     class A {
     public:
@@ -2304,7 +2304,7 @@ public:
     }
 };
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
     class A {
     public:
@@ -2363,7 +2363,7 @@ usage example:
 #include <chrono>
 
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
     /* trivially copyable class */
     class D {
@@ -2466,7 +2466,7 @@ public:
 	}
 };
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
 	/* This block demonstrates safely allowing different threads to (simultaneously)
 	modify different sections of an existing vector declared as a local variable. */
@@ -2593,7 +2593,7 @@ usage example:
 
 MSE_RSV_DECLARE_GLOBAL_IMMUTABLE(mse::nii_string) gimm_string1 = "some text";
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     {
         auto gimm_ptr1 = &gimm_string1;
         auto xs_gimm_store1 = mse::make_xscope_strong_pointer_store(gimm_ptr1);
@@ -2643,7 +2643,7 @@ usage example:
 ```cpp
     #include "mseprimitives.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         mse::CInt i = 5;
         i -= 17;
@@ -2709,7 +2709,7 @@ usage example:
     #include "msemsearray.h"
     #include <array>
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         mse::mstd::array<int, 3> ma;
         std::array<int, 3> sa;
@@ -2771,7 +2771,7 @@ usage example:
 ```cpp
     #include "msemstdarray.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         /* If the array is declared as a "scope" object (which basically indicates that it is declared
         on the stack), then you can use "scope" iterators. While there are limitations on when they can
         be used, scope iterators would be the preferred iterator type where performance is a priority
@@ -2836,7 +2836,7 @@ usage example:
     #include "msemstdvector.h"
     #include <vector>
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         mse::mstd::vector<int> mv;
         std::vector<int> sv;
@@ -2891,7 +2891,7 @@ usage example:
     #include "mseasyncshared.h"
     #include "mseregistered.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         typedef mse::fixed_nii_vector<mse::nii_string> fixed_nii_vector1_t;
 
@@ -2975,7 +2975,7 @@ usage example:
     #include "msemsevector.h"
     #include "mseasyncshared.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         auto xs_nii_vector1_xscpobj = mse::make_xscope(mse::nii_vector<int>{ 1, 2, 3 });
         /* first we demonstrate some resizing operations on the nii_vector<> */
@@ -3051,7 +3051,7 @@ usage example:
 ```cpp
     #include "mseivector.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         mse::ivector<int> v = { 1, 2, 3, 4 };
 
         auto ip1 = v.begin();
@@ -3093,7 +3093,7 @@ usage example:
     #include "mseasyncshared.h"
     #include "mseregistered.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         /* mtnii_vector<> is a safe vector that is eligible to be (safely) shared between asynchronous threads. */
 
@@ -3191,7 +3191,7 @@ usage example:
     #include "msemsevector.h"
     #include "msemstdvector.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         /* stnii_vector<> is just a version of mtnii_vector<> that is not eligible to be shared between threads (and has
         a little less overhead as a result). */
@@ -3225,7 +3225,7 @@ usage example:
 ```cpp
     #include "msemsevector.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         /* Unfortunately, you cannot obtain a direct scope const pointer to an nii_vector<> element from a scope const
         pointer to the nii_vector<>. (nii_vector<> is the only one of the library's vectors that has this shortcoming.)
         However, for vectors that are access controlled with an "exclusive writer" access policy, you can use an
@@ -3288,7 +3288,7 @@ usage example:
         }
     };
 
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         mse::mstd::array<int, 4> mstd_array1{ 1, 2, 3, 4 };
         mse::mstd::vector<int> mstd_vec1{ 10, 11, 12, 13, 14 };
 
@@ -3355,7 +3355,7 @@ usage example:
     #include "msemsestring.h" // make_string_section() is defined in this header
     #include "msemstdstring.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
 
         /* "String sections" are the string specialized versions of "random access sections", basically providing the
         functionality of std::string_view but supporting construction from any (safe) iterator type, not just raw
@@ -3390,7 +3390,7 @@ usage example:
     #include "msepoly.h" // mstd::string_view is defined in this header
     #include "msemstdstring.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         /* std::string_view stores an (unsafe) pointer iterator into its target string. mse::mstd::string_view can
         instead store any type of string iterator, including memory safe iterators. So for example, when assigned
@@ -3441,7 +3441,7 @@ usage example:
 ```cpp
     #include "msepoly.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         mse::mstd::array<int, 4> array1 { 1, 2, 3, 4 };
         mse::mstd::array<int, 5> array2 { 5, 6, 7, 8, 9 };
         mse::mstd::vector<int> vec1 { 10, 11, 12, 13, 14 };
@@ -3512,7 +3512,7 @@ usage example:
     #include "msemsestring.h"
     #include "mseregistered.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         /* "Any" string sections are basically polymorphic string sections that can hold the value of any string
         section type. They can be used as function parameter types to enable functions to accept any type of string
@@ -3558,7 +3558,7 @@ usage example:
     #include "msemstdarray.h"
     #include "msemstdvector.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         auto xs_mstd_array1 = mse::make_xscope(mse::mstd::array<int, 4>{ 1, 2, 3, 4 });
         auto xs_msearray2 = mse::make_xscope(mse::us::msearray<int, 5>{ 5, 6, 7, 8, 9 });
         auto xs_mstd_vec1 = mse::make_xscope(mse::mstd::vector<int>{ 10, 11, 12, 13, 14 });
@@ -3685,7 +3685,7 @@ usage example:
     #include "msemsestring.h" // TXScopeCSSSXSTEStringSection is defined in this header
     #include "msemstdstring.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
 
         auto xs_mstring1 = mse::make_xscope(mse::mstd::string("some text"));
         auto xs_mstring1_iter1 = mse::make_xscope_begin_iterator(&xs_mstring1) + 5;
@@ -3724,7 +3724,7 @@ usage example:
 ```cpp
     #include "mseoptional.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         auto opt1 = mse::mstd::optional<int>{ 7 };
         assert(opt1.has_value());
         auto val1 = opt1.value();
@@ -3755,7 +3755,7 @@ usage example:
     #include "mseoptional.h"
     #include "msemstdstring.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         auto xs_opt1 = mse::make_xscope(mse::make_optional(mse::mstd::string("abc")));
         // which can also be written as
@@ -3794,7 +3794,7 @@ usage example:
     #include "msemsestring.h"
     #include "mseasyncshared.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         auto opt1_access_requester = mse::make_asyncsharedv2readwrite<mse::mt_optional<mse::nii_string> >("abc");
         auto elem_ptr1 = mse::make_optional_element_pointer(opt1_access_requester.writelock_ptr());
         auto val1 = *elem_ptr1;
@@ -3811,7 +3811,7 @@ usage example:
     #include "mseoptional.h"
     #include "msemstdstring.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         /* Here we're creating a (string) object of scope type. */
         auto xs_str1 = mse::make_xscope(mse::mstd::string("abc"));
 
@@ -3842,7 +3842,7 @@ usage example:
 ```cpp
     #include "mseany.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         auto any1 = mse::mstd::any<int>{ 7 };
         assert(any1.has_value());
         auto val1 = mse::mstd::any_cast<int>(any1);
@@ -3873,7 +3873,7 @@ usage example:
     #include "mseany.h"
     #include "msemstdstring.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     
         auto xs_any1 = mse::make_xscope(mse::make_any<mse::mstd::string>("abc"));
         // which can also be written as
@@ -3912,7 +3912,7 @@ usage example:
     #include "msemsestring.h"
     #include "mseasyncshared.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         auto any1_access_requester = mse::make_asyncsharedv2readwrite<mse::mt_any>(mse::nii_string("abc"));
         auto elem_ptr1 = mse::make_any_element_pointer<mse::nii_string>(any1_access_requester.writelock_ptr());
         auto val1 = *elem_ptr1;
@@ -3929,7 +3929,7 @@ usage example:
     #include "mseany.h"
     #include "msemstdstring.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         /* Here we're creating a (string) object of scope type. */
         auto xs_str1 = mse::make_xscope(mse::mstd::string("abc"));
 
@@ -3956,7 +3956,7 @@ usage example:
     #include "msemstdstring.h"
     #include "mserefcounting.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         {
             /* You may, on occasion, need a (safe) pointer that directly targets a tuple element. You
             could make the element type a "registered" or "norad" object. Alternatively, you can obtain a safe
@@ -3991,7 +3991,7 @@ usage example:
     #include "msetuple.h"
     #include "msemstdstring.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
             
             /* Here we're creating a (string) object of scope type. */
             auto xs_str1 = mse::make_xscope(mse::mstd::string("abc"));
@@ -4020,7 +4020,7 @@ usage example:
 #include "msemstdarray.h"
 #include "msemstdvector.h"
     
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
     mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
     auto xscope_na1_begin_citer = mse::make_xscope_begin_const_iterator(&xscope_na1);
@@ -4079,7 +4079,7 @@ usage example:
 #include "msealgorithm.h"
 #include "msemstdarray.h"
     
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
 
     mse::TXScopeObj<mse::nii_array<int, 3> > xscope_na1 = mse::nii_array<int, 3>{ 1, 2, 3 };
     auto xscope_na1_begin_citer = mse::make_xscope_begin_const_iterator(&xscope_na1);
@@ -4122,7 +4122,7 @@ usage example:
 
 MSE_DECLARE_THREAD_LOCAL_GLOBAL(mse::mstd::string) tlg_string1 = "some text";
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     {
         auto tlg_ptr1 = &tlg_string1;
         auto xs_tlg_store1 = mse::make_xscope_strong_pointer_store(tlg_ptr1);
@@ -4165,7 +4165,7 @@ usage example:
 ```cpp
     #include "msefunction.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         /* mstd::function<> is essentially just an implementation of std::function<> that supports the library's scope and
         data race safety mechanisms. */
         mse::mstd::function<int()> function1 = []() { return 3; };
@@ -4183,7 +4183,7 @@ usage example:
 ```cpp
     #include "msefunction.h"
     
-    void main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
         /* xscope_function<>s support scope function objects as well. */
         mse::xscope_function<int()> xs_function1 = []() { return 5; };
 
@@ -4231,7 +4231,7 @@ Note that one of C++'s more subtle unsafe elements is the implicit `this` pointe
         int m_i = 0;
     };
     
-    void main() {
+    int main() {
         mse::TXScopeObj<mse::mstd::vector<CI>> vec1;
         vec1.resize(1);
         auto iter = vec1.begin();
@@ -4258,7 +4258,7 @@ The above example contains unchecked accesses to deallocated memory via an impli
         int m_i = 0;
     };
     
-    void main() {
+    int main() {
         mse::TXScopeObj<mse::mstd::vector<CI>> vec1;
         vec1.resize(1);
         auto iter = vec1.begin();
@@ -4292,7 +4292,7 @@ public:
 	mse::mstd::string m_string1;
 };
 
-void main() {
+int main() {
 	typedef mse::mstd::vector<CMisbehaver1> misb1_vec_t;
 	typedef mse::mstd::vector<misb1_vec_t> misb1_vec_vec_t;
 	mse::TXScopeObj<misb1_vec_vec_t> xs_vv1;
