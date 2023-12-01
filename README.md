@@ -548,7 +548,7 @@ If you're going to use pointers, then to ensure they won't be used to access inv
 
 ### TRefCountingPointer
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/b4dMe3dKK))
 
 ```cpp
 	#include "mserefcounting.h"
@@ -612,6 +612,7 @@ Same as `TRefCountingNotNullPointer<>`, but cannot be retargeted after construct
 
 Generally you're going to want to obtain a "strong" pointer from the weak pointer, so rather than targeting the registered pointer directly at the object of interest, you'd target a/the strong owning pointer of the object.
 
+([link to interactive version](https://godbolt.org/z/sKchedvbf))
 ```cpp
     #include "mserefcounting.h"
     #include "mseregistered.h"
@@ -652,9 +653,10 @@ Generally you're going to want to obtain a "strong" pointer from the weak pointe
 
 This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_ptr" to prevent cyclic references from becoming memory leaks. This isn't much different from using `std::weak_ptr<>` in terms of functionality, but there can be performance and safety advantages.
 
+([link to interactive version](https://godbolt.org/z/8KGEeGnfn))
 ```cpp
     #include "mserefcounting.h"
-    #include "msecregistered.h"
+    #include "mseoptional.h"
     #include "mseregistered.h"
     
     int main(int argc, char* argv[]) {
@@ -695,7 +697,7 @@ This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_p
         private:
             mse::TRegisteredPointer<mse::CInt> m_node_count_ptr;
             rcnode_strongptr_weakptr_t m_root_ptr_ptr;
-            CRCNODE_STD_OPTIONAL<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
+            mse::mstd::optional<rcnode_strongptr_regobj_t> m_maybe_child_ptr;
         };
 
         mse::TRegisteredObj<mse::CInt> node_counter = 0;
@@ -821,7 +823,7 @@ usage example:
 
 `make_xscope_strong_pointer_store()` returns a scope object that holds a copy of the given strong pointer and allows you to obtain a corresponding scope pointer. Supported strong pointers include ones like [reference counting pointers](#reference-counting-pointers), [norad pointers](#norad-pointers) and pointers to [asynchronously shared objects](#asynchronously-shared-objects) (and scope pointers themselves for the sake of completeness).
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/MaPxdvhqf))
 
 ```cpp
     #include "msescope.h"
