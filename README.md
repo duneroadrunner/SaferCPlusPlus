@@ -4206,13 +4206,13 @@ usage example:
         };
         /* xscope_my_function_obj_t is a scope type with a scope (pointer) member. */
         xscope_my_function_obj_t xscope_my_function_obj1(int1_xsptr);
-        xs_function1 = xscope_my_function_obj1;
-        int res1 = xs_function1();
+        mse::xscope_function<int()> xs_function2 = xscope_my_function_obj1;
+        int res1 = xs_function2();
 
         /* Just as structs with scope pointer/reference members need to be declared as such, lambdas that
         capture scope pointer/references must be declared as such. */
         auto xs_lambda1 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([int1_xsptr]() { return *int1_xsptr; });
-        xs_function1 = xs_lambda1;
+        mse::xscope_function<int()> xs_function3 = xs_lambda1;
     }
 ```
 
