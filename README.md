@@ -4169,10 +4169,10 @@ int main(int argc, char* argv[]) {
 
 `mstd::function<>` is essentially a drop-in replacement for `std::function<>`. 
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/81sKPxPqd))
 
 ```cpp
-    #include "msefunction.h"
+    #include "msefunctional.h"
     
     int main(int argc, char* argv[]) {
         /* mstd::function<> is essentially just an implementation of std::function<> that supports the library's scope and
@@ -4187,10 +4187,10 @@ usage example:
 
 Some function objects, like functors and capture lambdas, can be scope types and would not be supported by [`mstd::function<>`](#function).
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/xYWPrM9ov))
 
 ```cpp
-    #include "msefunction.h"
+    #include "msefunctional.h"
     
     int main(int argc, char* argv[]) {
         /* xscope_function<>s support scope function objects as well. */
