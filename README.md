@@ -4021,7 +4021,7 @@ The library's safe iterators work just fine with the standard library algorithms
 
 #### for_each_ptr()
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/T55xGK3qr))
 
 ```cpp
 #include "msescope.h"
@@ -4081,7 +4081,7 @@ int main(int argc, char* argv[]) {
 
 #### find_if_ptr()
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/6oPhsbqhM))
 
 ```cpp
 #include "msescope.h"
@@ -4122,7 +4122,7 @@ int main(int argc, char* argv[]) {
 
 While not encouraging the use of `thread_local` variables, the library does provide facilities for their use.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/79GxEsn4M))
 ```cpp
 #include "msescope.h"
 #include "msemstdstring.h"
