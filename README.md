@@ -2593,7 +2593,7 @@ While not encouraging the use of `static` or (non-[`thread_local`](#thread_local
 
 #### static immutables
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/feP6YjKxd))
 ```cpp
 #include "msescope.h"
 #include "msemsestring.h"
@@ -2647,7 +2647,7 @@ Not yet available. [Access requesters](#tasyncsharedv2readwriteaccessrequester) 
 ### CInt, CSize_t and CBool
 These classes are meant to behave like, and be compatible with their native counterparts. In debug mode, they check for "use before initialization", and in release mode, they use default initialization to help ensure deterministic behavior. Upon value assignment involving a narrowing conversion, `CInt` and `CSize_t` will check to ensure that the value fits within the type's range. They check for division by zero and `CSize_t`'s `-=` operator checks that the operation evaluates to a non-negative value. And unlike its native counterpart, arithmetic operations involving `CSize_t` that could evaluate to a negative number are returned as a (signed) `CInt`.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/srv5W6enh))
 
 ```cpp
     #include "mseprimitives.h"
@@ -3056,7 +3056,7 @@ usage example:
 
 `mse::ivector<>` is a safe vector like [`mse::mstd::vector<>`](#mstdvector), but its (implicit reference) iterators behave more like list iterators than standard vector iterators. That is, upon insert or delete, the iterators continue to point to the same item, not (necessarily) the same position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/989jve76b))
 ```cpp
     #include "mseivector.h"
     
