@@ -868,7 +868,7 @@ Registered proxy pointers are basically just [registered pointers](#registered-p
 
 To be clear, a `TRegisteredProxyPointer<T>` doesn't have any functionality that a `TRegisteredConstPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some situations.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/3n7sv94bT))
 
 ```cpp
     #include "msescope.h"
@@ -930,7 +930,7 @@ Norad proxy pointers are basically just norad pointers which target scope pointe
 
 To be clear, a `TNoradProxyPointer<T>` doesn't have any functionality that a `TNoradPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some  situations.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/n4MEbv6aa))
 
 ```cpp
     #include "msescope.h"
@@ -1634,16 +1634,18 @@ Atomic objects also don't require access control. Use the `make_asyncsharedv2ato
 
 usage example: ([see below](#async-aggregate-usage-example))
 
-#### async aggregate usage example:
+#### async aggregate usage example: ([link to interactive version](https://godbolt.org/z/Gb5656z1o))
 
 ```cpp
 #include "mseasyncshared.h"
+#include "msemstdvector.h"
+#include "msemsestring.h"
 #include <ctime>
 #include <ratio>
 #include <chrono>
 #include <future>
 
-class H {
+class J {
 public:
 	template<class _TAsyncSharedReadWriteAccessRequester>
 	static double foo7(_TAsyncSharedReadWriteAccessRequester A_ashar) {
@@ -1658,7 +1660,7 @@ public:
 		return timespan_in_seconds;
 	}
 protected:
-	~H() {}
+	~J() {}
 };
 
 int main(int argc, char* argv[]) {
@@ -1801,7 +1803,7 @@ int main(int argc, char* argv[]) {
 			int res2 = (*it).get();
 		}
 
-		auto A_b_safe_cptr = mse::make_const_pointer_to_member(A_immptr->b, A_immptr);
+		auto A_b_safe_cptr = mse::make_const_pointer_to_member_v2(A_immptr, &ShareableA::b);
 	}
 	{
 		/* For scenarios where the shared object is atomic, you can get away without using locks
