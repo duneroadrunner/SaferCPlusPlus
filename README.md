@@ -1644,6 +1644,7 @@ usage example: ([see below](#async-aggregate-usage-example))
 #include <ratio>
 #include <chrono>
 #include <future>
+#include <list>
 
 class J {
 public:
@@ -1864,10 +1865,13 @@ int main(int argc, char* argv[]) {
 
 `TAsyncRASectionSplitter<>` is used for situations where you want to allow multiple threads to concurrently access and/or modify different parts of an array or vector. You specify how you want the array/vector partitioned, and the `TAsyncRASectionSplitter<>` will provide a set of access requesters used to obtain access to each partition. Instead of the usual "lock pointers", these access requesters return "lock [random access section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)s".
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/96ofqo83W))
 ```cpp
 #include "msemstdvector.h"
+#include "msemsestring.h"
+#include "msestaticimmutable.h"
 #include "mseasyncshared.h"
+#include <list>
 
 class J {
 public:
@@ -1940,8 +1944,8 @@ int main(int argc, char* argv[]) {
 		We need to specify the position where we want to split the vector. Here we specify that it be split at index
 		"num_elements / 2", right down the middle. */
 		mse::TAsyncRASectionSplitter<decltype(ash_access_requester)> ra_section_split1(ash_access_requester, num_elements / 2);
-		auto ar1 = ra_rection_split1.first_ra_section_access_requester();
-		auto ar2 = ra_rection_split1.second_ra_section_access_requester();
+		auto ar1 = ra_section_split1.first_ra_section_access_requester();
+		auto ar2 = ra_section_split1.second_ra_section_access_requester();
 
 		/* The J::foo8 template function is just an example function that operates on containers of strings. In our case the
 		containers will be the random access sections we just created. We'll create an instance of the function here. */
@@ -1958,9 +1962,9 @@ int main(int argc, char* argv[]) {
 
 		std::list<mse::mstd::thread> threads;
 		/* So this thread will modify the first section of the vector. */
-		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar1, my_foo8_proxy_function));
+		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar1, my_foo8_function));
 		/* While this thread modifies the other section. */
-		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar2, my_foo8_proxy_function));
+		threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar2, my_foo8_function));
 
 		{
 			int count = 1;
@@ -1979,15 +1983,15 @@ int main(int argc, char* argv[]) {
 
 		/* Just as before, TAsyncRASectionSplitter<> will generate a new access requester for each section. */
 		mse::TAsyncRASectionSplitter<decltype(ash_access_requester)> ra_section_split1(ash_access_requester, section_sizes);
-		auto ar0 = ra_rection_split1.ra_section_access_requester(0);
+		auto ar0 = ra_section_split1.ra_section_access_requester(0);
 
-		auto my_foo8_function = J::foo8<decltype(ar1.writelock_ra_section())>;
-		auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar1), decltype(my_foo8_function)>;
+		auto my_foo8_function = J::foo8<decltype(ar0.writelock_ra_section())>;
+		auto my_foo8_proxy_function = J::invoke_with_writelock_ra_section1<decltype(ar0), decltype(my_foo8_function)>;
 
 		std::list<mse::mstd::thread> threads;
 		for (size_t i = 0; i < num_sections; i += 1) {
-			auto ar = ra_rection_split1.ra_section_access_requester(i);
-			threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar, my_foo8_proxy_function));
+			auto ar = ra_section_split1.ra_section_access_requester(i);
+			threads.emplace_back(mse::mstd::thread(my_foo8_proxy_function, ar, my_foo8_function));
 		}
 
 		{
