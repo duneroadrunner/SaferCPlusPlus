@@ -4057,7 +4057,7 @@ int main(int argc, char* argv[]) {
         mse::xscope_range_for_each_ptr(&xscope_na1, [](range_item_ptr_t x_ptr) { std::cout << *x_ptr << std::endl; });
 
         {
-            auto xscope_bfnv1 = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xscope_nv1));
+            auto xscope_bfnv1 = mse::make_xscope_borrowing_fixed_nii_vector(&xscope_nv1);
             mse::xscope_range_for_each_ptr(&xscope_bfnv1, [](const auto x_ptr) { std::cout << *x_ptr << std::endl; });
         }
         {
