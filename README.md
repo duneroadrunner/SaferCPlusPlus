@@ -2033,7 +2033,7 @@ Like `xscope_thread`, `xscope_future` and `xscope_async()` are the scope version
 
 And finally, the function used to obtain a (scope) [access requester](#tasyncsharedv2readwriteaccessrequester) to an access controlled scope object is `make_xscope_asyncsharedv2acoreadwrite()`. Note that it takes as its argument a scope pointer to the access controlled object, not a scope pointer to the contained object. Btw, scope access requesters are an example of an object type that can be passed to other scope threads, but does not qualify (i.e. would induce a compile error) to be passed to non-scope threads. 
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/c8hYzM91n))
 ```cpp
 #include "mseasyncshared.h"
 #include "msescope.h"
@@ -2115,7 +2115,7 @@ The `mse::make_xscope_aco_locker_for_sharing()` function takes a scope pointer t
 
 The `mse::make_xscope_exclusive_strong_pointer_store_for_sharing()` function returns the same kind of "locker" object that `mse::make_xscope_aco_locker_for_sharing()` does, but instead of taking a scope pointer to an "access controlled object", it accepts any recognized "exclusive" pointer. That is, a pointer that, while it exists, holds exclusive access to its target object.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/aKTzqahfq))
 ```cpp
 #include "mseasyncshared.h"
 #include "msescope.h"
@@ -2212,7 +2212,7 @@ int main(int argc, char* argv[]) {
 
 You can use [`make_xscope_exclusive_strong_pointer_store_for_sharing()`](#make_xscope_exclusive_strong_pointer_store_for_sharing) to obtain, from an exclusive pointer of, for example, an [access controlled object](#access-controlled-objects), pointers that can be passed to other threads. Occassionally, you may want to do the reverse. That is, obtain access controlled object pointers from an exclusive pointer that was passed to a thread. You can do this by declaring the parameter that receives the passed pointer as a `TXScopeExclusiveStrongPointerStoreForAccessControl<passable_exclusive_pointer_t>`, replacing `passable_exclusive_pointer_t` with the type of the passed pointer. From this parameter object you can obtain pointers in the same manner as with regular access controlled objects.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/KoMajTa41))
 ```cpp
 #include "mseasyncshared.h"
 #include "msescope.h"
@@ -2284,7 +2284,7 @@ A bit of extra functionality that exclusive writer objects have over access cont
 
 `TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<>` is the corresponding specialization of [`TXScopeExclusiveStrongPointerStoreForAccessControl<>`](#txscopeexclusivestrongpointerstoreforaccesscontrol).
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/8ob59zs7E))
 ```cpp
 #include "mseasyncshared.h"
 #include "msescope.h"
@@ -2362,7 +2362,7 @@ int main(int argc, char* argv[]) {
 
 Atomic objects don't require access control.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/WcsK5jv9G))
 
 ```cpp
 #include "msescopeatomic.h"
@@ -2419,11 +2419,12 @@ Where `TXScopeAsyncACORASectionSplitter<>` provides an [access requester](#make_
 
 One reason you might choose to use `TXScopeACORASectionSplitter<>` over `TXScopeAsyncACORASectionSplitter<>` is that it does not involve any (costly) thread safe locks. The trade-off being that it doesn't support dynamically locking and unlocking sections (to maximize the availability of each section).
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/nz5KEceqb))
 
 ```cpp
 #include "msemstdvector.h"
 #include "mseasyncshared.h"
+#include "msepoly.h"
 #include "msescope.h"
 #include "msemsearray.h"
 
