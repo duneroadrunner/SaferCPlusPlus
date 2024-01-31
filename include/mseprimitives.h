@@ -687,8 +687,8 @@ namespace std {
 		{	// return signaling NaN
 			return numeric_limits<TBase>::signaling_NaN();
 		}
-		_STCONS(float_denorm_style, has_denorm, numeric_limits<TBase>::has_denorm);
-		_STCONS(bool, has_denorm_loss, numeric_limits<TBase>::has_denorm_loss);
+		//_STCONS(float_denorm_style, has_denorm, numeric_limits<TBase>::has_denorm);
+		//_STCONS(bool, has_denorm_loss, numeric_limits<TBase>::has_denorm_loss);
 		_STCONS(bool, has_infinity, numeric_limits<TBase>::has_infinity);
 		_STCONS(bool, has_quiet_NaN, numeric_limits<TBase>::has_quiet_NaN);
 		_STCONS(bool, has_signaling_NaN, numeric_limits<TBase>::has_signaling_NaN);
@@ -950,8 +950,8 @@ namespace std {
 		{	// return signaling NaN
 			return numeric_limits<size_t>::signaling_NaN();
 		}
-		_STCONS(float_denorm_style, has_denorm, numeric_limits<size_t>::has_denorm);
-		_STCONS(bool, has_denorm_loss, numeric_limits<size_t>::has_denorm_loss);
+		//_STCONS(float_denorm_style, has_denorm, numeric_limits<size_t>::has_denorm);
+		//_STCONS(bool, has_denorm_loss, numeric_limits<size_t>::has_denorm_loss);
 		_STCONS(bool, has_infinity, numeric_limits<size_t>::has_infinity);
 		_STCONS(bool, has_quiet_NaN, numeric_limits<size_t>::has_quiet_NaN);
 		_STCONS(bool, has_signaling_NaN, numeric_limits<size_t>::has_signaling_NaN);
@@ -1167,8 +1167,8 @@ namespace std {
 		{	// return signaling NaN
 			return numeric_limits<TBase>::signaling_NaN();
 		}
-		_STCONS(float_denorm_style, has_denorm, numeric_limits<TBase>::has_denorm);
-		_STCONS(bool, has_denorm_loss, numeric_limits<TBase>::has_denorm_loss);
+		//_STCONS(float_denorm_style, has_denorm, numeric_limits<TBase>::has_denorm);
+		//_STCONS(bool, has_denorm_loss, numeric_limits<TBase>::has_denorm_loss);
 		_STCONS(bool, has_infinity, numeric_limits<TBase>::has_infinity);
 		_STCONS(bool, has_quiet_NaN, numeric_limits<TBase>::has_quiet_NaN);
 		_STCONS(bool, has_signaling_NaN, numeric_limits<TBase>::has_signaling_NaN);
