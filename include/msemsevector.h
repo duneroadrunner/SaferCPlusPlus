@@ -4732,7 +4732,7 @@ namespace mse {
 			guarantees for their return values. It could be argued that they shouldn't even have dereference operators. */
 			TElementProxyRef operator*() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
 				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyRef, alias_11$)")
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[alias_11$]); return_value(alias_11$) }")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[_[alias_11$]]); return_value(alias_11$) }")
 			{
 				return TElementProxyRef(mse::rsv::xslta_ptr_to(*(this->target_container_ptr())), this->position());
 				//return base_class::operator*();
@@ -4741,14 +4741,14 @@ namespace mse {
 			typedef TXSLTADynamicRAContainerElementProxyPtr<TElementProxyRef, typename TElementProxyRef::lender_type, typename TElementProxyRef::element_type, typename TElementProxyRef::allocator_type> TElementProxyPtr;
 			TElementProxyPtr operator->() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
 				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyRef, alias_11$)")
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[alias_11$]); return_value(alias_11$) }")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[_[alias_11$]]); return_value(alias_11$) }")
 			{
 				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*(this->target_container_ptr())), this->position());
 				//return base_class::operator->();
 			}
 			reference operator[](difference_type _Off) const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
 				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyRef, alias_11$)")
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[alias_11$]); return_value(alias_11$) }")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[_[alias_11$]]); return_value(alias_11$) }")
 			{
 				return TElementProxyRef(mse::rsv::xslta_ptr_to(*(this->target_container_ptr())), difference_type(this->position()) + _Off);
 				//return base_class::operator[](_Off);
