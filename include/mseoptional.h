@@ -1751,7 +1751,7 @@ namespace mse {
 				typedef mse::us::impl::ns_optional::in_place_t_base in_place_t;
 				constexpr in_place_t in_place{};
 
-				struct optional_base2_const_lockable_tag; struct optional_base2_not_const_lockable_tag;
+				struct optional_base2_const_lockable_tag {}; struct optional_base2_not_const_lockable_tag {};
 
 				template <class T, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/, class TConstLockableIndicator/* = optional_base2_not_const_lockable_tag*/>
 				class optional_base2

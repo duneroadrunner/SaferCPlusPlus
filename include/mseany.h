@@ -650,7 +650,7 @@ namespace mse
 				}
 
 
-				struct any_base2_const_lockable_tag; struct any_base2_not_const_lockable_tag;
+				struct any_base2_const_lockable_tag {}; struct any_base2_not_const_lockable_tag {};
 
 				template <class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/, class TConstLockableIndicator/* = any_base2_not_const_lockable_tag*/>
 				class any_base2

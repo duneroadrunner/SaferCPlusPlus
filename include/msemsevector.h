@@ -245,7 +245,7 @@ namespace mse {
 
 	namespace us {
 		namespace impl {
-			struct gnii_vector_const_lockable_tag; struct gnii_vector_not_const_lockable_tag;
+			struct gnii_vector_const_lockable_tag {}; struct gnii_vector_not_const_lockable_tag {};
 
 			template<class _Ty, class _A = std::allocator<_Ty>, class _TStateMutex = mse::non_thread_safe_shared_mutex, template<typename> class _TTXScopeConstIterator = mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type, class TConstLockableIndicator = gnii_vector_not_const_lockable_tag>
 			class gnii_vector;
