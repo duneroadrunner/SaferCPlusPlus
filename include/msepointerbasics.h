@@ -67,6 +67,21 @@
 #endif // MSE_HAS_CXX17
 #endif // !_NODISCARD
 
+#ifdef MSE_HAS_CXX17
+#define MSE_MAYBE_UNUSED [[maybe_unused]]
+#else // MSE_HAS_CXX17
+#ifdef _MSC_VER
+#define MSE_MAYBE_UNUSED /*__declspec(unused)*/
+#endif /*_MSC_VER*/
+#ifdef __clang__
+#define MSE_MAYBE_UNUSED __attribute__((unused))
+#else /*__clang__*/
+#ifdef __GNUC__
+#define MSE_MAYBE_UNUSED __attribute__((unused))
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+#endif // MSE_HAS_CXX17
+
 #if __cpp_exceptions >= 199711
 #define MSE_TRY try
 #define MSE_CATCH(x) catch(x)
@@ -1156,7 +1171,7 @@ namespace impl {
 #define MSE_IMPL_MACRO_TEXT_CONCAT_(a,b)  a##b
 
 	namespace rsv {
-		inline void suppress_check_directive() {}
+		MSE_MAYBE_UNUSED inline void suppress_check_directive() {}
 #define MSE_SUPPRESS_CHECK_IN_XSCOPE \
 		mse::rsv::suppress_check_directive();
 
@@ -1164,7 +1179,7 @@ namespace impl {
 #define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(__LINE__)
 
 #define MSE_SUPPRESS_CHECK_IN_DECLSCOPE \
-		static void MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME() {}
+		MSE_MAYBE_UNUSED static void MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME() {}
 	}
 
 #endif // !MSE_SUPPRESS_CHECK_IN_XSCOPE
@@ -2115,5 +2130,20 @@ namespace mse {
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma pop_macro("MSE_THROW")
 #endif // !MSE_PUSH_MACRO_NOT_SUPPORTED
+
+
+/* Using MSE_SUPPRESS_CHECK_IN_DECLSCOPE can instigate warnings such as:
+	C4505: "unreferenced function with internal linkage has been removed"
+So we're going to suppress that warning in the user's code. */
+#ifdef _MSC_VER
+#pragma warning( disable : 4505 )
+#endif /*_MSC_VER*/
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wunused-function"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wunused-function"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
 
 #endif /*ndef MSEPOINTERBASICS_H*/
