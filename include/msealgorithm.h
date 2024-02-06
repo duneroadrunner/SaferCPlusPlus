@@ -28,17 +28,20 @@ namespace mse {
 
 	namespace impl {
 		namespace us {
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE
 			template<class _InIt>
 			auto iterator_pair_to_raw_pointers_checked(const _InIt& first, const _InIt& last) {
-				typedef decltype(std::addressof(*(std::declval<_InIt>()))) raw_pointer_type;
-				typedef std::pair<raw_pointer_type, raw_pointer_type> return_type;
-				auto distance = last - first; /* Safe iterators will ensure that both iterators point into the same container. */
-				if (1 <= distance) {
-					/* Safe iterators will ensure that dereferences are valid. */
-					return return_type(std::addressof(*first), std::addressof(*(last - 1)) + 1);
-				}
-				else {
-					return return_type(nullptr, nullptr);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE {
+					typedef decltype(std::addressof(*(std::declval<_InIt>()))) raw_pointer_type;
+					typedef std::pair<raw_pointer_type, raw_pointer_type> return_type;
+					auto distance = last - first; /* Safe iterators will ensure that both iterators point into the same container. */
+					if (1 <= distance) {
+						/* Safe iterators will ensure that dereferences are valid. */
+						return return_type(std::addressof(*first), std::addressof(*(last - 1)) + 1);
+					}
+					else {
+						return return_type(nullptr, nullptr);
+					}
 				}
 			}
 		}
@@ -423,7 +426,9 @@ namespace mse {
 			{
 				const auto xs_iters = make_xscope_specialized_first_and_last(_First, _Last);
 				auto current = xs_iters.first();
-				for (; current != xs_iters.last(); ++current) {
+				/* Note that `current` could be a raw pointer iterator here. */
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto unsafe_increment = [](auto& x) { ++x; };
+				for (; current != xs_iters.last(); unsafe_increment(current)) {
 					_Func(current, args...);
 				}
 				return (_Func);
