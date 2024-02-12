@@ -1,4 +1,4 @@
-Mar 2023
+Feb 2024
 
 ### Overview
 
@@ -718,15 +718,21 @@ This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_p
 
 
 ### Scope pointers
-Scope pointers are pointers that live (only) to the end of the scope in which they (or their owners) are declared, and that point (only) to objects that live at least that long. Because scope pointers are only allowed to target objects that are known, at compile-time, to outlive them, they should be memory safe without need of any run-time overhead.
+### Scope pointers
 
-By default, (non-owning) scope pointers are just type aliases of (and synonyms for) raw pointers. As such, unlike the other library elements, they don't have any intrinsic safety features built into the type and rely entirely on a static analysis/enforcment tool like [scpptool](https://github.com/duneroadrunner/scpptool) for their safety. If for some reason you are not using such a tool, you can define the `MSE_SCOPEPOINTER_ENABLED` preprocessor symbol, which will change the (non-owning) scope pointer types from being aliases of raw pointers to actual classes that have built-in safety features, but are more restricted than raw pointers. But even in this case, proper use of scope types would not be not fully enforced in the type system. (Again, unlike other elements of the library). Full enforcement would still require the use of a static analysis tool like scpptool. Well, technically, the alternative of using run-time checking to catch unsafe misuses of scope types is (still) available by defining the MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED preprocessor symbol, but at a significant performance cost. 
+So far we've been introduced to some of the library's pointers that use run-time mechanisms to ensure safety. But it's also important to support pointers without run-time overhead that rely instead on compile-time enforced restrictions for safety. The strategy for these compile-time restrictions is based on the concept of execution scopes. Execution scopes (sometimes called "blocks"), are basically the sets of code within pairs of "curly braces" where you can declare local variables and invoke functions. (In contrast to declaration scopes where, for example, you can declare member fields of `struct`s.) Note that execution scopes (which we'll often refer to as just "scopes"), can be nested inside other scopes, but, for example, they never partially overlap any other scope.
 
-Scope pointers usually point to scope objects. Scope objects are objects that live to the end of the scope in which they are declared. You can designate pretty much any type to be a scope object type by wrapping it in the `mse::TXScopeObj<>` (transparent) wrapper template. 
+So "scope pointers" are pointers that live (only) to the end of the scope in which they (or their owners) are declared, and that point (only) to objects that live at least that long. Because scope pointers are only allowed to target objects that are known, at compile-time, to outlive them, they should be memory safe without need of any run-time overhead.
+
+By default, (non-owning) scope pointers are just raw pointers and type aliases of raw pointers. As such, unlike the other library elements, they don't have any intrinsic safety features built into the type and rely entirely on a static analysis/enforcment tool like [scpptool](https://github.com/duneroadrunner/scpptool) for their safety. If for some reason you are not using such a tool, for safety reasons you may want to avoid using raw pointers directly and you can define the `MSE_SCOPEPOINTER_ENABLED` preprocessor symbol, which will change the (non-owning) scope pointer types from being aliases of raw pointers to actual classes that have built-in safety features, but that are more restricted than raw pointers. But even in this case, proper use of scope types would not be not fully enforced in the type system. (Again, unlike other elements of the library). Full enforcement would still require the use of a static analysis tool like scpptool. Well, technically, the alternative of using run-time checking to catch unsafe misuses of scope types is (still) available by defining the MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED preprocessor symbol, but at a significant performance cost. 
+
+Many (but not all) of the elements presented in this section are designed to deal with the situation where a safety assuring static analysis/enforcment tool is not being used (as historically, such a tool was not available). In cases where you are using a tool like scpptool to enforce safety (which we very much recommend), many of the elements in this section will not be very useful and can be ignored. This will generally be indicated in the description/documentation of the elements.
+
+That said, if you're using raw pointers, raw pointers are considered to be "scope pointers" and are required to conform to the restrictions of scope pointers. Scope pointers usually point to scope objects. Scope objects are objects that live to the end of the scope in which they are declared. You can designate pretty much any type to be a scope object type by wrapping it in the `mse::TXScopeObj<>` (transparent) wrapper template. (If you're using scpptool, this is generally not necessary as the tool is capable of automatically recognizing which objects can be considered scope objects whether the programmer explicitly designates them as such or not.)
 
 The rules for using scope pointers and objects are essentially as follows:
 
-- Objects of scope type (types whose name starts with "TXScope" or "xscope") must be local ([non](#thread_local)-[static](#static-and-global-variables)) automatic variables.
+- Objects of scope type (which includes types whose name starts with "TXScope" or "xscope") must be local ([non](#thread_local)-[static](#static-and-global-variables)) automatic variables.
 	- Basically allocated on the stack.
 - Note that scope pointers are themselves scope objects and must adhere to the same restrictions.
 - Do not use scope types as members of classes or structs.
