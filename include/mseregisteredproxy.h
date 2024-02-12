@@ -183,7 +183,7 @@ namespace mse {
 		const _MP& contained_pointer() const& { return (*this); }
 		const _MP& contained_pointer() const&& { return (*this); }
 		_MP& contained_pointer()& { return (*this); }
-		auto&& contained_pointer()&& { return static_cast<_MP&&>(MSE_FWD(*this)); }
+		auto&& contained_pointer()&& { return static_cast<_MP&&>(std::move(*this)); }
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
@@ -252,7 +252,7 @@ namespace mse {
 		const _MP& contained_pointer() const& { return (*this); }
 		const _MP& contained_pointer() const&& { return (*this); }
 		_MP& contained_pointer()& { return (*this); }
-		auto&& contained_pointer()&& { return static_cast<_MP&&>(MSE_FWD(*this)); }
+		auto&& contained_pointer()&& { return static_cast<_MP&&>(std::move(*this)); }
 
 		static auto ProxyObjPtrToProxyConstObjPtr(const TNDXScopeRegisteredProxyObj<_Ty>* ptr) {
 			/* Reinterpreting a TNDXScopeRegisteredProxyObj<_Ty> as a TNDXScopeRegisteredProxyObj<const _Ty> should be fine. */

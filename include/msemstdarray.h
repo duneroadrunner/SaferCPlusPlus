@@ -252,9 +252,9 @@ namespace mse {
 
 		public:
 			operator _MA() const& { return as_nii_array(); }
-			operator _MA()&& { return std::forward<_MA>(as_nii_array()); }
+			operator _MA()&& { return std::move(as_nii_array()); }
 			operator std::array<_Ty, _Size>() const& { return as_nii_array(); }
-			operator std::array<_Ty, _Size>()&& { return std::forward<std::array<_Ty, _Size> >(as_nii_array()); }
+			operator std::array<_Ty, _Size>()&& { return std::move(as_nii_array()); }
 
 			array() {}
 			array(_MA&& _X) : base_class(MSE_FWD(_X)) {}
@@ -557,7 +557,7 @@ namespace mse {
 			const _MA& as_nii_array() const & { return contained_array(); }
 			//const _MA& as_nii_array() const&& { return contained_array(); }
 			_MA& as_nii_array()& { return contained_array(); }
-			_MA&& as_nii_array()&& { return std::forward<_RMA>(contained_array()); }
+			_MA&& as_nii_array()&& { return std::move(contained_array()); }
 
 			//mse::TRegisteredObj<_MA> m_nii_array;
 

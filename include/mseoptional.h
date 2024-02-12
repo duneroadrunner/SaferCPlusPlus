@@ -3469,7 +3469,7 @@ namespace mse {
 		const _MO& contained_optional() const& { return base_class::contained_optional(); }
 		//const _MO& contained_optional() const&& { return base_class::contained_optional(); }
 		_MO& contained_optional()& { return base_class::contained_optional(); }
-		_MO&& contained_optional()&& { return std::forward<_MO>(base_class::contained_optional()); }
+		_MO&& contained_optional()&& { return std::move(base_class::contained_optional()); }
 
 	public:
 #ifdef MSE_HAS_CXX17
@@ -3554,7 +3554,7 @@ namespace mse {
 		const _MO& contained_optional() const& { return base_class::contained_optional(); }
 		//const _MO& contained_optional() const&& { return base_class::contained_optional(); }
 		_MO& contained_optional()& { return base_class::contained_optional(); }
-		_MO&& contained_optional()&& { return std::forward<_MO>(base_class::contained_optional()); }
+		_MO&& contained_optional()&& { return std::move(base_class::contained_optional()); }
 
 	public:
 #ifdef MSE_HAS_CXX17
@@ -3634,7 +3634,7 @@ namespace mse {
 			const _MO& contained_optional() const& { return base_class::contained_optional(); }
 			//const _MO& contained_optional() const&& { return base_class::contained_optional(); }
 			_MO& contained_optional()& { return base_class::contained_optional(); }
-			_MO&& contained_optional()&& { return std::forward<_MO>(base_class::contained_optional()); }
+			_MO&& contained_optional()&& { return std::move(base_class::contained_optional()); }
 
 		public:
 			xslta_fixed_optional(const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(src_ref) {}
@@ -4209,11 +4209,11 @@ namespace mse {
 		using TXSLTAOptionalElementProxyRef = mse::rsv::TXSLTADynamicOptionalElementProxyRef<mse::rsv::xslta_accessing_fixed_optional<_TLender, _Ty>, _TLender, _Ty>;
 
 		template <class T>
-		class xslta_optional : public mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag>, public mse::us::impl::XSLTATagBase
+		class xslta_optional : public mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_const_lockable_tag>, public mse::us::impl::XSLTATagBase, public mse::us::impl::AsyncNotShareableTagBase
 			, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(T, xslta_optional<T>)
 		{
 		public:
-			typedef mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag> base_class;
+			typedef mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_const_lockable_tag> base_class;
 			typedef xslta_optional _Myt;
 			typedef typename base_class::value_type value_type;
 

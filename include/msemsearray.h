@@ -3112,7 +3112,7 @@ namespace mse {
 				}
 
 				operator _MA() const & { return contained_array(); }
-				operator _MA() && { return std::forward<_MA>(contained_array()); }
+				operator _MA() && { return std::move(contained_array()); }
 
 				typename std_array::const_reference operator[](msear_size_t _P) const {
 					return (*this).at(msear_as_a_size_t(_P));
@@ -3388,7 +3388,7 @@ namespace mse {
 		const _MA& contained_array() const& { return base_class::contained_array(); }
 		//const _MA& contained_array() const&& { return base_class::contained_array(); }
 		_MA& contained_array()& { return base_class::contained_array(); }
-		_MA&& contained_array()&& { return std::forward<_MA>(base_class::contained_array()); }
+		_MA&& contained_array()&& { return std::move(base_class::contained_array()); }
 
 	public:
 		nii_array() {}
@@ -3403,7 +3403,7 @@ namespace mse {
 			valid_if_Ty_is_not_an_xscope_type();
 		}
 		operator _MA() const & { return contained_array(); }
-		operator _MA() && { return std::forward<_MA>(contained_array()); }
+		operator _MA() && { return std::move(contained_array()); }
 
 
 		nii_array& operator=(const nii_array& _Right_cref) {
@@ -3751,7 +3751,7 @@ namespace mse {
 		const _MA& contained_array() const& { return base_class::contained_array(); }
 		//const _MA& contained_array() const&& { return base_class::contained_array(); }
 		_MA& contained_array()& { return base_class::contained_array(); }
-		_MA&& contained_array()&& { return std::forward<_MA>(base_class::contained_array()); }
+		_MA&& contained_array()&& { return std::move(base_class::contained_array()); }
 
 	public:
 		xscope_nii_array() {}
@@ -3762,7 +3762,7 @@ namespace mse {
 		constexpr xscope_nii_array(_XSTD initializer_list<_Ty> _Ilist) : base_class(_Ilist) {}
 
 		operator _MA() const& { return contained_array(); }
-		operator _MA() && { return std::forward<_MA>(contained_array()); }
+		operator _MA() && { return std::move(contained_array()); }
 
 		void fill(const _Ty& _Value)
 		{	// assign value to all elements
@@ -4944,7 +4944,7 @@ namespace mse {
 					}
 
 					operator _MA() const& { return contained_array(); }
-					operator _MA()&& { return std::forward<_MA>(contained_array()); }
+					operator _MA()&& { return std::move(contained_array()); }
 
 					typename std_array::const_reference operator[](msear_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 						return (*this).at(msear_as_a_size_t(_P));
@@ -5267,7 +5267,7 @@ namespace mse {
 			const _MA& contained_array() const& { return base_class::contained_array(); }
 			//const _MA& contained_array() const&& { return base_class::contained_array(); }
 			_MA& contained_array()& { return base_class::contained_array(); }
-			_MA&& contained_array()&& { return std::forward<_MA>(base_class::contained_array()); }
+			_MA&& contained_array()&& { return std::move(base_class::contained_array()); }
 
 		public:
 			xslta_array() {}
@@ -5278,7 +5278,7 @@ namespace mse {
 			constexpr xslta_array(_XSTD initializer_list<_Ty> _Ilist MSE_ATTR_PARAM_STR("mse::lifetime_label(alias_11$)")) : base_class(_Ilist) {}
 
 			operator _MA() const& { return contained_array(); }
-			operator _MA()&& { return std::forward<_MA>(contained_array()); }
+			operator _MA()&& { return std::move(contained_array()); }
 
 			void fill(const _Ty& _Value MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			{	// assign value to all elements

@@ -54,58 +54,58 @@ namespace mse {
 
 		namespace ns_basic_string {
 
-			struct dummy_xscope_structure_lock_guard {};
+			struct dummy_xscope_shared_structure_lock_guard {};
 
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, dummy_xscope_structure_lock_guard> {
+			class xscope_shared_structure_lock_guard : public mse::us::impl::Txscope_shared_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, dummy_xscope_shared_structure_lock_guard> {
 			public:
-				typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, dummy_xscope_structure_lock_guard> base_class;
+				typedef mse::us::impl::Txscope_shared_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, dummy_xscope_shared_structure_lock_guard> base_class;
 
-				xscope_structure_lock_guard(const xscope_structure_lock_guard&) = default;
-				xscope_structure_lock_guard(xscope_structure_lock_guard&&) = default;
+				xscope_shared_structure_lock_guard(const xscope_shared_structure_lock_guard&) = default;
+				xscope_shared_structure_lock_guard(xscope_shared_structure_lock_guard&&) = default;
 
-				xscope_structure_lock_guard(const mse::TXScopeObjFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
-					: base_class(owner_ptr, dummy_xscope_structure_lock_guard()) {}
+				xscope_shared_structure_lock_guard(const mse::TXScopeObjFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
+					: base_class(owner_ptr, dummy_xscope_shared_structure_lock_guard()) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
-					: base_class(owner_ptr, dummy_xscope_structure_lock_guard()) {}
+				xscope_shared_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
+					: base_class(owner_ptr, dummy_xscope_shared_structure_lock_guard()) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 			};
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-			class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, dummy_xscope_structure_lock_guard> {
+			class xscope_shared_const_structure_lock_guard : public mse::us::impl::Txscope_shared_const_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, dummy_xscope_shared_structure_lock_guard> {
 			public:
-				typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, dummy_xscope_structure_lock_guard> base_class;
+				typedef mse::us::impl::Txscope_shared_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, dummy_xscope_shared_structure_lock_guard> base_class;
 
-				xscope_const_structure_lock_guard(const xscope_const_structure_lock_guard&) = default;
-				xscope_const_structure_lock_guard(xscope_const_structure_lock_guard&&) = default;
+				xscope_shared_const_structure_lock_guard(const xscope_shared_const_structure_lock_guard&) = default;
+				xscope_shared_const_structure_lock_guard(xscope_shared_const_structure_lock_guard&&) = default;
 
-				xscope_const_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
-					: base_class(owner_ptr, dummy_xscope_structure_lock_guard()) {}
+				xscope_shared_const_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
+					: base_class(owner_ptr, dummy_xscope_shared_structure_lock_guard()) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
-					: base_class(owner_ptr, dummy_xscope_structure_lock_guard()) {}
+				xscope_shared_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
+					: base_class(owner_ptr, dummy_xscope_shared_structure_lock_guard()) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 			};
 		}
 
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		auto make_xscope_structure_lock_guard(const mse::TXScopeObjFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) {
-			return ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeObjFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) {
+			return ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) {
-			return ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) {
+			return ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		auto make_xscope_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) {
-			return ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) {
+			return ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) {
-			return ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) {
+			return ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
@@ -136,49 +136,49 @@ namespace mse {
 		}
 
 		namespace ns_basic_string {
-			/* For each (scope) basic_string instance, only one instance of xscope_structure_lock_guard may exist at any one
-			time. While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
+			/* For each (scope) basic_string instance, only one instance of xscope_shared_structure_lock_guard may exist at any one
+			time. While an instance of xscope_shared_structure_lock_guard exists it ensures that direct (scope) pointers to
 			individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
-			template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */> class xscope_structure_lock_guard;
-			template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */> class xscope_const_structure_lock_guard;
+			template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */> class xscope_shared_structure_lock_guard;
+			template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */> class xscope_shared_const_structure_lock_guard;
 		}
-		/* For each (scope) basic_string instance, only one instance of xscope_structure_lock_guard may exist at any one
-		time. While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
+		/* For each (scope) basic_string instance, only one instance of xscope_shared_structure_lock_guard may exist at any one
+		time. While an instance of xscope_shared_structure_lock_guard exists it ensures that direct (scope) pointers to
 		individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 		or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 		template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */>
-		auto make_xscope_structure_lock_guard(const mse::TXScopeObjFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr));
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeObjFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr));
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */>
-		auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr));
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr));
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */>
-		auto make_xscope_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr));
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr));
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */>
-		auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr));
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr));
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	}
 
 	template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeObjFixedPointer<mstd::basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(mstd::make_xscope_structure_lock_guard(owner_ptr)) {
-		mstd::make_xscope_structure_lock_guard(owner_ptr);
+	auto make_xscope_shared_structure_lock_guard(const mse::TXScopeObjFixedPointer<mstd::basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(mstd::make_xscope_shared_structure_lock_guard(owner_ptr)) {
+		mstd::make_xscope_shared_structure_lock_guard(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<mstd::basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(mstd::make_xscope_structure_lock_guard(owner_ptr)) {
-		mstd::make_xscope_structure_lock_guard(owner_ptr);
+	auto make_xscope_shared_structure_lock_guard(const mse::TXScopeFixedPointer<mstd::basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(mstd::make_xscope_shared_structure_lock_guard(owner_ptr)) {
+		mstd::make_xscope_shared_structure_lock_guard(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<mstd::basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(mstd::make_xscope_structure_lock_guard(owner_ptr)) {
-		mstd::make_xscope_structure_lock_guard(owner_ptr);
+	auto make_xscope_shared_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<mstd::basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(mstd::make_xscope_shared_structure_lock_guard(owner_ptr)) {
+		mstd::make_xscope_shared_structure_lock_guard(owner_ptr);
 	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _Ty, class _Traits, class _A/* = std::allocator<_Ty> */>
-	auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<mstd::basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(mstd::make_xscope_structure_lock_guard(owner_ptr)) {
-		mstd::make_xscope_structure_lock_guard(owner_ptr);
+	auto make_xscope_shared_structure_lock_guard(const mse::TXScopeFixedConstPointer<mstd::basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(mstd::make_xscope_shared_structure_lock_guard(owner_ptr)) {
+		mstd::make_xscope_shared_structure_lock_guard(owner_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
@@ -197,10 +197,10 @@ namespace mse {
 		class Tbasic_string_xscope_iterator;
 
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		class Tbasic_string_xscope_const_iterator : public mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeBasicStringConstPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A> > >
+		class Tbasic_string_xscope_const_iterator : public mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeBasicStringConstPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A> > >
 			/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 		public:
-			typedef mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeBasicStringConstPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A> > > base_class;
+			typedef mse::TFriendlyAugmentedRAConstIterator<mse::us::impl::TXScopeCSLSStrongRAConstIterator<TXScopeBasicStringConstPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A> > > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tbasic_string_xscope_const_iterator, base_class);
@@ -243,10 +243,10 @@ namespace mse {
 		};
 
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		class Tbasic_string_xscope_iterator : public mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>/*decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A> >()))*/> >
+		class Tbasic_string_xscope_iterator : public mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>/*decltype(mse::make_xscope_shared_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A> >()))*/> >
 			/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 		public:
-			typedef mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>/*decltype(mse::make_xscope_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A> >()))*/> > base_class;
+			typedef mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>/*decltype(mse::make_xscope_shared_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A> >()))*/> > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tbasic_string_xscope_iterator, base_class);
@@ -296,9 +296,9 @@ namespace mse {
 			static const size_t npos = size_t(-1);
 
 			operator mse::nii_basic_string<_Ty, _Traits, _A>() const& { return msebasic_string(); }
-			operator mse::nii_basic_string<_Ty, _Traits, _A>()&& { return std::forward<_MBS>(msebasic_string()); }
+			operator mse::nii_basic_string<_Ty, _Traits, _A>()&& { return std::move(msebasic_string()); }
 			operator std::basic_string<_Ty, _Traits, _A>() const& { return msebasic_string(); }
-			operator std::basic_string<_Ty, _Traits, _A>()&& { return std::forward<std::basic_string<_Ty, _Traits, _A> >(msebasic_string()); }
+			operator std::basic_string<_Ty, _Traits, _A>()&& { return std::move(msebasic_string()); }
 
 			explicit basic_string(const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_Al)) {}
 			explicit basic_string(size_type _N) : m_shptr(std::make_shared<_MBS>(_N)) {}
@@ -1383,8 +1383,8 @@ namespace mse {
 			friend void swap(std::basic_string<_Ty, _A>& a, _Myt& b) _NOEXCEPT_OP(_NOEXCEPT_OP(b.swap(a))) { b.swap(a); }
 			*/
 
-			friend class mse::mstd::ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>;
-			friend class mse::mstd::ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A>;
+			friend class mse::mstd::ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>;
+			friend class mse::mstd::ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A>;
 		};
 
 #ifdef MSE_HAS_CXX17
@@ -1561,20 +1561,20 @@ namespace mse {
 
 		namespace ns_basic_string {
 
-			/* For each (scope) basic_string instance, only one instance of xscope_structure_lock_guard may exist at any one
-			time. While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
+			/* For each (scope) basic_string instance, only one instance of xscope_shared_structure_lock_guard may exist at any one
+			time. While an instance of xscope_shared_structure_lock_guard exists it ensures that direct (scope) pointers to
 			individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 			or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-			class xscope_structure_lock_guard : public mse::us::impl::Txscope_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > {
+			class xscope_shared_structure_lock_guard : public mse::us::impl::Txscope_shared_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_shared_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > {
 			public:
-				typedef mse::us::impl::Txscope_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > base_class;
+				typedef mse::us::impl::Txscope_shared_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_shared_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > base_class;
 				using base_class::base_class;
 
-				xscope_structure_lock_guard(const mse::TXScopeObjFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
+				xscope_shared_structure_lock_guard(const mse::TXScopeObjFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
 					: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
+				xscope_shared_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
 					: base_class(owner_ptr, mse::us::unsafe_make_xscope_pointer_to(*((*owner_ptr).m_shptr))) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
@@ -1582,18 +1582,18 @@ namespace mse {
 			private:
 				MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-				friend class xscope_const_structure_lock_guard<_Ty, _Traits, _A>;
+				friend class xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A>;
 			};
 			template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-			class xscope_const_structure_lock_guard : public mse::us::impl::Txscope_const_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_const_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > {
+			class xscope_shared_const_structure_lock_guard : public mse::us::impl::Txscope_shared_const_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_shared_const_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > {
 			public:
-				typedef mse::us::impl::Txscope_const_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_const_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > base_class;
+				typedef mse::us::impl::Txscope_shared_const_structure_lock_guard_of_wrapper<basic_string<_Ty, _Traits, _A>, typename mse::us::ns_msebasic_string::xscope_shared_const_structure_lock_guard<mse::us::msebasic_string<_Ty, _Traits, _A> > > base_class;
 				using base_class::base_class;
 
-				xscope_const_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
+				xscope_shared_const_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
 					: base_class(owner_ptr, mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-				xscope_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
+				xscope_shared_const_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr)
 					: base_class(owner_ptr, mse::us::unsafe_make_xscope_const_pointer_to(*((*owner_ptr).m_shptr))) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 				MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
@@ -1604,28 +1604,28 @@ namespace mse {
 
 		}
 
-		/* For each (scope) basic_string instance, only one instance of xscope_structure_lock_guard may exist at any one
-		time. While an instance of xscope_structure_lock_guard exists it ensures that direct (scope) pointers to
+		/* For each (scope) basic_string instance, only one instance of xscope_shared_structure_lock_guard may exist at any one
+		time. While an instance of xscope_shared_structure_lock_guard exists it ensures that direct (scope) pointers to
 		individual elements in the basic_string do not become invalid by preventing any operation that might resize the basic_string
 		or increase its capacity. Any attempt to execute such an operation would result in an exception. */
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		auto make_xscope_structure_lock_guard(const mse::TXScopeObjFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr)) {
-			return ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeObjFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr)) {
+			return ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		auto make_xscope_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr)) {
-			return ns_basic_string::xscope_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeFixedPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr)) {
+			return ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		auto make_xscope_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr)) {
-			return ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeObjFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr)) {
+			return ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		auto make_xscope_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr)) {
-			return ns_basic_string::xscope_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
+		auto make_xscope_shared_structure_lock_guard(const mse::TXScopeFixedConstPointer<basic_string<_Ty, _Traits, _A> >& owner_ptr) -> decltype(ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr)) {
+			return ns_basic_string::xscope_shared_const_structure_lock_guard<_Ty, _Traits, _A>(owner_ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
