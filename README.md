@@ -716,8 +716,6 @@ This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_p
     }
 ```
 
-
-### Scope pointers
 ### Scope pointers
 
 So far we've been introduced to some of the library's pointers that use run-time mechanisms to ensure safety. But it's also important to support pointers without run-time overhead that rely instead on compile-time enforced restrictions for safety. The strategy for these compile-time restrictions is based on the concept of execution scopes. Execution scopes (sometimes called "blocks"), are basically the sets of code within pairs of "curly braces" where you can declare local variables and invoke functions. (In contrast to declaration scopes where, for example, you can declare member fields of `struct`s.) Note that execution scopes (which we'll often refer to as just "scopes"), can be nested inside other scopes, but, for example, they never partially overlap any other scope.
@@ -748,7 +746,7 @@ Generally, there are two types of scope pointers you might use, [`TXScopeOwnerPo
 `TXScopeFixedPointer<>` is a (zero-overhead) "non-owning" pointer to objects that are known (at compile-time) to outlive it. 
 
 ### TXScopeFixedPointer
-`TXScopeFixedPointer<>`s are (zero-overhead) "non-owning", non-retargetable pointers. They may only be declared such that they do not outlive the scope in which they are declared (i.e. basically as non-static local variables, and may only point to objects known (at compile-time) to live at least that long. 
+`TXScopeFixedPointer<>`s are (zero-overhead) "non-owning", non-retargetable pointers. They may only be declared such that they do not outlive the scope in which they are declared (i.e. basically as (or members/"possessions" of) non-static local variables), and may only point to objects known (at compile-time) to live at least that long. By default (when the `MSE_SCOPEPOINTER_ENABLED` preprocessor symbol hasn't been defined), `TXScopeFixedPointer<>`s are just type aliases of raw pointers. In the case where the `MSE_SCOPEPOINTER_ENABLED` preprocessor symbol has been defined, `TXScopeFixedPointer<>`s have the additional restriction that they cannot be reassigned (after initialization to point to a different target object).
 
 usage example:
 
