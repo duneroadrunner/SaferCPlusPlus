@@ -116,6 +116,10 @@
 /* This is done here rather than in msescope.h because some elements in this file need to know whether or not
 MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
 
+#ifndef MSE_SCOPEPOINTER_ENABLED
+#define MSE_SCOPEPOINTER_DISABLED
+#endif // !MSE_SCOPEPOINTER_ENABLED
+
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
 #ifndef MSE_SCOPEPOINTER_DISABLED
 #define MSE_SCOPEPOINTER_DISABLED
