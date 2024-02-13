@@ -3060,7 +3060,7 @@ Note that the [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_ni
 
 `xscope_accessing_fixed_nii_vector<>`, like `xscope_borrowing_fixed_nii_vector<>`, ensures, while it exists, that the vector contents are not deallocated/relocated/resized. But unlike `xscope_borrowing_fixed_nii_vector<>`, `xscope_accessing_fixed_nii_vector<>`'s access to the vector contents is not exclusive. So, for example, multiple `xscope_accessing_fixed_nii_vector<>`s corresponding to the same vector can exist and be used at the same time. This lack of exclusivity results in `xscope_accessing_fixed_nii_vector<>` being branded as ineligible to be passed to, or shared with, asynchronous threads.
 
-usage example: ([link to interactive version](https://godbolt.org/z/6bhz9GGYM))
+usage example: ([link to interactive version](https://godbolt.org/z/c5h6eTrfo))
 
 ```cpp
     #include "mseslta.h"
