@@ -3054,6 +3054,37 @@ usage example:
     }
 ```
 
+##### xscope_accessing_fixed_nii_vector
+
+Note that the [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector) described above can only be obtained from a non-`const` (scope) pointer to the lending vector. In situations where only a `const` (scope) pointer to the vector is available, `xscope_borrowing_fixed_nii_vector<>` has a counterpart, `xscope_accessing_fixed_nii_vector<>`, which can be obtained from a `const` (scope) pointer to supported vectors (including [`mstd::vector<>`](#mstdvector), [`stnii_vector<>`](#stnii_vector) and [`mtnii_vector<>`](#stnii_vector), but notably not [`nii_vector<>`](#nii_vector)).
+
+`xscope_accessing_fixed_nii_vector<>`, like `xscope_borrowing_fixed_nii_vector<>`, ensures, while it exists, that the vector contents are not deallocated/relocated/resized. But unlike `xscope_borrowing_fixed_nii_vector<>`, `xscope_accessing_fixed_nii_vector<>`'s access to the vector contents is not exclusive. So, for example, multiple `xscope_accessing_fixed_nii_vector<>`s corresponding to the same vector can exist and be used at the same time. This lack of exclusivity results in `xscope_accessing_fixed_nii_vector<>` being branded as ineligible to be passed to, or shared with, asynchronous threads.
+
+usage example: ([link to interactive version](https://godbolt.org/z/bavP7jG6T))
+
+```cpp
+    #include "mseslta.h"
+    #include "msemsevector.h"
+    
+    int main(int argc, char* argv[]) {
+
+        auto vec2 = mse::make_xscope(mse::stnii_vector<int>{ 5, 7 });
+
+        {
+            auto const& vec2_cref = vec2;
+
+            /* Obtaining an xscope_borrowing_fixed_nii_vector<> requires a non-const pointer to the lending vector. 
+			When only a const pointer is available we can instead use xscope_accessing_fixed_nii_vector<> for supported vector types. */
+            auto af_vec2a = mse::make_xscope_accessing_fixed_nii_vector(&vec2_cref);
+            // or
+            //auto af_vec2a = mse::xscope_accessing_fixed_nii_vector(&vec2_cref);
+
+            auto& elem_ref1 = af_vec2a[0];
+            int i4 = elem_ref1;
+        }
+    }
+```
+
 ### ivector
 
 `mse::ivector<>` is a safe vector like [`mse::mstd::vector<>`](#mstdvector), but its (implicit reference) iterators behave more like list iterators than standard vector iterators. That is, upon insert or delete, the iterators continue to point to the same item, not (necessarily) the same position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted.
