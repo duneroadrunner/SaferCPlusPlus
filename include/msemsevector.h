@@ -3836,8 +3836,7 @@ namespace mse {
 		typedef typename std::conditional<std::is_const<_TLender>::value, const_reverse_iterator, typename corresponding_xscope_fixed_nii_vector_t::reverse_iterator>::type reverse_iterator;
 
 	private:
-		const auto& contained_vector() const { return m_src_ref; }
-		auto& contained_vector() { return m_src_ref; }
+		auto& contained_vector() const { return (*m_src_ptr); }
 
 		template<class T>
 		struct CForInternalUseOnly {
@@ -3860,36 +3859,25 @@ namespace mse {
 			, ncTLender, _TLender>::type maybe_remove_const_lender_t;
 
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		xscope_accessing_fixed_nii_vector(const mse::TXScopeFixedPointer<_TLender> src_xs_ptr) : m_src_ref(*src_xs_ptr)
+		xscope_accessing_fixed_nii_vector(const mse::TXScopeFixedPointer<_TLender> src_xs_ptr) : m_src_ptr(std::addressof(*src_xs_ptr))
 			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
-		xscope_accessing_fixed_nii_vector(const mse::TXScopeFixedConstPointer<_TLender> src_xs_ptr) : m_src_ref(*src_xs_ptr)
+		xscope_accessing_fixed_nii_vector(const mse::TXScopeFixedConstPointer<_TLender> src_xs_ptr) : m_src_ptr(std::addressof(*src_xs_ptr))
 			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-		xscope_accessing_fixed_nii_vector(_TLender* src_xs_ptr) : m_src_ref(*src_xs_ptr)
+		xscope_accessing_fixed_nii_vector(_TLender* src_xs_ptr) : m_src_ptr(std::addressof(*src_xs_ptr))
 			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
 		template<class T = int, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<_TLender const, _TLender>::value) && (!std::is_same<float, T>::value)> MSE_IMPL_EIS >
-		xscope_accessing_fixed_nii_vector(_TLender const* src_xs_ptr, CForInternalUseOnly<T> z = CForInternalUseOnly<T>{}) : m_src_ref(*src_xs_ptr)
+		xscope_accessing_fixed_nii_vector(_TLender const* src_xs_ptr, CForInternalUseOnly<T> z = CForInternalUseOnly<T>{}) : m_src_ptr(std::addressof(*src_xs_ptr))
 			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
 
-		const_reference operator[](msev_size_t _P) const {
+		auto& operator[](msev_size_t _P) const {
 			return (*this).at(msev_as_a_size_t(_P));
 		}
-		reference operator[](msev_size_t _P) {
-			return (*this).at(msev_as_a_size_t(_P));
-		}
-		reference front() {	// return first element of mutable sequence
-			//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - reference front() - xscope_fixed_nii_vector_base")); }
-			return (*this).at(0);
-		}
-		const_reference front() const {	// return first element of nonmutable sequence
+		auto& front() const {	// return first element of nonmutable sequence
 			//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - const_reference front() - xscope_fixed_nii_vector_base")); }
 			return (*this).at(0);
 		}
-		reference back() {	// return last element of mutable sequence
-			//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - reference back() - xscope_fixed_nii_vector_base")); }
-			return (*this).at((*this).size() - 1);
-		}
-		const_reference back() const {	// return last element of nonmutable sequence
+		auto& back() const {	// return last element of nonmutable sequence
 			//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - const_reference back() - xscope_fixed_nii_vector_base")); }
 			return (*this).at((*this).size() - 1);
 		}
@@ -3904,22 +3892,12 @@ namespace mse {
 			return contained_vector().empty();
 		}
 
-		reference at(msev_size_t _Pos)
-		{	// subscript mutable sequence with checking
-			return contained_vector().unchecked_contained_vector().at(msev_as_a_size_t(_Pos));
-		}
-
-		const_reference at(msev_size_t _Pos) const
+		auto& at(msev_size_t _Pos) const
 		{	// subscript nonmutable sequence with checking
 			return contained_vector().unchecked_contained_vector().at(msev_as_a_size_t(_Pos));
 		}
 
-		value_type* data() _NOEXCEPT
-		{	// return pointer to mutable data vector
-			return contained_vector().data();
-		}
-
-		const value_type* data() const _NOEXCEPT
+		auto* data() const _NOEXCEPT
 		{	// return pointer to nonmutable data vector
 			return contained_vector().data();
 		}
@@ -3934,7 +3912,7 @@ namespace mse {
 	private:
 		xscope_accessing_fixed_nii_vector(const xscope_accessing_fixed_nii_vector&) = delete;
 
-		_TLender& m_src_ref;
+		_TLender* m_src_ptr;
 
 		template<class T, class EqualTo>
 		struct IsSupportedPointerType_impl
@@ -4758,8 +4736,7 @@ namespace mse {
 			typedef typename std::conditional<std::is_const<_TLender>::value, const_reverse_iterator, typename corresponding_xslta_fixed_vector_t::reverse_iterator>::type reverse_iterator;
 
 		private:
-			const auto& contained_vector() const { return m_src_ref; }
-			auto& contained_vector() { return m_src_ref; }
+			auto& contained_vector() const { return (*m_src_ptr); }
 
 			template<class T>
 			struct CForInternalUseOnly {
@@ -4781,35 +4758,24 @@ namespace mse {
 			typedef typename std::conditional<mse::impl::can_be_structure_locked_as_const<ncTLender>::value
 				, ncTLender, _TLender>::type maybe_remove_const_lender_t;
 
-			xslta_accessing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ref(*src_xs_ptr)
+			xslta_accessing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ptr(std::addressof(*src_xs_ptr))
 				, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
-			xslta_accessing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ref(*src_xs_ptr)
+			xslta_accessing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ptr(std::addressof(*src_xs_ptr))
 				, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
-			xslta_accessing_fixed_vector(const mse::rsv::TXSLTAConstPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ref(*src_xs_ptr)
+			xslta_accessing_fixed_vector(const mse::rsv::TXSLTAConstPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ptr(std::addressof(*src_xs_ptr))
 				, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
 			template<class T = int, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<_TLender const, _TLender>::value) && (!std::is_same<float, T>::value)> MSE_IMPL_EIS >
-			xslta_accessing_fixed_vector(_TLender const* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), CForInternalUseOnly<T> z = CForInternalUseOnly<T>{}) : m_src_ref(*src_xs_ptr)
+			xslta_accessing_fixed_vector(_TLender const* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), CForInternalUseOnly<T> z = CForInternalUseOnly<T>{}) : m_src_ptr(std::addressof(*src_xs_ptr))
 				, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
 
-			const_reference operator[](msev_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+			auto& operator[](msev_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return (*this).at(msev_as_a_size_t(_P));
 			}
-			reference operator[](msev_size_t _P) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return (*this).at(msev_as_a_size_t(_P));
-			}
-			reference front() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return first element of mutable sequence
-				//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - reference front() - xslta_fixed_vector_base")); }
-				return (*this).at(0);
-			}
-			const_reference front() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return first element of nonmutable sequence
+			auto& front() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return first element of nonmutable sequence
 				//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - const_reference front() - xslta_fixed_vector_base")); }
 				return (*this).at(0);
 			}
-			reference back() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return last element of mutable sequence
-				//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - reference back() - xslta_fixed_vector_base")); }
-				return (*this).at((*this).size() - 1);
-			}
-			const_reference back() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return last element of nonmutable sequence
+			auto& back() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return last element of nonmutable sequence
 				//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - const_reference back() - xslta_fixed_vector_base")); }
 				return (*this).at((*this).size() - 1);
 			}
@@ -4824,22 +4790,12 @@ namespace mse {
 				return contained_vector().empty();
 			}
 
-			reference at(msev_size_t _Pos) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
-			{	// subscript mutable sequence with checking
-				return contained_vector().unchecked_contained_vector().at(msev_as_a_size_t(_Pos));
-			}
-
-			const_reference at(msev_size_t _Pos) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
+			auto& at(msev_size_t _Pos) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
 			{	// subscript nonmutable sequence with checking
 				return contained_vector().unchecked_contained_vector().at(msev_as_a_size_t(_Pos));
 			}
 
-			value_type* data() _NOEXCEPT MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
-			{	// return pointer to mutable data vector
-				return contained_vector().data();
-			}
-
-			const value_type* data() const _NOEXCEPT MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
+			auto* data() const _NOEXCEPT MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
 			{	// return pointer to nonmutable data vector
 				return contained_vector().data();
 			}
@@ -4854,7 +4810,7 @@ namespace mse {
 		private:
 			xslta_accessing_fixed_vector(const xslta_accessing_fixed_vector&) = delete;
 
-			_TLender& m_src_ref;
+			_TLender* m_src_ptr;
 
 			template<class T, class EqualTo>
 			struct IsSupportedPointerType_impl
