@@ -3056,11 +3056,11 @@ usage example:
 
 ##### xscope_accessing_fixed_nii_vector
 
-Note that the [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector) described above can only be obtained from a non-`const` (scope) pointer to the lending vector. In situations where only a `const` (scope) pointer to the vector is available, `xscope_borrowing_fixed_nii_vector<>` has a counterpart, `xscope_accessing_fixed_nii_vector<>`, which can be obtained from a `const` (scope) pointer to supported vectors (including [`mstd::vector<>`](#mstdvector), [`stnii_vector<>`](#stnii_vector) and [`mtnii_vector<>`](#stnii_vector), but notably not [`nii_vector<>`](#nii_vector)).
+Note that the [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector) described above can only be obtained from a non-`const` (scope) pointer to the lending vector. In situations where only a `const` (scope) pointer to the vector is available, `xscope_borrowing_fixed_nii_vector<>` has a counterpart, `xscope_accessing_fixed_nii_vector<>`, which can be obtained from a `const` (scope) pointer to supported vectors (including [`mstd::vector<>`](#mstdvector), [`stnii_vector<>`](#stnii_vector) and [`mtnii_vector<>`](#mtnii_vector), but notably not [`nii_vector<>`](#nii_vector)).
 
 `xscope_accessing_fixed_nii_vector<>`, like `xscope_borrowing_fixed_nii_vector<>`, ensures, while it exists, that the vector contents are not deallocated/relocated/resized. But unlike `xscope_borrowing_fixed_nii_vector<>`, `xscope_accessing_fixed_nii_vector<>`'s access to the vector contents is not exclusive. So, for example, multiple `xscope_accessing_fixed_nii_vector<>`s corresponding to the same vector can exist and be used at the same time. This lack of exclusivity results in `xscope_accessing_fixed_nii_vector<>` being branded as ineligible to be passed to, or shared with, asynchronous threads.
 
-usage example: ([link to interactive version](https://godbolt.org/z/bavP7jG6T))
+usage example: ([link to interactive version](https://godbolt.org/z/6bhz9GGYM))
 
 ```cpp
     #include "mseslta.h"
