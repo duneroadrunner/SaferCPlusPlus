@@ -4017,17 +4017,8 @@ namespace mse {
 				return src_ref().unchecked_contained_optional().has_value();
 			}
 
-			_NODISCARD constexpr const T& value() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+			_NODISCARD constexpr auto& value() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return src_ref().unchecked_contained_optional().value();
-			}
-			_NODISCARD constexpr T& value()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return src_ref().unchecked_contained_optional().value();
-			}
-			_NODISCARD constexpr T&& value() && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::move(MSE_FWD(src_ref().unchecked_contained_optional()).value());
-			}
-			_NODISCARD constexpr const T&& value() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::move(MSE_FWD(src_ref().unchecked_contained_optional()).value());
 			}
 
 			template <class _Ty2>
@@ -4043,25 +4034,11 @@ namespace mse {
 				return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
 			}
 
-			_NODISCARD constexpr const T* operator->() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+			_NODISCARD constexpr auto* operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return std::addressof((*this).value());
 			}
-			_NODISCARD constexpr const T* operator->() const&& = delete;
-			_NODISCARD constexpr T* operator->()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::addressof((*this).value());
-			}
-			_NODISCARD constexpr const T* operator->() && = delete;
-			_NODISCARD constexpr const T& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+			_NODISCARD constexpr auto& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return (*this).value();
-			}
-			_NODISCARD constexpr T& operator*()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return (*this).value();
-			}
-			_NODISCARD constexpr T&& operator*() && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::move((*this).value());
-			}
-			_NODISCARD constexpr const T&& operator*() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::move((*this).value());
 			}
 
 			//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
