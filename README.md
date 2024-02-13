@@ -3054,7 +3054,7 @@ usage example:
     }
 ```
 
-##### xscope_accessing_fixed_nii_vector
+### xscope_accessing_fixed_nii_vector
 
 Note that the [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector) described above can only be obtained from a non-`const` (scope) pointer to the lending vector. In situations where only a `const` (scope) pointer to the vector is available, `xscope_borrowing_fixed_nii_vector<>` has a counterpart, `xscope_accessing_fixed_nii_vector<>`, which can be obtained from a `const` (scope) pointer to supported vectors (including [`mstd::vector<>`](#mstdvector), [`stnii_vector<>`](#stnii_vector) and [`mtnii_vector<>`](#mtnii_vector), but notably not [`nii_vector<>`](#nii_vector)).
 
