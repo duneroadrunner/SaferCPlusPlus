@@ -260,6 +260,8 @@ namespace mse {
 		template<class _TLender, class _Ty/* = mse::impl::container_element_type<_TLender> */>
 		class xslta_accessing_fixed_vector;
 	}
+	template<class _TLender, class _Ty/* = mse::impl::container_element_type<_TLender> */>
+	class xscope_accessing_fixed_nii_vector;
 
 	namespace impl {
 		namespace ns_gnii_vector {
@@ -2349,6 +2351,7 @@ namespace mse {
 				friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 				friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
 				template<class _TLender2, class _Ty2> friend class mse::rsv::xslta_accessing_fixed_vector;
+				template<class _TLender2, class _Ty2> friend class mse::xscope_accessing_fixed_nii_vector;
 
 				friend /*class */xscope_ss_const_iterator_type;
 				friend /*class */xscope_ss_iterator_type;
@@ -3805,6 +3808,176 @@ namespace mse {
 		return mse::TXScopeObj<xscope_borrowing_fixed_nii_vector<_TLender> >(src_xs_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+
+	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender> >
+	class xscope_accessing_fixed_nii_vector : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+	public:
+		typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
+		typedef xscope_fixed_nii_vector<_Ty> corresponding_xscope_fixed_nii_vector_t;
+
+		//typedef typename corresponding_xscope_fixed_nii_vector_t::std_vector std_vector;
+		//typedef typename corresponding_xscope_fixed_nii_vector_t::_MV _MV;
+		typedef xscope_accessing_fixed_nii_vector _Myt;
+
+		//typedef typename corresponding_xscope_fixed_nii_vector_t::allocator_type allocator_type;
+		typedef typename corresponding_xscope_fixed_nii_vector_t::value_type value_type;
+		typedef typename corresponding_xscope_fixed_nii_vector_t::size_type size_type;
+		typedef typename corresponding_xscope_fixed_nii_vector_t::difference_type difference_type;
+		typedef typename corresponding_xscope_fixed_nii_vector_t::const_pointer const_pointer;
+		typedef typename std::conditional<std::is_const<_TLender>::value, const_pointer, typename corresponding_xscope_fixed_nii_vector_t::pointer>::type pointer;
+		typedef typename corresponding_xscope_fixed_nii_vector_t::const_reference const_reference;
+		typedef typename std::conditional<std::is_const<_TLender>::value, const_reference, typename corresponding_xscope_fixed_nii_vector_t::reference>::type reference;
+
+		typedef typename corresponding_xscope_fixed_nii_vector_t::const_iterator const_iterator;
+		typedef typename std::conditional<std::is_const<_TLender>::value, const_iterator, typename corresponding_xscope_fixed_nii_vector_t::iterator>::type iterator;
+
+		typedef typename corresponding_xscope_fixed_nii_vector_t::const_reverse_iterator const_reverse_iterator;
+		typedef typename std::conditional<std::is_const<_TLender>::value, const_reverse_iterator, typename corresponding_xscope_fixed_nii_vector_t::reverse_iterator>::type reverse_iterator;
+
+	private:
+		const auto& contained_vector() const { return m_src_ref; }
+		auto& contained_vector() { return m_src_ref; }
+
+		template<class T>
+		struct CForInternalUseOnly {
+		private:
+			CForInternalUseOnly() {}
+			friend class xscope_accessing_fixed_nii_vector;
+		};
+
+	public:
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		xscope_accessing_fixed_nii_vector(xscope_accessing_fixed_nii_vector&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		xscope_accessing_fixed_nii_vector(xscope_accessing_fixed_nii_vector&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+		typedef mse::impl::remove_const_t<_TLender> ncTLender;
+		/* Some vectors support structure locking even via const reference. */
+		typedef typename std::conditional<mse::impl::can_be_structure_locked_as_const<ncTLender>::value
+			, ncTLender, _TLender>::type maybe_remove_const_lender_t;
+
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		xscope_accessing_fixed_nii_vector(const mse::TXScopeFixedPointer<_TLender> src_xs_ptr) : m_src_ref(*src_xs_ptr)
+			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
+		xscope_accessing_fixed_nii_vector(const mse::TXScopeFixedConstPointer<_TLender> src_xs_ptr) : m_src_ref(*src_xs_ptr)
+			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+		xscope_accessing_fixed_nii_vector(_TLender* src_xs_ptr) : m_src_ref(*src_xs_ptr)
+			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
+		template<class T = int, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<_TLender const, _TLender>::value) && (!std::is_same<float, T>::value)> MSE_IMPL_EIS >
+		xscope_accessing_fixed_nii_vector(_TLender const* src_xs_ptr, CForInternalUseOnly<T> z = CForInternalUseOnly<T>{}) : m_src_ref(*src_xs_ptr)
+			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
+
+		const_reference operator[](msev_size_t _P) const {
+			return (*this).at(msev_as_a_size_t(_P));
+		}
+		reference operator[](msev_size_t _P) {
+			return (*this).at(msev_as_a_size_t(_P));
+		}
+		reference front() {	// return first element of mutable sequence
+			//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - reference front() - xscope_fixed_nii_vector_base")); }
+			return (*this).at(0);
+		}
+		const_reference front() const {	// return first element of nonmutable sequence
+			//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - const_reference front() - xscope_fixed_nii_vector_base")); }
+			return (*this).at(0);
+		}
+		reference back() {	// return last element of mutable sequence
+			//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - reference back() - xscope_fixed_nii_vector_base")); }
+			return (*this).at((*this).size() - 1);
+		}
+		const_reference back() const {	// return last element of nonmutable sequence
+			//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - const_reference back() - xscope_fixed_nii_vector_base")); }
+			return (*this).at((*this).size() - 1);
+		}
+
+		size_type size() const _NOEXCEPT
+		{	// return length of sequence
+			return contained_vector().size();
+		}
+
+		bool empty() const _NOEXCEPT
+		{	// test if sequence is empty
+			return contained_vector().empty();
+		}
+
+		reference at(msev_size_t _Pos)
+		{	// subscript mutable sequence with checking
+			return contained_vector().unchecked_contained_vector().at(msev_as_a_size_t(_Pos));
+		}
+
+		const_reference at(msev_size_t _Pos) const
+		{	// subscript nonmutable sequence with checking
+			return contained_vector().unchecked_contained_vector().at(msev_as_a_size_t(_Pos));
+		}
+
+		value_type* data() _NOEXCEPT
+		{	// return pointer to mutable data vector
+			return contained_vector().data();
+		}
+
+		const value_type* data() const _NOEXCEPT
+		{	// return pointer to nonmutable data vector
+			return contained_vector().data();
+		}
+
+		size_type max_size() const _NOEXCEPT
+		{	// return maximum possible length of sequence
+			return contained_vector().max_size();
+		}
+
+		//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(corresponding_xscope_fixed_nii_vector_t);
+
+	private:
+		xscope_accessing_fixed_nii_vector(const xscope_accessing_fixed_nii_vector&) = delete;
+
+		_TLender& m_src_ref;
+
+		template<class T, class EqualTo>
+		struct IsSupportedPointerType_impl
+		{
+			template<class U, class V>
+			static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+			template<typename, typename>
+			static auto test(...) -> std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct IsSupportedPointerType : IsSupportedPointerType_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+		static_assert(IsSupportedPointerType<_TLender>::value, "xscope_accessing_fixed_nii_vector<> does not support the given "
+			"pointer to vector argument. This may be due to the underlying vector type not being supported "
+			"or it may be due to the const qualification of the pointer target. A non-const pointer argument is "
+			"required for certain vector types.");
+
+		typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
+
+		xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
+
+	};
+
+#ifdef MSE_HAS_CXX17
+	/* deduction guides */
+	template<class _TLender>
+	xscope_accessing_fixed_nii_vector(mse::TXScopeFixedPointer<_TLender>) -> xscope_accessing_fixed_nii_vector<_TLender>;
+#endif /* MSE_HAS_CXX17 */
+
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+	auto make_xscope_accessing_fixed_nii_vector(const mse::TXScopeFixedPointer<_TLender> src_xs_ptr) {
+		return xscope_accessing_fixed_nii_vector<_TLender>(src_xs_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+	auto make_xscope_accessing_fixed_nii_vector(_TLender* src_xs_ptr) {
+		return xscope_accessing_fixed_nii_vector<_TLender>(src_xs_ptr);
+	}
+
 
 	namespace rsv {
 		template<class _Ty, class _A>
