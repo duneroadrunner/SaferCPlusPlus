@@ -1722,6 +1722,9 @@ namespace mse {
 
 	template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
 	class xscope_borrowing_fixed_optional;
+	template <class _TLender, class T/* = mse::impl::target_type<_TLender> */, bool _ExclusiveAccess/* = false */>
+	class xscope_accessing_fixed_optional;
+
 	namespace rsv {
 		template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
 		class xslta_borrowing_fixed_optional;
@@ -1762,11 +1765,11 @@ namespace mse {
 					typedef optional_base1<T> _MO;
 
 				private:
-					const _MO& contained_optional() const& { access_guard{ m_access_mutex }; return base_class::value(); }
-					const _MO&& contained_optional() const&& { access_guard{ m_access_mutex }; return base_class::value(); }
-					_MO& contained_optional()& { access_guard{ m_access_mutex }; return base_class::value(); }
+					const _MO& contained_optional() const& { assert_access_is_unlocked(); return base_class::value(); }
+					const _MO&& contained_optional() const&& { assert_access_is_unlocked(); return base_class::value(); }
+					_MO& contained_optional()& { assert_access_is_unlocked(); return base_class::value(); }
 					_MO&& contained_optional()&& {
-						access_guard{ m_access_mutex };
+						assert_access_is_unlocked();
 						/* We're making sure that the optional is not "structure locked", because in that case it might not be
 						safe to to allow the contained optional to be moved from (when made movable with std::move()). */
 						structure_change_guard lock1(m_structure_change_mutex);
@@ -1816,11 +1819,11 @@ namespace mse {
 					typedef base_class _MO;
 
 				private:
-					const _MO& contained_optional() const& { access_guard{ m_access_mutex }; return (*this); }
-					const _MO& contained_optional() const&& { access_guard{ m_access_mutex }; return (*this); }
-					_MO& contained_optional()& { access_guard{ m_access_mutex }; return (*this); }
+					const _MO& contained_optional() const& { assert_access_is_unlocked(); return (*this); }
+					const _MO& contained_optional() const&& { assert_access_is_unlocked(); return (*this); }
+					_MO& contained_optional()& { assert_access_is_unlocked(); return (*this); }
 					auto contained_optional()&& -> decltype(mse::us::impl::as_ref<base_class>(std::move(*this))) {
-						access_guard{ m_access_mutex };
+						assert_access_is_unlocked();
 						/* We're making sure that the optional is not "structure locked", because in that case it might not be
 						safe to to allow the contained optional to be moved from (when made movable with std::move()). */
 						structure_change_guard lock1(m_structure_change_mutex);
@@ -1968,16 +1971,27 @@ namespace mse {
 					private:
 						std::lock_guard<mse::non_thread_safe_mutex> m_lock_guard;
 					};
-					auto access_lock() const { m_access_mutex.lock(); }
-					auto access_unlock() const { m_access_mutex.unlock(); }
+					auto access_lock() { m_access_mutex.lock(); m_access_is_prohibited = true; }
+					auto access_unlock() { m_access_mutex.unlock(); m_access_is_prohibited = false; }
+					auto assert_access_is_unlocked() const {
+						if (m_access_is_prohibited) {
+							MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+						}
+					}
 
 					mutable _TStateMutex m_structure_change_mutex;
-					mutable mse::non_thread_safe_mutex m_access_mutex;
+
+					/* These shouldn't need to be atomic as any changes made to them should be done under the 
+					protection of the m_structure_change_mutex, which may be atomic. */
+					bool m_access_is_prohibited = false;
+					mse::non_thread_safe_mutex m_access_mutex;
 
 					friend class mse::us::impl::Txscope_optional_structure_lock_guard<_Myt>;
 					friend class mse::us::impl::Txscope_const_optional_structure_lock_guard<_Myt>;
 					template <class _TLender2, class T2>
 					friend class mse::xscope_borrowing_fixed_optional;
+					template <class _TLender2, class T2, bool _ExclusiveAccess2>
+					friend class mse::xscope_accessing_fixed_optional;
 					template <class _TLender2, class T2>
 					friend class mse::rsv::xslta_borrowing_fixed_optional;
 					template <class _TLender2, class T2, bool _ExclusiveAccess2>
@@ -3734,54 +3748,56 @@ namespace mse {
 #define MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 #endif // MSE_HAS_CXX17
 
-	template <class _TLender, class T = mse::impl::target_type<_TLender> >
-	class xscope_borrowing_fixed_optional {
+	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type, bool _ExclusiveAccess = false>
+	class xscope_accessing_fixed_optional {
 	public:
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-		xscope_borrowing_fixed_optional(xscope_borrowing_fixed_optional&&) = delete;
+		xscope_accessing_fixed_optional(xscope_accessing_fixed_optional&&) = delete;
 #define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ref(*src_xs_ptr)
-		~xscope_borrowing_fixed_optional() {
-			src_ref().access_unlock(); src_ref().structure_change_unlock();
+		~xscope_accessing_fixed_optional() {
+			if (_ExclusiveAccess) {
+				src_ref().access_unlock();
+			}
+			src_ref().structure_change_unlock();
 		}
 #else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-		xscope_borrowing_fixed_optional(xscope_borrowing_fixed_optional&& src) : m_src_ptr(MSE_FWD(src).m_src_ptr) {
+		xscope_accessing_fixed_optional(xscope_accessing_fixed_optional&& src) : m_src_ptr(MSE_FWD(src).m_src_ptr) {
 			src.m_src_ptr = nullptr;
 		}
 #define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))
-		~xscope_borrowing_fixed_optional() {
+		~xscope_accessing_fixed_optional() {
 			if (m_src_ptr) {
-				src_ref().access_unlock(); src_ref().structure_change_unlock();
+				if (_ExclusiveAccess) {
+					src_ref().access_unlock();
+				}
+				src_ref().structure_change_unlock();
 			}
 		}
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-
-		xscope_borrowing_fixed_optional(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF {
-			src_ref().structure_change_lock(); src_ref().access_lock();
+		xscope_accessing_fixed_optional(mse::TXScopeFixedPointer<_TLender> const src_xs_ptr) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
+			src_ref().structure_change_lock();
+			if (_ExclusiveAccess) {
+				src_ref().access_lock();
+			}
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-		xscope_borrowing_fixed_optional(_TLender* src_xs_ptr) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF {
-			src_ref().structure_change_lock(); src_ref().access_lock();
+			xscope_accessing_fixed_optional(_TLender* const src_xs_ptr) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
+				src_ref().structure_change_lock();
+				if (_ExclusiveAccess) {
+					src_ref().access_lock();
+				}
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-		constexpr explicit operator bool() const noexcept {
+			constexpr explicit operator bool() const noexcept {
 			return bool(src_ref().unchecked_contained_optional());
 		}
 		_NODISCARD constexpr bool has_value() const noexcept {
 			return src_ref().unchecked_contained_optional().has_value();
 		}
 
-		_NODISCARD constexpr const T& value() const& {
+		_NODISCARD constexpr auto& value() const {
 			return src_ref().unchecked_contained_optional().value();
-		}
-		_NODISCARD constexpr T& value()& {
-			return src_ref().unchecked_contained_optional().value();
-		}
-		_NODISCARD constexpr T&& value()&& {
-			return std::move(MSE_FWD(src_ref().unchecked_contained_optional()).value());
-		}
-		_NODISCARD constexpr const T&& value() const&& {
-			return std::move(MSE_FWD(src_ref().unchecked_contained_optional()).value());
 		}
 
 		template <class _Ty2>
@@ -3789,35 +3805,21 @@ namespace mse {
 			return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
 		}
 		template <class _Ty2>
-		_NODISCARD constexpr T value_or(_Ty2&& _Right)&& {
+		_NODISCARD constexpr T value_or(_Ty2&& _Right) && {
 			return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
 		}
 
-		_NODISCARD constexpr const T* operator->() const& {
+		_NODISCARD constexpr auto* operator->() const {
 			return std::addressof((*this).value());
 		}
-		_NODISCARD constexpr const T* operator->() const&& = delete;
-		_NODISCARD constexpr T* operator->()& {
-			return std::addressof((*this).value());
-		}
-		_NODISCARD constexpr const T* operator->() && = delete;
-		_NODISCARD constexpr const T& operator*() const& {
+		_NODISCARD constexpr auto& operator*() const& {
 			return (*this).value();
-		}
-		_NODISCARD constexpr T& operator*()& {
-			return (*this).value();
-		}
-		_NODISCARD constexpr T&& operator*()&& {
-			return std::move((*this).value());
-		}
-		_NODISCARD constexpr const T&& operator*() const&& {
-			return std::move((*this).value());
 		}
 
-		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
+		//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
 
 	private:
-		xscope_borrowing_fixed_optional(const xscope_borrowing_fixed_optional&) = delete;
+		xscope_accessing_fixed_optional(const xscope_accessing_fixed_optional&) = delete;
 
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 		_TLender& m_src_ref;
@@ -3833,144 +3835,71 @@ namespace mse {
 #ifdef MSE_HAS_CXX17
 	/* deduction guides */
 	template<class _TLender>
-	xscope_borrowing_fixed_optional(mse::TXScopeFixedPointer<_TLender>)->xscope_borrowing_fixed_optional<_TLender>;
+	xscope_accessing_fixed_optional(mse::TXScopeFixedPointer<_TLender>) -> xscope_accessing_fixed_optional<_TLender>;
 #endif /* MSE_HAS_CXX17 */
 
-	template<class _TLender>
-	auto make_xscope_borrowing_fixed_optional(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) -> mse::TXScopeObj<xscope_borrowing_fixed_optional<_TLender> > {
-		return mse::TXScopeObj<xscope_borrowing_fixed_optional<_TLender> >(src_xs_ptr);
-	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TLender>
-	auto make_xscope_borrowing_fixed_optional(_TLender* src_xs_ptr) -> mse::TXScopeObj<xscope_borrowing_fixed_optional<_TLender> > {
-		return mse::TXScopeObj<xscope_borrowing_fixed_optional<_TLender> >(src_xs_ptr);
+	xscope_accessing_fixed_optional<_TLender> make_xscope_accessing_fixed_optional(mse::TXScopeFixedPointer<_TLender> const src_xs_ptr) {
+		return xscope_accessing_fixed_optional<_TLender>(src_xs_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TLender>
+	xscope_accessing_fixed_optional<_TLender> make_xscope_accessing_fixed_optional(_TLender* const src_xs_ptr) {
+		return xscope_accessing_fixed_optional<_TLender>(src_xs_ptr);
+	}
 
-	namespace rsv {
-#if 0
-		template <class _TLender, class T = mse::impl::target_type<_TLender> >
-		class xslta_borrowing_fixed_optional {
-		public:
+	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+	class xscope_borrowing_fixed_optional : public xscope_accessing_fixed_optional<_TLender, T, true/*_ExclusiveAccess*/> {
+	public:
+		typedef xscope_accessing_fixed_optional<_TLender, T, true/*_ExclusiveAccess*/> base_class;
+
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-			xslta_borrowing_fixed_optional(xslta_borrowing_fixed_optional&&) = delete;
+		xscope_borrowing_fixed_optional(xscope_borrowing_fixed_optional&&) = delete;
 #define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ref(*src_xs_ptr)
-			~xslta_borrowing_fixed_optional() {
-				src_ref().access_unlock(); src_ref().structure_change_unlock();
-			}
 #else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-			xslta_borrowing_fixed_optional(xslta_borrowing_fixed_optional&& src MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) : m_src_ptr(MSE_FWD(src).m_src_ptr) {
-				src.m_src_ptr = nullptr;
-			}
+		xscope_borrowing_fixed_optional(xscope_borrowing_fixed_optional&& src) : base_class(MSE_FWD(src)) {}
 #define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))
-			~xslta_borrowing_fixed_optional() {
-				if (m_src_ptr) {
-					src_ref().access_unlock(); src_ref().structure_change_unlock();
-				}
-			}
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-			xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
-				src_ref().structure_change_lock(); src_ref().access_lock();
-			}
+		xscope_borrowing_fixed_optional(mse::rsv::TXScopeFixedPointer<_TLender> const src_xs_ptr) : base_class(src_xs_ptr) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
-				src_ref().structure_change_lock(); src_ref().access_lock();
-			}
+		xscope_borrowing_fixed_optional(_TLender* const src_xs_ptr) : base_class(src_xs_ptr) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-			constexpr explicit operator bool() const noexcept {
-				return bool(src_ref().unchecked_contained_optional());
-			}
-			_NODISCARD constexpr bool has_value() const noexcept {
-				return src_ref().unchecked_contained_optional().has_value();
-			}
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
 
-			_NODISCARD constexpr const T& value() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return src_ref().unchecked_contained_optional().value();
-			}
-			_NODISCARD constexpr T& value()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return src_ref().unchecked_contained_optional().value();
-			}
-			_NODISCARD constexpr T&& value()&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::move(MSE_FWD(src_ref().unchecked_contained_optional()).value());
-			}
-			_NODISCARD constexpr const T&& value() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::move(MSE_FWD(src_ref().unchecked_contained_optional()).value());
-			}
-
-			template <class _Ty2>
-			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) const&
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_11$); labels(alias_11$); this(_[ _[alias_11$] ]); return_value(alias_11$) }")
-			{
-				return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
-			}
-			template <class _Ty2>
-			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) &&
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_11$); labels(alias_11$); this(_[ _[alias_11$] ]); return_value(alias_11$) }")
-			{
-				return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
-			}
-
-			_NODISCARD constexpr const T* operator->() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::addressof((*this).value());
-			}
-			_NODISCARD constexpr const T* operator->() const&& = delete;
-			_NODISCARD constexpr T* operator->()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::addressof((*this).value());
-			}
-			_NODISCARD constexpr const T* operator->() && = delete;
-			_NODISCARD constexpr const T& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return (*this).value();
-			}
-			_NODISCARD constexpr T& operator*()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return (*this).value();
-			}
-			_NODISCARD constexpr T&& operator*()&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::move((*this).value());
-			}
-			_NODISCARD constexpr const T&& operator*() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
-				return std::move((*this).value());
-			}
-
-			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
-
-		private:
-			xslta_borrowing_fixed_optional(const xslta_borrowing_fixed_optional&) = delete;
-
-#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-			_TLender& m_src_ref;
-			auto& src_ref() const { return m_src_ref; }
-			auto& src_ref() { return m_src_ref; }
-#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-			_TLender* m_src_ptr = nullptr;
-			auto& src_ref() const { assert(m_src_ptr); return *m_src_ptr; }
-			auto& src_ref() { assert(m_src_ptr); return *m_src_ptr; }
-#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-		} MSE_ATTR_STR("mse::lifetime_labels(99)");
+	private:
+		xscope_borrowing_fixed_optional(const xscope_borrowing_fixed_optional&) = delete;
+	};
 
 #ifdef MSE_HAS_CXX17
-		/* deduction guides */
-		template<class _TLender>
-		xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender>) -> xslta_borrowing_fixed_optional<_TLender>;
+	/* deduction guides */
+	template<class _TLender>
+	xscope_borrowing_fixed_optional(mse::TXScopeFixedPointer<_TLender>) -> xscope_borrowing_fixed_optional<_TLender>;
 #endif /* MSE_HAS_CXX17 */
 
-		template<class _TLender>
-		xslta_borrowing_fixed_optional<_TLender> make_xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
-			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
-		{
-			return xslta_borrowing_fixed_optional<_TLender>(src_xs_ptr);
-		}
-		template<class _TLender>
-		xslta_borrowing_fixed_optional<_TLender> make_xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
-			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
-		{
-			return xslta_borrowing_fixed_optional<_TLender>(src_xs_ptr);
-		}
-#endif // 0
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TLender>
+	xscope_borrowing_fixed_optional<_TLender> make_xscope_borrowing_fixed_optional(mse::TXScopeFixedPointer<_TLender> const src_xs_ptr) {
+		return xscope_borrowing_fixed_optional<_TLender>(src_xs_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<class _TLender>
+	xscope_borrowing_fixed_optional<_TLender> make_xscope_borrowing_fixed_optional(_TLender* const src_xs_ptr) {
+		return xscope_borrowing_fixed_optional<_TLender>(src_xs_ptr);
+	}
 
+	namespace rsv {
 
 		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type, bool _ExclusiveAccess = false>
 		class xslta_accessing_fixed_optional {
+		private:
+			template<class U>
+			struct CForInternalUseOnly {
+			private:
+				CForInternalUseOnly() {}
+				friend class xslta_accessing_fixed_optional;
+			};
 		public:
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			xslta_accessing_fixed_optional(xslta_accessing_fixed_optional&&) = delete;
@@ -4001,14 +3930,25 @@ namespace mse {
 					src_ref().access_lock();
 				}
 			}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xslta_accessing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF {
+			xslta_accessing_fixed_optional(mse::rsv::TXSLTAConstPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
 				src_ref().structure_change_lock();
 				if (_ExclusiveAccess) {
 					src_ref().access_lock();
 				}
 			}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+			xslta_accessing_fixed_optional(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF {
+				src_ref().structure_change_lock();
+				if (_ExclusiveAccess) {
+					src_ref().access_lock();
+				}
+			}
+			template<class U = int, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<_TLender const, _TLender>::value) && (!std::is_same<float, U>::value)> MSE_IMPL_EIS >
+			xslta_accessing_fixed_optional(_TLender const* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), CForInternalUseOnly<U> z = CForInternalUseOnly<U>{}) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
+				src_ref().structure_change_lock();
+				if (_ExclusiveAccess) {
+					src_ref().access_lock();
+				}
+			}
 
 			constexpr explicit operator bool() const noexcept {
 				return bool(src_ref().unchecked_contained_optional());
