@@ -3056,11 +3056,11 @@ usage example:
 
 ### xscope_accessing_fixed_nii_vector
 
-Note that the [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector) described above can only be obtained from a non-`const` (scope) pointer to the lending vector. In situations where only a `const` (scope) pointer to the vector is available, `xscope_borrowing_fixed_nii_vector<>` has a counterpart, `xscope_accessing_fixed_nii_vector<>`, which can be obtained from a `const` (scope) pointer to supported vectors (including [`mstd::vector<>`](#mstdvector), [`stnii_vector<>`](#stnii_vector) and [`mtnii_vector<>`](#mtnii_vector), but notably not [`nii_vector<>`](#nii_vector)).
+Note that the [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector) described above can only be obtained from a non-`const` (scope) pointer to the lending vector. In situations where only a `const` (scope) pointer to the vector is available, `xscope_borrowing_fixed_nii_vector<>` has a counterpart, `xscope_accessing_fixed_nii_vector<>`, which can be obtained from a `const` (scope) pointer to supported vectors (including [`mstd::vector<>`](#mstdvector), [`stnii_vector<>`](#stnii_vector) and [`mtnii_vector<>`](#mtnii_vector), but notably not [`nii_vector<>`](#nii_vector) (unless it's an [xscope exclusive writer object](#exclusive-writer-objects))).
 
 `xscope_accessing_fixed_nii_vector<>`, like `xscope_borrowing_fixed_nii_vector<>`, ensures, while it exists, that the vector contents are not deallocated/relocated/resized. But unlike `xscope_borrowing_fixed_nii_vector<>`, `xscope_accessing_fixed_nii_vector<>`'s access to the vector contents is not exclusive. So, for example, multiple `xscope_accessing_fixed_nii_vector<>`s corresponding to the same vector can exist and be used at the same time. This lack of exclusivity results in `xscope_accessing_fixed_nii_vector<>` being branded as ineligible to be passed to, or shared with, asynchronous threads.
 
-usage example: ([link to interactive version](https://godbolt.org/z/c5h6eTrfo))
+usage example: ([link to interactive version](https://godbolt.org/z/v1c7Gdo3d))
 
 ```cpp
     #include "mseslta.h"
@@ -3074,13 +3074,23 @@ usage example: ([link to interactive version](https://godbolt.org/z/c5h6eTrfo))
             auto const& vec2_cref = vec2;
 
             /* Obtaining an xscope_borrowing_fixed_nii_vector<> requires a non-const pointer to the lending vector. 
-			When only a const pointer is available we can instead use xscope_accessing_fixed_nii_vector<> for supported vector types. */
+            When only a const pointer is available we can instead use xscope_accessing_fixed_nii_vector<> for supported vector types. */
             auto af_vec2a = mse::make_xscope_accessing_fixed_nii_vector(&vec2_cref);
             // or
             //auto af_vec2a = mse::xscope_accessing_fixed_nii_vector(&vec2_cref);
 
             auto& elem_ref1 = af_vec2a[0];
             int i4 = elem_ref1;
+        }
+        {
+            /* While const (scope) pointers to some vector types aren't supported, "access controlled" (scope) 
+            const pointers would be supported when those vectors are declared as (xscope) "exclusive writer" objects. */
+            auto const vec3 = mse::make_xscope_exclusive_writer(mse::nii_vector<int>{ 11, 13 });
+
+            auto af_vec3a = mse::make_xscope_accessing_fixed_nii_vector(vec3.const_pointer());
+
+            auto& elem_ref2 = af_vec3a[0];
+            int i5 = elem_ref2;
         }
     }
 ```
