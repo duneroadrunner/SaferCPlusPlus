@@ -643,7 +643,8 @@ namespace mse {
 			MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_shared_structure_lock_guard_t(vec_ref);
 		}
 
-		template<class _TLender2, class _Ty2> friend class mse::rsv::xslta_accessing_fixed_vector;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base2;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_vector_base;
 		//-------------------------------
 	};
 

@@ -257,10 +257,22 @@ namespace mse {
 		class msevector;
 	}
 	namespace rsv {
-		template<class _TLender, class _Ty/* = mse::impl::container_element_type<_TLender> */>
+		template<class _TPointer, class _TLender/* = mse::impl::target_type<_TPointer>*/, class _Ty/* = mse::impl::container_element_type<_TLender> */>
 		class xslta_accessing_fixed_vector;
+		namespace us {
+			namespace impl {
+				template<class _TPointer, class _TLender/* = mse::impl::target_type<_TPointer>*/, class _Ty/* = mse::impl::container_element_type<_TLender> */>
+				class xslta_accessing_fixed_vector_base;
+			}
+		}
+		namespace impl {
+			namespace ns_xslta_accessing_fixed_vector {
+				template<class _TPointer, class _TLender/* = mse::impl::target_type<_TPointer>*/, class _Ty/* = mse::impl::container_element_type<_TLender> */>
+				class xslta_accessing_fixed_vector_base2;
+			}
+		}
 	}
-	template<class _TLender, class _Ty/* = mse::impl::container_element_type<_TLender> */>
+	template<class _TPointer, class _TLender/* = mse::impl::target_type<_TPointer>*/, class _Ty/* = mse::impl::container_element_type<_TLender> */>
 	class xscope_accessing_fixed_nii_vector;
 
 	namespace impl {
@@ -2350,8 +2362,9 @@ namespace mse {
 
 				friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 				friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
-				template<class _TLender2, class _Ty2> friend class mse::rsv::xslta_accessing_fixed_vector;
-				template<class _TLender2, class _Ty2> friend class mse::xscope_accessing_fixed_nii_vector;
+				template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base2;
+				template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_vector_base;
+				template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::xscope_accessing_fixed_nii_vector;
 
 				friend /*class */xscope_ss_const_iterator_type;
 				friend /*class */xscope_ss_iterator_type;
@@ -3810,7 +3823,7 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 
-	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender> >
+	template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = mse::impl::container_element_type<_TLender> >
 	class xscope_accessing_fixed_nii_vector : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
@@ -3858,16 +3871,7 @@ namespace mse {
 		typedef typename std::conditional<mse::impl::can_be_structure_locked_as_const<ncTLender>::value
 			, ncTLender, _TLender>::type maybe_remove_const_lender_t;
 
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-		xscope_accessing_fixed_nii_vector(const mse::TXScopeFixedPointer<_TLender> src_xs_ptr) : m_src_ptr(std::addressof(*src_xs_ptr))
-			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
-		xscope_accessing_fixed_nii_vector(const mse::TXScopeFixedConstPointer<_TLender> src_xs_ptr) : m_src_ptr(std::addressof(*src_xs_ptr))
-			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-		xscope_accessing_fixed_nii_vector(_TLender* src_xs_ptr) : m_src_ptr(std::addressof(*src_xs_ptr))
-			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
-		template<class T = int, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<_TLender const, _TLender>::value) && (!std::is_same<float, T>::value)> MSE_IMPL_EIS >
-		xscope_accessing_fixed_nii_vector(_TLender const* src_xs_ptr, CForInternalUseOnly<T> z = CForInternalUseOnly<T>{}) : m_src_ptr(std::addressof(*src_xs_ptr))
+		xscope_accessing_fixed_nii_vector(_TPointer src_xs_ptr) : m_src_ptr(std::addressof(*src_xs_ptr))
 			, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
 
 		auto& operator[](msev_size_t _P) const {
@@ -3941,20 +3945,129 @@ namespace mse {
 
 #ifdef MSE_HAS_CXX17
 	/* deduction guides */
-	template<class _TLender>
-	xscope_accessing_fixed_nii_vector(mse::TXScopeFixedPointer<_TLender>) -> xscope_accessing_fixed_nii_vector<_TLender>;
+	template<class _TPointer>
+	xscope_accessing_fixed_nii_vector(_TPointer) -> xscope_accessing_fixed_nii_vector<_TPointer>;
 #endif /* MSE_HAS_CXX17 */
 
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
-	auto make_xscope_accessing_fixed_nii_vector(const mse::TXScopeFixedPointer<_TLender> src_xs_ptr) {
-		return xscope_accessing_fixed_nii_vector<_TLender>(src_xs_ptr);
+	template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = mse::impl::container_element_type<_TLender> >
+	auto make_xscope_accessing_fixed_nii_vector(_TPointer src_xs_ptr) {
+		return xscope_accessing_fixed_nii_vector<_TPointer, _TLender, _Ty>(src_xs_ptr);
 	}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
-	auto make_xscope_accessing_fixed_nii_vector(_TLender* src_xs_ptr) {
-		return xscope_accessing_fixed_nii_vector<_TLender>(src_xs_ptr);
-	}
+
+	template<class _TLender>
+	class xscope_accessing_fixed_nii_vector<TXScopeAccessControlledConstPointer<_TLender, non_thread_safe_shared_mutex>, _TLender, mse::impl::container_element_type<_TLender> > : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+	public:
+		typedef mse::impl::container_element_type<_TLender> _Ty;
+		typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
+		typedef xscope_fixed_nii_vector<_Ty> corresponding_xscope_fixed_nii_vector_t;
+
+		//typedef typename corresponding_xscope_fixed_nii_vector_t::std_vector std_vector;
+		//typedef typename corresponding_xscope_fixed_nii_vector_t::_MV _MV;
+		typedef xscope_accessing_fixed_nii_vector _Myt;
+
+		//typedef typename corresponding_xscope_fixed_nii_vector_t::allocator_type allocator_type;
+		typedef typename corresponding_xscope_fixed_nii_vector_t::value_type value_type;
+		typedef typename corresponding_xscope_fixed_nii_vector_t::size_type size_type;
+		typedef typename corresponding_xscope_fixed_nii_vector_t::difference_type difference_type;
+		typedef typename corresponding_xscope_fixed_nii_vector_t::const_pointer const_pointer;
+		typedef typename std::conditional<std::is_const<_TLender>::value, const_pointer, typename corresponding_xscope_fixed_nii_vector_t::pointer>::type pointer;
+		typedef typename corresponding_xscope_fixed_nii_vector_t::const_reference const_reference;
+		typedef typename std::conditional<std::is_const<_TLender>::value, const_reference, typename corresponding_xscope_fixed_nii_vector_t::reference>::type reference;
+
+		typedef typename corresponding_xscope_fixed_nii_vector_t::const_iterator const_iterator;
+		typedef typename std::conditional<std::is_const<_TLender>::value, const_iterator, typename corresponding_xscope_fixed_nii_vector_t::iterator>::type iterator;
+
+		typedef typename corresponding_xscope_fixed_nii_vector_t::const_reverse_iterator const_reverse_iterator;
+		typedef typename std::conditional<std::is_const<_TLender>::value, const_reverse_iterator, typename corresponding_xscope_fixed_nii_vector_t::reverse_iterator>::type reverse_iterator;
+
+	private:
+		auto& contained_vector() const { return (*m_src_ptr); }
+
+		template<class T>
+		struct CForInternalUseOnly {
+		private:
+			CForInternalUseOnly() {}
+			friend class xscope_accessing_fixed_nii_vector;
+		};
+
+	public:
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		xscope_accessing_fixed_nii_vector(xscope_accessing_fixed_nii_vector&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		xscope_accessing_fixed_nii_vector(xscope_accessing_fixed_nii_vector&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+		typedef mse::impl::remove_const_t<_TLender> ncTLender;
+		/* Some vectors support structure locking even via const reference. */
+		typedef typename std::conditional<mse::impl::can_be_structure_locked_as_const<ncTLender>::value
+			, ncTLender, _TLender>::type maybe_remove_const_lender_t;
+
+		xscope_accessing_fixed_nii_vector(const TXScopeAccessControlledConstPointer<_TLender, non_thread_safe_shared_mutex>& src_xs_ptr) : m_src_ptr(std::addressof(*src_xs_ptr)) {}
+
+		auto& operator[](msev_size_t _P) const {
+			return (*this).at(msev_as_a_size_t(_P));
+		}
+		auto& front() const {	// return first element of nonmutable sequence
+			//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - const_reference front() - xscope_fixed_nii_vector_base")); }
+			return (*this).at(0);
+		}
+		auto& back() const {	// return last element of nonmutable sequence
+			//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - const_reference back() - xscope_fixed_nii_vector_base")); }
+			return (*this).at((*this).size() - 1);
+		}
+
+		size_type size() const _NOEXCEPT
+		{	// return length of sequence
+			return contained_vector().size();
+		}
+
+		bool empty() const _NOEXCEPT
+		{	// test if sequence is empty
+			return contained_vector().empty();
+		}
+
+		auto& at(msev_size_t _Pos) const
+		{	// subscript nonmutable sequence with checking
+			return contained_vector().unchecked_contained_vector().at(msev_as_a_size_t(_Pos));
+		}
+
+		auto* data() const _NOEXCEPT
+		{	// return pointer to nonmutable data vector
+			return contained_vector().data();
+		}
+
+		size_type max_size() const _NOEXCEPT
+		{	// return maximum possible length of sequence
+			return contained_vector().max_size();
+		}
+
+		//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(corresponding_xscope_fixed_nii_vector_t);
+
+	private:
+		xscope_accessing_fixed_nii_vector(const xscope_accessing_fixed_nii_vector&) = delete;
+
+		TXScopeAccessControlledConstPointer<_Ty, non_thread_safe_shared_mutex> m_src_ptr;
+
+		template<class T, class EqualTo>
+		struct IsSupportedPointerType_impl
+		{
+			template<class U, class V>
+			static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+			template<typename, typename>
+			static auto test(...) -> std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct IsSupportedPointerType : IsSupportedPointerType_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+		static_assert(IsSupportedPointerType<_TLender>::value, "xscope_accessing_fixed_nii_vector<> does not support the given "
+			"pointer to vector argument. This may be due to the underlying vector type not being supported "
+			"or it may be due to the const qualification of the pointer target. A non-const pointer argument is "
+			"required for certain vector types.");
+	};
 
 
 	namespace rsv {
@@ -4651,14 +4764,8 @@ namespace mse {
 			typedef typename base_class::_MV _MV;
 			typedef xslta_borrowing_fixed_vector _Myt;
 
+			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class)
 			typedef typename base_class::allocator_type allocator_type;
-			typedef typename base_class::value_type value_type;
-			typedef typename base_class::size_type size_type;
-			typedef typename base_class::difference_type difference_type;
-			typedef typename base_class::pointer pointer;
-			typedef typename base_class::const_pointer const_pointer;
-			typedef typename base_class::reference reference;
-			typedef typename base_class::const_reference const_reference;
 
 			typedef typename base_class::iterator iterator;
 			typedef typename base_class::const_iterator const_iterator;
@@ -4709,43 +4816,246 @@ namespace mse {
 			return xslta_borrowing_fixed_vector<_TLender>(src_xs_ptr);
 		}
 
+		namespace us {
+			namespace impl {
+				template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+				class xslta_accessing_fixed_vector_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+				public:
+					typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
+					typedef mse::impl::target_type<_TPointerToLender> unchecked_contained_vector_t;
 
-		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender> >
-		class xslta_accessing_fixed_vector : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+					typedef xslta_accessing_fixed_vector_base _Myt;
+
+					//typedef typename unchecked_contained_vector_t::allocator_type allocator_type;
+					typedef typename unchecked_contained_vector_t::value_type value_type;
+					typedef typename unchecked_contained_vector_t::size_type size_type;
+					typedef typename unchecked_contained_vector_t::difference_type difference_type;
+					typedef typename unchecked_contained_vector_t::const_pointer const_pointer;
+					typedef typename std::conditional<std::is_const<_TLender>::value, const_pointer, typename unchecked_contained_vector_t::pointer>::type pointer;
+					typedef typename unchecked_contained_vector_t::const_reference const_reference;
+					typedef typename std::conditional<std::is_const<_TLender>::value, const_reference, typename unchecked_contained_vector_t::reference>::type reference;
+
+					typedef typename unchecked_contained_vector_t::const_iterator const_iterator;
+					typedef typename std::conditional<std::is_const<_TLender>::value, const_iterator, typename unchecked_contained_vector_t::iterator>::type iterator;
+
+					typedef typename unchecked_contained_vector_t::const_reverse_iterator const_reverse_iterator;
+					typedef typename std::conditional<std::is_const<_TLender>::value, const_reverse_iterator, typename unchecked_contained_vector_t::reverse_iterator>::type reverse_iterator;
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+					xslta_accessing_fixed_vector_base(xslta_accessing_fixed_vector_base&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+					xslta_accessing_fixed_vector_base(xslta_accessing_fixed_vector_base&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+					typedef mse::impl::remove_const_t<_TLender> ncTLender;
+					/* Some vectors support structure locking even via const reference. */
+					typedef typename std::conditional<mse::impl::can_be_structure_locked_as_const<ncTLender>::value
+						, ncTLender, _TLender>::type maybe_remove_const_lender_t;
+
+					xslta_accessing_fixed_vector_base(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : m_src_ptr(src_xs_ptr) {}
+
+					auto& operator[](msev_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+						return (*this).at(msev_as_a_size_t(_P));
+					}
+					auto& front() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return first element of nonmutable sequence
+						//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - const_reference front() - xslta_fixed_vector_base")); }
+						return (*this).at(0);
+					}
+					auto& back() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return last element of nonmutable sequence
+						//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - const_reference back() - xslta_fixed_vector_base")); }
+						return (*this).at((*this).size() - 1);
+					}
+
+					size_type size() const _NOEXCEPT
+					{	// return length of sequence
+						return contained_vector().size();
+					}
+
+					bool empty() const _NOEXCEPT
+					{	// test if sequence is empty
+						return contained_vector().empty();
+					}
+
+					auto& at(msev_size_t _Pos) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
+					{	// subscript nonmutable sequence with checking
+						return unchecked_contained_vector().at(msev_as_a_size_t(_Pos));
+					}
+
+					/*
+					auto* data() const _NOEXCEPT MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
+					{	// return pointer to nonmutable data vector
+						return contained_vector().data();
+					}
+					*/
+
+					size_type max_size() const _NOEXCEPT
+					{	// return maximum possible length of sequence
+						return contained_vector().max_size();
+					}
+
+					//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(corresponding_xslta_fixed_vector_t);
+
+				private:
+					xslta_accessing_fixed_vector_base(const xslta_accessing_fixed_vector_base&) = delete;
+
+					auto& contained_vector() const { return (*m_src_ptr); }
+
+					template<class T, class EqualTo>
+					struct HasUncheckedContainedVector_impl
+					{
+						template<class U, class V>
+						static auto test(U*) -> decltype(std::declval<U>().unchecked_contained_vector(), std::declval<V>(), bool(true));
+						template<typename, typename>
+						static auto test(...) -> std::false_type;
+
+						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+					};
+					template<class T, class EqualTo = T>
+					struct HasUncheckedContainedVector : HasUncheckedContainedVector_impl<
+						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+					/*
+					template<class HasUncheckedContainedVector_t>
+					struct CB {
+						template<class _Ty2>
+						static auto& s_unchecked_contained_vector_helper1(_Ty2& this_obj) { return this_obj.contained_vector().unchecked_contained_vector(); }
+					};
+					template<>
+					struct CB<std::false_type> {
+						template<class _Ty2>
+						static auto& s_unchecked_contained_vector_helper1(_Ty2& this_obj) { return this_obj.contained_vector(); }
+					};
+					*/
+
+					auto& unchecked_contained_vector_helper1(const std::true_type&) const {
+						return contained_vector().unchecked_contained_vector();
+					}
+					auto& unchecked_contained_vector_helper1(const std::false_type&) const {
+						return contained_vector();
+					}
+
+					auto& unchecked_contained_vector() const {
+						return unchecked_contained_vector_helper1(typename HasUncheckedContainedVector<decltype(contained_vector())>::type());
+						//return CB<typename HasUncheckedContainedVector<decltype(contained_vector())>::type>::s_unchecked_contained_vector_helper1(*this);
+					}
+
+					_TPointerToLender m_src_ptr;
+
+				} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+					MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
+					MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
+			}
+		}
+
+		namespace impl {
+			namespace ns_xslta_accessing_fixed_vector {
+				template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+				class xslta_accessing_fixed_vector_base2 : public mse::rsv::us::impl::xslta_accessing_fixed_vector_base<_TPointerToLender, _TLender, _Ty> {
+					typedef mse::rsv::us::impl::xslta_accessing_fixed_vector_base<_TPointerToLender, _TLender, _Ty> base_class;
+				public:
+					typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
+					typedef xslta_fixed_vector<_Ty> corresponding_xslta_fixed_vector_t;
+
+					//typedef typename corresponding_xslta_fixed_vector_t::std_vector std_vector;
+					//typedef typename corresponding_xslta_fixed_vector_t::_MV _MV;
+					typedef xslta_accessing_fixed_vector_base2 _Myt;
+
+					MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class)
+						//typedef typename corresponding_xslta_fixed_vector_t::allocator_type allocator_type;
+
+						typedef typename corresponding_xslta_fixed_vector_t::const_iterator const_iterator;
+					typedef typename std::conditional<std::is_const<_TLender>::value, const_iterator, typename corresponding_xslta_fixed_vector_t::iterator>::type iterator;
+
+					typedef typename corresponding_xslta_fixed_vector_t::const_reverse_iterator const_reverse_iterator;
+					typedef typename std::conditional<std::is_const<_TLender>::value, const_reverse_iterator, typename corresponding_xslta_fixed_vector_t::reverse_iterator>::type reverse_iterator;
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+					xslta_accessing_fixed_vector_base2(xslta_accessing_fixed_vector_base2&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+					xslta_accessing_fixed_vector_base2(xslta_accessing_fixed_vector_base2&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+					typedef mse::impl::remove_const_t<_TLender> ncTLender;
+					/* Some vectors support structure locking even via const reference. */
+					typedef typename std::conditional<mse::impl::can_be_structure_locked_as_const<ncTLender>::value
+						, ncTLender, _TLender>::type maybe_remove_const_lender_t;
+
+					xslta_accessing_fixed_vector_base2(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr)
+						, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
+
+				private:
+					xslta_accessing_fixed_vector_base2(const xslta_accessing_fixed_vector_base2&) = delete;
+
+					template<class T, class EqualTo>
+					struct IsSupportedLenderType_impl
+					{
+						template<class U, class V>
+						static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+						template<typename, typename>
+						static auto test(...) -> std::false_type;
+
+						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+					};
+					template<class T, class EqualTo = T>
+					struct IsSupportedLenderType : IsSupportedLenderType_impl<
+						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+					static_assert(IsSupportedLenderType<_TLender>::value, "xslta_accessing_fixed_vector_base2<> does not support the given "
+						"pointer to vector argument. This may be due to the underlying vector type not being supported "
+						"or it may be due to the const qualification of the pointer target. A non-const pointer argument is "
+						"required for certain vector types.");
+
+					typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
+
+					xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
+
+				} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+					MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
+					MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
+
+				template<class T>
+				void takes_aco_const_pointer(mse::TXScopeAccessControlledConstPointer<T, mse::non_thread_safe_shared_mutex> const &) {}
+
+				template<class T, class EqualTo>
+				struct IsTXScopeAccessControlledConstPointer_impl
+				{
+					template<class U, class V>
+					static auto test(U* u) -> decltype(takes_aco_const_pointer(std::declval<U>()), std::declval<V>(), bool(true));
+					template<typename, typename>
+					static auto test(...) -> std::false_type;
+
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+				};
+				template<class T, class EqualTo = T>
+				struct IsTXScopeAccessControlledConstPointer : IsTXScopeAccessControlledConstPointer_impl<
+					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+				/* xslta_accessing_fixed_vector_base2<> requires that the lending vector support a specific API 
+				for locking the structure of its contents, while mse::rsv::us::impl::xslta_accessing_fixed_vector_base 
+				doesn't do any locking and has no such API requirement. If _TPointerToLender is a 
+				TXScopeExclusiveWriterObj<> const pointer, then the lending vector doesn't need to be locked as 
+				the pointer itself takes care of that. So we will choose the base class for 
+				mse::rsv::xslta_accessing_fixed_vector<> based on whether locking is required or not. */
+				template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+				using xslta_accessing_fixed_vector_base3 = mse::impl::conditional_t<IsTXScopeAccessControlledConstPointer<_TPointerToLender>::value, mse::rsv::us::impl::xslta_accessing_fixed_vector_base<_TPointerToLender, _TLender, _Ty>, xslta_accessing_fixed_vector_base2<_TPointerToLender, _TLender, _Ty> >;
+			}
+		}
+
+		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+		class xslta_accessing_fixed_vector : public impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base3<_TPointerToLender, _TLender, _Ty> {
+			typedef impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base3<_TPointerToLender, _TLender, _Ty> base_class;
 		public:
-			typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
-			typedef xslta_fixed_vector<_Ty> corresponding_xslta_fixed_vector_t;
-
-			//typedef typename corresponding_xslta_fixed_vector_t::std_vector std_vector;
-			//typedef typename corresponding_xslta_fixed_vector_t::_MV _MV;
 			typedef xslta_accessing_fixed_vector _Myt;
 
+			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class)
 			//typedef typename corresponding_xslta_fixed_vector_t::allocator_type allocator_type;
-			typedef typename corresponding_xslta_fixed_vector_t::value_type value_type;
-			typedef typename corresponding_xslta_fixed_vector_t::size_type size_type;
-			typedef typename corresponding_xslta_fixed_vector_t::difference_type difference_type;
-			typedef typename corresponding_xslta_fixed_vector_t::const_pointer const_pointer;
-			typedef typename std::conditional<std::is_const<_TLender>::value, const_pointer, typename corresponding_xslta_fixed_vector_t::pointer>::type pointer;
-			typedef typename corresponding_xslta_fixed_vector_t::const_reference const_reference;
-			typedef typename std::conditional<std::is_const<_TLender>::value, const_reference, typename corresponding_xslta_fixed_vector_t::reference>::type reference;
 
-			typedef typename corresponding_xslta_fixed_vector_t::const_iterator const_iterator;
-			typedef typename std::conditional<std::is_const<_TLender>::value, const_iterator, typename corresponding_xslta_fixed_vector_t::iterator>::type iterator;
+			typedef typename base_class::const_iterator const_iterator;
+			typedef typename std::conditional<std::is_const<_TLender>::value, const_iterator, typename base_class::iterator>::type iterator;
 
-			typedef typename corresponding_xslta_fixed_vector_t::const_reverse_iterator const_reverse_iterator;
-			typedef typename std::conditional<std::is_const<_TLender>::value, const_reverse_iterator, typename corresponding_xslta_fixed_vector_t::reverse_iterator>::type reverse_iterator;
-
-		private:
-			auto& contained_vector() const { return (*m_src_ptr); }
-
-			template<class T>
-			struct CForInternalUseOnly {
-			private:
-				CForInternalUseOnly() {}
-				friend class xslta_accessing_fixed_vector;
-			};
-
-		public:
+			typedef typename base_class::const_reverse_iterator const_reverse_iterator;
+			typedef typename std::conditional<std::is_const<_TLender>::value, const_reverse_iterator, typename base_class::reverse_iterator>::type reverse_iterator;
 
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			xslta_accessing_fixed_vector(xslta_accessing_fixed_vector&&) = delete;
@@ -4753,118 +5063,34 @@ namespace mse {
 			xslta_accessing_fixed_vector(xslta_accessing_fixed_vector&&) = default;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
-			typedef mse::impl::remove_const_t<_TLender> ncTLender;
-			/* Some vectors support structure locking even via const reference. */
-			typedef typename std::conditional<mse::impl::can_be_structure_locked_as_const<ncTLender>::value
-				, ncTLender, _TLender>::type maybe_remove_const_lender_t;
-
-			xslta_accessing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ptr(std::addressof(*src_xs_ptr))
-				, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
-			xslta_accessing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ptr(std::addressof(*src_xs_ptr))
-				, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
-			xslta_accessing_fixed_vector(const mse::rsv::TXSLTAConstPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_src_ptr(std::addressof(*src_xs_ptr))
-				, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
-			template<class T = int, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<_TLender const, _TLender>::value) && (!std::is_same<float, T>::value)> MSE_IMPL_EIS >
-			xslta_accessing_fixed_vector(_TLender const* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), CForInternalUseOnly<T> z = CForInternalUseOnly<T>{}) : m_src_ptr(std::addressof(*src_xs_ptr))
-				, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
-
-			auto& operator[](msev_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return (*this).at(msev_as_a_size_t(_P));
-			}
-			auto& front() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return first element of nonmutable sequence
-				//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("front() on empty - const_reference front() - xslta_fixed_vector_base")); }
-				return (*this).at(0);
-			}
-			auto& back() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {	// return last element of nonmutable sequence
-				//if (0 == (*this).size()) { MSE_THROW(gnii_vector_range_error("back() on empty - const_reference back() - xslta_fixed_vector_base")); }
-				return (*this).at((*this).size() - 1);
-			}
-
-			size_type size() const _NOEXCEPT
-			{	// return length of sequence
-				return contained_vector().size();
-			}
-
-			bool empty() const _NOEXCEPT
-			{	// test if sequence is empty
-				return contained_vector().empty();
-			}
-
-			auto& at(msev_size_t _Pos) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
-			{	// subscript nonmutable sequence with checking
-				return contained_vector().unchecked_contained_vector().at(msev_as_a_size_t(_Pos));
-			}
-
-			auto* data() const _NOEXCEPT MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }")
-			{	// return pointer to nonmutable data vector
-				return contained_vector().data();
-			}
-
-			size_type max_size() const _NOEXCEPT
-			{	// return maximum possible length of sequence
-				return contained_vector().max_size();
-			}
-
-			//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(corresponding_xslta_fixed_vector_t);
+			xslta_accessing_fixed_vector(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr) {}
 
 		private:
 			xslta_accessing_fixed_vector(const xslta_accessing_fixed_vector&) = delete;
-
-			_TLender* m_src_ptr;
-
-			template<class T, class EqualTo>
-			struct IsSupportedPointerType_impl
-			{
-				template<class U, class V>
-				static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
-				template<typename, typename>
-				static auto test(...) -> std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct IsSupportedPointerType : IsSupportedPointerType_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-			static_assert(IsSupportedPointerType<_TLender>::value, "xslta_accessing_fixed_vector<> does not support the given "
-				"pointer to vector argument. This may be due to the underlying vector type not being supported "
-				"or it may be due to the const qualification of the pointer target. A non-const pointer argument is "
-				"required for certain vector types.");
-
-			typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
-
-			xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
-
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
 
 #ifdef MSE_HAS_CXX17
 		/* deduction guides */
-		template<class _TLender>
-		xslta_accessing_fixed_vector(mse::rsv::TXSLTAPointer<_TLender>) -> xslta_accessing_fixed_vector<_TLender>;
+		template<class _TPointerToLender>
+		xslta_accessing_fixed_vector(_TPointerToLender) -> xslta_accessing_fixed_vector<_TPointerToLender>;
 #endif /* MSE_HAS_CXX17 */
 
-		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
-		auto make_xslta_accessing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+		auto make_xslta_accessing_fixed_vector(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 		{
-			return xslta_accessing_fixed_vector<_TLender>(src_xs_ptr);
-		}
-		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
-		auto make_xslta_accessing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
-			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
-			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
-		{
-			return xslta_accessing_fixed_vector<_TLender>(src_xs_ptr);
+			return xslta_accessing_fixed_vector<_TPointerToLender, _TLender, _Ty>(src_xs_ptr);
 		}
 
 
-		template<class TAccessingFixed, class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		template<class TAccessingFixed, class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
 		class TXSLTADynamicRAContainerElementProxyRef : public mse::us::impl::XSLTATagBase {
 		public:
 			typedef TAccessingFixed accessing_fixed_type;
+			typedef _TPointerToLender pointer_to_lender_type;
 			typedef _TLender lender_type;
 			typedef _Ty element_type;
 			typedef _A allocator_type;
@@ -4876,8 +5102,13 @@ namespace mse {
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			TXSLTADynamicRAContainerElementProxyRef(const TXSLTADynamicRAContainerElementProxyRef&) = delete;
 
+#if 0
 			TXSLTADynamicRAContainerElementProxyRef(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_bf_container(src_xs_ptr), m_index(index) {}
 			TXSLTADynamicRAContainerElementProxyRef(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_bf_container(src_xs_ptr), m_index(index) {}
+#endif // 0
+			TXSLTADynamicRAContainerElementProxyRef(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"), size_t index = 0) : m_bf_container(src_xs_ptr), m_index(index) {}
+
+
 			operator _Ty() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				return m_bf_container[m_index];
 			}
@@ -4899,7 +5130,7 @@ namespace mse {
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
-		template<class TElementProxyRef, class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		template<class TElementProxyRef, class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
 		class TXSLTADynamicRAContainerElementProxyPtr : public mse::us::impl::XSLTATagBase {
 		public:
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
@@ -4909,8 +5140,12 @@ namespace mse {
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			TXSLTADynamicRAContainerElementProxyPtr(const TXSLTADynamicRAContainerElementProxyPtr&) = delete;
 
+#if 0
 			TXSLTADynamicRAContainerElementProxyPtr(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_proxy_ref(src_xs_ptr, index) {}
 			TXSLTADynamicRAContainerElementProxyPtr(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_proxy_ref(src_xs_ptr, index) {}
+#endif // 0
+			TXSLTADynamicRAContainerElementProxyPtr(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"), size_t index = 0) : m_proxy_ref(src_xs_ptr, index) {}
+
 			auto operator->() const && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return std::addressof(m_proxy_ref);
 			}
@@ -4972,7 +5207,7 @@ namespace mse {
 				//return base_class::operator*();
 			}
 			typedef typename std::add_pointer<value_type>::type pointer_t;
-			typedef TXSLTADynamicRAContainerElementProxyPtr<TElementProxyRef, typename TElementProxyRef::lender_type, typename TElementProxyRef::element_type, typename TElementProxyRef::allocator_type> TElementProxyPtr;
+			typedef TXSLTADynamicRAContainerElementProxyPtr<TElementProxyRef, typename TElementProxyRef::pointer_to_lender_type, typename TElementProxyRef::lender_type, typename TElementProxyRef::element_type, typename TElementProxyRef::allocator_type> TElementProxyPtr;
 			TElementProxyPtr operator->() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
 				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyRef, alias_11$)")
 				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[_[alias_11$]]); return_value(alias_11$) }")
@@ -5076,8 +5311,8 @@ namespace mse {
 			template<class _TRAContainerPointer2> friend TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer2> mse::rsv::us::unsafe_make_xslta_dynamic_container_ra_const_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer2>::size_type index);
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
-		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
-		using TXSLTAVectorElementProxyRef = mse::rsv::TXSLTADynamicRAContainerElementProxyRef<mse::rsv::xslta_accessing_fixed_vector<_TLender, _Ty>, _TLender, _Ty>;
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		using TXSLTAVectorElementProxyRef = mse::rsv::TXSLTADynamicRAContainerElementProxyRef<mse::rsv::xslta_accessing_fixed_vector<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty, _A>;
 
 
 		template<class _Ty, class _A/* = std::allocator<_Ty>*/>
@@ -5153,21 +5388,21 @@ namespace mse {
 			}
 
 			auto operator[](msev_size_t _P) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
-				return TXSLTAVectorElementProxyRef<_Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), _P);
+				return TXSLTAVectorElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), _P);
 				//return (*this).at(msev_as_a_size_t(_P));
 			}
 			const_reference operator[](msev_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 				return (*this).at(msev_as_a_size_t(_P));
 			}
 			auto front() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {	// return first element of mutable sequence
-				return TXSLTAVectorElementProxyRef<_Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), 0/*index*/);
+				return TXSLTAVectorElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), 0/*index*/);
 				//return base_class::front();
 			}
 			const_reference front() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {	// return first element of nonmutable sequence
 				return base_class::front();
 			}
 			auto back() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {	// return last element of mutable sequence
-				return TXSLTAVectorElementProxyRef<_Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), (*this).size() - 1);
+				return TXSLTAVectorElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), (*this).size() - 1);
 				//return base_class::back();
 			}
 			const_reference back() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {	// return last element of nonmutable sequence
@@ -5176,7 +5411,7 @@ namespace mse {
 
 			auto at(msev_size_t _Pos) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }")
 			{	// subscript mutable sequence with checking
-				return TXSLTAVectorElementProxyRef<_Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), _Pos);
+				return TXSLTAVectorElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), _Pos);
 				//return base_class::at(msev_as_a_size_t(_Pos));
 			}
 			const_reference at(msev_size_t _Pos) const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided")
@@ -5191,7 +5426,7 @@ namespace mse {
 			typedef mse::TXScopeRAIterator<mse::TXScopeFixedPointer<_Myt> > xscope_iterator;
 
 			typedef TXSLTADynamicContainerRAConstIterator<mse::rsv::TXSLTAConstPointer<_Myt> > xslta_const_iterator;
-			typedef TXSLTADynamicContainerRAIterator<TXSLTAVectorElementProxyRef<_Myt, _Ty, _A>, mse::rsv::TXSLTAPointer<_Myt> > xslta_iterator;
+			typedef TXSLTADynamicContainerRAIterator<TXSLTAVectorElementProxyRef<mse::rsv::TXSLTAPointer<_Myt>, _Myt, _Ty, _A>, mse::rsv::TXSLTAPointer<_Myt> > xslta_iterator;
 			typedef xslta_const_iterator const_iterator;
 			typedef xslta_iterator iterator;
 
@@ -5387,7 +5622,8 @@ namespace mse {
 
 			friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 			friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
-			template<class _TLender2, class _Ty2> friend class xslta_accessing_fixed_vector;
+			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base2;
+			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_vector_base;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
