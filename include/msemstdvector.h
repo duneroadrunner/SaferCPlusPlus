@@ -701,6 +701,8 @@ namespace mse {
 
 			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base2;
 			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_vector_base;
+			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::impl::ns_xscope_accessing_fixed_nii_vector::xscope_accessing_fixed_nii_vector_base2;
+			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::us::impl::xscope_accessing_fixed_nii_vector_base;
 			//-------------------------------
 
 			friend class mse::mstd::ns_vector::xscope_shared_structure_lock_guard<_Ty, _A>;
