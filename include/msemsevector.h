@@ -4022,6 +4022,10 @@ namespace mse {
 					"or it may be due to the const qualification of the pointer target. A non-const pointer argument is "
 					"required for certain vector types.");
 
+				static_assert(mse::impl::is_strong_ptr<_TPointerToLender>::value, "xscope_accessing_fixed_nii_vector_base2<> does not support the given "
+					"pointer to vector argument. This may be due to the pointer not being recognized as a 'strong' "
+					"pointer.");
+
 				typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
 
 				xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
@@ -5033,6 +5037,10 @@ namespace mse {
 						"pointer to vector argument. This may be due to the underlying vector type not being supported "
 						"or it may be due to the const qualification of the pointer target. A non-const pointer argument is "
 						"required for certain vector types.");
+
+					static_assert(mse::impl::is_strong_ptr<_TPointerToLender>::value, "xscope_accessing_fixed_nii_vector_base2<> does not support the given "
+						"pointer to vector argument. This may be due to the pointer not being recognized as a 'strong' "
+						"pointer.");
 
 					typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
 
