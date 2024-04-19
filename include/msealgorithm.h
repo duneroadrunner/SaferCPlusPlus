@@ -247,7 +247,7 @@ namespace mse {
 				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
 				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr, Args...>(xs_iters.begin(), xs_iters.end(), _Pred, args...).result;
 				if (xs_iters.end() == res_it) {
-					MSE_THROW(std::logic_error("element not found - xscope_c_range_get_ref_to_element_known_to_be_present"));
+					MSE_SUPPRESS_CHECK_IN_XSCOPE MSE_THROW(std::logic_error("element not found - xscope_c_range_get_ref_to_element_known_to_be_present"));
 				}
 				else {
 					return mse::us::unsafe_make_xscope_pointer_to(*res_it);

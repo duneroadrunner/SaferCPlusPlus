@@ -15,6 +15,7 @@
 #include <memory>
 #include <unordered_set>
 #include <functional>
+#include <mutex>	// for std::once_flag
 
 #if __cplusplus >= 201703L
 #define MSE_HAS_CXX17
@@ -1031,6 +1032,7 @@ namespace impl {
 #ifdef MSE_SCOPEPOINTER_DISABLED
 			|| (std::is_pointer<_Ty>::value)
 #endif // MSE_SCOPEPOINTER_DISABLED
+			|| (std::is_same<_Ty, std::once_flag>::value)
 			|| (std::is_same<_Ty, void>::value)> {};
 
 		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(is_marked_as_shareable_msemsearray<_Ty>::value)> MSE_IMPL_EIS >
