@@ -11857,7 +11857,7 @@ namespace mse {
 
 		typedef mse::impl::remove_reference_t<decltype(*std::declval<_TExclusiveStrongPointer>())> target_type;
 		TXScopeExclusiveStrongPointerStoreForAccessControl(_TExclusiveStrongPointer&& stored_ptr) : m_stored_ptr(MSE_FWD(stored_ptr)) {
-			*m_stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
+			mse::impl::dummy_foo(*m_stored_ptr); /* Just verifying that stored_ptr points to a valid target. */
 		}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeExclusiveStrongPointerStoreForAccessControl() {
 			mse::impl::is_valid_if_strong_pointer<_TExclusiveStrongPointer>::no_op();
@@ -12057,7 +12057,7 @@ namespace mse {
 
 		typedef mse::impl::remove_reference_t<decltype(*std::declval<_TExclusiveStrongPointer>())> target_type;
 		TXScopeExclusiveStrongPointerStoreForSharing(_TExclusiveStrongPointer&& stored_ptr) : m_stored_ptr(MSE_FWD(stored_ptr)) {
-			*m_stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
+			mse::impl::dummy_foo(*m_stored_ptr); /* Just verifying that stored_ptr points to a valid target. */
 		}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeExclusiveStrongPointerStoreForSharing() {
 			mse::impl::is_valid_if_strong_pointer<_TExclusiveStrongPointer>::no_op();

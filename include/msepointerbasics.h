@@ -331,6 +331,9 @@ namespace mse {
     Derived(Args &&...args) : Base(std::forward<Args>(args)...) {}
 
 	namespace impl {
+		template<typename T>
+		void dummy_foo(const T&) {};
+
 		template<bool _Val>
 		struct Cat_base_pb : std::integral_constant<bool, _Val> {	// base class for type predicates
 		};

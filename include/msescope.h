@@ -78,6 +78,14 @@
 #endif // MSE_SCOPEPOINTER_DISABLED
 
 
+#ifdef MSE_HAS_CXX17
+#else // MSE_HAS_CXX17
+	/* The xscope_borrowing_fixed_* types "should" be unmoveable (as well as uncopyable). But since C++14 doesn't
+	have guaranteed copy elision, moveability is required for the make_xscope_borrowing_fixed_*() functions to work. . */
+#define MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+#endif // MSE_HAS_CXX17
+
+
 namespace mse {
 
 	namespace us {
@@ -3337,10 +3345,10 @@ namespace mse {
 		TXScopeStrongPointerStore(TXScopeStrongPointerStore&&) = default;
 
 		TXScopeStrongPointerStore(_TStrongPointerNR&& stored_ptr) : m_stored_ptr(std::forward<_TStrongPointerNR>(stored_ptr)) {
-			*m_stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
+			mse::impl::dummy_foo(*m_stored_ptr); /* Just verifying that stored_ptr points to a valid target. */
 		}
 		TXScopeStrongPointerStore(const _TStrongPointerNR& stored_ptr) : m_stored_ptr(stored_ptr) {
-			*stored_ptr; /* Just verifying that stored_ptr points to a valid target. */
+			mse::impl::dummy_foo(*stored_ptr); /* Just verifying that stored_ptr points to a valid target. */
 		}
 		~TXScopeStrongPointerStore() {
 			mse::impl::is_valid_if_strong_pointer<_TStrongPointerNR>::no_op();
@@ -3378,6 +3386,8 @@ namespace mse {
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
+		template<typename _TLender2> friend class TXScopeBorrowingStrongPointerStore;
 	};
 
 	template<typename _TStrongPointer>
@@ -3387,7 +3397,6 @@ namespace mse {
 	private:
 		typedef mse::impl::remove_reference_t<_TStrongPointer> _TStrongPointerNR;
 		_TStrongPointerNR m_stored_ptr;
-		static void dummy_foo(const decltype(*std::declval<_TStrongPointerNR>())&) {}
 
 	public:
 		typedef TXScopeStrongConstPointerStore _Myt;
@@ -3397,7 +3406,7 @@ namespace mse {
 		TXScopeStrongConstPointerStore(TXScopeStrongConstPointerStore&&) = default;
 
 		TXScopeStrongConstPointerStore(const _TStrongPointerNR& stored_ptr) : m_stored_ptr(stored_ptr) {
-			dummy_foo(*stored_ptr); /* Just verifying that stored_ptr points to a valid target. */
+			mse::impl::dummy_foo(*stored_ptr); /* Just verifying that stored_ptr points to a valid target. */
 		}
 		~TXScopeStrongConstPointerStore() {
 			mse::impl::is_valid_if_strong_pointer<_TStrongPointerNR>::no_op();
@@ -3429,6 +3438,8 @@ namespace mse {
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
+		template<typename _TLender2> friend class TXScopeBorrowingStrongConstPointerStore;
 	};
 
 	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_and_never_null_pointer<mse::impl::remove_reference_t<_TStrongPointer> > >
@@ -3478,6 +3489,8 @@ namespace mse {
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
+		template<typename _TLender2> friend class TXScopeBorrowingStrongNotNullPointerStore;
 	};
 
 	template<typename _TStrongPointer, class = mse::impl::is_valid_if_strong_and_never_null_pointer<mse::impl::remove_reference_t<_TStrongPointer> > >
@@ -3521,6 +3534,8 @@ namespace mse {
 			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
+
+		template<typename _TLender2> friend class TXScopeBorrowingStrongNotNullConstPointerStore;
 	};
 
 	namespace impl {
@@ -3618,6 +3633,189 @@ namespace mse {
 	template<typename _Ty> using TXScopeXScopeFixedStore = TXScopeStrongNotNullPointerStore<TXScopeObjFixedPointer<_Ty> >;
 	template<typename _Ty> using TXScopeXScopeFixedConstStore = TXScopeStrongNotNullConstPointerStore<TXScopeObjFixedConstPointer<_Ty> >;
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+
+	/* TXScopeBorrowingStrongPointerStore et al are types that store a strong pointer (like a refcounting pointer), and let you
+	obtain a corresponding scope pointer. */
+	template<typename _TLender>
+	class TXScopeBorrowingStrongPointerStore : public TXScopeStrongPointerStore<_TLender>
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, TXScopeStrongPointerStore<_TLender>, TXScopeBorrowingStrongPointerStore<mse::impl::remove_reference_t<_TLender> > >
+	{
+	private:
+		typedef TXScopeStrongPointerStore<_TLender> base_class;
+
+		TXScopeBorrowingStrongPointerStore(const TXScopeBorrowingStrongPointerStore&) = delete;
+
+		_TLender& m_src_ref;
+
+	public:
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		TXScopeBorrowingStrongPointerStore(TXScopeBorrowingStrongPointerStore&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		TXScopeBorrowingStrongPointerStore(TXScopeBorrowingStrongPointerStore&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+		TXScopeBorrowingStrongPointerStore(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		TXScopeBorrowingStrongPointerStore(_TLender* src_xs_ptr) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+		~TXScopeBorrowingStrongPointerStore() {
+			m_src_ref = std::move((*this).m_stored_ptr);
+		}
+
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
+		void async_not_passable_tag() const {}
+	};
+
+	template<typename _TLender>
+	class TXScopeBorrowingStrongConstPointerStore : public TXScopeStrongConstPointerStore<_TLender>
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, TXScopeStrongConstPointerStore<_TLender>, TXScopeBorrowingStrongConstPointerStore<mse::impl::remove_reference_t<_TLender> > >
+	{
+	private:
+		typedef TXScopeStrongConstPointerStore<_TLender> base_class;
+
+		TXScopeBorrowingStrongConstPointerStore(const TXScopeBorrowingStrongConstPointerStore&) = delete;
+
+		_TLender& m_src_ref;
+
+	public:
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		TXScopeBorrowingStrongConstPointerStore(TXScopeBorrowingStrongConstPointerStore&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		TXScopeBorrowingStrongConstPointerStore(TXScopeBorrowingStrongConstPointerStore&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+		TXScopeBorrowingStrongConstPointerStore(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		TXScopeBorrowingStrongConstPointerStore(_TLender* src_xs_ptr) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+		~TXScopeBorrowingStrongConstPointerStore() {
+			m_src_ref = std::move((*this).m_stored_ptr);
+		}
+
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
+		void async_not_passable_tag() const {}
+	};
+
+	template<typename _TLender>
+	class TXScopeBorrowingStrongNotNullPointerStore : public TXScopeStrongNotNullPointerStore<_TLender>
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, TXScopeStrongNotNullPointerStore<_TLender>, TXScopeBorrowingStrongNotNullPointerStore<mse::impl::remove_reference_t<_TLender> > >
+	{
+	private:
+		typedef TXScopeStrongNotNullPointerStore<_TLender> base_class;
+
+		TXScopeBorrowingStrongNotNullPointerStore(const TXScopeBorrowingStrongNotNullPointerStore&) = delete;
+
+		_TLender& m_src_ref;
+
+	public:
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		TXScopeBorrowingStrongNotNullPointerStore(TXScopeBorrowingStrongNotNullPointerStore&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		TXScopeBorrowingStrongNotNullPointerStore(TXScopeBorrowingStrongNotNullPointerStore&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+		TXScopeBorrowingStrongNotNullPointerStore(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		TXScopeBorrowingStrongNotNullPointerStore(_TLender* src_xs_ptr) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+		~TXScopeBorrowingStrongNotNullPointerStore() {
+			m_src_ref = std::move((*this).m_stored_ptr);
+		}
+
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
+		void async_not_passable_tag() const {}
+	};
+
+	template<typename _TLender>
+	class TXScopeBorrowingStrongNotNullConstPointerStore : public TXScopeStrongNotNullConstPointerStore<_TLender>
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, TXScopeStrongNotNullConstPointerStore<_TLender>, TXScopeBorrowingStrongNotNullConstPointerStore<mse::impl::remove_reference_t<_TLender> > >
+	{
+	private:
+		typedef TXScopeStrongNotNullConstPointerStore<_TLender> base_class;
+
+		TXScopeBorrowingStrongNotNullConstPointerStore(const TXScopeBorrowingStrongNotNullConstPointerStore&) = delete;
+
+		_TLender& m_src_ref;
+
+	public:
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		TXScopeBorrowingStrongNotNullConstPointerStore(TXScopeBorrowingStrongNotNullConstPointerStore&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		TXScopeBorrowingStrongNotNullConstPointerStore(TXScopeBorrowingStrongNotNullConstPointerStore&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+		TXScopeBorrowingStrongNotNullConstPointerStore(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		TXScopeBorrowingStrongNotNullConstPointerStore(_TLender* src_xs_ptr) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+		~TXScopeBorrowingStrongNotNullConstPointerStore() {
+			m_src_ref = std::move((*this).m_stored_ptr);
+		}
+
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
+		void async_not_passable_tag() const {}
+	};
+
+
+	namespace impl {
+		namespace ns_xscope_borrowing_strong_pointer_store {
+
+			template<typename _TLender>
+			auto make_xscope_borrowing_strong_const_pointer_store_helper1(std::true_type, _TLender* src_xs_ptr) {
+				return TXScopeBorrowingStrongNotNullConstPointerStore<_TLender>(src_xs_ptr);
+			}
+			template<typename _TLender>
+			auto make_xscope_borrowing_strong_const_pointer_store_helper1(std::false_type, _TLender* src_xs_ptr) {
+				return TXScopeBorrowingStrongConstPointerStore<_TLender>(src_xs_ptr);
+			}
+		}
+	}
+	template<typename _TLender>
+	auto make_xscope_borrowing_strong_const_pointer_store(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) {
+		typedef mse::impl::remove_reference_t<_TLender> _TStrongPointerNR;
+		return impl::ns_xscope_borrowing_strong_pointer_store::make_xscope_borrowing_strong_const_pointer_store_helper1<_TStrongPointerNR>(typename std::is_base_of<mse::us::impl::NeverNullTagBase, _TStrongPointerNR>::type(), src_xs_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<typename _TLender>
+	auto make_xscope_borrowing_strong_const_pointer_store(_TLender* src_xs_ptr) {
+		typedef mse::impl::remove_reference_t<_TLender> _TStrongPointerNR;
+		return impl::ns_xscope_borrowing_strong_pointer_store::make_xscope_borrowing_strong_const_pointer_store_helper1<_TStrongPointerNR>(typename std::is_base_of<mse::us::impl::NeverNullTagBase, _TStrongPointerNR>::type(), src_xs_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+	namespace impl {
+		namespace ns_xscope_borrowing_strong_pointer_store {
+
+			template<typename _TLender>
+			auto make_xscope_borrowing_strong_pointer_store_helper1(std::true_type, _TLender* src_xs_ptr) {
+				return TXScopeBorrowingStrongNotNullPointerStore<_TLender>(src_xs_ptr);
+			}
+			template<typename _TLender>
+			auto make_xscope_borrowing_strong_pointer_store_helper1(std::false_type, _TLender* src_xs_ptr) {
+				return TXScopeBorrowingStrongPointerStore<_TLender>(src_xs_ptr);
+			}
+		}
+	}
+	template<typename _TLender>
+	auto make_xscope_borrowing_strong_pointer_store(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) {
+		typedef mse::impl::remove_reference_t<_TLender> _TStrongPointerNR;
+		return impl::ns_xscope_borrowing_strong_pointer_store::make_xscope_borrowing_strong_pointer_store_helper1<_TStrongPointerNR>(typename std::is_base_of<mse::us::impl::NeverNullTagBase, _TStrongPointerNR>::type(), src_xs_ptr);
+	}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+	template<typename _TLender>
+	auto make_xscope_borrowing_strong_pointer_store(_TLender* src_xs_ptr) {
+		typedef mse::impl::remove_reference_t<_TLender> _TStrongPointerNR;
+		return impl::ns_xscope_borrowing_strong_pointer_store::make_xscope_borrowing_strong_pointer_store_helper1<_TStrongPointerNR>(typename std::is_base_of<mse::us::impl::NeverNullTagBase, _TStrongPointerNR>::type(), src_xs_ptr);
+	}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	/* Overloads for rsv::TReturnableFParam<>. */
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_borrowing_strong_const_pointer_store)
+	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_borrowing_strong_pointer_store)
 
 
 	namespace rsv {

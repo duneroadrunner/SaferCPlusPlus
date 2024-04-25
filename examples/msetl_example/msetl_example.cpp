@@ -1218,6 +1218,57 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 
 	{
 		/*****************************/
+		/*    TSingleOwnerPointer    */
+		/*****************************/
+
+		/* TSingleOwnerPointer behaves similar to std::unique_ptr. Some differences being that it does not accept raw pointer 
+		assignment or construction (use make_single_owner<>() instead), and it will throw
+		an exception on attempted nullptr dereference. */
+
+		class A {
+		public:
+			A() {}
+			virtual ~A() {
+				int q = 3; /* just so you can place a breakpoint if you want */
+			}
+
+			int b = 3;
+			std::string s = "some text ";
+		};
+		typedef std::vector<mse::TSingleOwnerPointer<A>> CSOPVector;
+		class B {
+		public:
+			static int foo1(mse::TSingleOwnerPointer<A> A_single_owner_ptr, CSOPVector& sopvector_ref) {
+				assert(!bool(sopvector_ref.front()));
+				int retval = A_single_owner_ptr->b;
+				A_single_owner_ptr = nullptr; /* Target object is destroyed here. */
+				return retval;
+			}
+		};
+
+		{
+			CSOPVector sopvector;
+			{
+				mse::TSingleOwnerPointer<A> A_single_owner_ptr1 = mse::make_single_owner<A>();
+				sopvector.push_back(std::move(A_single_owner_ptr1));
+				assert(!bool(A_single_owner_ptr1));
+			}
+			B::foo1(std::move(sopvector.front()), sopvector);
+			assert(!bool(sopvector.front()));
+		}
+		{
+			mse::TSingleOwnerPointer<A> A_single_owner_ptr1 = mse::make_single_owner<A>();
+			/* Obtaining a scope pointer to an object owned by a "single_owner" pointer */
+			//auto strong_store1 = mse::make_xscope_borrowing_strong_pointer_store(&A_single_owner_ptr1);
+			//auto s_scpptr1 = strong_store1.xscope_ptr();
+		}
+
+		mse::TSingleOwnerPointer_test TSingleOwnerPointer_test1;
+		TSingleOwnerPointer_test1.test1();
+	}
+
+	{
+		/*****************************/
 		/*  TXScopeFixedPointer  */
 		/*****************************/
 
@@ -1273,15 +1324,28 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 
 		auto res5 = H::foo6(xscp_s_ptr1, xscp_s_const_ptr1);
 
-		/* Using mse::make_xscope_strong_pointer_store(), you can obtain a scope pointer from a refcounting pointer (or any other
-		"strong" pointer). */
-		/* Let's make it a const refcounting pointer, just for variety. */
-		mse::TRefCountingFixedConstPointer<A> refc_cptr1 = mse::make_refcounting<A>(11);
-		auto xscp_refc_cstore = mse::make_xscope_strong_pointer_store(refc_cptr1);
-		auto xscp_cptr1 = xscp_refc_cstore.xscope_ptr();
-		int res6 = B::foo3(xscp_cptr1);
-		mse::TXScopeFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
-		A res7 = *xscp_cptr2;
+		{
+			/* Using mse::make_xscope_strong_pointer_store(), you can obtain a scope pointer from a refcounting pointer (or any other
+			(copiable) "strong" pointer). */
+			/* Let's make it a const refcounting pointer, just for variety. */
+			mse::TRefCountingFixedConstPointer<A> refc_cptr1 = mse::make_refcounting<A>(11);
+			auto xscp_refc_cstore = mse::make_xscope_strong_pointer_store(refc_cptr1);
+			auto xscp_cptr1 = xscp_refc_cstore.xscope_ptr();
+			int res6 = B::foo3(xscp_cptr1);
+			mse::TXScopeFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
+			A res7 = *xscp_cptr2;
+		}
+
+		{
+			/* For "strong" pointers that are not copiable (like TSingleOwnerPointer<>), you can use
+			mse::make_xscope_borrowing_strong_pointer_store() to obtain a scope pointer. */
+			mse::TSingleOwnerPointer<A> so_ptr1 = mse::make_single_owner<A>(17);
+			auto xscp_so_store = mse::make_xscope_borrowing_strong_pointer_store(&so_ptr1);
+			auto xscp_ptr3 = xscp_so_store.xscope_ptr();
+			int res8 = B::foo3(xscp_ptr3);
+			mse::TXScopeFixedConstPointer<A> xscp_ptr4 = xscp_ptr3;
+			A res9 = *xscp_ptr4;
+		}
 
 		/* For safety reasons, non-owning scope pointers (or any objects containing a scope reference) are not permitted
 		to be used as function return values. (The return_value() function wrapper enforces this.) Pretty much the only

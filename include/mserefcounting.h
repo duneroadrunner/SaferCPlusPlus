@@ -8,7 +8,7 @@
 #ifndef MSEREFCOUNTING_H_
 #define MSEREFCOUNTING_H_
 
-//include "mseprimitives.h"
+#include "msepointerbasics.h"
 #ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 #include "msescope.h"
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
@@ -20,6 +20,11 @@
 #ifdef MSE_SELF_TESTS
 #include <map>
 #include <string>
+
+#include <cstdio>
+#include <fstream>
+#include <iostream>
+#include <locale>
 #endif // MSE_SELF_TESTS
 
 #ifdef _MSC_VER
@@ -46,6 +51,11 @@
 #ifndef _NOEXCEPT
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
+
+#ifndef _CONSTEXPR23
+#define _CONSTEXPR23
+#endif /*_CONSTEXPR23*/
+
 
 namespace mse {
 
@@ -821,10 +831,129 @@ namespace mse {
 		return make_refcounting<mse::impl::remove_reference_t<_TLoneParam> >(MSE_FWD(lone_param));
 	}
 
-	/* deprecated aliases */
-	template<class _TTargetType, class _TLeaseType> using strfp MSE_DEPRECATED = us::TStrongFixedPointer<_TTargetType, _TLeaseType>;
-	template<class _TTargetType, class _TLeaseType> using strfcp MSE_DEPRECATED = us::TStrongFixedConstPointer<_TTargetType, _TLeaseType>;
 
+
+	namespace us {
+		namespace impl {
+#ifdef MSEPOINTERBASICS_H
+			typedef mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase SingleOwnerStrongPointerTagBase;
+#else // MSEPOINTERBASICS_H
+			class mse::us::impl::SingleOwnerStrongPointerTagBase {};
+#endif // MSEPOINTERBASICS_H
+		}
+	}
+
+	class single_owner_null_dereference_error : public std::logic_error {
+	public:
+		using std::logic_error::logic_error;
+	};
+
+	template <class _Ty /*, class _Dx = default_delete<_Ty> */>
+	class TSingleOwnerPointer : public mse::us::impl::SingleOwnerStrongPointerTagBase { // non-copyable pointer to an object
+	public:
+		using pointer = typename std::unique_ptr<_Ty>::pointer;
+		using element_type = _Ty;
+
+		constexpr TSingleOwnerPointer() noexcept {}
+
+		constexpr TSingleOwnerPointer(std::nullptr_t) noexcept {}
+
+		_CONSTEXPR23 TSingleOwnerPointer& operator=(std::nullptr_t) noexcept {
+			m_uq_ptr = nullptr;
+			return *this;
+		}
+
+		_CONSTEXPR23 TSingleOwnerPointer(TSingleOwnerPointer&& _Right) noexcept
+			: m_uq_ptr(MSE_FWD(_Right).m_uq_ptr) {}
+
+		template <class _Ty2,
+			MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<std::unique_ptr<_Ty2>, std::unique_ptr<_Ty> >::value> MSE_IMPL_EIS >
+		_CONSTEXPR23 TSingleOwnerPointer(TSingleOwnerPointer<_Ty2>&& _Right) noexcept
+			: m_uq_ptr(MSE_FWD(_Right).m_uq_ptr) {}
+
+		_CONSTEXPR23 TSingleOwnerPointer& operator=(TSingleOwnerPointer&& _Right) noexcept {
+			m_uq_ptr = MSE_FWD(_Right).m_uq_ptr;
+			return *this;
+		}
+
+		_CONSTEXPR23 void swap(TSingleOwnerPointer& _Right) noexcept {
+			m_uq_ptr.swap(_Right.m_uq_ptr);
+		}
+
+		_NODISCARD _CONSTEXPR23 typename std::add_lvalue_reference<_Ty>::type operator*() const /*noexcept(noexcept(*_STD declval<pointer>()))*/ {
+			if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::TSingleOwnerPointer")); }
+			return *m_uq_ptr;
+		}
+
+		_NODISCARD _CONSTEXPR23 pointer operator->() const /*noexcept*/ {
+			if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::TSingleOwnerPointer")); }
+			return std::addressof(*m_uq_ptr);
+		}
+
+		/*
+		_NODISCARD _CONSTEXPR23 pointer get() const noexcept {
+			return std::addressof(*m_uq_ptr);
+		}
+		*/
+
+		_CONSTEXPR23 explicit operator bool() const noexcept {
+			return static_cast<bool>(m_uq_ptr);
+		}
+
+		_CONSTEXPR23 /*pointer*/ void release() noexcept {
+			return m_uq_ptr.release();
+		}
+
+		_CONSTEXPR23 void reset(/*pointer _Ptr = nullptr*/) noexcept {
+			m_uq_ptr.reset();
+		}
+
+		template <class... Args>
+		static TSingleOwnerPointer make(Args&&... args) {
+			return TSingleOwnerPointer(uq_contruct_tag{}, std::make_unique<_Ty>(std::forward<Args>(args)...));
+		}
+
+		TSingleOwnerPointer(const TSingleOwnerPointer&) = delete;
+		TSingleOwnerPointer& operator=(const TSingleOwnerPointer&) = delete;
+
+	private:
+		struct uq_contruct_tag {};
+		TSingleOwnerPointer(uq_contruct_tag, std::unique_ptr<_Ty>&& uq_ptr) : m_uq_ptr(MSE_FWD(uq_ptr)) {}
+
+		template <class /*, class*/ >
+		friend class TSingleOwnerPointer;
+
+		std::unique_ptr<_Ty> m_uq_ptr;
+	};
+
+	template <class _Ty, class... _Types>
+	_CONSTEXPR23 TSingleOwnerPointer<_Ty> make_single_owner(_Types&&... _Args) { // make a TSingleOwnerPointer
+		return TSingleOwnerPointer<_Ty>::make(std::forward<_Types>(_Args)...);
+	}
+
+	template <class _Ty>
+	_CONSTEXPR23 TSingleOwnerPointer<_Ty> make_unique_for_overwrite() {
+		/* don't know if this implementation is exactly correct, but probably good enough for now */
+		return TSingleOwnerPointer<_Ty>::make(_Ty{});
+	}
+}
+
+namespace std {
+	template<class _Ty>
+	struct hash<mse::TSingleOwnerPointer<_Ty> > {	// hash functor
+		typedef mse::TSingleOwnerPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::TSingleOwnerPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty*>()(ptr1));
+		}
+	};
+}
+
+namespace mse {
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -875,7 +1004,7 @@ namespace mse {
 			MTXASSERT_EQ(ok, 0ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
 
-			target_t a = make_refcounting<Trackable>(this, "aap");
+			target_t a = mse::make_refcounting<Trackable>(this, "aap");
 
 			MTXASSERT_EQ(ok, 1ul, constructions.size());
 			MTXASSERT_EQ(ok, 1, constructions["aap"]);
@@ -887,8 +1016,8 @@ namespace mse {
 
 			target_t hold;
 			{
-				target_t b = make_refcounting<Trackable>(this, "noot"),
-					c = make_refcounting<Trackable>(this, "mies"),
+				target_t b = mse::make_refcounting<Trackable>(this, "noot"),
+					c = mse::make_refcounting<Trackable>(this, "mies"),
 					nil = Nil,
 					a2 = a;
 
@@ -943,9 +1072,9 @@ namespace mse {
 			MTXASSERT_EQ(ok, 0ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
 
-			TRefCountingPointer<Linked> node = make_refcounting<Linked>(this, "parent");
+			TRefCountingPointer<Linked> node = mse::make_refcounting<Linked>(this, "parent");
 			MTXASSERT(ok, (node != nullptr));
-			node->next = make_refcounting<Linked>(this, "child");
+			node->next = mse::make_refcounting<Linked>(this, "child");
 
 			MTXASSERT_EQ(ok, 2ul, constructions.size());
 			MTXASSERT_EQ(ok, 0ul, destructions.size());
@@ -1064,6 +1193,108 @@ namespace mse {
 					int q = 7;
 				}
 			}
+#endif // MSE_SELF_TESTS
+		}
+	};
+
+	class TSingleOwnerPointer_test {
+	public:
+#ifdef MSE_SELF_TESTS
+		// helper class for runtime polymorphism demo below
+		struct B
+		{
+			virtual ~B() = default;
+
+			virtual void bar() { std::cout << "B::bar\n"; }
+		};
+
+		struct D : B
+		{
+			D() { std::cout << "D::D\n"; }
+			~D() { std::cout << "D::~D\n"; }
+
+			void bar() override { std::cout << "D::bar\n"; }
+		};
+
+		// a function consuming a unique_ptr can take it by value or by rvalue reference
+		mse::TSingleOwnerPointer<D> pass_through(mse::TSingleOwnerPointer<D> p)
+		{
+			p->bar();
+			return p;
+		}
+
+		// helper function for the custom deleter demo below
+		void close_file(std::FILE* fp)
+		{
+			std::fclose(fp);
+		}
+
+		// unique_ptr-based linked list demo
+		struct List
+		{
+			struct Node
+			{
+				int data;
+				mse::TSingleOwnerPointer<Node> next;
+			};
+
+			mse::TSingleOwnerPointer<Node> head;
+
+			~List()
+			{
+				// destroy list nodes sequentially in a loop, the default destructor
+				// would have invoked its `next`'s destructor recursively, which would
+				// cause stack overflow for sufficiently large lists.
+				while (head)
+				{
+					auto next = std::move(head->next);
+					head = std::move(next);
+				}
+			}
+
+			void push(int data)
+			{
+				head = mse::make_single_owner<Node>(Node{ data, std::move(head) });
+				//head = mse::TSingleOwnerPointer<Node>(new Node{ data, std::move(head) });
+			}
+		};
+#endif // MSE_SELF_TESTS
+
+		void test1() {
+#ifdef MSE_SELF_TESTS
+			std::cout << "1) Unique ownership semantics demo\n";
+			{
+				// Create a (uniquely owned) resource
+				mse::TSingleOwnerPointer<D> p = mse::make_single_owner<D>();
+
+				// Transfer ownership to `pass_through`,
+				// which in turn transfers ownership back through the return value
+				mse::TSingleOwnerPointer<D> q = pass_through(std::move(p));
+
+				// p is now in a moved-from 'empty' state, equal to nullptr
+				assert(!p);
+			}
+
+			std::cout << "\n" "2) Runtime polymorphism demo\n";
+			{
+				// Create a derived resource and point to it via base type
+				mse::TSingleOwnerPointer<B> p = mse::make_single_owner<D>();
+
+				// Dynamic dispatch works as expected
+				p->bar();
+			}
+
+			std::cout << "\n" "6) Linked list demo\n";
+			{
+				List wall;
+				const int enough{ 1'000'000 };
+				for (int beer = 0; beer != enough; ++beer)
+					wall.push(beer);
+
+				std::cout.imbue(std::locale("en_US.UTF-8"));
+				std::cout << enough << " bottles of beer on the wall...\n";
+			} // destroys all the beers
+
 #endif // MSE_SELF_TESTS
 		}
 	};

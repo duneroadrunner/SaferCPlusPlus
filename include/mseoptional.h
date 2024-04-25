@@ -3741,13 +3741,6 @@ namespace mse {
 		}
 	}
 
-#ifdef MSE_HAS_CXX17
-#else // MSE_HAS_CXX17
-	/* The xscope_borrowing_fixed_* types "should" be unmoveable (as well as uncopyable). But since C++14 doesn't
-	have guaranteed copy elision, moveability is required for the make_xscope_borrowing_fixed_*() functions to work. . */
-#define MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-#endif // MSE_HAS_CXX17
-
 	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type, bool _ExclusiveAccess = false>
 	class xscope_accessing_fixed_optional {
 	public:
