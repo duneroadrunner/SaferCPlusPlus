@@ -66,6 +66,12 @@ Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++11.4.0 and c
     2. [Using registered pointers as weak pointers](#using-registered-pointers-as-weak-pointers-with-reference-counting-pointers)
     </details>
 10. <details>
+    <summary>Single owner pointer</summary>
+
+    1. [Overview](#single-owner-pointer)
+    1. [TSingleOwnerPointer](#tsingleownerpointer)
+    </details>
+11. <details>
     <summary>Scope pointers</summary>
 
     1. [Overview](#scope-pointers)
@@ -81,14 +87,14 @@ Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++11.4.0 and c
         1. [return_value()](#return_value)
         2. [TMemberObj](#tmemberobj)
     </details>
-11. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
-12. [Poly pointers](#poly-pointers)
+12. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
+13. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
     2. [TPolyPointer](#tpolypointer-tpolyconstpointer)
     3. [TAnyPointer](#txscopeanypointer-txscopeanyconstpointer-tanypointer-tanyconstpointer)
-13. [pointer_to()](#pointer_to)
-14. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
-15. <details>
+14. [pointer_to()](#pointer_to)
+15. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
+16. <details>
     <summary>Multithreading</summary>
 
     1. [Overview](#multithreading)
@@ -119,11 +125,11 @@ Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++11.4.0 and c
         2. [static atomics](#static-atomics)
         3. [static access controlled objects and access requesters](#static-access-controlled-objects-and-access-requesters)
     </details>
-16. [Primitives](#primitives)
+17. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [CNDInt, CNDSize_t and CNDBool](#cndint-cndsize_t-and-cndbool)
     3. [Quarantined types](#quarantined-types)
-17. <details>
+18. <details>
     <summary>Arrays</summary>
 
     1. [Overview](#arrays)
@@ -132,7 +138,7 @@ Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++11.4.0 and c
     3. [xscope_nii_array](#xscope_nii_array)
     4. [xscope_iterator](#xscope_iterator)
     </details>
-18. <details>
+19. <details>
     <summary>Vectors</summary>
 
     1. [Overview](#vectors)
@@ -142,8 +148,8 @@ Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++11.4.0 and c
     4. [xscope_borrowing_fixed_nii_vector](#xscope_borrowing_fixed_nii_vector)
     5. [ivector](#ivector)
     </details>
-19. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
-20. <details>
+20. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
+21. <details>
     <summary>Strings</summary>
 
     1. [Overview](#strings)
@@ -155,7 +161,7 @@ Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++11.4.0 and c
     6. [mstd::string_view](#string_view)
     7. [nrp_string_view](#nrp_string_view)
     </details>
-21. <details>
+22. <details>
     <summary>Poly Iterators and Sections</summary>
 
     1. [Overview](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
@@ -166,7 +172,7 @@ Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++11.4.0 and c
     5. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
     6. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
     </details>
-22. <details>
+23. <details>
     <summary>Optionals</summary>
 
     1. [Overview](#optionals)
@@ -175,7 +181,7 @@ Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++11.4.0 and c
     3. [fixed_optional](#fixed_optional)
     4. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
     </details>
-23. <details>
+24. <details>
     <summary>Anys</summary>
 
     1. [Overview](#anys)
@@ -184,22 +190,22 @@ Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++11.4.0 and c
     3. [fixed_any](#fixed_any)
     4. [xscope_borrowing_fixed_any](#xscope_borrowing_fixed_any)
     </details>
-24. <details>
+25. <details>
     <summary>Tuples</summary>
 
     1. [Overview](#tuples)
     1. [mstd::tuple](#tuple)
     2. [xscope_tuple](#xscope_tuple)
     </details>
-25. [Algorithms](#algorithms)
+26. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
-26. [thread_local](#thread_local)
-27. [(Type-erased) function objects](#type-erased-function-objects)
+27. [thread_local](#thread_local)
+28. [(Type-erased) function objects](#type-erased-function-objects)
     1. [mstd::function](#function)
     2. [xscope_function](#xscope_function)
-28. [Practical limitations](#practical-limitations)
-29. [Questions and comments](#questions-and-comments)
+29. [Practical limitations](#practical-limitations)
+30. [Questions and comments](#questions-and-comments)
 
 ### Use cases
 
@@ -714,6 +720,52 @@ This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_p
         }
         assert(0 == node_counter);
     }
+```
+
+### Single owner pointer
+
+`TSingleOwnerPointer<>` behaves similar to `std::unique_ptr<>`. Some differences being that it does not accept raw pointer assignment or construction (use `mse::make_single_owner<>()` instead), and it will throw an exception on attempted nullptr dereference.
+
+### TSingleOwnerPointer
+
+usage example: 
+
+```cpp
+	#include "mserefcounting.h"
+	
+	int main(int argc, char* argv[]) {
+		class A {
+		public:
+			A() {}
+			virtual ~A() {
+				int q = 3; /* just so you can place a breakpoint if you want */
+			}
+
+			int b = 3;
+			std::string s = "some text ";
+		};
+		typedef std::vector<mse::TSingleOwnerPointer<A>> CSOPVector;
+		class B {
+		public:
+			static int foo1(mse::TSingleOwnerPointer<A> A_single_owner_ptr, CSOPVector& sopvector_ref) {
+				assert(!bool(sopvector_ref.front()));
+				int retval = A_single_owner_ptr->b;
+				A_single_owner_ptr = nullptr; /* Target object is destroyed here. */
+				return retval;
+			}
+		};
+
+		{
+			CSOPVector sopvector;
+			{
+				mse::TSingleOwnerPointer<A> A_single_owner_ptr1 = mse::make_single_owner<A>();
+				sopvector.push_back(std::move(A_single_owner_ptr1));
+				assert(!bool(A_single_owner_ptr1));
+			}
+			B::foo1(std::move(sopvector.front()), sopvector);
+			assert(!bool(sopvector.front()));
+		}
+	}
 ```
 
 ### Scope pointers
