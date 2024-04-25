@@ -78,12 +78,13 @@ Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++11.4.0 and c
     1. [TXScopeFixedPointer](#txscopefixedpointer)
     2. [TXScopeOwnerPointer](#txscopeownerpointer)
     3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
-    4. [TRegisteredProxyPointer](#tregisteredproxypointer)
-    5. [TNoradProxyPointer](#tnoradproxypointer)
-    6. [xscope_chosen()](#xscope_chosen)
-    7. [as_a_returnable_fparam()](#as_a_returnable_fparam)
-    8. [as_an_fparam()](#as_an_fparam)
-    9. [Conformance helpers](#conformance-helpers)
+    4. [make_xscope_borrowing_strong_pointer_store()](#make_xscope_borrowing_strong_pointer_store)
+    5. [TRegisteredProxyPointer](#tregisteredproxypointer)
+    6. [TNoradProxyPointer](#tnoradproxypointer)
+    7. [xscope_chosen()](#xscope_chosen)
+    8. [as_a_returnable_fparam()](#as_a_returnable_fparam)
+    9. [as_an_fparam()](#as_an_fparam)
+    10. [Conformance helpers](#conformance-helpers)
         1. [return_value()](#return_value)
         2. [TMemberObj](#tmemberobj)
     </details>
@@ -557,45 +558,45 @@ If you're going to use pointers, then to ensure they won't be used to access inv
 usage example: ([link to interactive version](https://godbolt.org/z/b4dMe3dKK))
 
 ```cpp
-	#include "mserefcounting.h"
-	
-	int main(int argc, char* argv[]) {
-		class A {
-		public:
-			A() {}
-			A(const A& _X) : b(_X.b) {}
-			virtual ~A() {
-				int q = 3; /* just so you can place a breakpoint if you want */
-			}
-			A& operator=(const A& _X) { b = _X.b; return (*this); }
+    #include "mserefcounting.h"
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A() {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {
+                int q = 3; /* just so you can place a breakpoint if you want */
+            }
+            A& operator=(const A& _X) { b = _X.b; return (*this); }
 
-			int b = 3;
-		};
-		typedef std::vector<mse::TRefCountingFixedPointer<A>> CRCFPVector;
-		class B {
-		public:
-			static int foo1(mse::TRefCountingPointer<A> A_refcounting_ptr, CRCFPVector& rcfpvector_ref) {
-				rcfpvector_ref.clear();
-				int retval = A_refcounting_ptr->b;
-				A_refcounting_ptr = nullptr; /* Target object is destroyed here. */
-				return retval;
-			}
-		protected:
-			~B() {}
-		};
+            int b = 3;
+        };
+        typedef std::vector<mse::TRefCountingFixedPointer<A>> CRCFPVector;
+        class B {
+        public:
+            static int foo1(mse::TRefCountingPointer<A> A_refcounting_ptr, CRCFPVector& rcfpvector_ref) {
+                rcfpvector_ref.clear();
+                int retval = A_refcounting_ptr->b;
+                A_refcounting_ptr = nullptr; /* Target object is destroyed here. */
+                return retval;
+            }
+        protected:
+            ~B() {}
+        };
 
-		{
-			CRCFPVector rcfpvector;
-			{
-				mse::TRefCountingFixedPointer<A> A_refcountingfixed_ptr1 = mse::make_refcounting<A>();
-				rcfpvector.push_back(A_refcountingfixed_ptr1);
+        {
+            CRCFPVector rcfpvector;
+            {
+                mse::TRefCountingFixedPointer<A> A_refcountingfixed_ptr1 = mse::make_refcounting<A>();
+                rcfpvector.push_back(A_refcountingfixed_ptr1);
 
-				/* Just to demonstrate conversion between refcounting pointer types. */
-				mse::TRefCountingConstPointer<A> A_refcountingconst_ptr1 = A_refcountingfixed_ptr1;
-			}
-			B::foo1(rcfpvector.front(), rcfpvector);
-		}
-	}
+                /* Just to demonstrate conversion between refcounting pointer types. */
+                mse::TRefCountingConstPointer<A> A_refcountingconst_ptr1 = A_refcountingfixed_ptr1;
+            }
+            B::foo1(rcfpvector.front(), rcfpvector);
+        }
+    }
 ```
 
 ### TRefCountingNotNullPointer
@@ -731,41 +732,41 @@ This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_p
 usage example: 
 
 ```cpp
-	#include "mserefcounting.h"
-	
-	int main(int argc, char* argv[]) {
-		class A {
-		public:
-			A() {}
-			virtual ~A() {
-				int q = 3; /* just so you can place a breakpoint if you want */
-			}
+    #include "mserefcounting.h"
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A() {}
+            virtual ~A() {
+                int q = 3; /* just so you can place a breakpoint if you want */
+            }
 
-			int b = 3;
-			std::string s = "some text ";
-		};
-		typedef std::vector<mse::TSingleOwnerPointer<A>> CSOPVector;
-		class B {
-		public:
-			static int foo1(mse::TSingleOwnerPointer<A> A_single_owner_ptr, CSOPVector& sopvector_ref) {
-				assert(!bool(sopvector_ref.front()));
-				int retval = A_single_owner_ptr->b;
-				A_single_owner_ptr = nullptr; /* Target object is destroyed here. */
-				return retval;
-			}
-		};
+            int b = 3;
+            std::string s = "some text ";
+        };
+        typedef std::vector<mse::TSingleOwnerPointer<A>> CSOPVector;
+        class B {
+        public:
+            static int foo1(mse::TSingleOwnerPointer<A> A_single_owner_ptr, CSOPVector& sopvector_ref) {
+                assert(!bool(sopvector_ref.front()));
+                int retval = A_single_owner_ptr->b;
+                A_single_owner_ptr = nullptr; /* Target object is destroyed here. */
+                return retval;
+            }
+        };
 
-		{
-			CSOPVector sopvector;
-			{
-				mse::TSingleOwnerPointer<A> A_single_owner_ptr1 = mse::make_single_owner<A>();
-				sopvector.push_back(std::move(A_single_owner_ptr1));
-				assert(!bool(A_single_owner_ptr1));
-			}
-			B::foo1(std::move(sopvector.front()), sopvector);
-			assert(!bool(sopvector.front()));
-		}
-	}
+        {
+            CSOPVector sopvector;
+            {
+                mse::TSingleOwnerPointer<A> A_single_owner_ptr1 = mse::make_single_owner<A>();
+                sopvector.push_back(std::move(A_single_owner_ptr1));
+                assert(!bool(A_single_owner_ptr1));
+            }
+            B::foo1(std::move(sopvector.front()), sopvector);
+            assert(!bool(sopvector.front()));
+        }
+    }
 ```
 
 ### Scope pointers
@@ -909,6 +910,45 @@ usage example: ([link to interactive version](https://godbolt.org/z/MaPxdvhqf))
         int res6 = B::foo3(xscp_cptr1);
         mse::TXScopeFixedConstPointer<A> xscp_cptr2 = xscp_cptr1;
         A res7 = *xscp_cptr2;
+    }
+```
+
+### make_xscope_borrowing_strong_pointer_store()
+
+For "strong" pointers that are not copiable (like [`TSingleOwnerPointer<>`](#tsingleownerpointer)), you can use `mse::make_xscope_borrowing_strong_pointer_store()` to obtain a scope pointer. Note that the argument is not the strong pointer, but rather a (scope) pointer to the strong pointer.
+
+usage example:
+
+```cpp
+    #include "msescope.h"
+    #include "mserefcounting.h"
+    
+    int main(int argc, char* argv[]) {
+        class A {
+        public:
+            A(int x) : b(x) {}
+            A(const A& _X) : b(_X.b) {}
+            virtual ~A() {}
+            A& operator=(const A& _X) { b = _X.b; return (*this); }
+
+            int b = 3;
+        };
+        class B {
+        public:
+            static int foo2(mse::TXScopeFixedPointer<A> A_scpfptr) { return A_scpfptr->b; }
+            static int foo3(mse::TXScopeFixedConstPointer<A> A_scpfcptr) { return A_scpfcptr->b; }
+        protected:
+            ~B() {}
+        };
+    
+        /* For "strong" pointers that are not copiable (like TSingleOwnerPointer<>), you can use
+        mse::make_xscope_borrowing_strong_pointer_store() to obtain a scope pointer. */
+        mse::TSingleOwnerPointer<A> so_ptr1 = mse::make_single_owner<A>(17);
+        auto xscp_so_store = mse::make_xscope_borrowing_strong_pointer_store(&so_ptr1);
+        auto xscp_ptr3 = xscp_so_store.xscope_ptr();
+        int res8 = B::foo3(xscp_ptr3);
+        mse::TXScopeFixedConstPointer<A> xscp_ptr4 = xscp_ptr3;
+        A res9 = *xscp_ptr4;
     }
 ```
 
