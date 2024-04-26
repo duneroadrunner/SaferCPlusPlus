@@ -915,7 +915,7 @@ usage example: ([link to interactive version](https://godbolt.org/z/MaPxdvhqf))
 
 ### make_xscope_borrowing_strong_pointer_store()
 
-For "strong" pointers that are not copiable (like [`TSingleOwnerPointer<>`](#tsingleownerpointer)), you can use `mse::make_xscope_borrowing_strong_pointer_store()` to obtain a scope pointer. Note that the argument is not the strong pointer, but rather a (scope) pointer to the strong pointer.
+For "strong" pointers that are not copyable (but are movable, like [`TSingleOwnerPointer<>`](#tsingleownerpointer)), you can use `mse::make_xscope_borrowing_strong_pointer_store()` to obtain a scope pointer. Note that unlike [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store), the argument is not the strong pointer itself, but rather a (scope) pointer to the strong pointer.
 
 usage example:
 
@@ -941,7 +941,7 @@ usage example:
             ~B() {}
         };
     
-        /* For "strong" pointers that are not copiable (like TSingleOwnerPointer<>), you can use
+        /* For "strong" pointers that are not copyable (like TSingleOwnerPointer<>), you can use
         mse::make_xscope_borrowing_strong_pointer_store() to obtain a scope pointer. */
         mse::TSingleOwnerPointer<A> so_ptr1 = mse::make_single_owner<A>(17);
         auto xscp_so_store = mse::make_xscope_borrowing_strong_pointer_store(&so_ptr1);
