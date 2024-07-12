@@ -1259,8 +1259,8 @@ with the library's (safe) optional<> types. The compiler has no problem with it,
 		{
 			mse::TSingleOwnerPointer<A> A_single_owner_ptr1 = mse::make_single_owner<A>();
 			/* Obtaining a scope pointer to an object owned by a "single_owner" pointer */
-			//auto strong_store1 = mse::make_xscope_borrowing_strong_pointer_store(&A_single_owner_ptr1);
-			//auto s_scpptr1 = strong_store1.xscope_ptr();
+			auto strong_store1 = mse::make_xscope_borrowing_strong_pointer_store(&A_single_owner_ptr1);
+			auto s_scpptr1 = strong_store1.xscope_ptr();
 		}
 
 		mse::TSingleOwnerPointer_test TSingleOwnerPointer_test1;

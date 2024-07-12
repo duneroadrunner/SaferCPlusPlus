@@ -877,6 +877,10 @@ void msetl_example2() {
 		auto xscp_ra_section1_xscp_iter2 = mse::make_xscope_end_iterator(xscp_ra_section1);
 		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
 		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+
+		mse::for_each_ptr(xscp_ra_section1.begin(), xscp_ra_section1.end(), [](auto item_ptr) { std::cout << (*item_ptr); });
+		mse::for_each_ptr(xscp_ra_section2.begin(), xscp_ra_section2.end(), [](auto item_ptr) { std::cout << (*item_ptr); });
+		mse::for_each_ptr(xs_ra_const_section2.begin(), xs_ra_const_section2.end(), [](auto item_ptr) { std::cout << (*item_ptr); });
 #endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
 
@@ -1611,6 +1615,13 @@ void msetl_example2() {
 
 		mse::TXScopeCSSSXSTEStringSection<char> xs_csssxste_string_section3 = xs_string_section3;
 		/* As with iterators, only construction from lvalue string sections is supported, not temporary (rvalue) string sections. */
+
+		mse::for_each_ptr(xs_csssxste_string_section3.begin(), xs_csssxste_string_section3.end(), [](auto char_ptr) { std::cout << (*char_ptr); });
+
+		mse::TXScopeCSSSXSTEStringConstSection<char> xs_csssxste_string_csection3 = xs_string_section3;
+		/* As with iterators, only construction from lvalue string sections is supported, not temporary (rvalue) string sections. */
+
+		mse::for_each_ptr(xs_csssxste_string_csection3.begin(), xs_csssxste_string_csection3.end(), [](auto char_ptr) { std::cout << (*char_ptr); });
 
 		assert(xs_csssxste_string_section1 == xs_csssxste_string_section3);
 		assert(xs_csssxste_string_section1.front() == 't');

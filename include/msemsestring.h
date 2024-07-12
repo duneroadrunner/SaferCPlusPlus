@@ -1666,7 +1666,7 @@ namespace mse {
 			return base_class::ends_with(s);
 		}
 
-		//typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
 	protected:
@@ -1737,15 +1737,19 @@ namespace mse {
 			return subsection(pos, n);
 		}
 
-		//typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
 		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
 		acknowledge that scope iterators are returned. */
-		auto begin() const { return (*this).xscope_cbegin(); }
-		auto cbegin() const { return (*this).xscope_cbegin(); }
-		auto end() const { return (*this).xscope_cend(); }
-		auto cend() const { return (*this).xscope_cend(); }
+		auto begin() const& { return (*this).xscope_begin(); }
+		auto cbegin() const& { return (*this).xscope_cbegin(); }
+		auto end() const& { return (*this).xscope_end(); }
+		auto cend() const& { return (*this).xscope_cend(); }
+		auto begin() const&& = delete;
+		auto cbegin() const&& = delete;
+		auto end() const&& = delete;
+		auto cend() const&& = delete;
 		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
 	private:
@@ -1993,10 +1997,306 @@ namespace mse {
 		->TXScopeStringConstSection<typename decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
 #endif /* MSE_HAS_CXX17 */
 
+	//template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+	//using TXScopeCSSSXSTEStringConstSection = TXScopeStringConstSection<TXScopeCSSSXSTERAConstIterator<_TElement>, _Traits>;
+	//template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+	//using TXScopeCSSSXSTEStringSection = TXScopeStringSection<TXScopeCSSSXSTERAIterator<_TElement>, _Traits>;
+
+	template <typename _TElement, class _Traits/* = std::char_traits<_TElement> */>
+	class TXScopeCSSSXSTEStringConstSection;
+	template <typename _TElement, class _Traits/* = std::char_traits<_TElement> */>
+	class TXScopeCSSSXSTEStringSection;
+
+	namespace impl {
+		namespace ns_xs_csssxste_string_const_section {
+			template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+			class TXScopeCSSSXSTEStringConstSectionConstIterator : public mse::impl::ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement> {
+			public:
+				typedef mse::impl::ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+				TXScopeCSSSXSTEStringConstSectionConstIterator(const TXScopeCSSSXSTEStringConstSectionConstIterator&) = default;
+				TXScopeCSSSXSTEStringConstSectionConstIterator(TXScopeCSSSXSTEStringConstSectionConstIterator&&) = default;
+
+				//MSE_USING(TXScopeCSSSXSTEStringConstSectionConstIterator, base_class);
+				template<class _TRASectionPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_base_of<base_class, _TRASectionPointer>::value> MSE_IMPL_EIS >
+				TXScopeCSSSXSTEStringConstSectionConstIterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+				MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSSSXSTEStringConstSectionConstIterator);
+				MSE_INHERIT_ASSIGNMENT_OPERATOR_FROM(base_class, TXScopeCSSSXSTEStringConstSectionConstIterator);
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+			private:
+				TXScopeCSSSXSTEStringConstSectionConstIterator(const TXScopeCSSSXSTERAConstIterator<_TElement>& iter, size_type count, size_type index) : base_class(iter, count, index) {}
+				TXScopeCSSSXSTEStringConstSectionConstIterator(const base_class& iter) : base_class(iter) {}
+				TXScopeCSSSXSTEStringConstSectionConstIterator(base_class&& iter) : base_class(MSE_FWD(iter)) {}
+				//friend class TXScopeCSSSXSTEStringSectionIterator<_TElement, _Traits>;
+				friend class mse::TXScopeCSSSXSTEStringConstSection<_TElement, _Traits>;
+			};
+		}
+
+		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+		when it's safe to do so. In this case TXScopeCSSSXSTEString(Const)SectionIterator<>s. */
+		template <typename _TElement>
+		class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> >
+			: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> > {
+		public:
+			typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> > base_class;
+			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+		};
+
+		template <typename _TElement>
+		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement>& _Last) {
+			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> >(_First, _Last);
+		}
+	}
+
 	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
-	using TXScopeCSSSXSTEStringConstSection = TXScopeStringConstSection<TXScopeCSSSXSTERAConstIterator<_TElement>, _Traits>;
+	class TXScopeCSSSXSTEStringConstSection : public TStringConstSectionBase<TXScopeCSSSXSTERandomAccessSection<_TElement>, TXScopeCSSSXSTERandomAccessConstSection<_TElement>, _Traits> {
+	public:
+		typedef TStringConstSectionBase<TXScopeCSSSXSTERandomAccessSection<_TElement>, TXScopeCSSSXSTERandomAccessConstSection<_TElement>, _Traits> base_class;
+		typedef TXScopeCSSSXSTERAConstIterator<_TElement> _TRAIterator;
+		MSE_INHERITED_STRING_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+
+		//MSE_USING(TXScopeCSSSXSTEStringConstSection, base_class);
+
+		TXScopeCSSSXSTEStringConstSection(const TXScopeCSSSXSTEStringConstSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> MSE_IMPL_EIS >
+		TXScopeCSSSXSTEStringConstSection(const TStringConstSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TStringConstSection<_TRAIterator, _Traits>::base_class&>(src)) {}
+		TXScopeCSSSXSTEStringConstSection(const TXScopeStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TXScopeStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
+		TXScopeCSSSXSTEStringConstSection(const base_class& src) : base_class(src) {}
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> MSE_IMPL_EIS >
+		TXScopeCSSSXSTEStringConstSection(const TStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
+		TXScopeCSSSXSTEStringConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TXScopeCSSSXSTEStringConstSection(const _TRALoneParam& param) : base_class(param) {}
+
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
+		template<size_t Tn>
+		TXScopeCSSSXSTEStringConstSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		TXScopeCSSSXSTEStringConstSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
+
+		/* use the make_xscope_subsection() free function instead */
+		MSE_DEPRECATED TXScopeCSSSXSTEStringConstSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection_pv(pos, n);
+		}
+		MSE_DEPRECATED TXScopeCSSSXSTEStringConstSection xscope_substr(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection(pos, n);
+		}
+		/* prefer the make_subsection() free function instead */
+		auto subsection(size_type pos = 0, size_type n = npos) const {
+			return subsection_pv(pos, n);
+		}
+		auto substr(size_type pos = 0, size_type n = npos) const {
+			return subsection(pos, n);
+		}
+
+		//typedef typename base_class::xscope_iterator xscope_iterator;
+		//typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+		typedef mse::impl::ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator< _TElement, _Traits> xscope_const_iterator;
+		typedef xscope_const_iterator xscope_iterator;
+		xscope_iterator xscope_begin() const& { return (*this).xscope_cbegin(); }
+		xscope_const_iterator xscope_cbegin() const& { return xscope_const_iterator(base_class::xscope_cbegin()); }
+		xscope_iterator xscope_end() const& { return (*this).xscope_cend(); }
+		xscope_const_iterator xscope_cend() const& { return xscope_const_iterator(base_class::xscope_cend()); }
+		xscope_iterator xscope_begin() const&& = delete;
+		xscope_const_iterator xscope_cbegin() const&& = delete;
+		xscope_iterator xscope_end() const&& = delete;
+		xscope_const_iterator xscope_cend() && = delete;
+
+		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
+		acknowledge that scope iterators are returned. */
+		auto begin() const& { return (*this).xscope_begin(); }
+		auto cbegin() const& { return (*this).xscope_cbegin(); }
+		auto end() const& { return (*this).xscope_end(); }
+		auto cend() const& { return (*this).xscope_cend(); }
+		auto begin() const&& = delete;
+		auto cbegin() const&& = delete;
+		auto end() const&& = delete;
+		auto cend() const&& = delete;
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+	private:
+
+		TXScopeCSSSXSTEStringConstSection xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+		TXScopeCSSSXSTEStringConstSection subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+
+		TXScopeCSSSXSTEStringConstSection<_TRAIterator, _Traits>& operator=(const TXScopeCSSSXSTEStringConstSection<_TRAIterator, _Traits>& _Right_cref) = delete;
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		template<class _Ty2, class _Traits2>
+		friend std::basic_ostream<_Ty2, _Traits2>& operator<<(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const TXScopeCSSSXSTEStringConstSection& _Str) {
+			_Ostr << static_cast<const base_class&>(_Str);
+			return _Ostr;
+		}
+
+		template <typename _TSection>
+		friend auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+		template <typename _TSection>
+		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+			-> decltype(section.subsection_pv(pos, n));
+	};
+
+	namespace impl {
+		namespace ns_xs_csssxste_string_section {
+			template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+			class TXScopeCSSSXSTEStringSectionIterator : public mse::impl::ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> {
+			public:
+				typedef mse::impl::ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+				TXScopeCSSSXSTEStringSectionIterator(const TXScopeCSSSXSTEStringSectionIterator&) = default;
+				TXScopeCSSSXSTEStringSectionIterator(TXScopeCSSSXSTEStringSectionIterator&&) = default;
+
+				//MSE_USING(TXScopeCSSSXSTEStringSectionIterator, base_class);
+				template<class _TRASectionPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_base_of<base_class, _TRASectionPointer>::value> MSE_IMPL_EIS >
+				TXScopeCSSSXSTEStringSectionIterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+				MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSSSXSTEStringSectionIterator);
+				MSE_INHERIT_ASSIGNMENT_OPERATOR_FROM(base_class, TXScopeCSSSXSTEStringSectionIterator);
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+			private:
+				TXScopeCSSSXSTEStringSectionIterator(const TXScopeCSSSXSTERAIterator<_TElement>& iter, size_type count, size_type index) : base_class(iter, count, index) {}
+				TXScopeCSSSXSTEStringSectionIterator(const base_class& iter) : base_class(iter) {}
+				TXScopeCSSSXSTEStringSectionIterator(base_class&& iter) : base_class(MSE_FWD(iter)) {}
+				//friend class TXScopeCSSSXSTEStringSectionIterator<_TElement, _Traits>;
+				friend class mse::TXScopeCSSSXSTEStringSection<_TElement, _Traits>;
+			};
+		
+			template <typename _TElement, class _Traits = std::char_traits<_TElement> >
+			class TXScopeCSSSXSTEStringSectionConstIterator : public mse::impl::ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> {
+			public:
+				typedef mse::impl::ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+				TXScopeCSSSXSTEStringSectionConstIterator(const TXScopeCSSSXSTEStringSectionConstIterator&) = default;
+				TXScopeCSSSXSTEStringSectionConstIterator(TXScopeCSSSXSTEStringSectionConstIterator&&) = default;
+
+				TXScopeCSSSXSTEStringSectionConstIterator(const TXScopeCSSSXSTEStringSectionIterator<_TElement, _Traits>& iter) : base_class(iter) {}
+				TXScopeCSSSXSTEStringSectionConstIterator(TXScopeCSSSXSTEStringSectionIterator<_TElement, _Traits>&& iter) : base_class(MSE_FWD(iter)) {}
+
+				//MSE_USING(TXScopeCSSSXSTEStringSectionConstIterator, base_class);
+				template<class _TRASectionPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_base_of<base_class, _TRASectionPointer>::value> MSE_IMPL_EIS >
+				TXScopeCSSSXSTEStringSectionConstIterator(const _TRASectionPointer& ptr, size_type index = 0) : base_class((*ptr).m_start_iter, (*ptr).m_count, index) {}
+				MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSSSXSTEStringSectionConstIterator);
+				MSE_INHERIT_ASSIGNMENT_OPERATOR_FROM(base_class, TXScopeCSSSXSTEStringSectionConstIterator);
+				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
+			private:
+				TXScopeCSSSXSTEStringSectionConstIterator(const TXScopeCSSSXSTERAConstIterator<_TElement>& iter, size_type count, size_type index) : base_class(iter, count, index) {}
+				TXScopeCSSSXSTEStringSectionConstIterator(const base_class& iter) : base_class(iter) {}
+				TXScopeCSSSXSTEStringSectionConstIterator(base_class&& iter) : base_class(MSE_FWD(iter)) {}
+				//friend class TXScopeCSSSXSTEStringSectionConstIterator<_TElement, _Traits>;
+				friend class mse::TXScopeCSSSXSTEStringSection<_TElement, _Traits>;
+			};
+		}
+
+		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+		when it's safe to do so. In this case TXScopeCSSSXSTEString(Const)SectionIterator<>s. */
+		template <typename _TElement>
+		class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> >
+			: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> > {
+		public:
+			typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> > base_class;
+			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+		};
+
+		template <typename _TElement>
+		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement>& _First, const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement>& _Last) {
+			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> >(_First, _Last);
+		}
+	}
+
 	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
-	using TXScopeCSSSXSTEStringSection = TXScopeStringSection<TXScopeCSSSXSTERAIterator<_TElement>, _Traits>;
+	class TXScopeCSSSXSTEStringSection : public TStringSectionBase<TXScopeCSSSXSTERandomAccessSection<_TElement>, TXScopeCSSSXSTERandomAccessConstSection<_TElement>, _Traits> {
+	public:
+		typedef TStringSectionBase<TXScopeCSSSXSTERandomAccessSection<_TElement>, TXScopeCSSSXSTERandomAccessConstSection<_TElement>, _Traits> base_class;
+		typedef TXScopeCSSSXSTERAIterator<_TElement> _TRAIterator;
+		MSE_INHERITED_STRING_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(base_class);
+
+		//MSE_USING(TXScopeCSSSXSTEStringSection, base_class);
+
+		TXScopeCSSSXSTEStringSection(const TXScopeCSSSXSTEStringSection& src) : base_class(static_cast<const base_class&>(src)) {}
+		template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> MSE_IMPL_EIS >
+		TXScopeCSSSXSTEStringSection(const TStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
+		//TXScopeCSSSXSTEStringSection(const TXScopeStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TXScopeStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
+		TXScopeCSSSXSTEStringSection(const base_class& src) : base_class(src) {}
+		//template<class _Ty2 = _TRAIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TRAIterator>::value) && (mse::impl::is_potentially_not_xscope<_TRAIterator>::value)> MSE_IMPL_EIS >
+		//TXScopeCSSSXSTEStringSection(const TStringSection<_TRAIterator, _Traits>& src) : base_class(static_cast<const typename TStringSection<_TRAIterator, _Traits>::base_class&>(src)) {}
+		TXScopeCSSSXSTEStringSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
+		template <typename _TRALoneParam>
+		TXScopeCSSSXSTEStringSection(const _TRALoneParam& param) : base_class(param) {}
+
+		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
+		template<size_t Tn>
+		TXScopeCSSSXSTEStringSection(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
+
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		TXScopeCSSSXSTEStringSection(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal) {}
+
+		/* use the make_xscope_subsection() free function instead */
+		MSE_DEPRECATED TXScopeCSSSXSTEStringSection xscope_subsection(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection_pv(pos, n);
+		}
+		MSE_DEPRECATED TXScopeCSSSXSTEStringSection xscope_substr(size_type pos = 0, size_type n = npos) const {
+			return xscope_subsection(pos, n);
+		}
+		/* prefer the make_subsection() free function instead */
+		auto subsection(size_type pos = 0, size_type n = npos) const {
+			return subsection_pv(pos, n);
+		}
+		auto substr(size_type pos = 0, size_type n = npos) const {
+			return subsection(pos, n);
+		}
+
+		//typedef typename base_class::xscope_iterator xscope_iterator;
+		//typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+		typedef mse::impl::ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator< _TElement, _Traits> xscope_const_iterator;
+		typedef mse::impl::ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator< _TElement, _Traits> xscope_iterator;
+		xscope_iterator xscope_begin() const& { return xscope_iterator(base_class::xscope_begin()); }
+		xscope_const_iterator xscope_cbegin() const& { return xscope_const_iterator(base_class::xscope_cbegin()); }
+		xscope_iterator xscope_end() const& { return xscope_iterator(base_class::xscope_end()); }
+		xscope_const_iterator xscope_cend() const& { return xscope_const_iterator(base_class::xscope_cend()); }
+		xscope_iterator xscope_begin() const&& = delete;
+		xscope_const_iterator xscope_cbegin() const&& = delete;
+		xscope_iterator xscope_end() const&& = delete;
+		xscope_const_iterator xscope_cend() && = delete;
+
+		/* These are here because some standard algorithms require them. Prefer the "xscope_" prefixed versions to
+		acknowledge that scope iterators are returned. */
+		auto begin() const& { return (*this).xscope_begin(); }
+		auto cbegin() const& { return (*this).xscope_cbegin(); }
+		auto end() const& { return (*this).xscope_end(); }
+		auto cend() const& { return (*this).xscope_cend(); }
+		auto begin() const&& = delete;
+		auto cbegin() const&& = delete;
+		auto end() const&& = delete;
+		auto cend() const&& = delete;
+		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
+
+	private:
+
+		TXScopeCSSSXSTEStringSection xscope_subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+		TXScopeCSSSXSTEStringSection subsection_pv(size_type pos = 0, size_type n = npos) const {
+			return base_class::subsection(pos, n);
+		}
+
+		TXScopeCSSSXSTEStringSection<_TRAIterator, _Traits>& operator=(const TXScopeCSSSXSTEStringSection<_TRAIterator, _Traits>& _Right_cref) = delete;
+		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		template<class _Ty2, class _Traits2>
+		friend std::basic_ostream<_Ty2, _Traits2>& operator<<(std::basic_ostream<_Ty2, _Traits2>& _Ostr, const TXScopeCSSSXSTEStringSection& _Str) {
+			_Ostr << static_cast<const base_class&>(_Str);
+			return _Ostr;
+		}
+
+		template <typename _TSection>
+		friend auto make_xscope_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(xs_section.xscope_subsection_pv(pos, n));
+		template <typename _TSection>
+		friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
+			-> decltype(section.subsection_pv(pos, n));
+	};
 
 	template <typename _TRAIterator>
 	auto make_xscope_csssxste_string_const_section(const _TRAIterator& start_iter, typename TXScopeStringConstSection<_TRAIterator>::size_type count) {
@@ -2142,7 +2442,7 @@ namespace mse {
 				return base_class::subsection(pos, n);
 			}
 
-			//typedef typename base_class::xscope_iterator xscope_iterator;
+			typedef typename base_class::xscope_iterator xscope_iterator;
 			typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
 			void xscope_not_returnable_tag() const {}
@@ -2674,7 +2974,7 @@ namespace mse {
 			return subsection(pos, n);
 		}
 
-		//typedef typename base_class::xscope_iterator xscope_iterator;
+		typedef typename base_class::xscope_iterator xscope_iterator;
 		typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
@@ -2882,7 +3182,7 @@ namespace mse {
 				return base_class::subsection(pos, n);
 			}
 
-			//typedef typename base_class::xscope_iterator xscope_iterator;
+			typedef typename base_class::xscope_iterator xscope_iterator;
 			typedef typename base_class::xscope_const_iterator xscope_const_iterator;
 
 			void xscope_not_returnable_tag() const {}
