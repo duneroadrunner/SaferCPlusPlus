@@ -1546,17 +1546,22 @@ namespace mse {
 		template<size_t Tn>
 		TStringConstSectionBase(nonconst_value_type(&native_array)[Tn]) : base_class(native_array, Tn) {}
 
+	private:
 		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
-		TStringConstSectionBase(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, Tn) {
-			if ((1 <= (*this).size()) && (0 == (*this).back())) {
+		size_t presumed_length_of_presumed_string_literal(const value_type(&presumed_string_literal)[Tn]) {
+			if ((1 <= Tn) && (0 == presumed_string_literal[Tn - 1])) {
 				/* We presume that the argument is a string literal, and remove the terminating null. */
-				(*this).remove_suffix(1);
+				return Tn - 1;
 			}
 			else {
 				/* The last character does not seem to a null terminator, so presumably the argument is not a string
 				literal. */
+				return Tn;
 			}
 		}
+	public:
+		template<size_t Tn, typename = typename std::enable_if<1 <= Tn>::type>
+		TStringConstSectionBase(const value_type(&presumed_string_literal)[Tn]) : base_class(presumed_string_literal, presumed_length_of_presumed_string_literal(presumed_string_literal)) {}
 
 		template<typename _TRAParam>
 		bool equal(const _TRAParam& ra_param) const {
