@@ -2401,11 +2401,15 @@ auto res12 = iptrwbv2[2];
 
 		auto nii_array4 = mse::rsv::xslta_array<mse::rsv::TXSLTAPointer<int>, 4>{ &i1, &i2, &i3, &i4 };
 		auto xscp_ra_section3 = mse::rsv::make_xslta_csssxste_random_access_section(&nii_array4);
+		mse::for_each_ptr(xscp_ra_section3.cbegin(), xscp_ra_section3.cend(), [](auto item_ptr) { std::cout << *(*item_ptr); });
 
 		auto xscp_ra_section1_xscp_iter1 = mse::rsv::make_xslta_begin_iterator(xscp_ra_section1);
 		auto xscp_ra_section1_xscp_iter2 = mse::rsv::make_xslta_end_iterator(xscp_ra_section1);
 		auto res8 = xscp_ra_section1_xscp_iter2 - xscp_ra_section1_xscp_iter1;
 		bool res9 = (xscp_ra_section1_xscp_iter1 < xscp_ra_section1_xscp_iter2);
+
+		auto xscp_ra_const_section3 = mse::rsv::make_xslta_csssxste_random_access_const_section(&nii_array4);
+		mse::for_each_ptr(xscp_ra_const_section3.begin(), xscp_ra_const_section3.end(), [](auto item_ptr) { std::cout << *(*item_ptr); });
 
 #endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}

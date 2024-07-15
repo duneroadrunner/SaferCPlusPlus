@@ -9773,6 +9773,21 @@ namespace mse {
 		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement>& _First, const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement>& _Last) {
 			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> >(_First, _Last);
 		}
+
+		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+		when it's safe to do so. In this case TXScopeCSSSXSTERandomAccess(Const)SectionIterator<>s. */
+		template <typename _TElement>
+		class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> >
+			: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> > {
+		public:
+			typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> > base_class;
+			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+		};
+
+		template <typename _TElement>
+		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement>& _Last) {
+			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> >(_First, _Last);
+		}
 	}
 
 	template <typename _TElement>
@@ -11929,8 +11944,6 @@ namespace mse {
 		using TXSLTACSSSXSTERandomAccessSection = TXSLTARandomAccessSection<TXSLTACSSSXSTERAIterator<_TElement> >;
 		*/
 
-
-#if 1
 		template <typename _TElement>
 		class TXSLTACSSSXSTERandomAccessConstSection;
 		template <typename _TElement>
@@ -12167,6 +12180,21 @@ namespace mse {
 		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement>& _First, const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement>& _Last) {
 			return TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> >(_First, _Last);
 		}
+
+		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+		when it's safe to do so. In this case TXSLTACSSSXSTERandomAccess(Const)SectionIterator<>s. */
+		template <typename _TElement>
+		class TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> >
+			: public TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> > {
+		public:
+			typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> > base_class;
+			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+		};
+
+		template <typename _TElement>
+		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement>& _First, const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement>& _Last) {
+			return TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> >(_First, _Last);
+		}
 	}
 
 	namespace rsv {
@@ -12276,10 +12304,6 @@ namespace mse {
 			friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
 				-> decltype(section.subsection_pv(pos, n));
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
-
-#endif // 0
-
-
 
 		template <typename _TRAIterator>
 		auto make_xslta_csssxste_random_access_const_section(const _TRAIterator& start_iter, typename TXSLTARandomAccessConstSection<_TRAIterator>::size_type count) {

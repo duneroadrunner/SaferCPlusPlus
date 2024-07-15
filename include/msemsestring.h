@@ -2209,6 +2209,21 @@ namespace mse {
 		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement>& _First, const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement>& _Last) {
 			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> >(_First, _Last);
 		}
+
+		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+		when it's safe to do so. In this case TXScopeCSSSXSTEString(Const)SectionIterator<>s. */
+		template <typename _TElement>
+		class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> >
+			: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> > {
+		public:
+			typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> > base_class;
+			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+		};
+
+		template <typename _TElement>
+		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement>& _Last) {
+			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> >(_First, _Last);
+		}
 	}
 
 	template <typename _TElement, class _Traits = std::char_traits<_TElement> >
