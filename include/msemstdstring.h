@@ -349,7 +349,7 @@ namespace mse {
 
 #ifdef MSE_HAS_CXX17
 			template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t</*_Is_string_view_or_section_ish<_TParam1>::value && */
-				(!mse::impl::_mse_Is_iterator<_TParam1>::value)> MSE_IMPL_EIS >
+				(!mse::impl::_mse_Is_iterator<_TParam1>::value) && (std::is_constructible<_MBS, _TParam1>::value)> MSE_IMPL_EIS >
 			basic_string(const _TParam1& _Right) : m_shptr(std::make_shared<_MBS>()) { assign(_Right); }
 
 			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>

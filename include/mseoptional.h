@@ -1720,12 +1720,18 @@ namespace mse {
 	/* This macro roughly simulates constructor inheritance. */
 #define MSE_OPTIONAL_USING(Derived, Base) MSE_USING_SANS_INITIALIZER_LISTS(Derived, Base)
 
+	template <class T>
+	class xscope_fixed_optional;
+	template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
+	class xscope_borrowing_via_move_fixed_optional;
 	template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
 	class xscope_borrowing_fixed_optional;
 	template <class _TLender, class T/* = mse::impl::target_type<_TLender> */, bool _ExclusiveAccess/* = false */>
 	class xscope_accessing_fixed_optional;
 
 	namespace rsv {
+		template <class T>
+		class xsclta_fixed_optional;
 		template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
 		class xslta_borrowing_fixed_optional;
 		template <class _TLender, class T/* = mse::impl::target_type<_TLender> */, bool _ExclusiveAccess/* = false */>
@@ -1941,6 +1947,11 @@ namespace mse {
 						contained_optional().reset();
 					}
 
+					//operator _MO() const& { return _MO(CNoopOrReadLockedSrcRefHolder<typename std::is_trivially_copy_constructible<_Ty>::type, _Myt>(*this).ref().contained_optional()); }
+					//operator _MO()&& { return _MO(CWriteLockedSrc<_Myt>(std::move(*this)).ref().contained_optional()); }
+					operator _MO() const& { return _MO((*this).contained_optional()); }
+					operator _MO()&& { return _MO((std::move(*this)).contained_optional()); }
+
 					MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
 
 				private:
@@ -1988,6 +1999,8 @@ namespace mse {
 
 					friend class mse::us::impl::Txscope_optional_structure_lock_guard<_Myt>;
 					friend class mse::us::impl::Txscope_const_optional_structure_lock_guard<_Myt>;
+					template <class _TLender2, class T2>
+					friend class mse::xscope_borrowing_via_move_fixed_optional;
 					template <class _TLender2, class T2>
 					friend class mse::xscope_borrowing_fixed_optional;
 					template <class _TLender2, class T2, bool _ExclusiveAccess2>
@@ -3616,6 +3629,7 @@ namespace mse {
 
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+		template <class _TLender2, class T2> friend class xscope_borrowing_via_move_fixed_optional;
 	};
 
 #ifdef MSE_HAS_CXX17
@@ -3843,9 +3857,70 @@ namespace mse {
 	}
 
 	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
-	class xscope_borrowing_fixed_optional : public xscope_accessing_fixed_optional<_TLender, T, true/*_ExclusiveAccess*/> {
+	class xscope_borrowing_via_move_fixed_optional : public xscope_fixed_optional<T>
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xscope_fixed_optional<T>, xscope_borrowing_via_move_fixed_optional<_TLender, T> >
+	{
 	public:
-		typedef xscope_accessing_fixed_optional<_TLender, T, true/*_ExclusiveAccess*/> base_class;
+		typedef xscope_fixed_optional<T> base_class;
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		xscope_borrowing_via_move_fixed_optional(xscope_borrowing_via_move_fixed_optional&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		xscope_borrowing_via_move_fixed_optional(xscope_borrowing_via_move_fixed_optional&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+		xscope_borrowing_via_move_fixed_optional(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {
+			//(*this).contained_optional() = std::move(m_src_ref);
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		xscope_borrowing_via_move_fixed_optional(_TLender* src_xs_ptr) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {
+			//(*this).contained_optional() = std::move(m_src_ref);
+		}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+		~xscope_borrowing_via_move_fixed_optional() {
+			m_src_ref = std::move((*this).contained_optional());
+		}
+
+		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
+
+		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+	private:
+		xscope_borrowing_via_move_fixed_optional(const xscope_borrowing_via_move_fixed_optional&) = delete;
+
+		_TLender& m_src_ref;
+
+		auto& src_ref() const { return m_src_ref; }
+		auto& src_ref() { return m_src_ref; }
+	};
+
+	namespace impl {
+		template<class T, class EqualTo>
+		struct SupportsXScopeAccessingFixedOptional_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(mse::make_xscope_accessing_fixed_optional(std::addressof(std::declval<U>())), mse::make_xscope_accessing_fixed_optional(std::addressof(std::declval<V>())), bool(true));
+			template<typename, typename>
+			static auto test(...) -> std::false_type;
+
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct SupportsXScopeAccessingFixedOptional : SupportsXScopeAccessingFixedOptional_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+	}
+
+	/* If the "lending" type is large and supports it, then xscope_borrowing_fixed_optional<> will "lock" the lending object for exclusive 
+	access during its "borrow". Otherwise it will instead move the contents from the lending object and return them at the end of the borrow. */
+	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+	using xscope_borrowing_fixed_optional_base = typename std::conditional <
+		((64/*arbitrary*/ < sizeof(_TLender)) || (!std::is_nothrow_move_assignable<_TLender>::value)) && (impl::SupportsXScopeAccessingFixedOptional<_TLender>::value)
+		, xscope_accessing_fixed_optional<_TLender, T, true/*_ExclusiveAccess*/>, xscope_borrowing_via_move_fixed_optional<_TLender, T> > ::type;
+
+	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+	class xscope_borrowing_fixed_optional : public xscope_borrowing_fixed_optional_base<_TLender, T> {
+	public:
+		typedef xscope_borrowing_fixed_optional_base<_TLender, T> base_class;
 
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 		xscope_borrowing_fixed_optional(xscope_borrowing_fixed_optional&&) = delete;
@@ -6593,6 +6668,7 @@ namespace mse {
 			template<typename T> using is_fixed_optional = mse::impl::disjunction<
 				mse::impl::is_instantiation_of<mse::impl::remove_const_t<T>, mse::fixed_optional>
 				, mse::impl::is_instantiation_of<mse::impl::remove_const_t<T>, mse::xscope_fixed_optional>
+				, mse::impl::is_instantiation_of<mse::impl::remove_const_t<T>, mse::xscope_borrowing_via_move_fixed_optional>
 				, mse::impl::is_instantiation_of<mse::impl::remove_const_t<T>, mse::xscope_borrowing_fixed_optional> >;
 		}
 	}

@@ -3853,7 +3853,7 @@ namespace mse {
 					static void foo1(const _Ty*) {}
 					template<class U, class V>
 					//static auto test(U*) -> decltype(_Ty(*mse::make_begin_const_iterator(std::declval<U>())), _Ty(*mse::make_begin_const_iterator(std::declval<V>())), bool(true));
-					static auto test(U*) -> decltype(foo1(std::addressof(*std::cbegin(std::declval<U>()))), foo1(std::addressof(*std::cbegin(std::declval<V>()))), bool(true));
+					static auto test(U*) -> decltype(foo1(std::addressof(*std::begin(std::declval<U>()))), foo1(std::addressof(*std::end(std::declval<V>()))), foo1(std::addressof(std::declval<V>()[0])), bool(true));
 					template<typename, typename>
 					static auto test(...)->std::false_type;
 
@@ -3864,42 +3864,10 @@ namespace mse {
 				struct IsStringViewOrSectionish1 : IsStringViewOrSectionish1_impl<
 					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 
-				template<class T, class EqualTo>
-				struct IsStringViewOrSectionish2_impl
-				{
-					static void foo1(const _Ty*) {}
-					template<class U, class V>
-					static auto test(U*) -> decltype(foo1(std::addressof(*std::cbegin(*std::declval<U>()))), foo1(std::addressof(*std::cbegin(*std::declval<V>()))), bool(true));
-					template<typename, typename>
-					static auto test(...)->std::false_type;
-
-					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				};
-				template<class T, class EqualTo = T>
-				struct IsStringViewOrSectionish2 : IsStringViewOrSectionish2_impl<
-					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-				template<class T, class EqualTo>
-				struct IsStringViewOrSectionish3_impl
-				{
-					static void foo1(const _Ty*) {}
-					template<class U, class V>
-					static auto test(U*) -> decltype(foo1(std::addressof((*std::declval<U>())[0])), foo1(std::addressof((*std::declval<U>())[0])), bool(true));
-					template<typename, typename>
-					static auto test(...)->std::false_type;
-
-					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				};
-				template<class T, class EqualTo = T>
-				struct IsStringViewOrSectionish3 : IsStringViewOrSectionish3_impl<
-					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
 			public:
 				template<class _StringViewIsh>
 				using _is_string_view_or_section_ish = std::conjunction<
-					std::disjunction<_is_string_view_ish<_StringViewIsh>, IsStringViewOrSectionish1<_StringViewIsh>, IsStringViewOrSectionish2<_StringViewIsh>, IsStringViewOrSectionish3<_StringViewIsh> >,
+					std::disjunction<_is_string_view_ish<_StringViewIsh>, IsStringViewOrSectionish1<_StringViewIsh> >,
 					std::negation<std::is_convertible<const _StringViewIsh&, const _Ty*>>
 				>;
 				template<class _StringViewIsh>
@@ -7838,7 +7806,8 @@ namespace mse {
 			msebasic_string(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(*xs_ptr, _Roff, _Count, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
 
 #ifdef MSE_HAS_CXX17
-			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
+			template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t</*_Is_string_view_or_section_ish<_TParam1>::value && */
+				(!mse::impl::_mse_Is_iterator<_TParam1>::value) && (std::is_constructible<base_class, _TParam1>::value)> MSE_IMPL_EIS >
 			msebasic_string(const _TParam1& _Right) : base_class(), m_mmitset(*this) { assign(_Right); }
 
 			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
