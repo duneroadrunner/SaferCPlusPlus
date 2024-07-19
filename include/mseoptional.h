@@ -1731,7 +1731,9 @@ namespace mse {
 
 	namespace rsv {
 		template <class T>
-		class xsclta_fixed_optional;
+		class xslta_fixed_optional;
+		template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
+		class xslta_borrowing_via_move_fixed_optional;
 		template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
 		class xslta_borrowing_fixed_optional;
 		template <class _TLender, class T/* = mse::impl::target_type<_TLender> */, bool _ExclusiveAccess/* = false */>
@@ -2005,6 +2007,8 @@ namespace mse {
 					friend class mse::xscope_borrowing_fixed_optional;
 					template <class _TLender2, class T2, bool _ExclusiveAccess2>
 					friend class mse::xscope_accessing_fixed_optional;
+					template <class _TLender2, class T2>
+					friend class mse::rsv::xslta_borrowing_via_move_fixed_optional;
 					template <class _TLender2, class T2>
 					friend class mse::rsv::xslta_borrowing_fixed_optional;
 					template <class _TLender2, class T2, bool _ExclusiveAccess2>
@@ -3647,12 +3651,416 @@ namespace mse {
 	}
 
 	namespace rsv {
+
+		namespace us {
+			namespace impl {
+				namespace ns_optional {
+
+					template <class T>
+					class xslta_fixed_optional_base
+						: private mse::impl::TOpaqueWrapper<mse::us::impl::ns_optional::optional_base1<T> >, private container_adjusted_default_state_mutex<T>{
+					public:
+						typedef mse::impl::TOpaqueWrapper<mse::us::impl::ns_optional::optional_base1<T> > base_class;
+						typedef mse::us::impl::ns_optional::optional_base1<T> std_optional;
+						typedef std_optional _MO;
+						typedef xslta_fixed_optional_base _Myt;
+
+						typedef container_adjusted_default_state_mutex<T> state_mutex_t;
+						typedef state_mutex_t _TStateMutex;
+
+						typedef typename _MO::value_type value_type;
+
+					private:
+						const _MO& contained_optional() const& { return base_class::value(); }
+						const _MO&& contained_optional() const&& { return base_class::value(); }
+						_MO& contained_optional()& { return base_class::value(); }
+						_MO&& contained_optional()&& {
+							return std::move(base_class::value());
+						}
+
+					public:
+						//MSE_OPTIONAL_USING(xslta_fixed_optional_base, base_class);
+
+						xslta_fixed_optional_base(const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(src_ref) {}
+						xslta_fixed_optional_base(T&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(MSE_FWD(src_ref)) {}
+
+						xslta_fixed_optional_base(const mse::rsv::xslta_optional<T>& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(_MO(src_ref)) {}
+						xslta_fixed_optional_base(mse::rsv::xslta_optional<T>&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(_MO(MSE_FWD(src_ref))) {}
+						xslta_fixed_optional_base(const _Myt& src_ref) : base_class(src_ref) {}
+						xslta_fixed_optional_base(_Myt&& src_ref) : base_class(MSE_FWD(src_ref)) {}
+
+						template<class _TLoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_TLoneParam, std_optional>::value> MSE_IMPL_EIS >
+						xslta_fixed_optional_base(_TLoneParam&& _X) : base_class(MSE_FWD(_X)) { /*m_debug_size = size();*/ }
+						template<class _TLoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_TLoneParam, std_optional>::value> MSE_IMPL_EIS >
+						xslta_fixed_optional_base(const _TLoneParam& _X) : base_class(_X) { /*m_debug_size = size();*/ }
+
+						constexpr explicit xslta_fixed_optional_base(in_place_t, T&& _Arg MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(in_place, std::forward<T>(_Arg)) {}
+						constexpr explicit xslta_fixed_optional_base(in_place_t, const T& _Arg MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(in_place, _Arg) {}
+
+						/* If an initialization value is not given, any lifetimes will be "deduced" to be a (minimum) default value. */
+						constexpr xslta_fixed_optional_base() noexcept {}
+						constexpr xslta_fixed_optional_base(nullopt_t) noexcept {}
+						/* Constructs an empty container, uses the second argument only to deduce lifetime. */
+						constexpr xslta_fixed_optional_base(nullopt_t, const T& MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept {}
+
+						~xslta_fixed_optional_base() {
+							mse::impl::destructor_lock_guard1<state_mutex_t> lock1(state_mutex1());
+						}
+
+						constexpr explicit operator bool() const noexcept {
+							return bool(contained_optional());
+						}
+						_NODISCARD constexpr bool has_value() const noexcept {
+							return contained_optional().has_value();
+						}
+
+						_NODISCARD constexpr const T& value() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+							return contained_optional().value();
+						}
+						_NODISCARD constexpr T& value()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+							return contained_optional().value();
+						}
+						_NODISCARD constexpr T&& value() && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+							return std::move(MSE_FWD(contained_optional()).value());
+						}
+						_NODISCARD constexpr const T&& value() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+							return std::move(MSE_FWD(contained_optional()).value());
+						}
+
+						template <class _Ty2>
+						_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) const&
+							MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_12$); labels(alias_12$); this(_[alias_12$]); return_value(alias_12$) }")
+						{
+							return contained_optional().value_or(std::forward<_Ty2>(_Right));
+						}
+						template <class _Ty2>
+						_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) &&
+							MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_12$); labels(alias_12$); this(_[alias_12$]); return_value(alias_12$) }")
+						{
+							return contained_optional().value_or(std::forward<_Ty2>(_Right));
+						}
+
+						_NODISCARD constexpr const T* operator->() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+							return std::addressof((*this).value());
+						}
+						_NODISCARD constexpr const T* operator->() const&& = delete;
+						_NODISCARD constexpr T* operator->()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+							return std::addressof((*this).value());
+						}
+						_NODISCARD constexpr const T* operator->() && = delete;
+						_NODISCARD constexpr const T& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+							return (*this).value();
+						}
+						_NODISCARD constexpr T& operator*()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+							return (*this).value();
+						}
+						_NODISCARD constexpr T&& operator*() && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+							return std::move((*this).value());
+						}
+						_NODISCARD constexpr const T&& operator*() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+							return std::move((*this).value());
+						}
+
+						MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
+
+					private:
+
+						state_mutex_t& state_mutex1()& { return (*this); }
+
+						MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+						friend class mse::rsv::xslta_fixed_optional<T>;
+					} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+						MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+					// 20.5.8, Relational operators
+					template <class T> constexpr bool operator==(const xslta_fixed_optional_base<T>& x, const xslta_fixed_optional_base<T>& y)
+					{
+						return bool(x) != bool(y) ? false : bool(x) == false ? true : *x == *y;
+					}
+
+					template <class T> constexpr bool operator!=(const xslta_fixed_optional_base<T>& x, const xslta_fixed_optional_base<T>& y)
+					{
+						return !(x == y);
+					}
+
+					template <class T> constexpr bool operator<(const xslta_fixed_optional_base<T>& x, const xslta_fixed_optional_base<T>& y)
+					{
+						return (!y) ? false : (!x) ? true : *x < *y;
+					}
+
+					template <class T> constexpr bool operator>(const xslta_fixed_optional_base<T>& x, const xslta_fixed_optional_base<T>& y)
+					{
+						return (y < x);
+					}
+
+					template <class T> constexpr bool operator<=(const xslta_fixed_optional_base<T>& x, const xslta_fixed_optional_base<T>& y)
+					{
+						return !(y < x);
+					}
+
+					template <class T> constexpr bool operator>=(const xslta_fixed_optional_base<T>& x, const xslta_fixed_optional_base<T>& y)
+					{
+						return !(x < y);
+					}
+
+
+					// 20.5.9, Comparison with nullopt
+					template <class T> constexpr bool operator==(const xslta_fixed_optional_base<T>& x, mse::us::impl::ns_optional::nullopt_t_base) noexcept
+					{
+						return (!x);
+					}
+
+					template <class T> constexpr bool operator==(mse::us::impl::ns_optional::nullopt_t_base, const xslta_fixed_optional_base<T>& x) noexcept
+					{
+						return (!x);
+					}
+
+					template <class T> constexpr bool operator!=(const xslta_fixed_optional_base<T>& x, mse::us::impl::ns_optional::nullopt_t_base) noexcept
+					{
+						return bool(x);
+					}
+
+					template <class T> constexpr bool operator!=(mse::us::impl::ns_optional::nullopt_t_base, const xslta_fixed_optional_base<T>& x) noexcept
+					{
+						return bool(x);
+					}
+
+					template <class T> constexpr bool operator<(const xslta_fixed_optional_base<T>&, mse::us::impl::ns_optional::nullopt_t_base) noexcept
+					{
+						return false;
+					}
+
+					template <class T> constexpr bool operator<(mse::us::impl::ns_optional::nullopt_t_base, const xslta_fixed_optional_base<T>& x) noexcept
+					{
+						return bool(x);
+					}
+
+					template <class T> constexpr bool operator<=(const xslta_fixed_optional_base<T>& x, mse::us::impl::ns_optional::nullopt_t_base) noexcept
+					{
+						return (!x);
+					}
+
+					template <class T> constexpr bool operator<=(mse::us::impl::ns_optional::nullopt_t_base, const xslta_fixed_optional_base<T>&) noexcept
+					{
+						return true;
+					}
+
+					template <class T> constexpr bool operator>(const xslta_fixed_optional_base<T>& x, mse::us::impl::ns_optional::nullopt_t_base) noexcept
+					{
+						return bool(x);
+					}
+
+					template <class T> constexpr bool operator>(mse::us::impl::ns_optional::nullopt_t_base, const xslta_fixed_optional_base<T>&) noexcept
+					{
+						return false;
+					}
+
+					template <class T> constexpr bool operator>=(const xslta_fixed_optional_base<T>&, mse::us::impl::ns_optional::nullopt_t_base) noexcept
+					{
+						return true;
+					}
+
+					template <class T> constexpr bool operator>=(mse::us::impl::ns_optional::nullopt_t_base, const xslta_fixed_optional_base<T>& x) noexcept
+					{
+						return (!x);
+					}
+
+
+					// 20.5.10, Comparison with T
+					template <class T> constexpr bool operator==(const xslta_fixed_optional_base<T>& x, const T& v)
+					{
+						return bool(x) ? *x == v : false;
+					}
+
+					template <class T> constexpr bool operator==(const T& v, const xslta_fixed_optional_base<T>& x)
+					{
+						return bool(x) ? v == *x : false;
+					}
+
+					template <class T> constexpr bool operator!=(const xslta_fixed_optional_base<T>& x, const T& v)
+					{
+						return bool(x) ? *x != v : true;
+					}
+
+					template <class T> constexpr bool operator!=(const T& v, const xslta_fixed_optional_base<T>& x)
+					{
+						return bool(x) ? v != *x : true;
+					}
+
+					template <class T> constexpr bool operator<(const xslta_fixed_optional_base<T>& x, const T& v)
+					{
+						return bool(x) ? *x < v : true;
+					}
+
+					template <class T> constexpr bool operator>(const T& v, const xslta_fixed_optional_base<T>& x)
+					{
+						return bool(x) ? v > *x : true;
+					}
+
+					template <class T> constexpr bool operator>(const xslta_fixed_optional_base<T>& x, const T& v)
+					{
+						return bool(x) ? *x > v : false;
+					}
+
+					template <class T> constexpr bool operator<(const T& v, const xslta_fixed_optional_base<T>& x)
+					{
+						return bool(x) ? v < *x : false;
+					}
+
+					template <class T> constexpr bool operator>=(const xslta_fixed_optional_base<T>& x, const T& v)
+					{
+						return bool(x) ? *x >= v : false;
+					}
+
+					template <class T> constexpr bool operator<=(const T& v, const xslta_fixed_optional_base<T>& x)
+					{
+						return bool(x) ? v <= *x : false;
+					}
+
+					template <class T> constexpr bool operator<=(const xslta_fixed_optional_base<T>& x, const T& v)
+					{
+						return bool(x) ? *x <= v : true;
+					}
+
+					template <class T> constexpr bool operator>=(const T& v, const xslta_fixed_optional_base<T>& x)
+					{
+						return bool(x) ? v >= *x : true;
+					}
+
+
+					// Comparison of optional<T&> with T
+					template <class T> constexpr bool operator==(const xslta_fixed_optional_base<T&>& x, const T& v)
+					{
+						return bool(x) ? *x == v : false;
+					}
+
+					template <class T> constexpr bool operator==(const T& v, const xslta_fixed_optional_base<T&>& x)
+					{
+						return bool(x) ? v == *x : false;
+					}
+
+					template <class T> constexpr bool operator!=(const xslta_fixed_optional_base<T&>& x, const T& v)
+					{
+						return bool(x) ? *x != v : true;
+					}
+
+					template <class T> constexpr bool operator!=(const T& v, const xslta_fixed_optional_base<T&>& x)
+					{
+						return bool(x) ? v != *x : true;
+					}
+
+					template <class T> constexpr bool operator<(const xslta_fixed_optional_base<T&>& x, const T& v)
+					{
+						return bool(x) ? *x < v : true;
+					}
+
+					template <class T> constexpr bool operator>(const T& v, const xslta_fixed_optional_base<T&>& x)
+					{
+						return bool(x) ? v > *x : true;
+					}
+
+					template <class T> constexpr bool operator>(const xslta_fixed_optional_base<T&>& x, const T& v)
+					{
+						return bool(x) ? *x > v : false;
+					}
+
+					template <class T> constexpr bool operator<(const T& v, const xslta_fixed_optional_base<T&>& x)
+					{
+						return bool(x) ? v < *x : false;
+					}
+
+					template <class T> constexpr bool operator>=(const xslta_fixed_optional_base<T&>& x, const T& v)
+					{
+						return bool(x) ? *x >= v : false;
+					}
+
+					template <class T> constexpr bool operator<=(const T& v, const xslta_fixed_optional_base<T&>& x)
+					{
+						return bool(x) ? v <= *x : false;
+					}
+
+					template <class T> constexpr bool operator<=(const xslta_fixed_optional_base<T&>& x, const T& v)
+					{
+						return bool(x) ? *x <= v : true;
+					}
+
+					template <class T> constexpr bool operator>=(const T& v, const xslta_fixed_optional_base<T&>& x)
+					{
+						return bool(x) ? v >= *x : true;
+					}
+
+					// Comparison of optional<T const&> with T
+					template <class T> constexpr bool operator==(const xslta_fixed_optional_base<const T&>& x, const T& v)
+					{
+						return bool(x) ? *x == v : false;
+					}
+
+					template <class T> constexpr bool operator==(const T& v, const xslta_fixed_optional_base<const T&>& x)
+					{
+						return bool(x) ? v == *x : false;
+					}
+
+					template <class T> constexpr bool operator!=(const xslta_fixed_optional_base<const T&>& x, const T& v)
+					{
+						return bool(x) ? *x != v : true;
+					}
+
+					template <class T> constexpr bool operator!=(const T& v, const xslta_fixed_optional_base<const T&>& x)
+					{
+						return bool(x) ? v != *x : true;
+					}
+
+					template <class T> constexpr bool operator<(const xslta_fixed_optional_base<const T&>& x, const T& v)
+					{
+						return bool(x) ? *x < v : true;
+					}
+
+					template <class T> constexpr bool operator>(const T& v, const xslta_fixed_optional_base<const T&>& x)
+					{
+						return bool(x) ? v > *x : true;
+					}
+
+					template <class T> constexpr bool operator>(const xslta_fixed_optional_base<const T&>& x, const T& v)
+					{
+						return bool(x) ? *x > v : false;
+					}
+
+					template <class T> constexpr bool operator<(const T& v, const xslta_fixed_optional_base<const T&>& x)
+					{
+						return bool(x) ? v < *x : false;
+					}
+
+					template <class T> constexpr bool operator>=(const xslta_fixed_optional_base<const T&>& x, const T& v)
+					{
+						return bool(x) ? *x >= v : false;
+					}
+
+					template <class T> constexpr bool operator<=(const T& v, const xslta_fixed_optional_base<const T&>& x)
+					{
+						return bool(x) ? v <= *x : false;
+					}
+
+					template <class T> constexpr bool operator<=(const xslta_fixed_optional_base<const T&>& x, const T& v)
+					{
+						return bool(x) ? *x <= v : true;
+					}
+
+					template <class T> constexpr bool operator>=(const T& v, const xslta_fixed_optional_base<const T&>& x)
+					{
+						return bool(x) ? v >= *x : true;
+					}
+				}
+			}
+		}
+
+
 		template<class T>
-		class xslta_fixed_optional : public mse::us::impl::ns_optional::fixed_optional_base2<T>, public mse::us::impl::XScopeTagBase
+		class xslta_fixed_optional : public mse::rsv::us::impl::ns_optional::xslta_fixed_optional_base<T>, public mse::us::impl::XScopeTagBase
 			, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(T, xslta_fixed_optional<T>)
 		{
 		public:
-			typedef mse::us::impl::ns_optional::fixed_optional_base2<T> base_class;
+			typedef  mse::rsv::us::impl::ns_optional::xslta_fixed_optional_base<T> base_class;
 			typedef mse::us::impl::ns_optional::optional_base1<T> std_optional;
 			typedef std_optional _MO;
 			typedef xslta_fixed_optional _Myt;
@@ -3668,15 +4076,21 @@ namespace mse {
 			xslta_fixed_optional(const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(src_ref) {}
 			xslta_fixed_optional(T&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(MSE_FWD(src_ref)) {}
 
+			xslta_fixed_optional(const mse::rsv::xslta_optional<T>& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(src_ref) {}
+			xslta_fixed_optional(mse::rsv::xslta_optional<T>&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(MSE_FWD(src_ref)) {}
 			xslta_fixed_optional(const xslta_fixed_optional& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
 			xslta_fixed_optional(xslta_fixed_optional&& src_ref) : base_class(mse::us::impl::as_ref<base_class>(MSE_FWD(src_ref))) {}
-			//xslta_fixed_optional(const mstd::optional<T>& src_ref) : base_class(mse::us::impl::as_ref<base_class>(src_ref)) {}
+
+			template<class _TLoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_TLoneParam, std_optional>::value> MSE_IMPL_EIS >
+			xslta_fixed_optional(_TLoneParam&& _X) : base_class(MSE_FWD(_X)) { /*m_debug_size = size();*/ }
+			template<class _TLoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_TLoneParam, std_optional>::value> MSE_IMPL_EIS >
+			xslta_fixed_optional(const _TLoneParam& _X) : base_class(_X) { /*m_debug_size = size();*/ }
 
 			/* If an initialization value is not given, any lifetimes will be "deduced" to be a (minimum) default value. */
 			constexpr xslta_fixed_optional() noexcept {}
-			constexpr xslta_fixed_optional(nullopt_t) noexcept {}
+			constexpr xslta_fixed_optional(nullopt_t) noexcept : base_class(nullopt) {}
 			/* Constructs an empty container, uses the second argument only to deduce lifetime. */
-			constexpr xslta_fixed_optional(nullopt_t, const T& MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept {}
+			constexpr xslta_fixed_optional(nullopt_t, const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept : base_class(nullopt, src_ref) {}
 
 			_NODISCARD constexpr const T& value() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return contained_optional().value();
@@ -3729,8 +4143,10 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		private:
+			template <class _TLender2, class T2> friend class xslta_borrowing_via_move_fixed_optional;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
-			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
 
 #ifdef MSE_HAS_CXX17
 		template<class _Ty>
@@ -4084,10 +4500,99 @@ namespace mse {
 			return xslta_accessing_fixed_optional<_TLender>(src_xs_ptr);
 		}
 
+
 		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
-		class xslta_borrowing_fixed_optional : public xslta_accessing_fixed_optional<_TLender, T, true/*_ExclusiveAccess*/> {
+		class xslta_borrowing_via_move_fixed_optional : public xslta_fixed_optional<T>
+			, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xslta_fixed_optional<T>, xslta_borrowing_via_move_fixed_optional<_TLender, T> >
+		{
 		public:
-			typedef xslta_accessing_fixed_optional<_TLender, T, true/*_ExclusiveAccess*/> base_class;
+			typedef xslta_fixed_optional<T> base_class;
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			xslta_borrowing_via_move_fixed_optional(xslta_borrowing_via_move_fixed_optional&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			xslta_borrowing_via_move_fixed_optional(xslta_borrowing_via_move_fixed_optional&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+			xslta_borrowing_via_move_fixed_optional(const mse::rsv::TXSLTAPointer<_TLender>& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99))")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {
+				//(*this).contained_optional() = std::move(m_src_ref);
+			}
+			xslta_borrowing_via_move_fixed_optional(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99))")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {
+				//(*this).contained_optional() = std::move(m_src_ref);
+			}
+			~xslta_borrowing_via_move_fixed_optional() {
+				m_src_ref = std::move((*this).contained_optional());
+			}
+
+			/* Since we didn't properly set the base class lifetime (with an "mse::lifetime_label_for_base_class()" annotation), we cannot just 
+			use/inherit the base class accessor functions/operators. We have to override them and add the proper lifetime annotations. */
+
+			_NODISCARD constexpr auto& value() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return base_class::value();
+			}
+
+			template <class _Ty2>
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) const&
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_11$); labels(alias_11$); this(_[ _[alias_11$] ]); return_value(alias_11$) }")
+			{
+				return base_class::value_or(std::forward<_Ty2>(_Right));
+			}
+			template <class _Ty2>
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) &&
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_11$); labels(alias_11$); this(_[ _[alias_11$] ]); return_value(alias_11$) }")
+			{
+				return base_class::value_or(std::forward<_Ty2>(_Right));
+			}
+
+			_NODISCARD constexpr auto* operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return std::addressof((*this).value());
+			}
+			_NODISCARD constexpr auto& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+				return (*this).value();
+			}
+
+			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
+
+			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+		private:
+			xslta_borrowing_via_move_fixed_optional(const xslta_borrowing_via_move_fixed_optional&) = delete;
+
+			_TLender& m_src_ref;
+
+			auto& src_ref() const { return m_src_ref; }
+			auto& src_ref() { return m_src_ref; }
+		} MSE_ATTR_STR("mse::lifetime_labels(99))")
+			/* Note that we're not properly setting the base class lifetime here, so we're going to have override any base class accessor 
+			member functions/operators with lifetime annotations. */;
+
+		namespace impl {
+			template<class T, class EqualTo>
+			struct SupportsXSLTAAccessingFixedOptional_impl
+			{
+				template<class U, class V>
+				static auto test(U*) -> decltype(mse::rsv::make_xslta_accessing_fixed_optional(std::addressof(std::declval<U>())), mse::rsv::make_xslta_accessing_fixed_optional(std::addressof(std::declval<V>())), bool(true));
+				template<typename, typename>
+				static auto test(...) -> std::false_type;
+
+				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			};
+			template<class T, class EqualTo = T>
+			struct SupportsXSLTAAccessingFixedOptional : SupportsXSLTAAccessingFixedOptional_impl<
+				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		}
+
+		/* If the "lending" type is large and supports it, then xslta_borrowing_fixed_optional<> will "lock" the lending object for exclusive
+		access during its "borrow". Otherwise it will instead move the contents from the lending object and return them at the end of the borrow. */
+		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		using xslta_borrowing_fixed_optional_base = typename std::conditional <
+			((64/*arbitrary*/ < sizeof(_TLender)) || (!std::is_nothrow_move_assignable<_TLender>::value)) && (impl::SupportsXSLTAAccessingFixedOptional<_TLender>::value)
+			, xslta_accessing_fixed_optional<_TLender, T, true/*_ExclusiveAccess*/>, xslta_borrowing_via_move_fixed_optional<_TLender, T> > ::type;
+
+		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		class xslta_borrowing_fixed_optional : public xslta_borrowing_fixed_optional_base<_TLender, T> {
+		public:
+			typedef xslta_borrowing_fixed_optional_base<_TLender, T> base_class;
 
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			xslta_borrowing_fixed_optional(xslta_borrowing_fixed_optional&&) = delete;
@@ -4097,9 +4602,7 @@ namespace mse {
 #define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(src_xs_ptr) {}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
 			xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(src_xs_ptr) {}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
 
@@ -4201,6 +4704,7 @@ namespace mse {
 			typedef mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_const_lockable_tag> base_class;
 			typedef xslta_optional _Myt;
 			typedef typename base_class::value_type value_type;
+			typedef mse::us::impl::ns_optional::optional_base1<T> std_optional;
 
 			xslta_optional(const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(src_ref) {}
 			xslta_optional(T&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(MSE_FWD(src_ref)) {}
@@ -4214,6 +4718,9 @@ namespace mse {
 			constexpr xslta_optional(nullopt_t) noexcept {}
 			/* Constructs an empty container, uses the second argument only to deduce lifetime. */
 			constexpr xslta_optional(nullopt_t, const T& MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept {}
+
+			xslta_optional(std_optional&& _X) : base_class(MSE_FWD(_X)) {}
+			xslta_optional(const std_optional& _X) : base_class(_X) {}
 
 			void emplace(T&& arg MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
 				base_class::emplace(std::forward<T>(arg));
