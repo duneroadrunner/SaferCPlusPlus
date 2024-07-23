@@ -4513,32 +4513,32 @@ namespace mse {
 			xslta_borrowing_via_move_fixed_optional(xslta_borrowing_via_move_fixed_optional&&) = default;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
-			xslta_borrowing_via_move_fixed_optional(const mse::rsv::TXSLTAPointer<_TLender>& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99))")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {
+			xslta_borrowing_via_move_fixed_optional(const mse::rsv::TXSLTAPointer<_TLender>& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99 [alias_11$]))")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {
 				//(*this).contained_optional() = std::move(m_src_ref);
 			}
-			xslta_borrowing_via_move_fixed_optional(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99))")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {
+			xslta_borrowing_via_move_fixed_optional(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99 [alias_11$]))")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {
 				//(*this).contained_optional() = std::move(m_src_ref);
 			}
 			~xslta_borrowing_via_move_fixed_optional() {
 				m_src_ref = std::move((*this).contained_optional());
 			}
 
-			/* Since we didn't properly set the base class lifetime (with an "mse::lifetime_label_for_base_class()" annotation), we cannot just 
-			use/inherit the base class accessor functions/operators. We have to override them and add the proper lifetime annotations. */
+			/* At the time of writing, lifetimmes are only guaranteed to be transmitted properly to the immediate base class, so we override these
+			member functions with lifetime annotations in order to reexepress them for potential use by an immediately derived class. */
 
 			_NODISCARD constexpr auto& value() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 				return base_class::value();
 			}
 
 			template <class _Ty2>
-			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) const&
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_11$); labels(alias_11$); this(_[ _[alias_11$] ]); return_value(alias_11$) }")
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) const&
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_12$); labels(alias_12$); this(_[ _[alias_12$] ]); return_value(alias_12$) }")
 			{
 				return base_class::value_or(std::forward<_Ty2>(_Right));
 			}
 			template <class _Ty2>
-			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) &&
-				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_11$); labels(alias_11$); this(_[ _[alias_11$] ]); return_value(alias_11$) }")
+			_NODISCARD constexpr T value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) &&
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_12$); labels(alias_12$); this(_[ _[alias_12$] ]); return_value(alias_12$) }")
 			{
 				return base_class::value_or(std::forward<_Ty2>(_Right));
 			}
@@ -4561,9 +4561,9 @@ namespace mse {
 
 			auto& src_ref() const { return m_src_ref; }
 			auto& src_ref() { return m_src_ref; }
-		} MSE_ATTR_STR("mse::lifetime_labels(99))")
-			/* Note that we're not properly setting the base class lifetime here, so we're going to have override any base class accessor 
-			member functions/operators with lifetime annotations. */;
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(99 [alias_11$]))")
+			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
 
 		namespace impl {
 			template<class T, class EqualTo>
