@@ -549,10 +549,6 @@ namespace mse {
 
 	namespace us {
 		namespace impl {
-			class StructureLockTagBase {};
-
-			class StaticStructureContainerTagBase {};
-			class LockableStructureContainerTagBase {};
 			class ContiguousSequenceContainerTagBase {};
 			class ContiguousSequenceStaticStructureContainerTagBase : public ContiguousSequenceContainerTagBase, public StaticStructureContainerTagBase {};
 			class ContiguousSequenceLockableStructureContainerTagBase : public ContiguousSequenceContainerTagBase, public LockableStructureContainerTagBase {};
