@@ -25,7 +25,7 @@ To see the library in action, you can check out some [benchmark code](https://gi
 Elements in this library are currently based on the C++17 version of their counterpart APIs. (C++14 is still supported.)
 
 #### Supported platforms
-Tested with the microsoft compiler (v.19.38.33133) (Windows 10), g++13.2.0 and clang++18.1.3 (Ubuntu 24.04.1). Versions of g++ prior to version 5 are not supported. Last tested with Apple clang++ version 12.0.0 (macOS Catalina v10.15.7) on Aug 18, 2021. Apple clang++ is not currently a regular test target. Some (generally "less commonly used") features are not available with Apple clang++ (for example, some uses of `std::tie`). With the microsoft compiler, compiling in "conformance" mode (/permissive-) (which is not the default when using C++17 or lower) is recommended.
+Tested with the microsoft compiler (v.19.41.34120) (Windows 10), g++13.2.0 and clang++18.1.3 (Ubuntu 24.04.1). Versions of g++ prior to version 5 are not supported. Last tested with Apple clang++ version 12.0.0 (macOS Catalina v10.15.7) on Aug 18, 2021. Apple clang++ is not currently a regular test target. Some (generally "less commonly used") features are not available with Apple clang++ (for example, some uses of `std::tie`). With the microsoft compiler, compiling in "conformance" mode (/permissive-) (which is not the default when using C++17 or lower) is recommended.
 
 ### Table of contents
 1. [Overview](#overview)
