@@ -972,7 +972,7 @@ usage example:
 
 Scope pointers have limitations, (currently) for example, in terms of their ability to be retargeted, and their ability to be stored in dynamic containers. When necessary, you can circumvent these sorts of limitations by creating "registered proxy" pointers corresponding to given scope pointers. 
 
-Registered proxy pointers are basically just [registered pointers](#registered-pointers) which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TRegisteredProxyPointer<T>` is similar to a `TRegisteredConstPointer<TXScopeFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the `TXScopeFixedPointer<T>`. They are also convertible back to scope pointers when needed. 
+Registered proxy pointers are basically just [registered pointers](#registered-pointers) which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TRegisteredProxyPointer<T>` is similar to a `TRegisteredConstPointer<TXScopeFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the [`TXScopeFixedPointer<T>`](#txscopefixedpointer). They are also convertible back to scope pointers when needed. 
 
 To be clear, a `TRegisteredProxyPointer<T>` doesn't have any functionality that a `TRegisteredConstPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some situations.
 
