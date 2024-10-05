@@ -285,13 +285,15 @@ Once you've embraced the scope pointer lifestyle, you can use a conformance help
 
 ### Registered pointers
 
-"Registered" pointers behave much like native C++ pointers, except that their value is (automatically) set to nullptr when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a nullptr. Because they don't take ownership like some other smart pointers, they can point to objects allocated on the stack as well as the heap.  Safe, flexible pointers like these can be handy in situations that are not amenable to the confining restrictions of the lifetime checker. They may be particularly useful when updating legacy code (to be safer).
+We start off by introducing a non-owning (smart) pointer type that is actually intended to be used infrequently. But we want to demonstrate up front that (safe) smart pointers don't necessarily have to "own" their target objects (i.e. control how and when they are allocated and deallocated like `std::unique_ptr<>` and `std::shared_ptr<>` do), or otherwise be tied to a restrictive, intrusive allocation/deallocation mechanism (like `std::weak_ptr<>` is).
+
+"Registered" pointers behave much like native C pointers, except that their value is (automatically) set to a null value (`nullptr`) when the target object is destroyed. And by default they will throw an exception upon any attempt to dereference a pointer with a null value. Like raw pointers (and unlike the standard smart pointers), they can point to, for example, local variables or elements of a container, and are generally agnostic to when/where/how their target objects are allocated and deallocated.
 
 Two types of registered pointers are provided - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TCRegisteredPointer<>`](#tcregisteredpointer). They are functionally equivalent, but `TRegisteredPointer<>` is optimized for better average performance, while `TCRegisteredPointer<>` is a little more optimized for better "worst-case" performance. (Specifically, the operation of retargeting (or "detargeting") a `TRegisteredPointer<>` in the worst case is *O(n)*, where *n* is the number of other pointers targeting the same original target object. With `TCRegisteredPointer<>` it's always *O(1)*.)
 
-Note that these registered pointers cannot be shared among asynchronous threads (enforced by the type system and scpptool). When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library.
+Their flexibility in terms of the allocation/deallocation of their target objects makes them amenable to being used as a sort of "safe from dangling dereferences" one-to-one replacement for raw pointers. This can be useful for updating legacy code (to be safer).
 
-Although registered pointers are more general and flexible, it's expected that [scope pointers](#scope-pointers) will actually be more commonly used. At least in cases where performance is important. While more restricted than registered pointers, by default they have no run-time overhead. In fact, even when registered pointers are used, they would be expected to be commonly used in [conjuction with scope pointers](#tregisteredproxypointer). Though for the sake of simplicity, we don't use scope pointers in the registered pointer usage examples.  
+Lets look at a simple example of how to use them before we get into their limitations.
 
 ### TRegisteredPointer
 
@@ -336,7 +338,17 @@ usage example: ([link to interactive version](https://godbolt.org/z/1W5KnxvY4))
     }
 ```
 
-Note that using `mse::registered_delete()` to delete an object through a base class pointer will result in a failed assert / thrown exception. In such cases use (the not quite as safe) `mse::us::registered_delete()` instead.
+(Note that using `mse::registered_delete()` to delete an object through a base class pointer will result in a failed assert / thrown exception. In such cases use (the not quite as safe) `mse::us::registered_delete()` instead.)
+
+Ok, but let's now consider the limitations of the safety mechanism. While registered pointers' built-in mechanisms ensure that they don't dereference to invalid memory, those mechanisms do not ensure the safety of any (named) raw pointers or references implicitly or explicitly derived from the dereference of a registered pointer. This includes any implicit `this` pointer derived from the dereference of a registered pointer. So for example, invoking a non-static member function or operator on the object reference resulting from a dereference of a registered pointer would not be ensured to be safe. This would include, for example, (non-trivial) copy constructors. 
+
+This generally wouldn't be an issue for legacy C code, as C doesn't have any implicit `this` pointers. 
+
+But if the goal is complete memory safety for C++ code, it would be the job of a static analyzer/enforcer like scpptool to disallow such invocation of member functions or operators.
+
+The strategies for working around this limitation might include the avoidance of non-static member functions in favor of static member or free functions that explicitly take a (safe) reference to the object in question. There does seem to be somewhat of a trend of preferring free functions over member functions.
+
+Another option that may often be more practical, is to add a level of indirection and instead of targeting the object directly, use registered pointers to target safe "strong" references from which safe raw references (including implicit `this` pointers) to the object can be obtained. Examples of such safe strong references include, for example, [reference counting (shared ownership) pointers](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/README.md#reference-counting-pointers), [norad (trust-but-verify) pointers](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/README.md#norad-pointers), and [scope pointers](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/README.md#scope-pointers) (which include raw pointers themselves). Using registered pointers to target (statically verified) raw pointers has the benefit of being "unintrusive" in the sense of not requiring any modifications to the target object's type. In fact there is a version of registered pointer, ["registered proxy pointer"](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/README.md#tregisteredproxypointer), provided specifically to make this use case more convenient. 
 
 ### TRegisteredNotNullPointer
 `TRegisteredNotNullPointer<>` is a version of `TRegisteredPointer<>` that cannot be constructed to a null value. Note that `TRegisteredPointer<>` does not implicitly convert to `TRegisteredNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function.
