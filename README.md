@@ -291,7 +291,7 @@ We start off by introducing a non-owning (smart) pointer type that is actually i
 
 Two types of registered pointers are provided - [`TRegisteredPointer<>`](#tregisteredpointer) and [`TCRegisteredPointer<>`](#tcregisteredpointer). They are functionally equivalent, but `TRegisteredPointer<>` is optimized for better average performance, while `TCRegisteredPointer<>` is a little more optimized for better "worst-case" performance. (Specifically, the operation of retargeting (or "detargeting") a `TRegisteredPointer<>` in the worst case is *O(n)*, where *n* is the number of other pointers targeting the same original target object. With `TCRegisteredPointer<>` it's always *O(1)*.)
 
-Their flexibility in terms of the allocation/deallocation of their target objects makes them amenable to being used as a sort of "safe from dangling dereferences" one-to-one replacement for raw pointers. This can be useful for updating legacy code (to be safer).
+Their flexibility in terms of the allocation/deallocation of their target objects makes them amenable to being used as a sort of "safe from dangling dereferences" one-for-one replacement for raw pointers. This can be useful for updating legacy code (to be safer).
 
 Lets look at a simple example of how to use them before we get into their limitations.
 
