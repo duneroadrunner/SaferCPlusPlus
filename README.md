@@ -2834,7 +2834,7 @@ usage example:
         an exception on any attempt to access invalid memory. */
     
     
-        /* mse::msearray is not quite as safe as mse::mstd::array in the following way: */
+        /* mse::us::msearray is not quite as safe as mse::mstd::array in the following way: */
     
         std::array<int, 3>::iterator sa1_it;
         mse::us::msearray<int, 3>::ss_iterator_type msea1_it; // bounds checked iterator just like mse::mstd::array::iterator
