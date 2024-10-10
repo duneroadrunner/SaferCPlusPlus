@@ -4381,8 +4381,16 @@ namespace mse {
 			: public TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> > {
 		public:
 			typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+			typedef mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> _InIt;
+			//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
+			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return base_class::first();
+			}
+			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return base_class::last();
+			}
+		} MSE_ATTR_STR("mse::lifetime_labels(99)");
 
 		template <typename _TRAContainerPointer>
 		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>& _First, const mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>& _Last) {
@@ -4394,8 +4402,16 @@ namespace mse {
 			: public TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> > {
 		public:
 			typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+			typedef mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> _InIt;
+			//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
+			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return base_class::first();
+			}
+			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return base_class::last();
+			}
+		} MSE_ATTR_STR("mse::lifetime_labels(99)");
 
 		template <typename _TRAContainerPointer>
 		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer>& _First, const mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer>& _Last) {
@@ -11981,8 +11997,16 @@ namespace mse {
 			: public TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> > {
 		public:
 			typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+			typedef mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> _InIt;
+			//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
+			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return base_class::first();
+			}
+			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return base_class::last();
+			}
+		} MSE_ATTR_STR("mse::lifetime_labels(99)");
 
 		template <typename _TElement>
 		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement>& _First, const mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement>& _Last) {
@@ -12169,8 +12193,16 @@ namespace mse {
 			: public TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> > {
 		public:
 			typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+			typedef mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> _InIt;
+			//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
+			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return base_class::first();
+			}
+			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return base_class::last();
+			}
+		} MSE_ATTR_STR("mse::lifetime_labels(99)");
 
 		template <typename _TElement>
 		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement>& _First, const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement>& _Last) {
