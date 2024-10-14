@@ -894,8 +894,8 @@ namespace mse {
 					, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ExclusivePointerTagBase, _TRAContainerPointer, TRAIteratorBase<_TRAContainerPointer> >
 				{
 				public:
-					typedef mse::impl::random_access_iterator_base_from_ra_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> > base_class;
-					MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+					typedef mse::impl::random_access_iterator_base_from_ra_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> > historical_base_class;
+					MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(historical_base_class);
 					typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
 
 				private:
@@ -2033,18 +2033,18 @@ namespace mse {
 		class TXScopeRawPointerRAFirstAndLast {
 		public:
 			typedef decltype(us::iterator_pair_to_raw_pointers_checked(std::declval<_InIt>(), std::declval<_InIt>())) raw_pair_t;
-			TXScopeRawPointerRAFirstAndLast(const _InIt& _First, const _InIt& _Last)
+			TXScopeRawPointerRAFirstAndLast(const _InIt& _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"), const _InIt& _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
 				: m_raw_pair(us::iterator_pair_to_raw_pointers_checked(_First, _Last)) {}
-			const auto& first() const {
+			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return m_raw_pair.first;
 			}
-			const auto& last() const {
+			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return m_raw_pair.second;
 			}
 
 		private:
-			raw_pair_t m_raw_pair;
-		};
+			raw_pair_t m_raw_pair MSE_ATTR_STR("mse::lifetime_label(99)");
+		} MSE_ATTR_STR("mse::lifetime_label(99)");
 
 		/* Provides raw pointer iterators for the given "random access" container. */
 		template<class _ContainerPointer>
