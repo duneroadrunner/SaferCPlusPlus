@@ -4794,9 +4794,9 @@ namespace mse {
 			TXSLTADynamicContainerRAIterator(TXSLTADynamicContainerRAIterator&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
 
 			template<class TElementProxyRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAIterator(TXSLTADynamicContainerRAIterator<TElementProxyRef2, _Ty2>&& src) : base_class(MSE_FWD(src)) {}
+			TXSLTADynamicContainerRAIterator(TXSLTADynamicContainerRAIterator<TElementProxyRef2, _Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
 			template<class TElementProxyRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAIterator(const TXSLTADynamicContainerRAIterator<TElementProxyRef2, _Ty2>& src) : base_class(src) {}
+			TXSLTADynamicContainerRAIterator(const TXSLTADynamicContainerRAIterator<TElementProxyRef2, _Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
 
 			TXSLTADynamicContainerRAIterator(const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index) : base_class(ra_container_pointer, index) {}
 			TXSLTADynamicContainerRAIterator(_TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index) : base_class(MSE_FWD(ra_container_pointer), index) {}
