@@ -29,15 +29,91 @@ namespace mse {
 	namespace impl {
 		namespace us {
 			MSE_SUPPRESS_CHECK_IN_DECLSCOPE
+			template<class TElement>
+			class basic_raw_ptr_iterator1_t {
+			public:
+				typedef mse::impl::random_access_iterator_base_from_ra_container<mse::rsv::xslta_array<TElement, 1> > historical_base_class;
+				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(historical_base_class);
+
+				basic_raw_ptr_iterator1_t(const basic_raw_ptr_iterator1_t& src) = default;
+				basic_raw_ptr_iterator1_t(basic_raw_ptr_iterator1_t&& src) = default;
+
+				MSE_SUPPRESS_CHECK_IN_DECLSCOPE basic_raw_ptr_iterator1_t(std::nullptr_t) : m_raw_ptr_iter(nullptr) {}
+				basic_raw_ptr_iterator1_t(TElement* raw_ptr_iter MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_raw_ptr_iter(raw_ptr_iter) {}
+				MSE_SUPPRESS_CHECK_IN_DECLSCOPE
+				template<class TIter, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<TElement*, mse::impl::remove_reference_t<TIter> >::value) && (!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<TIter> >::value)> MSE_IMPL_EIS >
+				basic_raw_ptr_iterator1_t(TIter const & iter MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) : m_raw_ptr_iter(std::addressof(*iter)) {}
+
+				reference operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+					return (*m_raw_ptr_iter);
+				}
+				pointer operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
+					return m_raw_ptr_iter;
+				}
+
+				basic_raw_ptr_iterator1_t& operator +=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					MSE_SUPPRESS_CHECK_IN_XSCOPE m_raw_ptr_iter += (x);
+					return (*this);
+				}
+				basic_raw_ptr_iterator1_t& operator -=(difference_type x) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { operator +=(-x); return (*this); }
+				basic_raw_ptr_iterator1_t& operator ++() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { MSE_SUPPRESS_CHECK_IN_XSCOPE ++m_raw_ptr_iter; return (*this); }
+				basic_raw_ptr_iterator1_t operator ++(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto _Tmp = *this; MSE_SUPPRESS_CHECK_IN_XSCOPE m_raw_ptr_iter++; return (_Tmp); }
+				basic_raw_ptr_iterator1_t& operator --() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") { MSE_SUPPRESS_CHECK_IN_XSCOPE --m_raw_ptr_iter; return (*this); }
+				basic_raw_ptr_iterator1_t operator --(int) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto _Tmp = *this; MSE_SUPPRESS_CHECK_IN_XSCOPE m_raw_ptr_iter--; return (_Tmp); }
+				basic_raw_ptr_iterator1_t operator+(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { auto retval = (*this); retval += n; return retval; }
+				basic_raw_ptr_iterator1_t operator-(difference_type n) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") { return ((*this) + (-n)); }
+				difference_type operator-(const basic_raw_ptr_iterator1_t& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) const {
+					MSE_SUPPRESS_CHECK_IN_XSCOPE return (m_raw_ptr_iter - _Right_cref.m_raw_ptr_iter);
+				}
+
+				bool operator==(const basic_raw_ptr_iterator1_t& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) const {
+					return (m_raw_ptr_iter == _Right_cref.m_raw_ptr_iter);
+				}
+				bool operator!=(const basic_raw_ptr_iterator1_t& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) const {
+					return !((*this) == _Right_cref);
+				}
+				bool operator<(const basic_raw_ptr_iterator1_t& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) const {
+					MSE_SUPPRESS_CHECK_IN_XSCOPE return (m_raw_ptr_iter < _Right_cref.m_raw_ptr_iter);
+				}
+				bool operator>(const basic_raw_ptr_iterator1_t& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) const {
+					MSE_SUPPRESS_CHECK_IN_XSCOPE return (m_raw_ptr_iter > _Right_cref.m_raw_ptr_iter);
+				}
+				bool operator<=(const basic_raw_ptr_iterator1_t& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) const {
+					MSE_SUPPRESS_CHECK_IN_XSCOPE return (m_raw_ptr_iter <= _Right_cref.m_raw_ptr_iter);
+				}
+				bool operator>=(const basic_raw_ptr_iterator1_t& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) const {
+					MSE_SUPPRESS_CHECK_IN_XSCOPE return (m_raw_ptr_iter >= _Right_cref.m_raw_ptr_iter);
+				}
+
+				basic_raw_ptr_iterator1_t& operator=(const basic_raw_ptr_iterator1_t& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					m_raw_ptr_iter = _Right_cref.m_raw_ptr_iter;
+					return (*this);
+				}
+
+				TElement* m_raw_ptr_iter MSE_ATTR_STR("mse::lifetime_labels(99)");
+			} MSE_ATTR_STR("mse::lifetime_labels(99)");
+
+			template<class T>
+			struct lta_basic_pair_of_same {
+				lta_basic_pair_of_same(const lta_basic_pair_of_same& src) = default;
+				lta_basic_pair_of_same(lta_basic_pair_of_same&& src) = default;
+				lta_basic_pair_of_same(T const& first_param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"), T const& second_param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) : first(first_param), second(second_param) {}
+				T first MSE_ATTR_STR("mse::lifetime_label(99)");
+				T second MSE_ATTR_STR("mse::lifetime_label(99)");
+			} MSE_ATTR_STR("mse::lifetime_label(99)");
+
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE
 			template<class _InIt>
-			auto iterator_pair_to_raw_pointers_checked(const _InIt& first, const _InIt& last) {
+			auto iterator_pair_to_raw_pointers_checked(const _InIt& first MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), const _InIt& last MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
+			{
 				MSE_SUPPRESS_CHECK_IN_XSCOPE {
-					typedef decltype(std::addressof(*(std::declval<_InIt>()))) raw_pointer_type;
-					typedef std::pair<raw_pointer_type, raw_pointer_type> return_type;
+					typedef basic_raw_ptr_iterator1_t<mse::impl::remove_reference_t<decltype(*(std::declval<_InIt>()))> > unchecked_iterator_type;
+					typedef lta_basic_pair_of_same<unchecked_iterator_type> return_type;
 					auto distance = last - first; /* Safe iterators will ensure that both iterators point into the same container. */
 					if (1 <= distance) {
 						/* Safe iterators will ensure that dereferences are valid. */
-						return return_type(std::addressof(*first), std::addressof(*(last - 1)) + 1);
+						return return_type(unchecked_iterator_type{ std::addressof(*first) }, unchecked_iterator_type{ std::addressof(*(last - 1)) + 1 });
 					}
 					else {
 						return return_type(nullptr, nullptr);
@@ -557,7 +633,7 @@ namespace mse {
 		class xscope_c_range_equal {
 		public:
 			typedef bool result_type;
-			result_type result;
+			result_type result = false;
 			xscope_c_range_equal(const _ContainerPointer& _XscpPtr, _InIt2 _First2)
 				: result(eval(_XscpPtr, _First2)) {}
 		private:
