@@ -1210,9 +1210,9 @@ namespace impl {
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TPointer() {}
 
 				void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
-				_Ty* raw_pointer() const { return m_ptr; }
-				_Ty* get() const { return m_ptr; }
-				_Ty& operator*() const {
+				_Ty* raw_pointer() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") { return m_ptr; }
+				_Ty* get() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") { return m_ptr; }
+				_Ty& operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					assert_initialized();
 #ifndef NDEBUG
 					if (nullptr == m_ptr) {
@@ -1221,7 +1221,7 @@ namespace impl {
 #endif // !NDEBUG
 					return (*m_ptr);
 				}
-				_Ty* operator->() const {
+				_Ty* operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					assert_initialized();
 #ifndef NDEBUG
 					if (nullptr == m_ptr) {
@@ -1230,18 +1230,18 @@ namespace impl {
 #endif // !NDEBUG
 					return m_ptr;
 				}
-				TPointer<_Ty, _TID>& operator=(_Ty* ptr) {
+				TPointer<_Ty, _TID>& operator=(_Ty* ptr) MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					note_value_assignment();
 					m_ptr = ptr;
 					return (*this);
 				}
-				TPointer<_Ty, _TID>& operator=(const TPointer<_Ty, _TID>& _Right_cref) {
+				TPointer<_Ty, _TID>& operator=(const TPointer<_Ty, _TID>& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					note_value_assignment();
 					m_ptr = _Right_cref.m_ptr;
 					return (*this);
 				}
 				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
-				TPointer<_Ty, _TID>& operator=(const TPointer<_Ty2, _TID >& _Right_cref) {
+				TPointer<_Ty, _TID>& operator=(const TPointer<_Ty2, _TID >& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					note_value_assignment();
 					m_ptr = _Right_cref.m_ptr;
 					return (*this);
@@ -1257,7 +1257,7 @@ namespace impl {
 					return (m_ptr != nullptr);
 				}
 
-				explicit operator _Ty*() const {
+				explicit operator _Ty*() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					assert_initialized();
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 					if (nullptr == m_ptr) {
@@ -1289,11 +1289,11 @@ namespace impl {
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TPointerForLegacy() {}
 
 				void raw_pointer(_Ty* ptr) { note_value_assignment(); m_ptr = ptr; }
-				_Ty* raw_pointer() const { return m_ptr; }
-				_Ty* get() const { return m_ptr; }
+				_Ty* raw_pointer() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") { return m_ptr; }
+				_Ty* get() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") { return m_ptr; }
 
 				template<typename _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t < std::is_same<_Ty, _Ty2>::value && (!std::is_same<void*, mse::impl::remove_const_t<_Ty2> >::value)> MSE_IMPL_EIS >
-				_Ty2& operator*() const {
+				_Ty2& operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					assert_initialized();
 #ifndef NDEBUG
 					if (nullptr == m_ptr) {
@@ -1304,7 +1304,7 @@ namespace impl {
 				}
 
 				template<typename _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t < std::is_same<_Ty, _Ty2>::value && (!std::is_same<void*, mse::impl::remove_const_t<_Ty2> >::value)> MSE_IMPL_EIS >
-				_Ty2* operator->() const {
+				_Ty2* operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					assert_initialized();
 #ifndef NDEBUG
 					if (nullptr == m_ptr) {
@@ -1313,7 +1313,7 @@ namespace impl {
 #endif // !NDEBUG
 					return m_ptr;
 				}
-				TPointerForLegacy& operator=(_Ty* ptr) {
+				TPointerForLegacy& operator=(_Ty* ptr) MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					note_value_assignment();
 					m_ptr = ptr;
 					return (*this);
@@ -1336,7 +1336,7 @@ namespace impl {
 				}
 #endif // !MSE_HAS_CXX20
 
-				operator _Ty*() const {
+				operator _Ty*() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					assert_initialized();
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 					if (nullptr == m_ptr) {
@@ -1347,9 +1347,9 @@ namespace impl {
 				}
 
 				/* provisional */
-				_Ty* const& mse_base_type_ref() const & { (*this).assert_initialized(); return (*this).m_ptr; }
+				_Ty* const& mse_base_type_ref() const & MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") { (*this).assert_initialized(); return (*this).m_ptr; }
 				_Ty* const& mse_base_type_ref() const&& = delete;
-				_Ty*& mse_base_type_ref() & { (*this).assert_initialized(); return (*this).m_ptr; }
+				_Ty*& mse_base_type_ref() & MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") { (*this).assert_initialized(); return (*this).m_ptr; }
 				_Ty*& mse_base_type_ref() && = delete;
 
 				_Ty* m_ptr;
