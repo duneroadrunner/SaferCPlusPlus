@@ -672,7 +672,7 @@ Generally you're going to want to obtain a "strong" pointer from the weak pointe
 
 This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_ptr" to prevent cyclic references from becoming memory leaks. This isn't much different from using `std::weak_ptr<>` in terms of functionality, but there can be performance and safety advantages.
 
-([link to interactive version](https://godbolt.org/z/xYE9eWE3E))
+([link to interactive version](https://godbolt.org/z/Md9E5T3n4))
 ```cpp
     #include "mserefcounting.h"
     #include "mseoptional.h"
@@ -711,7 +711,7 @@ This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_p
                 dereference. That would include any implicit (member function) `this` pointers. (You could imagine a
                 mischievous destructor causing the destruction of the `this` object before the end of the member function 
                 call.) Avoiding implicit `this` raw pointers could be a reason to prefer free functions over member 
-                functions. Unfortunately, the strong imperitave to conform to the standard library interface means that 
+                functions. Unfortunately, the strong imperative to conform to the standard library interface means that 
                 library provides corresponding member functions. The follow code needs to call the `mstd::optional::emplace()` 
                 member function. So we use a "strong pointer store" to ensure that the `this` pointer remains valid for the 
                 entire member function call. */
