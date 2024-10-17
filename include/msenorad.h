@@ -638,6 +638,7 @@ namespace mse {
 				, public std::conditional<(!mse::impl::is_derived_from<_TROFLy, mse::us::impl::AsyncNotPassableTagBase>::value)
 					&& (std::is_arithmetic/*as opposed to say, atomic*/<_TRefCounter>::value)
 					, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder<mse::us::impl::AsyncNotPassableTagBase, TGNoradObj<_TROFLy, _TRefCounter> > >::type
+				, public std::conditional<mse::impl::is_shared_ptr<_TROFLy>::value || mse::impl::is_unique_ptr<_TROFLy>::value, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<mse::us::impl::StrongPointerTagBase, TGNoradObj<_TROFLy, _TRefCounter> > >::type
 			{
 			public:
 				typedef _TROFLy base_class;

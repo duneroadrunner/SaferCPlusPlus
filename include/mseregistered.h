@@ -551,6 +551,7 @@ namespace mse {
 	objects allocated on the stack. */
 	template<typename _TROFLy>
 	class TNDRegisteredObj : public _TROFLy, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotShareableTagBase, _TROFLy, TNDRegisteredObj<_TROFLy> >
+		, public std::conditional<mse::impl::is_shared_ptr<_TROFLy>::value || mse::impl::is_unique_ptr<_TROFLy>::value, mse::us::impl::StrongPointerTagBase,mse::impl::TPlaceHolder<mse::us::impl::StrongPointerTagBase, TNDRegisteredObj<_TROFLy> > >::type
 	{
 	public:
 		typedef _TROFLy base_class;

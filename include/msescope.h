@@ -1218,6 +1218,7 @@ namespace mse {
 		class TXScopeObj : public mse::us::impl::TXScopeObjBase<_TROy>
 			, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::XScopeTagBase, mse::us::impl::TXScopeObjBase<_TROy>, TXScopeObj<_TROy> >
 			, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ReferenceableByScopePointerTagBase, mse::us::impl::TXScopeObjBase<_TROy>, TXScopeObj<_TROy> >
+			, public std::conditional<mse::impl::is_shared_ptr<_TROy>::value || mse::impl::is_unique_ptr<_TROy>::value, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<mse::us::impl::StrongPointerTagBase, TXScopeObj<_TROy> > >::type
 		{
 		public:
 			typedef mse::us::impl::TXScopeObjBase<_TROy> base_class;
