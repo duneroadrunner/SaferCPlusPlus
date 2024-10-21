@@ -249,8 +249,8 @@ Probably the main issue when it comes to memory safety is the relationship betwe
 Rust | SaferCPlusPlus
 ---- | --------------
 non-reassignable reference | scope pointer
-reassignable (mut) reference | registered pointer
-Box<> | scope owner pointer
+reassignable (mut) reference | norad (or statically checked raw) pointer
+Box<> | single owner pointer
 Rc<> | reference counting pointer
 Arc<> | shared immutable pointer
 Arc< RwLock<> > | access requester
@@ -259,7 +259,7 @@ Indeed, if you are a Rust programmer you might be more comfortable using SaferCP
 
 The most commonly used reference type, the non-reassignable (non-mut) reference in Rust and the scope pointer in SaferCPlusPlus, incurs no run-time overhead in both cases, which is a primary reason for the excellent performance of both solutions. 
 
-Reassignable (mut) references occur much less frequently, but currently, safe, reassignable, zero-overhead pointers in C++ are even [more restricted](https://github.com/duneroadrunner/scpptool#restrictions-on-the-use-of-native-pointers-and-references) than their counterpart in Rust. However, the SaferCPlusPlus library also provides pointers with run-time safety mechanisms and greater flexibility, for which there are no Rust counterparts (due to Rust's lack of move constructors). So for example, "self-referencing" data types (that are movable and can be allocated on the stack) are straightforward to implement in C++'s memory safe subset in a way that's not really available in Rust.
+Reassignable (mut) references occur much less frequently, but currently, safe, reassignable, zero-overhead pointers in C++ are even [more restricted](https://github.com/duneroadrunner/scpptool#restrictions-on-the-use-of-native-pointers-and-references) than their counterpart in Rust. However, the SaferCPlusPlus library also provides pointers with run-time safety mechanisms and greater flexibility, for which there are no Rust counterparts (due to Rust's lack of move constructors). So for example, "self-referencing" data types (that are movable and can be allocated on the stack) are straightforward to implement in C++'s memory safe subset in a way that's not really available in Safe Rust.
 
 Probably the most noticeable difference though, is that SaferCPlusPlus does not (universally) restrict the number and type of references to an object that can exist at one time (i.e. the "exclusivity of mutable references") the way Rust does. With respect to memory safety, the benefit of this restriction is that it ensures that objects with "arbitrary lifespan" (like an element in a (resizable) vector) are not decommissioned while other references to that object still exist. But most objects do not have "arbitrary lifespan" (both Rust and SaferCPlusPlus encourage most objects to have "scope lifespan"), so most of the time, from a memory safety perspective, this restriction is not necessary. So SaferCPlusPlus (and the lifetime checker too) are more selective about what restrictions are applied and when. 
 
@@ -338,7 +338,7 @@ usage example: ([link to interactive version](https://godbolt.org/z/1W5KnxvY4))
     }
 ```
 
-(Note that using `mse::registered_delete()` to delete an object through a base class pointer will result in a failed assert / thrown exception. In such cases use (the not quite as safe) `mse::us::registered_delete()` instead.)
+(Note that using `mse::registered_delete()` to delete an object through a base class pointer will result in a failed assert / thrown exception. In such cases use (the not quite as safe) `mse::us::registered_delete()` instead. Though in modern C++ (and this library), use of `new()` and `delete()` are discouraged and generally no longer really necessary.)
 
 Ok, but let's now consider the limitations of the safety mechanism. While registered pointers' built-in mechanisms ensure that they don't dereference to invalid memory, those mechanisms do not ensure the safety of any (named) raw pointers or references implicitly or explicitly derived from the dereference of a registered pointer. This includes any implicit `this` pointer derived from the dereference of a registered pointer. So for example, invoking a non-static member function or operator on the object reference resulting from a dereference of a registered pointer would not be ensured to be safe. This would include, for example, (non-trivial) copy constructors. 
 
@@ -428,7 +428,6 @@ usage example: ([link to interactive version](https://godbolt.org/z/P87sdKf4h))
     
         class D {
         public:
-            virtual ~D() {}
             mse::TCRegisteredPointer<C> m_c_ptr;
         };
     
@@ -447,7 +446,7 @@ usage example: ([link to interactive version](https://godbolt.org/z/P87sdKf4h))
     }
 ```
 
-As with [`TRegisteredPointer<>`](#tregisteredpointer), if deleting a cregistered object via a pointer to its base class you'll need to use the `mse::us::cregistered_delete<>()` function instead.
+(As with [`TRegisteredPointer<>`](#tregisteredpointer), if deleting a cregistered object via a pointer to its base class you'll need to use the `mse::us::cregistered_delete<>()` function instead.)
 
 #### TCRegisteredNotNullPointer
 
@@ -478,7 +477,6 @@ usage example: ([link to interactive version](https://godbolt.org/z/shYeoPs5T))
 
         class D {
         public:
-            virtual ~D() {}
             mse::TNoradPointer<C> m_c_ptr;
         };
 
@@ -577,7 +575,7 @@ usage example: ([link to interactive version](https://godbolt.org/z/b4dMe3dKK))
         public:
             A() {}
             A(const A& _X) : b(_X.b) {}
-            virtual ~A() {
+            ~A() {
                 int q = 3; /* just so you can place a breakpoint if you want */
             }
             A& operator=(const A& _X) { b = _X.b; return (*this); }
@@ -610,6 +608,10 @@ usage example: ([link to interactive version](https://godbolt.org/z/b4dMe3dKK))
         }
     }
 ```
+
+(Note that while we use `std::vector<>` in this example, this library provides compatible [safe vector implementations](#vectors) that we recommend using instead.)
+
+Also note that while the library's reference counting pointers' run-time mechansims ensure that they can be dereferenced safely, that safety would not generally extend to any raw references or pointers derived from such a dereference. That would include any implicit (member function) `this` pointers. (You could imagine a mischievous destructor causing the destruction of the `this` object before the end of the member function call.) (scpptool will identify and complain about any such unsafe raw ponter/references.) Avoiding implicit `this` raw pointers could be a reason to prefer free functions over member functions. Unfortunately, the strong imperative to conform to the standard library interface means that library provides corresponding member functions. So when you need to call a member function of a reference counting pointer dereference, or you need to ensure the safety of any raw pointer/reference to a reference counting pointer dereference, you can use a ["strong pointer store"](#make_xscope_strong_pointer_store) to ensure that the implicit `this` pointer, or other derived raw pointer/reference, remains valid for its entire lifespan. (See the second ["Using registered pointers as weak pointers with reference counting pointers"](using-registered-pointers-as-weak-pointers-with-reference-counting-pointers) example following.)
 
 ### TRefCountingNotNullPointer
 
@@ -696,7 +698,7 @@ This next example demonstrates using `TNDCRegisteredPointer<>` as a safe "weak_p
             CRCNode(mse::TRegisteredPointer<mse::CInt> node_count_ptr) : m_node_count_ptr(node_count_ptr) {
                 (*node_count_ptr) += 1;
             }
-            virtual ~CRCNode() {
+            ~CRCNode() {
                 (*m_node_count_ptr) -= 1;
             }
             static rcnode_strongptr_regobj_t MakeRoot(mse::TRegisteredPointer<mse::CInt> node_count_ptr) {
@@ -762,7 +764,7 @@ usage example:
         class A {
         public:
             A() {}
-            virtual ~A() {
+            ~A() {
                 int q = 3; /* just so you can place a breakpoint if you want */
             }
 
@@ -835,7 +837,6 @@ usage example:
         public:
             A(int x) : b(x) {}
             A(const A& _X) : b(_X.b) {}
-            virtual ~A() {}
             A& operator=(const A& _X) { b = _X.b; return (*this); }
 
             int b = 3;
@@ -876,7 +877,6 @@ usage example:
         public:
             A(int x) : b(x) {}
             A(const A& _X) : b(_X.b) {}
-            virtual ~A() {}
             A& operator=(const A& _X) { b = _X.b; return (*this); }
 
             int b = 3;
@@ -913,7 +913,6 @@ usage example: ([link to interactive version](https://godbolt.org/z/MaPxdvhqf))
         public:
             A(int x) : b(x) {}
             A(const A& _X) : b(_X.b) {}
-            virtual ~A() {}
             A& operator=(const A& _X) { b = _X.b; return (*this); }
 
             int b = 3;
@@ -952,7 +951,6 @@ usage example:
         public:
             A(int x) : b(x) {}
             A(const A& _X) : b(_X.b) {}
-            virtual ~A() {}
             A& operator=(const A& _X) { b = _X.b; return (*this); }
 
             int b = 3;
@@ -1121,7 +1119,6 @@ For safety reasons, non-owning scope pointers (or any objects containing a scope
         public:
             A(int x) : b(x) {}
             A(const A& _X) : b(_X.b) {}
-            virtual ~A() {}
             bool operator<(const A& _X) const { return (b < _X.b); }
 
             int b = 3;
@@ -1788,7 +1785,6 @@ int main(int argc, char* argv[]) {
 	class A {
 	public:
 		A(int x) : b(x) {}
-		virtual ~A() {}
 
 		int b = 3;
 		mse::nii_string s = "some text ";
@@ -2187,7 +2183,6 @@ int main(int argc, char* argv[]) {
 	class A {
 	public:
 		A(int x) : b(x) {}
-		virtual ~A() {}
 
 		int b = 3;
 		mse::nii_string s = "some text ";
@@ -2266,7 +2261,6 @@ int main(int argc, char* argv[]) {
     class A {
     public:
         A(int x) : b(x) {}
-        virtual ~A() {}
 
         int b = 3;
         mse::nii_string s = "some text ";
@@ -2342,7 +2336,6 @@ int main(int argc, char* argv[]) {
     class A {
     public:
         A(int x) : b(x) {}
-        virtual ~A() {}
 
         int b = 3;
         mse::nii_string s = "some text ";
@@ -2435,7 +2428,6 @@ int main(int argc, char* argv[]) {
     class A {
     public:
         A(int x) : b(x) {}
-        virtual ~A() {}
 
         int b = 3;
         mse::nii_string s = "some text ";
