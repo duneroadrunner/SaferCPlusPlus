@@ -4831,6 +4831,38 @@ namespace mse {
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
+		template<class TAccessingFixed, class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+		class TXSLTADynamicOptionContainerElementProxyConstRef : public mse::us::impl::XSLTATagBase {
+		public:
+			typedef TAccessingFixed accessing_fixed_type;
+			typedef _TPointerToLender pointer_to_lender_type;
+			typedef _TLender lender_type;
+			typedef _Ty element_type;
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicOptionContainerElementProxyConstRef(TXSLTADynamicOptionContainerElementProxyConstRef&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicOptionContainerElementProxyConstRef(TXSLTADynamicOptionContainerElementProxyConstRef&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicOptionContainerElementProxyConstRef(const TXSLTADynamicOptionContainerElementProxyConstRef&) = delete;
+
+#if 0
+			TXSLTADynamicOptionContainerElementProxyConstRef(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_bf_container(src_xs_ptr) {}
+			TXSLTADynamicOptionContainerElementProxyConstRef(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_bf_container(src_xs_ptr) {}
+#endif // 0
+			TXSLTADynamicOptionContainerElementProxyConstRef(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : m_bf_container(src_xs_ptr) {}
+
+
+			operator _Ty() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return m_bf_container.value();
+			}
+			template<typename _Ty2>
+			void operator=(const _Ty2& src_ref) & = delete;
+		private:
+			TAccessingFixed m_bf_container MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
 		template<class TElementProxyRef, class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
 		class TXSLTADynamicOptionContainerElementProxyPtr : public mse::us::impl::XSLTATagBase {
 		public:
@@ -4856,6 +4888,31 @@ namespace mse {
 
 		private:
 			TElementProxyRef m_proxy_ref MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+		template<class TElementProxyConstRef, class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+		class TXSLTADynamicOptionContainerElementProxyConstPtr : public mse::us::impl::XSLTATagBase {
+		public:
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicOptionContainerElementProxyConstPtr(TXSLTADynamicOptionContainerElementProxyConstPtr&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicOptionContainerElementProxyConstPtr(TXSLTADynamicOptionContainerElementProxyConstPtr&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicOptionContainerElementProxyConstPtr(const TXSLTADynamicOptionContainerElementProxyConstPtr&) = delete;
+
+#if 0
+			TXSLTADynamicOptionContainerElementProxyConstPtr(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_proxy_ref(src_xs_ptr) {}
+			TXSLTADynamicOptionContainerElementProxyConstPtr(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_proxy_ref(src_xs_ptr) {}
+#endif // 0
+			TXSLTADynamicOptionContainerElementProxyConstPtr(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : m_proxy_ref(src_xs_ptr) {}
+
+			auto operator->() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::addressof(m_proxy_ref);
+			}
+
+		private:
+			TElementProxyConstRef m_proxy_ref MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 	}
@@ -5291,8 +5348,31 @@ namespace mse {
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
+		template<class TElementProxyConstRef, class _TLender, class _Ty = typename _TLender::value_type>
+		class TXSLTADynamicOptionalElementProxyConstPtr : public mse::us::impl::XSLTATagBase {
+		public:
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicOptionalElementProxyConstPtr(TXSLTADynamicOptionalElementProxyConstPtr&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicOptionalElementProxyConstPtr(TXSLTADynamicOptionalElementProxyConstPtr&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicOptionalElementProxyConstPtr(const TXSLTADynamicOptionalElementProxyConstPtr&) = delete;
+
+			TXSLTADynamicOptionalElementProxyConstPtr(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_proxy_ref(src_xs_ptr) {}
+			TXSLTADynamicOptionalElementProxyConstPtr(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_proxy_ref(src_xs_ptr) {}
+			auto operator->() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::addressof(m_proxy_ref);
+			}
+
+		private:
+			TElementProxyConstRef m_proxy_ref MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
 		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = mse::impl::container_element_type<_TLender> >
 		using TXSLTAOptionalElementProxyRef = mse::rsv::TXSLTADynamicOptionContainerElementProxyRef<mse::rsv::xslta_accessing_fixed_optional<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty>;
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = mse::impl::container_element_type<_TLender> >
+		using TXSLTAOptionalElementProxyConstRef = mse::rsv::TXSLTADynamicOptionContainerElementProxyConstRef<mse::rsv::xslta_accessing_fixed_optional<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty>;
 
 
 		template<class _Ty>
@@ -5347,9 +5427,6 @@ namespace mse {
 			}
 
 
-			_NODISCARD constexpr const _Ty& value() const& MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return base_class::value();
-			}
 			_NODISCARD constexpr auto value()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				return TXSLTAOptionalElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty>(mse::rsv::xslta_ptr_to(*this));
 				//return base_class::value();
@@ -5358,8 +5435,13 @@ namespace mse {
 				return TXSLTAOptionalElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty>(mse::rsv::xslta_ptr_to(*this));
 				//return std::move(MSE_FWD(base_class::value());
 			}
-			_NODISCARD constexpr const _Ty&& value() const&& MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return std::move(MSE_FWD(base_class::value()));
+			_NODISCARD constexpr auto value() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty>(mse::rsv::xslta_ptr_to(*this));
+				//return base_class::value();
+			}
+			_NODISCARD constexpr auto value() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty>(mse::rsv::xslta_ptr_to(*this));
+				//return std::move(MSE_FWD(base_class::value());
 			}
 
 			template <class _Ty2>
@@ -5375,19 +5457,18 @@ namespace mse {
 				return base_class::value_or(std::forward<_Ty2>(_Right));
 			}
 
-			_NODISCARD constexpr const _Ty* operator->() const& MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return std::addressof((*this).value());
-			}
-			_NODISCARD constexpr const _Ty* operator->() const&& = delete;
 			_NODISCARD constexpr auto operator->()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				typedef TXSLTADynamicOptionalElementProxyPtr<TXSLTAOptionalElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, _Ty>, typename TXSLTAOptionalElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, _Ty>::lender_type, typename TXSLTAOptionalElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, _Ty>::element_type> TElementProxyPtr;
 				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*this));
 				//return std::addressof((*this).value());
 			}
 			_NODISCARD constexpr const _Ty* operator->() && = delete;
-			_NODISCARD constexpr const _Ty& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return (*this).value();
+			_NODISCARD constexpr auto operator->() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				typedef TXSLTADynamicOptionalElementProxyConstPtr<TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, _Ty>, typename TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, _Ty>::lender_type, typename TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, _Ty>::element_type> TElementProxyConstPtr;
+				return TElementProxyConstPtr(mse::rsv::xslta_ptr_to(*this));
+				//return std::addressof((*this).value());
 			}
+			_NODISCARD constexpr const _Ty* operator->() const&& = delete;
 			_NODISCARD constexpr auto operator*()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				/* This function returns a "proxy reference object". */
 				return (*this).value();
@@ -5397,8 +5478,14 @@ namespace mse {
 				return (*this).value();
 				//return std::move((*this).value());
 			}
-			_NODISCARD constexpr const _Ty&& operator*() const&& MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return std::move((*this).value());
+			_NODISCARD constexpr auto operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				/* This function returns a "proxy reference object". */
+				return (*this).value();
+			}
+			_NODISCARD constexpr auto operator*() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				/* This function returns a "proxy reference object". */
+				return (*this).value();
+				//return std::move((*this).value());
 			}
 
 			/* This type can be safely used as a function return value if the element it contains is also safely returnable. */

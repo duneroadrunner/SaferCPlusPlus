@@ -4745,6 +4745,41 @@ namespace mse {
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
+		template<class TAccessingFixed, class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		class TXSLTADynamicRAContainerElementProxyConstRef : public mse::us::impl::XSLTATagBase {
+		public:
+			typedef TAccessingFixed accessing_fixed_type;
+			typedef _TPointerToLender pointer_to_lender_type;
+			typedef _TLender lender_type;
+			typedef _Ty element_type;
+			typedef _A allocator_type;
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyConstRef(TXSLTADynamicRAContainerElementProxyConstRef&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyConstRef(TXSLTADynamicRAContainerElementProxyConstRef&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyConstRef(const TXSLTADynamicRAContainerElementProxyConstRef&) = delete;
+
+#if 0
+			TXSLTADynamicRAContainerElementProxyConstRef(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_bf_container(src_xs_ptr), m_index(index) {}
+			TXSLTADynamicRAContainerElementProxyConstRef(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_bf_container(src_xs_ptr), m_index(index) {}
+#endif // 0
+			TXSLTADynamicRAContainerElementProxyConstRef(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"), size_t index = 0) : m_bf_container(src_xs_ptr), m_index(index) {}
+
+
+			operator _Ty() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return m_bf_container[m_index];
+			}
+			template<typename _Ty2>
+			void operator=(const _Ty2& src_ref) = delete;
+
+		private:
+			TAccessingFixed m_bf_container MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+			size_t m_index = 0;
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
 		template<class TElementProxyRef, class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
 		class TXSLTADynamicRAContainerElementProxyPtr : public mse::us::impl::XSLTATagBase {
 		public:
@@ -4773,15 +4808,40 @@ namespace mse {
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
+		template<class TElementProxyConstRef, class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		class TXSLTADynamicRAContainerElementProxyConstPtr : public mse::us::impl::XSLTATagBase {
+		public:
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyConstPtr(TXSLTADynamicRAContainerElementProxyConstPtr&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyConstPtr(TXSLTADynamicRAContainerElementProxyConstPtr&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			TXSLTADynamicRAContainerElementProxyConstPtr(const TXSLTADynamicRAContainerElementProxyConstPtr&) = delete;
 
-		template <typename _TRAContainerPointer> class TXSLTADynamicContainerRAConstIterator;
+#if 0
+			TXSLTADynamicRAContainerElementProxyConstPtr(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_proxy_ref(src_xs_ptr, index) {}
+			TXSLTADynamicRAContainerElementProxyConstPtr(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), size_t index = 0) : m_proxy_ref(src_xs_ptr, index) {}
+#endif // 0
+			TXSLTADynamicRAContainerElementProxyConstPtr(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"), size_t index = 0) : m_proxy_ref(src_xs_ptr, index) {}
+
+			auto operator->() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return std::addressof(m_proxy_ref);
+			}
+
+		private:
+			TElementProxyConstRef m_proxy_ref MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+
+
+		template <class TElementProxyConstRef, typename _TRAContainerPointer> class TXSLTADynamicContainerRAConstIterator;
 		template <class TElementProxyRef, typename _TRAContainerPointer> class TXSLTADynamicContainerRAIterator;
 		namespace us {
 			/* A couple of unsafe functions for internal use. */
 			template<class TElementProxyRef, class _TRAContainerPointer>
 			TXSLTADynamicContainerRAIterator<TElementProxyRef, _TRAContainerPointer> unsafe_make_xslta_dynamic_container_ra_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXSLTADynamicContainerRAIterator<TElementProxyRef, _TRAContainerPointer>::size_type index/* = 0*/);
-			template<class _TRAContainerPointer>
-			TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer> unsafe_make_xslta_dynamic_container_ra_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer>::size_type index/* = 0*/);
+			template<class TElementProxyConstRef, class _TRAContainerPointer>
+			TXSLTADynamicContainerRAConstIterator<TElementProxyConstRef, _TRAContainerPointer> unsafe_make_xslta_dynamic_container_ra_const_iterator(const _TRAContainerPointer& ra_container_pointer, typename TXSLTADynamicContainerRAConstIterator<TElementProxyConstRef, _TRAContainerPointer>::size_type index/* = 0*/);
 		}
 
 		template <class TElementProxyRef, typename _TRAContainerPointer>
@@ -4830,7 +4890,7 @@ namespace mse {
 				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*(this->target_container_ptr())), this->position());
 				//return base_class::operator->();
 			}
-			reference operator[](difference_type _Off) const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
+			TElementProxyRef operator[](difference_type _Off) const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
 				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyRef, alias_11$)")
 				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[_[alias_11$]]); return_value(alias_11$) }")
 			{
@@ -4854,11 +4914,11 @@ namespace mse {
 
 			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
 
-			friend class TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer>;
+			friend class TXSLTADynamicContainerRAConstIterator<TElementProxyRef, _TRAContainerPointer>;
 			template<class TElementProxyRef2, class _TRAContainerPointer2> friend TXSLTADynamicContainerRAIterator<TElementProxyRef2, _TRAContainerPointer2> mse::rsv::us::unsafe_make_xslta_dynamic_container_ra_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTADynamicContainerRAIterator<TElementProxyRef2, _TRAContainerPointer2>::size_type index);
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
-		template <typename _TRAContainerPointer>
+		template <class TElementProxyConstRef, typename _TRAContainerPointer>
 		class TXSLTADynamicContainerRAConstIterator : public TXSLTARAConstIterator<_TRAContainerPointer> {
 		public:
 			typedef TXSLTARAConstIterator<_TRAContainerPointer> base_class;
@@ -4870,15 +4930,15 @@ namespace mse {
 			//TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAIterator<_TRAContainerPointer>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
 			//TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAIterator<_TRAContainerPointer>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
 
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAConstIterator<_Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
-			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAConstIterator<_Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
+			template<class TElementProxyConstRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAConstIterator<TElementProxyConstRef2, _Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
+			template<class TElementProxyConstRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAConstIterator<TElementProxyConstRef2, _Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
 
-			template<class TElementProxyRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAIterator<TElementProxyRef2, _Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
-			template<class TElementProxyRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
-			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAIterator<TElementProxyRef2, _Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
+			template<class TElementProxyConstRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAConstIterator(TXSLTADynamicContainerRAIterator<TElementProxyConstRef2, _Ty2>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(MSE_FWD(src)) {}
+			template<class TElementProxyConstRef2, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2, _TRAContainerPointer>::value> MSE_IMPL_EIS >
+			TXSLTADynamicContainerRAConstIterator(const TXSLTADynamicContainerRAIterator<TElementProxyConstRef2, _Ty2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(src) {}
 
 			TXSLTADynamicContainerRAConstIterator(const _TRAContainerPointer& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(ra_container_pointer, index) {}
 			TXSLTADynamicContainerRAConstIterator(_TRAContainerPointer&& ra_container_pointer MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), size_type index = 0) : base_class(MSE_FWD(ra_container_pointer), index) {}
@@ -4896,15 +4956,28 @@ namespace mse {
 
 			/* Dereference operators of dynamic container iterators, by default, can't provide (minimum) lifetime
 			guarantees for their return values. It could be argued that they shouldn't even have dereference operators. */
-			const_reference operator*() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return base_class::operator*();
+			TElementProxyConstRef operator*() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
+				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyConstRef, alias_11$)")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[_[alias_11$]]); return_value(alias_11$) }")
+			{
+				return TElementProxyConstRef(mse::rsv::xslta_ptr_to(*(this->target_container_ptr())), this->position());
+				//return base_class::operator*();
 			}
-			typedef typename std::add_pointer<typename std::add_const<value_type>::type>::type const_pointer_t;
-			const_pointer_t operator->() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return base_class::operator->();
+			typedef typename std::add_pointer<value_type>::type pointer_t;
+			typedef TXSLTADynamicRAContainerElementProxyPtr<TElementProxyConstRef, typename TElementProxyConstRef::pointer_to_lender_type, typename TElementProxyConstRef::lender_type, typename TElementProxyConstRef::element_type, typename TElementProxyConstRef::allocator_type> TElementProxyConstPtr;
+			TElementProxyConstPtr operator->() const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
+				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyConstRef, alias_11$)")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[_[alias_11$]]); return_value(alias_11$) }")
+			{
+				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*(this->target_container_ptr())), this->position());
+				//return base_class::operator->();
 			}
-			const_reference operator[](difference_type _Off) const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/ MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return base_class::operator[](_Off);
+			TElementProxyConstRef operator[](difference_type _Off) const /*MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }")*/
+				MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(TElementProxyConstRef, alias_11$)")
+				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); this(_[_[alias_11$]]); return_value(alias_11$) }")
+			{
+				return TElementProxyConstRef(mse::rsv::xslta_ptr_to(*(this->target_container_ptr())), difference_type(this->position()) + _Off);
+				//return base_class::operator[](_Off);
 			}
 
 			bool is_valid() const {
@@ -4923,11 +4996,13 @@ namespace mse {
 
 			MSE_DEFAULT_OPERATOR_NEW_DECLARATION;
 
-			template<class _TRAContainerPointer2> friend TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer2> mse::rsv::us::unsafe_make_xslta_dynamic_container_ra_const_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTADynamicContainerRAConstIterator<_TRAContainerPointer2>::size_type index);
+			template<class TElementProxyConstRef2, class _TRAContainerPointer2> friend TXSLTADynamicContainerRAConstIterator<TElementProxyConstRef2, _TRAContainerPointer2> mse::rsv::us::unsafe_make_xslta_dynamic_container_ra_const_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTADynamicContainerRAConstIterator<TElementProxyConstRef2, _TRAContainerPointer2>::size_type index);
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
 		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
 		using TXSLTAVectorElementProxyRef = mse::rsv::TXSLTADynamicRAContainerElementProxyRef<mse::rsv::xslta_accessing_fixed_vector<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty, _A>;
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		using TXSLTAVectorElementProxyConstRef = mse::rsv::TXSLTADynamicRAContainerElementProxyConstRef<mse::rsv::xslta_accessing_fixed_vector<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty, _A>;
 
 
 		template<class _Ty, class _A/* = std::allocator<_Ty>*/>
@@ -5006,22 +5081,25 @@ namespace mse {
 				return TXSLTAVectorElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), _P);
 				//return (*this).at(msev_as_a_size_t(_P));
 			}
-			const_reference operator[](msev_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
-				return (*this).at(msev_as_a_size_t(_P));
+			auto operator[](msev_size_t _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				return TXSLTAVectorElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), _P);
+				//return (*this).at(msev_as_a_size_t(_P));
 			}
 			auto front() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {	// return first element of mutable sequence
 				return TXSLTAVectorElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), 0/*index*/);
 				//return base_class::front();
 			}
-			const_reference front() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {	// return first element of nonmutable sequence
-				return base_class::front();
+			auto front() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {	// return first element of mutable sequence
+				return TXSLTAVectorElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), 0/*index*/);
+				//return base_class::front();
 			}
 			auto back() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {	// return last element of mutable sequence
 				return TXSLTAVectorElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), (*this).size() - 1);
 				//return base_class::back();
 			}
-			const_reference back() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {	// return last element of nonmutable sequence
-				return base_class::back();
+			auto back() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {	// return last element of mutable sequence
+				return TXSLTAVectorElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), (*this).size() - 1);
+				//return base_class::back();
 			}
 
 			auto at(msev_size_t _Pos) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }")
@@ -5029,9 +5107,10 @@ namespace mse {
 				return TXSLTAVectorElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), _Pos);
 				//return base_class::at(msev_as_a_size_t(_Pos));
 			}
-			const_reference at(msev_size_t _Pos) const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided")
-			{	// subscript nonmutable sequence with checking
-				return base_class::at(msev_as_a_size_t(_Pos));
+			auto at(msev_size_t _Pos) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }")
+			{	// subscript mutable sequence with checking
+				return TXSLTAVectorElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, _Ty, _A>(mse::rsv::xslta_ptr_to(*this), _Pos);
+				//return base_class::at(msev_as_a_size_t(_Pos));
 			}
 
 			typedef _Myt& _Myt_ref;
@@ -5040,7 +5119,7 @@ namespace mse {
 			typedef mse::TXScopeRAConstIterator<mse::TXScopeFixedConstPointer<_Myt> > xscope_const_iterator;
 			typedef mse::TXScopeRAIterator<mse::TXScopeFixedPointer<_Myt> > xscope_iterator;
 
-			typedef TXSLTADynamicContainerRAConstIterator<mse::rsv::TXSLTAConstPointer<_Myt> > xslta_const_iterator;
+			typedef TXSLTADynamicContainerRAConstIterator<TXSLTAVectorElementProxyConstRef<mse::rsv::TXSLTAConstPointer<_Myt>, _Myt, _Ty, _A>, mse::rsv::TXSLTAConstPointer<_Myt> > xslta_const_iterator;
 			typedef TXSLTADynamicContainerRAIterator<TXSLTAVectorElementProxyRef<mse::rsv::TXSLTAPointer<_Myt>, _Myt, _Ty, _A>, mse::rsv::TXSLTAPointer<_Myt> > xslta_iterator;
 			typedef xslta_const_iterator const_iterator;
 			typedef xslta_iterator iterator;
