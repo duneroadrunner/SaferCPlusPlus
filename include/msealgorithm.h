@@ -276,7 +276,8 @@ namespace mse {
 			static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
 				const auto xs_iters = make_xscope_specialized_first_and_last(_First, _Last);
 				auto current = xs_iters.first();
-				for (; current != xs_iters.last(); ++current) {
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto unsafe_increment = [](auto& x) { ++x; };
+				for (; current != xs_iters.last(); unsafe_increment(current)) {
 					if (_Pred(current, args...)) {
 						break;
 					}
@@ -576,7 +577,7 @@ namespace mse {
 		private:
 			static void eval(const _RanIt& _First, const _RanIt& _Last) {
 				const auto xs_iters = TXScopeSpecializedFirstAndLast<_RanIt>(_First, _Last);
-				std::sort(xs_iters.first(), xs_iters.first());
+				MSE_SUPPRESS_CHECK_IN_XSCOPE std::sort(xs_iters.first(), xs_iters.first());
 			}
 		};
 
@@ -587,7 +588,7 @@ namespace mse {
 		private:
 			static void eval(const _ContainerPointer& _XscpPtr) {
 				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
-				std::sort(xs_iters.begin(), xs_iters.end());
+				MSE_SUPPRESS_CHECK_IN_XSCOPE std::sort(xs_iters.begin(), xs_iters.end());
 			}
 		};
 	}
@@ -639,7 +640,7 @@ namespace mse {
 		private:
 			static result_type eval(const _ContainerPointer& _XscpPtr, _InIt2 _First2) {
 				auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
-				return m_equal(xs_iters.begin(), xs_iters.end(), _First2);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return m_equal(xs_iters.begin(), xs_iters.end(), _First2);
 			}
 		};
 	}
