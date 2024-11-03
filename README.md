@@ -466,7 +466,7 @@ So for those cases, `TNDRegisteredPointer<>` and `TNDCRegisteredPointer` are jus
 
 ### TNoradPointer
 
-usage example: ([link to interactive version](https://godbolt.org/z/shYeoPs5T))
+usage example: ([link to interactive version](https://godbolt.org/z/3sYqqeP1e))
 
 ```cpp
     #include "msenorad.h"
