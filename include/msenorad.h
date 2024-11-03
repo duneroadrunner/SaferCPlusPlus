@@ -459,12 +459,10 @@ namespace mse {
 				TGNoradNotNullPointer(TGNoradNotNullPointer&& src_ref) : TGNoradPointer<_Ty, _TRefCounter>(MSE_FWD(src_ref)) {}
 
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TGNoradNotNullPointer() {}
-				/*
 				TGNoradNotNullPointer<_Ty, _TRefCounter>& operator=(const TGNoradNotNullPointer<_Ty, _TRefCounter>& _Right_cref) {
 				TGNoradPointer<_Ty, _TRefCounter>::operator=(_Right_cref);
 				return (*this);
 				}
-				*/
 
 				TGNoradObj<_Ty, _TRefCounter>& operator*() const {
 					//if (!((*this).m_ptr)) { MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TNoradPointer")); }
