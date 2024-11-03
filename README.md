@@ -1046,7 +1046,7 @@ Norad proxy pointers are basically just norad pointers which target scope pointe
 
 To be clear, a `TNoradProxyPointer<T>` doesn't have any functionality that a `TNoradPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some  situations.
 
-usage example: ([link to interactive version](https://godbolt.org/z/n4MEbv6aa))
+usage example: ([link to interactive version](https://godbolt.org/z/ETTcnGcGE))
 
 ```cpp
     #include "msescope.h"
