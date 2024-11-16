@@ -351,9 +351,7 @@ namespace mse {
 				&& (!std::is_same<_TPointer1, std::nullptr_t>::value)
 				&& (!std::is_same<_TPointer1, NULL_t>::value)
 				&& (!std::is_same<_TPointer1, ZERO_LITERAL_t>::value)
-				&& (mse::impl::IsDereferenceable_pb<_TPointer1>::value
-					&& (std::is_base_of<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value
-						|| std::is_same<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPointer1>())>>::value))
+				&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 				&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 			> MSE_IMPL_EIS >
 			TLHNullableAnyPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {}
@@ -415,6 +413,7 @@ namespace mse {
 				&& (!std::is_same<_TPointer1, std::nullptr_t>::value)
 				&& (!std::is_same<_TPointer1, NULL_t>::value)
 				&& (!std::is_same<_TPointer1, ZERO_LITERAL_t>::value)
+				&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			> MSE_IMPL_EIS >
 				TXScopeLHNullableAnyPointer(const _TPointer1 & pointer) : base_class(pointer) {}
 

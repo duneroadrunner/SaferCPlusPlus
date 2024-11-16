@@ -2416,8 +2416,8 @@ namespace mse {
 			(!std::is_convertible<_TPointer1, TXScopeNullableAnyPointer>::value)
 			&& (!std::is_base_of<base_class, _TPointer1>::value)
 			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
-			//&& (!std::is_convertible<_TPointer1, int>::value)
-			> MSE_IMPL_EIS >
+			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
+		> MSE_IMPL_EIS >
 		TXScopeNullableAnyPointer(const _TPointer1& random_access_iterator) : base_class(random_access_iterator) {}
 
 		friend void swap(TXScopeNullableAnyPointer& first, TXScopeNullableAnyPointer& second) {
