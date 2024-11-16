@@ -20,7 +20,7 @@ While a "static safety analyzer/enforcer" like the scpptool would be required to
 
 Besides zero-overhead pointers that enforce some of the necessary restrictions that would be imposed by a complete "static safety analyzer/enforcer", the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and an unrestricted pointer that ensures memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat [draconian restrictions](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md) imposed by the (eventual completed) lifetime checker.
 
-To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. (An online interactive version of these examples is also [available](https://godbolt.org/z/Wx8dW9Yhd), but the whole collection is large enough that the build will likely time-out. Often, the documentation for individual library elements will include a link to a more specific interactive example that should build fine.)
+To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. (An online interactive version of these examples is also [available](https://godbolt.org/z/7MEd8fbEe), but the whole collection is large enough that the build will likely time-out. Often, the documentation for individual library elements will include a link to a more specific interactive example that should build fine.)
 
 Elements in this library are currently based on the C++17 version of their counterpart APIs. (C++14 is still supported.)
 
@@ -984,7 +984,7 @@ Registered proxy pointers are basically just [registered pointers](#registered-p
 
 To be clear, a `TRegisteredProxyPointer<T>` doesn't have any functionality that a `TRegisteredConstPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some situations.
 
-usage example: ([link to interactive version](https://godbolt.org/z/3n7sv94bT))
+usage example: ([link to interactive version](https://godbolt.org/z/cPhqx7KT4))
 
 ```cpp
     #include "msescope.h"
@@ -1046,7 +1046,7 @@ Norad proxy pointers are basically just norad pointers which target scope pointe
 
 To be clear, a `TNoradProxyPointer<T>` doesn't have any functionality that a `TNoradPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some  situations.
 
-usage example: ([link to interactive version](https://godbolt.org/z/jWxdhMG5d))
+usage example: ([link to interactive version](https://godbolt.org/z/Tsxqsv8nd))
 
 ```cpp
     #include "msescope.h"
@@ -1753,7 +1753,7 @@ Atomic objects also don't require access control. Use the `make_asyncsharedv2ato
 
 usage example: ([see below](#async-aggregate-usage-example))
 
-#### async aggregate usage example: ([link to interactive version](https://godbolt.org/z/Gb5656z1o))
+#### async aggregate usage example: ([link to interactive version](https://godbolt.org/z/7bdz9x4c1))
 
 ```cpp
 #include "mseasyncshared.h"
@@ -1983,7 +1983,7 @@ int main(int argc, char* argv[]) {
 
 `TAsyncRASectionSplitter<>` is used for situations where you want to allow multiple threads to concurrently access and/or modify different parts of an array or vector. You specify how you want the array/vector partitioned, and the `TAsyncRASectionSplitter<>` will provide a set of access requesters used to obtain access to each partition. Instead of the usual "lock pointers", these access requesters return "lock [random access section](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)s".
 
-usage example: ([link to interactive version](https://godbolt.org/z/96ofqo83W))
+usage example: ([link to interactive version](https://godbolt.org/z/aM59791q4))
 ```cpp
 #include "msemstdvector.h"
 #include "msemsestring.h"
@@ -2151,7 +2151,7 @@ Like `xscope_thread`, `xscope_future` and `xscope_async()` are the scope version
 
 And finally, the function used to obtain a (scope) [access requester](#tasyncsharedv2readwriteaccessrequester) to an access controlled scope object is `make_xscope_asyncsharedv2acoreadwrite()`. Note that it takes as its argument a scope pointer to the access controlled object, not a scope pointer to the contained object. Btw, scope access requesters are an example of an object type that can be passed to other scope threads, but does not qualify (i.e. would induce a compile error) to be passed to non-scope threads. 
 
-usage example: ([link to interactive version](https://godbolt.org/z/c8hYzM91n))
+usage example: ([link to interactive version](https://godbolt.org/z/Mqj1e69z1))
 ```cpp
 #include "mseasyncshared.h"
 #include "msescope.h"
@@ -2232,7 +2232,7 @@ The `mse::make_xscope_aco_locker_for_sharing()` function takes a scope pointer t
 
 The `mse::make_xscope_exclusive_strong_pointer_store_for_sharing()` function returns the same kind of "locker" object that `mse::make_xscope_aco_locker_for_sharing()` does, but instead of taking a scope pointer to an "access controlled object", it accepts any recognized "exclusive" pointer. That is, a pointer that, while it exists, holds exclusive access to its target object.
 
-usage example: ([link to interactive version](https://godbolt.org/z/aKTzqahfq))
+usage example: ([link to interactive version](https://godbolt.org/z/v1j3fGhMM))
 ```cpp
 #include "mseasyncshared.h"
 #include "msescope.h"
@@ -2328,7 +2328,7 @@ int main(int argc, char* argv[]) {
 
 You can use [`make_xscope_exclusive_strong_pointer_store_for_sharing()`](#make_xscope_exclusive_strong_pointer_store_for_sharing) to obtain, from an exclusive pointer of, for example, an [access controlled object](#access-controlled-objects), pointers that can be passed to other threads. Occassionally, you may want to do the reverse. That is, obtain access controlled object pointers from an exclusive pointer that was passed to a thread. You can do this by declaring the parameter that receives the passed pointer as a `TXScopeExclusiveStrongPointerStoreForAccessControl<passable_exclusive_pointer_t>`, replacing `passable_exclusive_pointer_t` with the type of the passed pointer. From this parameter object you can obtain pointers in the same manner as with regular access controlled objects.
 
-usage example: ([link to interactive version](https://godbolt.org/z/KoMajTa41))
+usage example: ([link to interactive version](https://godbolt.org/z/c3n5dr8z3))
 ```cpp
 #include "mseasyncshared.h"
 #include "msescope.h"
@@ -2399,7 +2399,7 @@ A bit of extra functionality that exclusive writer objects have over access cont
 
 `TXScopeExclusiveStrongPointerStoreForExclusiveWriterAccess<>` is the corresponding specialization of [`TXScopeExclusiveStrongPointerStoreForAccessControl<>`](#txscopeexclusivestrongpointerstoreforaccesscontrol).
 
-usage example: ([link to interactive version](https://godbolt.org/z/8ob59zs7E))
+usage example: ([link to interactive version](https://godbolt.org/z/a65Ef6o9v))
 ```cpp
 #include "mseasyncshared.h"
 #include "msescope.h"
@@ -2476,7 +2476,7 @@ int main(int argc, char* argv[]) {
 
 Atomic objects don't require access control.
 
-usage example: ([link to interactive version](https://godbolt.org/z/WcsK5jv9G))
+usage example: ([link to interactive version](https://godbolt.org/z/a8df513YE))
 
 ```cpp
 #include "msescopeatomic.h"
@@ -2533,7 +2533,7 @@ Where `TXScopeAsyncACORASectionSplitter<>` provides an [access requester](#make_
 
 One reason you might choose to use `TXScopeACORASectionSplitter<>` over `TXScopeAsyncACORASectionSplitter<>` is that it does not involve any (costly) thread safe locks. The trade-off being that it doesn't support dynamically locking and unlocking sections (to maximize the availability of each section).
 
-usage example: ([link to interactive version](https://godbolt.org/z/nz5KEceqb))
+usage example: ([link to interactive version](https://godbolt.org/z/ozroYK4bM))
 
 ```cpp
 #include "msemstdvector.h"
@@ -2707,7 +2707,7 @@ While not encouraging the use of `static` or (non-[`thread_local`](#thread_local
 
 #### static immutables
 
-usage example: ([link to interactive version](https://godbolt.org/z/feP6YjKxd))
+usage example: ([link to interactive version](https://godbolt.org/z/6njbPbx85))
 ```cpp
 #include "msescope.h"
 #include "msemsestring.h"
@@ -3172,7 +3172,7 @@ Note that the [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_ni
 
 `xscope_accessing_fixed_nii_vector<>`, like `xscope_borrowing_fixed_nii_vector<>`, ensures, while it exists, that the vector contents are not deallocated/relocated/resized. But unlike `xscope_borrowing_fixed_nii_vector<>`, `xscope_accessing_fixed_nii_vector<>`'s access to the vector contents is not exclusive. So, for example, multiple `xscope_accessing_fixed_nii_vector<>`s corresponding to the same vector can exist and be used at the same time. This lack of exclusivity results in `xscope_accessing_fixed_nii_vector<>` being branded as ineligible to be passed to, or shared with, asynchronous threads.
 
-usage example: ([link to interactive version](https://godbolt.org/z/v1c7Gdo3d))
+usage example: ([link to interactive version](https://godbolt.org/z/bPYdEo3h7))
 
 ```cpp
     #include "mseslta.h"
@@ -3211,7 +3211,7 @@ usage example: ([link to interactive version](https://godbolt.org/z/v1c7Gdo3d))
 
 `mse::ivector<>` is a safe vector like [`mse::mstd::vector<>`](#mstdvector), but its (implicit reference) iterators behave more like list iterators than standard vector iterators. That is, upon insert or delete, the iterators continue to point to the same item, not (necessarily) the same position. And they don't become "invalid" upon insert or delete, unless the item they point to is deleted.
 
-usage example: ([link to interactive version](https://godbolt.org/z/989jve76b))
+usage example: ([link to interactive version](https://godbolt.org/z/Toqd4Yz4z))
 ```cpp
     #include "mseivector.h"
     
@@ -4176,7 +4176,7 @@ The library's safe iterators work just fine with the standard library algorithms
 
 #### for_each_ptr()
 
-usage example: ([link to interactive version](https://godbolt.org/z/T55xGK3qr))
+usage example: ([link to interactive version](https://godbolt.org/z/erG43j3bb))
 
 ```cpp
 #include "msescope.h"
@@ -4236,7 +4236,7 @@ int main(int argc, char* argv[]) {
 
 #### find_if_ptr()
 
-usage example: ([link to interactive version](https://godbolt.org/z/6oPhsbqhM))
+usage example: ([link to interactive version](https://godbolt.org/z/TrWKe1zse))
 
 ```cpp
 #include "msescope.h"
@@ -4277,7 +4277,7 @@ int main(int argc, char* argv[]) {
 
 While not encouraging the use of `thread_local` variables, the library does provide facilities for their use.
 
-usage example: ([link to interactive version](https://godbolt.org/z/79GxEsn4M))
+usage example: ([link to interactive version](https://godbolt.org/z/era96oKsE))
 ```cpp
 #include "msescope.h"
 #include "msemstdstring.h"
@@ -4324,7 +4324,7 @@ int main(int argc, char* argv[]) {
 
 `mstd::function<>` is essentially a drop-in replacement for `std::function<>`. 
 
-usage example: ([link to interactive version](https://godbolt.org/z/81sKPxPqd))
+usage example: ([link to interactive version](https://godbolt.org/z/or9GPvxj8))
 
 ```cpp
     #include "msefunctional.h"
@@ -4342,7 +4342,7 @@ usage example: ([link to interactive version](https://godbolt.org/z/81sKPxPqd))
 
 Some function objects, like functors and capture lambdas, can be scope types and would not be supported by [`mstd::function<>`](#function).
 
-usage example: ([link to interactive version](https://godbolt.org/z/xYWPrM9ov))
+usage example: ([link to interactive version](https://godbolt.org/z/xPE7nvqE7))
 
 ```cpp
     #include "msefunctional.h"
