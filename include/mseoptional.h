@@ -7718,6 +7718,19 @@ namespace mse {
 
 		template<typename _TPointer, typename _TTarget>
 		struct target_can_be_referenced_as : target_can_be_referenced_as_helper1<typename mse::impl::IsDereferenceable_pb<_TPointer>::type, _TPointer, _TTarget> {};
+
+		template<typename _Tz, typename _TPointer, typename _TTarget>
+		struct target_can_be_commonized_referenced_as_helper2 : std::true_type {};
+		template<typename _TPointer, typename _TTarget>
+		struct target_can_be_commonized_referenced_as_helper2<std::false_type, _TPointer, _TTarget> : std::is_convertible<mse::us::impl::base_type_t<mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())> >*, _TTarget*> {};
+
+		template<typename _Tz, typename _TPointer, typename _TTarget>
+		struct target_can_be_commonized_referenced_as_helper1 : std::false_type {};
+		template<typename _TPointer, typename _TTarget>
+		struct target_can_be_commonized_referenced_as_helper1<std::true_type, _TPointer, _TTarget> : target_can_be_commonized_referenced_as_helper2<typename std::is_convertible<mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())>*, _TTarget*>::type, _TPointer, _TTarget> {};
+
+		template<typename _TPointer, typename _TTarget>
+		struct target_can_be_commonized_referenced_as : target_can_be_commonized_referenced_as_helper1<typename mse::impl::IsDereferenceable_pb<_TPointer>::type, _TPointer, _TTarget> {};
 	}
 
 	template <typename TPointer, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::IsDereferenceable_pb<TPointer>::value> MSE_IMPL_EIS >

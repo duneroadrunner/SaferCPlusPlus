@@ -320,7 +320,7 @@ namespace mse {
 		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
 			&& (!std::is_base_of<us::impl::TAnyConstPointerBase<_Ty>, _TPointer1>::value)
-			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
+			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			> MSE_IMPL_EIS >
 			TXScopeAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
@@ -363,7 +363,7 @@ namespace mse {
 			(!std::is_convertible<_TPointer1, TAnyPointer>::value)
 			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
 			&& (!std::is_base_of<TAnyConstPointer<_Ty>, _TPointer1>::value)
-			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
+			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 		> MSE_IMPL_EIS >
 		TAnyPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {
@@ -405,7 +405,7 @@ namespace mse {
 		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, us::impl::TAnyConstPointerBase<_Ty>>::value)
 			&& (!std::is_convertible<_TPointer1, us::impl::TAnyPointerBase<_Ty>>::value)
-			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
+			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			> MSE_IMPL_EIS >
 		TXScopeAnyConstPointer(const _TPointer1& pointer) : base_class(pointer) {}
 		*/
@@ -448,7 +448,7 @@ namespace mse {
 		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TPointer1, TAnyConstPointer>::value)
 			&& (!std::is_convertible<_TPointer1, TAnyPointer<_Ty>>::value)
-			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
+			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			> MSE_IMPL_EIS >
 		TAnyConstPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
@@ -2344,7 +2344,7 @@ namespace mse {
 			(!std::is_convertible<_TPointer1, TNullableAnyPointer>::value)
 			&& (!std::is_base_of<base_class, _TPointer1>::value)
 			&& (!std::is_convertible<_TPointer1, std::nullptr_t>::value)
-			&& MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
+			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 			> MSE_IMPL_EIS >
 		TNullableAnyPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {

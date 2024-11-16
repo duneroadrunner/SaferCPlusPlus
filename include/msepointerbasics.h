@@ -118,7 +118,9 @@
 MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
 
 #ifndef MSE_SCOPEPOINTER_ENABLED
+#ifndef MSE_SCOPEPOINTER_DISABLED
 #define MSE_SCOPEPOINTER_DISABLED
+#endif // !MSE_SCOPEPOINTER_DISABLED
 #endif // !MSE_SCOPEPOINTER_ENABLED
 
 #if defined(MSE_SAFER_SUBSTITUTES_DISABLED) || defined(MSE_SAFERPTR_DISABLED)
@@ -514,12 +516,14 @@ namespace mse {
 #ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 #define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) mse::impl::IsDereferenceable_pb<x>::value
 #define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) mse::impl::target_can_be_referenced_as<pointer_t, target_t>::value
+#define MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(pointer_t, target_t) mse::impl::target_can_be_commonized_referenced_as<pointer_t, target_t>::value
 #else // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 	/* Jan 2022: The microsoft compiler in "permissive" mode (/permissive+) seems to have some strange behavior (that
 	results in "ambiguous overload" compile errors when we attempt to filter for "dereferenceability" (i.e. require
 	the type to be some sort of pointer). So we substitute it with a simpler (and looser) criteria. */
 #define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) ((!std::is_same<decltype(NULL), x>::value) && (!std::is_same<decltype(0), x>::value))
 #define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(pointer_t)
+#define MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(pointer_t, target_t) MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(pointer_t)
 #endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 
 
