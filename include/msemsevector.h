@@ -3081,35 +3081,35 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_begin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_begin(owner_ptr);
+			return base_class::template ss_begin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_end(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_end(owner_ptr);
+			return base_class::template ss_end<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_cbegin(owner_ptr);
+			return base_class::template ss_cbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_cend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_cend(owner_ptr);
+			return base_class::template ss_cend<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_rbegin(owner_ptr);
+			return base_class::template ss_rbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_rend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_rend(owner_ptr);
+			return base_class::template ss_rend<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_crbegin(owner_ptr);
+			return base_class::template ss_crbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_crend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_crend(owner_ptr);
+			return base_class::template ss_crend<_TArrayPointer>(owner_ptr);
 		}
 
 		template<typename _TVectorPointer1>
@@ -3241,35 +3241,35 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_begin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_begin(owner_ptr);
+			return base_class::template ss_begin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_end(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_end(owner_ptr);
+			return base_class::template ss_end<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_cbegin(owner_ptr);
+			return base_class::template ss_cbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_cend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_cend(owner_ptr);
+			return base_class::template ss_cend<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_rbegin(owner_ptr);
+			return base_class::template ss_rbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_rend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_rend(owner_ptr);
+			return base_class::template ss_rend<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_crbegin(owner_ptr);
+			return base_class::template ss_crbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_crend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_crend(owner_ptr);
+			return base_class::template ss_crend<_TArrayPointer>(owner_ptr);
 		}
 
 		template<typename _TVectorPointer1>
@@ -4226,46 +4226,46 @@ namespace mse {
 
 			template<typename _TArrayPointer>
 			static auto ss_begin(const _TArrayPointer& owner_ptr) {
-				return base_class::template ss_begin(owner_ptr);
+				return base_class::template ss_begin<_TArrayPointer>(owner_ptr);
 			}
 			template<typename _TArrayPointer>
 			static auto ss_end(const _TArrayPointer& owner_ptr) {
-				return base_class::template ss_end(owner_ptr);
+				return base_class::template ss_end<_TArrayPointer>(owner_ptr);
 			}
 			template<typename _TArrayPointer>
 			static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
-				return base_class::template ss_cbegin(owner_ptr);
+				return base_class::template ss_cbegin<_TArrayPointer>(owner_ptr);
 			}
 			template<typename _TArrayPointer>
 			static auto ss_cend(const _TArrayPointer& owner_ptr) {
-				return base_class::template ss_cend(owner_ptr);
+				return base_class::template ss_cend<_TArrayPointer>(owner_ptr);
 			}
 			template<typename _TArrayPointer>
 			static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
-				return base_class::template ss_rbegin(owner_ptr);
+				return base_class::template ss_rbegin<_TArrayPointer>(owner_ptr);
 			}
 			template<typename _TArrayPointer>
 			static auto ss_rend(const _TArrayPointer& owner_ptr) {
-				return base_class::template ss_rend(owner_ptr);
+				return base_class::template ss_rend<_TArrayPointer>(owner_ptr);
 			}
 			template<typename _TArrayPointer>
 			static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
-				return base_class::template ss_crbegin(owner_ptr);
+				return base_class::template ss_crbegin<_TArrayPointer>(owner_ptr);
 			}
 			template<typename _TArrayPointer>
 			static auto ss_crend(const _TArrayPointer& owner_ptr) {
-				return base_class::template ss_crend(owner_ptr);
+				return base_class::template ss_crend<_TArrayPointer>(owner_ptr);
 			}
 
 			template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAPointer<_Myt> >::value || std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAConstPointer<_Myt> >::value> MSE_IMPL_EIS >
 			static auto xslta_ss_begin(const _TArrayPointer& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])"))
 				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TArrayPointer, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
-				return base_class::template xslta_ss_begin(owner_ptr);
+				return base_class::template xslta_ss_begin<_TArrayPointer>(owner_ptr);
 			}
 			template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAPointer<_Myt> >::value || std::is_convertible<_TArrayPointer, mse::rsv::TXSLTAConstPointer<_Myt> >::value> MSE_IMPL_EIS >
 			static auto xslta_ss_end(const _TArrayPointer& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])"))
 				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_TArrayPointer, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
-				return base_class::template xslta_ss_end(owner_ptr);
+				return base_class::template xslta_ss_end<_TArrayPointer>(owner_ptr);
 			}
 
 			static auto xslta_ss_cbegin(const mse::rsv::TXSLTAConstPointer<_Myt>& owner_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))

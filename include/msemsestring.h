@@ -7313,35 +7313,35 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_begin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_begin(owner_ptr);
+			return base_class::template ss_begin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_end(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_end(owner_ptr);
+			return base_class::template ss_end<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_cbegin(owner_ptr);
+			return base_class::template ss_cbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_cend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_cend(owner_ptr);
+			return base_class::template ss_cend<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_rbegin(owner_ptr);
+			return base_class::template ss_rbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_rend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_rend(owner_ptr);
+			return base_class::template ss_rend<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_crbegin(owner_ptr);
+			return base_class::template ss_crbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_crend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_crend(owner_ptr);
+			return base_class::template ss_crend<_TArrayPointer>(owner_ptr);
 		}
 
 		template<typename _TVectorPointer1>
@@ -7508,35 +7508,35 @@ namespace mse {
 
 		template<typename _TArrayPointer>
 		static auto ss_begin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_begin(owner_ptr);
+			return base_class::template ss_begin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_end(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_end(owner_ptr);
+			return base_class::template ss_end<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_cbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_cbegin(owner_ptr);
+			return base_class::template ss_cbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_cend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_cend(owner_ptr);
+			return base_class::template ss_cend<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_rbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_rbegin(owner_ptr);
+			return base_class::template ss_rbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_rend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_rend(owner_ptr);
+			return base_class::template ss_rend<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_crbegin(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_crbegin(owner_ptr);
+			return base_class::template ss_crbegin<_TArrayPointer>(owner_ptr);
 		}
 		template<typename _TArrayPointer>
 		static auto ss_crend(const _TArrayPointer& owner_ptr) {
-			return base_class::template ss_crend(owner_ptr);
+			return base_class::template ss_crend<_TArrayPointer>(owner_ptr);
 		}
 
 		template<typename _TVectorPointer1>
