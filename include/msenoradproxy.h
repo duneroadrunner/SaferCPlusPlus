@@ -89,7 +89,7 @@ namespace mse {
 	auto make_xscope_ndnorad_proxy(const mse::TXScopeFixedPointer<X>& xs_ptr) {
 		return TNDXScopeNoradProxyObj<X>(xs_ptr);
 	}
-	template <class X>
+	template <class X, class X2 = X, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_convertible<mse::TXScopeFixedConstPointer<X2>*, mse::TXScopeFixedPointer<X>*>::value> MSE_IMPL_EIS >
 	auto make_xscope_ndnorad_proxy(const mse::TXScopeFixedConstPointer<X>& xs_ptr) {
 		return TNDXScopeNoradConstProxyObj<X>(xs_ptr);
 	}
@@ -173,6 +173,7 @@ namespace mse {
 		operator mse::TXScopeFixedPointer<_Ty>() const {
 			return (*contained_pointer());
 		}
+		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_convertible<mse::TXScopeFixedConstPointer<_Ty2> *, mse::TXScopeFixedPointer<_Ty> *>::value> MSE_IMPL_EIS >
 		operator mse::TXScopeFixedConstPointer<_Ty>() const {
 			return (*contained_pointer());
 		}
