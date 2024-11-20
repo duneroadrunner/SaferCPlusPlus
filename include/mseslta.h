@@ -154,8 +154,16 @@ namespace mse {
 				)> {};
 		}
 
+#ifdef MSE_SLTAPOINTER_DISABLED
+
+		/* By default we make xslta pointers simply an alias for native pointers in non-debug builds. */
+		template<typename _ncTy> using  TXSLTAConstPointer = _ncTy const*;
+		template<typename _Ty> using TXSLTAPointer = _Ty*;
+
+#else // MSE_SLTAPOINTER_DISABLED
 		template<typename _Ty> class TXSLTAPointer;
 		template<typename _Ty> class TXSLTAConstPointer;
+#endif // MSE_SLTAPOINTER_DISABLED
 
 		namespace impl {
 			template<typename TPtr, typename TTarget>
@@ -177,6 +185,10 @@ namespace mse {
 
 
 	namespace rsv {
+
+#ifdef MSE_SLTAPOINTER_DISABLED
+		/* By default we make xslta pointers simply an alias for native pointers in non-debug builds. */
+#else // MSE_SLTAPOINTER_DISABLED
 
 		template<typename _ncTy>
 		class TXSLTAConstPointer;
@@ -269,6 +281,8 @@ namespace mse {
 			_Ty* m_ptr MSE_ATTR_STR("mse::lifetime_label(99)");
 		} MSE_ATTR_STR("mse::lifetime_label(99)");
 
+#endif // MSE_SLTAPOINTER_DISABLED
+
 		template<typename _Ty>
 		auto xslta_ptr_to(_Ty&& _X) {
 			return TXSLTAPointer<_Ty>(std::addressof(_X));
@@ -290,6 +304,7 @@ namespace mse {
 }
 
 namespace std {
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 	template<class _Ty>
 	struct hash<mse::rsv::TXSLTAPointer<_Ty> > {	// hash functor
 		typedef mse::rsv::TXSLTAPointer<_Ty> argument_type;
@@ -315,6 +330,7 @@ namespace std {
 			return (hash<const _Ty *>()(ptr1));
 		}
 	};
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 }
 
 namespace mse {

@@ -5202,7 +5202,9 @@ namespace mse {
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
 			xslta_borrowing_via_move_fixed_optional(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 			xslta_borrowing_via_move_fixed_optional(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 			~xslta_borrowing_via_move_fixed_optional() {
 				m_src_ref = std::move((*this).contained_optional());
 			}
@@ -5257,7 +5259,9 @@ namespace mse {
 #define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			xslta_borrowing_fixed_optional(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(src_xs_ptr) {}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 			xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(src_xs_ptr) {}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 
 			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
 
@@ -5279,6 +5283,7 @@ namespace mse {
 		{
 			return xslta_borrowing_fixed_optional<_TLender>(src_xs_ptr);
 		}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender> >
 		auto make_xslta_borrowing_fixed_optional(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
@@ -5286,6 +5291,7 @@ namespace mse {
 		{
 			return xslta_borrowing_fixed_optional<_TLender>(src_xs_ptr);
 		}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 
 		template<class TAccessingFixed, class _TLender, class _Ty = typename _TLender::value_type>
 		class TXSLTADynamicOptionalElementProxyRef : public mse::us::impl::XSLTATagBase {
@@ -5302,7 +5308,9 @@ namespace mse {
 			TXSLTADynamicOptionalElementProxyRef(const TXSLTADynamicOptionalElementProxyRef&) = delete;
 
 			TXSLTADynamicOptionalElementProxyRef(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_bf_container(src_xs_ptr) {}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 			TXSLTADynamicOptionalElementProxyRef(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_bf_container(src_xs_ptr) {}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 			operator _Ty() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				return m_bf_container.value();
 			}
@@ -5335,7 +5343,9 @@ namespace mse {
 			TXSLTADynamicOptionalElementProxyPtr(const TXSLTADynamicOptionalElementProxyPtr&) = delete;
 
 			TXSLTADynamicOptionalElementProxyPtr(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_proxy_ref(src_xs_ptr) {}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 			TXSLTADynamicOptionalElementProxyPtr(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_proxy_ref(src_xs_ptr) {}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 			auto operator->() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return std::addressof(m_proxy_ref);
 			}
@@ -5359,7 +5369,9 @@ namespace mse {
 			TXSLTADynamicOptionalElementProxyConstPtr(const TXSLTADynamicOptionalElementProxyConstPtr&) = delete;
 
 			TXSLTADynamicOptionalElementProxyConstPtr(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_proxy_ref(src_xs_ptr) {}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 			TXSLTADynamicOptionalElementProxyConstPtr(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_proxy_ref(src_xs_ptr) {}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 			auto operator->() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return std::addressof(m_proxy_ref);
 			}
@@ -7837,11 +7849,13 @@ namespace mse {
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
 #pragma clang diagnostic ignored "-Wunused-function"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #pragma GCC diagnostic ignored "-Wunused-function"
 #endif /*__GNUC__*/
 #endif /*__clang__*/

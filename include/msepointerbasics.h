@@ -151,6 +151,17 @@ MSE_SCOPEPOINTER_DISABLED will ultimately be defined. */
 
 /* end of scope pointer defines */
 
+/* start of slta pointer defines */
+
+#ifdef NDEBUG
+/* By default we make scope pointers simply an alias for native pointers in non-debug builds. */
+#ifndef MSE_SLTAPOINTER_DISABLED
+#define MSE_SLTAPOINTER_DISABLED
+#endif // !MSE_SLTAPOINTER_DISABLED
+#endif // NDEBUG
+
+/* end of slta pointer defines */
+
 /* start of thread_local pointer defines */
 
 /* This is done here rather than in msethreadlocal.h because some elements in this file need to know whether or not
@@ -818,6 +829,48 @@ namespace impl {
 		template<class _Ty>
 		void T_valid_if_not_an_xscope_type(const _Ty&) {
 			T_valid_if_not_an_xscope_type<_Ty>();
+		}
+
+
+		template<typename _Ty>
+		struct is_potentially_xslta : std::integral_constant<bool, mse::impl::disjunction<
+			std::is_base_of<mse::us::impl::XSLTATagBase
+			, mse::impl::remove_reference_t<_Ty> >
+			, mse::impl::is_unique_ptr<mse::impl::remove_reference_t<_Ty> >
+			, std::is_pointer<mse::impl::remove_reference_t<_Ty> >
+#ifdef MSE_SLTAPOINTER_DISABLED
+			, mse::impl::is_instantiation_of<mse::impl::remove_reference_t<_Ty>, mse::us::impl::TPointerForLegacy>
+			, mse::impl::is_instantiation_of<mse::impl::remove_reference_t<_Ty>, mse::us::impl::TPointer>
+#endif // MSE_SLTAPOINTER_DISABLED
+		>::value> {};
+
+		template<typename _Ty>
+		struct is_potentially_not_xslta : std::integral_constant<bool, mse::impl::conjunction<
+			mse::impl::negation<std::is_base_of<mse::us::impl::XSLTATagBase
+			, mse::impl::remove_reference_t<_Ty> > >
+			, mse::impl::negation<mse::impl::is_unique_ptr<mse::impl::remove_reference_t<_Ty> > >
+#if (!defined(MSE_SOME_NON_XSLTA_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SLTA_RESTRICTIONS))
+#ifdef MSE_CHAR_STAR_EXEMPTED
+			/* When MSE_CHAR_STAR_EXEMPTED is defined, 'char*' types will be exempt from the restrictions otherwise applied to native pointers. */
+			, mse::impl::disjunction<mse::impl::negation<std::is_pointer<mse::impl::remove_reference_t<_Ty> > >
+			, std::is_convertible<_Ty, const char*> >
+#else // MSE_CHAR_STAR_EXEMPTED
+			, mse::impl::negation<is_nonfunction_pointer<mse::impl::remove_reference_t<_Ty> > >
+#endif // MSE_CHAR_STAR_EXEMPTED
+#endif // (!defined(MSE_SOME_NON_XSLTA_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SLTA_RESTRICTIONS))
+		>::value> {};
+
+		template<typename _Ty>
+		struct is_xslta : mse::impl::negation<is_potentially_not_xslta<_Ty> > {};
+
+		/* The purpose of these template functions are just to produce a compile error on attempts to instantiate
+		when certain conditions are not met. */
+		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xslta<_Ty>::value)> MSE_IMPL_EIS >
+		void T_valid_if_not_an_xslta_type() MSE_ATTR_FUNC_STR("mse::lifetime_slta_types_prohibited_for_template_parameter_by_name(_Ty)") {}
+
+		template<class _Ty>
+		void T_valid_if_not_an_xslta_type(const _Ty&) {
+			T_valid_if_not_an_xslta_type<_Ty>();
 		}
 	}
 

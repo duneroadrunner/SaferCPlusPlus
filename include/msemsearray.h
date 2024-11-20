@@ -11859,6 +11859,7 @@ namespace mse {
 			typedef decltype(mse::rsv::impl::ra_const_section_helpers::s_iter_from_lone_param(param)) iter_t;
 			return TXSLTARandomAccessConstSection<iter_t>(param);
 		}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 		template <typename _TRAContainer>
 		auto make_xslta_random_access_const_section(_TRAContainer const * param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
@@ -11873,6 +11874,7 @@ namespace mse {
 			typedef decltype(mse::rsv::impl::ra_const_section_helpers::s_iter_from_lone_param(param)) iter_t;
 			return TXSLTARandomAccessConstSection<iter_t>(param);
 		}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 
 #if 0
 		/* This one was moved to before the definition of TXSLTARandomAccessConstSectionBase<> because it depends on 
@@ -11911,6 +11913,7 @@ namespace mse {
 			typedef decltype(mse::rsv::impl::ra_section_helpers::s_iter_from_lone_param(param)) iter_t;
 			return TXSLTARandomAccessSection<iter_t>(param);
 		}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 		template <typename _TRAContainer>
 		auto make_xslta_random_access_section(_TRAContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
@@ -11918,6 +11921,7 @@ namespace mse {
 			typedef decltype(mse::rsv::impl::ra_section_helpers::s_iter_from_lone_param(param)) iter_t;
 			return TXSLTARandomAccessSection<iter_t>(param);
 		}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 
 
 		/* This function basically just calls the give section's subsection() member function and returns the value.  */

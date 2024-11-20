@@ -4366,7 +4366,9 @@ namespace mse {
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
 			xslta_borrowing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 			xslta_borrowing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 			~xslta_borrowing_fixed_vector() {
 				m_src_ref = std::move((*this).contained_vector());
 			}
@@ -4394,6 +4396,7 @@ namespace mse {
 		{
 			return xslta_borrowing_fixed_vector<_TLender>(src_xs_ptr);
 		}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
 		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
 		auto make_xslta_borrowing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
@@ -4401,6 +4404,7 @@ namespace mse {
 		{
 			return xslta_borrowing_fixed_vector<_TLender>(src_xs_ptr);
 		}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 
 		namespace us {
 			namespace impl {
