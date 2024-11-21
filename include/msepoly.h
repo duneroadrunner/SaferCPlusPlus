@@ -610,6 +610,7 @@ namespace mse {
 #endif // !defined(MSE_NORADPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 					mse::TRefCountingPointer<_Ty>,
+					mse::TRefCountingNotNullPointer<_Ty>,
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 					typename mse::mstd::vector<_Ty>::iterator,
@@ -656,6 +657,9 @@ namespace mse {
 				TPolyPointerBase(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
 				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyPointerBase(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingPointer<_Ty>>(p); }
+				TPolyPointerBase(const mse::TRefCountingNotNullPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingNotNullPointer<_Ty>>(p); }
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
+				TPolyPointerBase(const mse::TRefCountingNotNullPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingNotNullPointer<_Ty>>(p); }
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 				TPolyPointerBase(const typename mse::mstd::vector<_Ty>::iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::iterator>(p); }
@@ -810,6 +814,7 @@ namespace mse {
 #endif // !defined(MSE_NORADPOINTER_DISABLED)
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 					mse::TRefCountingConstPointer<_Ty>,
+					mse::TRefCountingNotNullConstPointer<_Ty>,
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 					typename mse::mstd::vector<_Ty>::const_iterator,
@@ -882,6 +887,14 @@ namespace mse {
 				TPolyConstPointerBase(const mse::TRefCountingPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
 				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
 				TPolyConstPointerBase(const mse::TRefCountingPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingConstPointer<_Ty>>(p); }
+
+				TPolyConstPointerBase(const mse::TRefCountingNotNullConstPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingNotNullConstPointer<_Ty>>(p); }
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
+				TPolyConstPointerBase(const mse::TRefCountingNotNullConstPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingNotNullConstPointer<_Ty>>(p); }
+
+				TPolyConstPointerBase(const mse::TRefCountingNotNullPointer<_Ty>& p) { m_pointer.template set<mse::TRefCountingNotNullConstPointer<_Ty>>(p); }
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
+				TPolyConstPointerBase(const mse::TRefCountingNotNullPointer<_Ty2>& p) { m_pointer.template set<mse::TRefCountingNotNullConstPointer<_Ty>>(p); }
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 #if !defined(MSE_MSTDVECTOR_DISABLED)
 				TPolyConstPointerBase(const typename mse::mstd::vector<_Ty>::const_iterator& p) { m_pointer.template set<typename mse::mstd::vector<_Ty>::const_iterator>(p); }

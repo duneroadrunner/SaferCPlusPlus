@@ -164,6 +164,8 @@ namespace mse {
 			m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
 			r.m_ref_with_target_obj_ptr = nullptr;
 		}
+		TRefCountingPointer(const TRefCountingNotNullPointer<X>& r);
+		TRefCountingPointer(TRefCountingNotNullPointer<X>&& r);
 		explicit operator bool() const { return nullptr != get(); }
 		void clear() { (*this) = TRefCountingPointer<X>(nullptr); }
 		TRefCountingPointer& operator=(const TRefCountingPointer& r) {
@@ -202,15 +204,14 @@ namespace mse {
 			}
 			return *this;
 		}
-		template <class Y> MSE_DEPRECATED bool operator<(const TRefCountingPointer<Y>& r) const {
-			return get() < r.get();
-		}
-		template <class Y> bool operator==(const TRefCountingPointer<Y>& r) const {
-			return get() == r.get();
-		}
-		template <class Y> bool operator!=(const TRefCountingPointer<Y>& r) const {
-			return get() != r.get();
-		}
+		template <class Y> bool operator==(const TRefCountingPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingConstPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingConstPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingNotNullPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingNotNullPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingNotNullConstPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingNotNullConstPointer<Y>& r) const { return !((*this) == r); }
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
 		X& operator*() const {
@@ -291,30 +292,51 @@ namespace mse {
 
 		CRefCounter* m_ref_with_target_obj_ptr;
 
-		friend class TRefCountingNotNullPointer<X>;
-		friend class TRefCountingConstPointer<X>;
+		template <class Y> friend class TRefCountingPointer;
+		template <class Y> friend class TRefCountingConstPointer;
+		template <class Y>  friend class TRefCountingNotNullPointer;
+		template <class Y> friend class TRefCountingNotNullConstPointer;
 	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)");
 
 	template<typename _Ty>
-	class TRefCountingNotNullPointer : public TRefCountingPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
+	class TRefCountingNotNullPointer : public mse::us::impl::RefCStrongPointerTagBase, public mse::us::impl::NeverNullTagBase {
 	public:
-		TRefCountingNotNullPointer(const TRefCountingNotNullPointer& src_cref) : TRefCountingPointer<_Ty>(src_cref) {}
-		TRefCountingNotNullPointer(TRefCountingNotNullPointer&& src_ref) : TRefCountingPointer<_Ty>(src_ref) {}
+		TRefCountingNotNullPointer(const TRefCountingNotNullPointer& src_cref) : m_rcptr(src_cref.m_rcptr) {
+			if (!(src_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullPointer")); }
+		}
+		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<_Ty, Y>::value> MSE_IMPL_EIS >
+		TRefCountingNotNullPointer(const TRefCountingNotNullPointer<Y>& r) : m_rcptr(r.m_rcptr) {
+			if (!(r.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullPointer")); }
+		}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingNotNullPointer() {}
 		TRefCountingNotNullPointer<_Ty>& operator=(const TRefCountingNotNullPointer<_Ty>& _Right_cref) {
-			TRefCountingPointer<_Ty>::operator=(_Right_cref);
+			if (!(_Right_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullPointer")); }
+			m_rcptr  = (_Right_cref.m_rcptr);
 			return (*this);
 		}
+		bool operator==(const TRefCountingNotNullPointer& r) const { return m_rcptr == r.m_rcptr; }
+		bool operator!=(const TRefCountingNotNullPointer& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingConstPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingConstPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingNotNullPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingNotNullPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingNotNullConstPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingNotNullConstPointer<Y>& r) const { return !((*this) == r); }
 
 		_Ty& operator*() const {
 			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingPointer")); }
-			_Ty* x_ptr = (*this).unchecked_get();
+			_Ty* x_ptr = m_rcptr.unchecked_get();
 			return *x_ptr;
 		}
 		_Ty* operator->() const {
 			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingPointer")); }
-			_Ty* x_ptr = (*this).unchecked_get();
+			_Ty* x_ptr = m_rcptr.unchecked_get();
 			return x_ptr;
+		}
+		bool unique() const {
+			return m_rcptr.unique();
 		}
 
 		template <class... Args>
@@ -325,19 +347,35 @@ namespace mse {
 		}
 
 	private:
-		explicit TRefCountingNotNullPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : TRefCountingPointer<_Ty>(p) {}
+		explicit TRefCountingNotNullPointer(TRefWithTargetObj<_Ty>* p/* = nullptr*/) : m_rcptr(p) {}
 
 		/* If you want to use this constructor, use not_null_from_nullable() instead. */
-		TRefCountingNotNullPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingPointer<_Ty>(src_cref) {
+		TRefCountingNotNullPointer(const TRefCountingPointer<_Ty>& src_cref) : m_rcptr(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
+		}
+		_Ty* unchecked_get() const {
+			return m_rcptr.unchecked_get();
+		}
+		_Ty* get() const {
+			return unchecked_get();
 		}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		friend class TRefCountingFixedPointer<_Ty>;
+		TRefCountingPointer<_Ty> m_rcptr;
+
+		template <class Y>  friend class TRefCountingPointer;
+		template <class Y> friend class TRefCountingConstPointer;
+		template <class Y> friend class TRefCountingNotNullPointer;
+		template <class Y> friend class TRefCountingNotNullConstPointer;
+		template <class Y> friend class TRefCountingFixedPointer;
+		template <class Y> friend class TRefCountingFixedConstPointer;
 		template<typename _Ty2>
 		friend TRefCountingNotNullPointer<_Ty2> not_null_from_nullable(const TRefCountingPointer<_Ty2>& src);
 	};
+
+	template <class X> TRefCountingPointer<X>::TRefCountingPointer(const TRefCountingNotNullPointer<X>& r) : TRefCountingPointer(r.m_rcptr){}
+	template <class X> TRefCountingPointer<X>::TRefCountingPointer(TRefCountingNotNullPointer<X>&& r) : TRefCountingPointer(MSE_FWD(r.m_rcptr)) {}
 
 	/* TRefCountingFixedPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
 	parameters by reference. */
@@ -410,6 +448,8 @@ namespace mse {
 			m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
 			r.m_ref_with_target_obj_ptr = nullptr;
 		}
+		TRefCountingConstPointer(const TRefCountingNotNullConstPointer<X>& r);
+		TRefCountingConstPointer(TRefCountingNotNullConstPointer<X>&& r);
 		explicit operator bool() const { return nullptr != get(); }
 		void clear() { (*this) = TRefCountingConstPointer<X>(nullptr); }
 		TRefCountingConstPointer& operator=(const TRefCountingConstPointer& r) {
@@ -448,15 +488,18 @@ namespace mse {
 			}
 			return *this;
 		}
-		template <class Y> MSE_DEPRECATED bool operator<(const TRefCountingConstPointer<Y>& r) const {
-			return get() < r.get();
-		}
-		template <class Y> bool operator==(const TRefCountingConstPointer<Y>& r) const {
-			return get() == r.get();
-		}
-		template <class Y> bool operator!=(const TRefCountingConstPointer<Y>& r) const {
-			return get() != r.get();
-		}
+		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
+		TRefCountingConstPointer(const TRefCountingNotNullPointer<Y>& r) : TRefCountingConstPointer(r.m_rcptr) {}
+		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
+		TRefCountingConstPointer(TRefCountingNotNullPointer<Y>&& r) : TRefCountingConstPointer(MSE_FWD(r.m_rcptr)) {}
+		template <class Y> bool operator==(const TRefCountingPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingConstPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingConstPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingNotNullPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingNotNullPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingNotNullConstPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingNotNullConstPointer<Y>& r) const { return !((*this) == r); }
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
 		const X& operator*() const {
@@ -531,21 +574,43 @@ namespace mse {
 
 		CRefCounter* m_ref_with_target_obj_ptr;
 
-		friend class TRefCountingNotNullConstPointer<X>;
+		template <class Y> friend class TRefCountingPointer;
+		template <class Y> friend class TRefCountingConstPointer;
+		template <class Y>  friend class TRefCountingNotNullPointer;
+		template <class Y> friend class TRefCountingNotNullConstPointer;
 	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)");
 
 	template<typename _Ty>
-	class TRefCountingNotNullConstPointer : public TRefCountingConstPointer<_Ty>, public mse::us::impl::NeverNullTagBase {
+	class TRefCountingNotNullConstPointer : public mse::us::impl::RefCStrongPointerTagBase, public mse::us::impl::NeverNullTagBase {
 	public:
-		TRefCountingNotNullConstPointer(const TRefCountingNotNullConstPointer& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
-		TRefCountingNotNullConstPointer(const TRefCountingNotNullPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {}
-		TRefCountingNotNullConstPointer(TRefCountingNotNullConstPointer&& src_ref) : TRefCountingConstPointer<_Ty>(src_ref) {}
-		TRefCountingNotNullConstPointer(TRefCountingNotNullPointer<_Ty>&& src_ref) : TRefCountingConstPointer<_Ty>(src_ref) {}
+		TRefCountingNotNullConstPointer(const TRefCountingNotNullConstPointer& src_cref) : m_rcptr(src_cref.m_rcptr) {
+			if (!(src_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullConstPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullConstPointer")); }
+		}
+		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<_Ty, Y>::value> MSE_IMPL_EIS >
+		TRefCountingNotNullConstPointer(const TRefCountingNotNullConstPointer<Y>& r) : m_rcptr(r.m_rcptr) {
+			if (!(r.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullConstPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullConstPointer")); }
+		}
+
+		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<_Ty, Y>::value> MSE_IMPL_EIS >
+		TRefCountingNotNullConstPointer(const TRefCountingNotNullPointer<Y>& src_cref) : m_rcptr(src_cref.m_rcptr) {
+			if (!(src_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullConstPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullConstPointer")); }
+		}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingNotNullConstPointer() {}
 		TRefCountingNotNullConstPointer<_Ty>& operator=(const TRefCountingNotNullConstPointer<_Ty>& _Right_cref) {
-			TRefCountingConstPointer<_Ty>::operator=(_Right_cref);
+			if (!(_Right_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullConstPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullConstPointer")); }
+			m_rcptr = (_Right_cref.m_rcptr);
 			return (*this);
 		}
+		bool operator==(const TRefCountingNotNullConstPointer& r) const { return m_rcptr == r.m_rcptr; }
+		bool operator!=(const TRefCountingNotNullConstPointer& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingConstPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingConstPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingNotNullPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingNotNullPointer<Y>& r) const { return !((*this) == r); }
+		template <class Y> bool operator==(const TRefCountingNotNullConstPointer<Y>& r) const { return get() == r.get(); }
+		template <class Y> bool operator!=(const TRefCountingNotNullConstPointer<Y>& r) const { return !((*this) == r); }
 
 		const _Ty& operator*() const {
 			//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TRefCountingConstPointer")); }
@@ -557,22 +622,48 @@ namespace mse {
 			const _Ty* x_ptr = (*this).unchecked_get();
 			return x_ptr;
 		}
+		bool unique() const {
+			return m_rcptr.unique();
+		}
+
+		template <class... Args>
+		static TRefCountingNotNullConstPointer make(Args&&... args) {
+			auto new_ptr = new TRefWithTargetObj<_Ty>(std::forward<Args>(args)...);
+			TRefCountingNotNullConstPointer retval(new_ptr);
+			return retval;
+		}
 
 	private:
 		/* If you want to use this constructor, use not_null_from_nullable() instead. */
-		TRefCountingNotNullConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {
+		TRefCountingNotNullConstPointer(const TRefCountingConstPointer<_Ty>& src_cref) : m_rcptr(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
 		}
-		TRefCountingNotNullConstPointer(const TRefCountingPointer<_Ty>& src_cref) : TRefCountingConstPointer<_Ty>(src_cref) {
+		TRefCountingNotNullConstPointer(const TRefCountingPointer<_Ty>& src_cref) : m_rcptr(src_cref) {
 			*src_cref; // to ensure that src_cref points to a valid target
+		}
+		const _Ty* unchecked_get() const {
+			return m_rcptr.unchecked_get();
+		}
+		const _Ty* get() const {
+			return unchecked_get();
 		}
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-		friend class TRefCountingFixedConstPointer<_Ty>;
+		TRefCountingConstPointer<_Ty> m_rcptr;
+
+		template <class Y>  friend class TRefCountingPointer;
+		template <class Y> friend class TRefCountingConstPointer;
+		template <class Y> friend class TRefCountingNotNullPointer;
+		template <class Y> friend class TRefCountingNotNullConstPointer;
+		template <class Y> friend class TRefCountingFixedPointer;
+		template <class Y> friend class TRefCountingFixedConstPointer;
 		template<typename _Ty2>
 		friend TRefCountingNotNullConstPointer<_Ty2> not_null_from_nullable(const TRefCountingConstPointer<_Ty2>& src);
 	};
+
+	template <class X> TRefCountingConstPointer<X>::TRefCountingConstPointer(const TRefCountingNotNullConstPointer<X>& r) : TRefCountingConstPointer(r.m_rcptr) {}
+	template <class X> TRefCountingConstPointer<X>::TRefCountingConstPointer(TRefCountingNotNullConstPointer<X>&& r) : TRefCountingConstPointer(MSE_FWD(r.m_rcptr)) {}
 
 	/* TRefCountingFixedConstPointer cannot be retargeted or constructed without a target. This pointer is recommended for passing
 	parameters by reference. */
@@ -1165,8 +1256,8 @@ namespace mse {
 				class D : public A {};
 				mse::TRefCountingFixedPointer<D> D_refcountingfixed_ptr1 = mse::make_refcounting<D>();
 				//mse::TRefCountingFixedPointer<const D> constD_refcountingfixed_ptr1 = D_refcountingfixed_ptr1;
-				mse::TRefCountingPointer<A> A_refcountingfixed_ptr2 = D_refcountingfixed_ptr1;
-				int j = A_refcountingfixed_ptr2->b;
+				//mse::TRefCountingPointer<A> A_refcountingfixed_ptr2 = D_refcountingfixed_ptr1;
+				//int j = A_refcountingfixed_ptr2->b;
 				int k = D_refcountingfixed_ptr1->b;
 			}
 
