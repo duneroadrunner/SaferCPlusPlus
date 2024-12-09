@@ -2126,8 +2126,25 @@ namespace mse {
 	class xscope_borrowing_via_move_fixed_optional;
 	template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
 	class xscope_borrowing_fixed_optional;
-	template <class _TLender, class T/* = mse::impl::target_type<_TLender> */, bool _ExclusiveAccess/* = false */>
-	class xscope_accessing_fixed_optional;
+	//template<class _TPointerToLender, class _TLender/* = mse::impl::target_type<_TPointerToLender>*/, class _Ty/* = mse::impl::container_element_type<_TLender>*/, bool _ExclusiveAccess/* = false */, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_xscope_accessing_fixed_optional::IsTXScopeAccessControlledConstPointer<_TPointerToLender>::value || mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender>::value)> MSE_IMPL_EIS_FORWARD_DECL>
+	//class xscope_accessing_fixed_optional;
+
+	namespace impl {
+		template<class T, class EqualTo>
+		struct Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<U>().s_make_xscope_shared_structure_lock_guard(std::declval<U>()), std::declval<V>().s_make_xscope_shared_structure_lock_guard(std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...) -> std::false_type;
+
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct Has_s_make_xscope_shared_structure_lock_guard_MemberFunction : Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+	}
 
 	namespace rsv {
 		template <class T>
@@ -2136,8 +2153,8 @@ namespace mse {
 		class xslta_borrowing_via_move_fixed_optional;
 		template <class _TLender, class T/* = mse::impl::target_type<_TLender> */>
 		class xslta_borrowing_fixed_optional;
-		template<class _TPointerToLender, class _TLender/* = mse::impl::target_type<_TPointerToLender>*/, class _Ty/* = mse::impl::container_element_type<_TLender>*/, bool _ExclusiveAccess/* = false */>
-		class xslta_accessing_fixed_optional;
+		//template<class _TPointerToLender, class _TLender/* = mse::impl::target_type<_TPointerToLender>*/, class _Ty/* = mse::impl::container_element_type<_TLender>*/, bool _ExclusiveAccess/* = false */, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_xscope_accessing_fixed_optional::IsTXScopeAccessControlledConstPointer<_TPointerToLender>::value || mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender>::value)> MSE_IMPL_EIS_FORWARD_DECL>
+		//class xslta_accessing_fixed_optional;
 		namespace us {
 			namespace impl {
 				template<class _TPointerToLender, class _TLender/*= mse::impl::target_type<_TPointerToLender>*/, class _Ty/* = mse::impl::container_element_type<_TLender>*/ >
@@ -2146,7 +2163,7 @@ namespace mse {
 		}
 		namespace impl {
 			namespace ns_xslta_accessing_fixed_optional {
-				template<class _TPointer, class _TLender/* = mse::impl::target_type<_TPointer>*/, class _Ty/* = mse::impl::container_element_type<_TLender> */>
+				template<class _TPointer, class _TLender/* = mse::impl::target_type<_TPointer>*/, class _Ty/* = mse::impl::container_element_type<_TLender> */, MSE_IMPL_EI_FORWARD_DECL(mse::impl::enable_if_t<(mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender>::value)>)>
 				class xslta_accessing_fixed_optional_base2;
 			}
 		}
@@ -2415,7 +2432,7 @@ namespace mse {
 
 					friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 					friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
-					template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_optional::xslta_accessing_fixed_optional_base2;
+					template<class _TPointer2, class _TLender2, class _Ty2, MSE_IMPL_EI_FORWARD_DECL(mse::impl::enable_if_t<(mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender2>::value)>)> friend class mse::rsv::impl::ns_xslta_accessing_fixed_optional::xslta_accessing_fixed_optional_base2;
 					template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_optional_base;
 					//template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::impl::ns_xscope_accessing_fixed_optional::xscope_accessing_fixed_optional_base2;
 					//template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::us::impl::xscope_accessing_fixed_optional_base;
@@ -3042,13 +3059,30 @@ namespace mse {
 
 #ifndef MSE_OPTIONAL_NO_XSCOPE_DEPENDENCE
 
+	namespace impl {
+
+		namespace ns_xscope_accessing_fixed_optional {
+			template<class _TPointerToLender, class _TLender/* = mse::impl::target_type<_TPointerToLender>*/, class _Ty/* = mse::impl::container_element_type<_TLender> */, MSE_IMPL_EI_FORWARD_DECL( mse::impl::enable_if_t<(mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender>::value)>)>
+			class xscope_accessing_fixed_optional_base2;
+		}
+	}
+	namespace us {
+		namespace impl {
+			template<class _TPointerToLender, class _TLender/* = mse::impl::target_type<_TPointerToLender>*/, class _Ty/* = mse::impl::container_element_type<_TLender> */>
+			class xscope_accessing_fixed_optional_base;
+		}
+	}
+
 	template <class T>
 	class xscope_optional : public mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag>, public mse::us::impl::XScopeTagBase
 		, MSE_INHERIT_XSCOPE_TAG_BASE_SET_FROM(T, xscope_optional<T>)
 	{
 	public:
 		typedef mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag> base_class;
+		typedef mse::non_thread_safe_shared_mutex _TStateMutex;
+		typedef xscope_optional _Myt;
 		typedef typename base_class::value_type value_type;
+		typedef mse::us::impl::ns_optional::optional_base1<T> std_optional;
 
 #ifdef MSE_HAS_CXX17
 #ifdef MSE_OPTIONAL_IMPLEMENTATION1
@@ -3166,6 +3200,20 @@ namespace mse {
 		void valid_if_T_is_not_marked_as_containing_an_accessible_scope_addressof_operator() const {}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
+
+		typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<base_class> xscope_shared_structure_lock_guard_t;
+		static auto s_make_xscope_shared_structure_lock_guard(_Myt const& vec_ref) -> xscope_shared_structure_lock_guard_t {
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_shared_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(vec_ref));
+		}
+		//typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<base_class> xscope_shared_const_structure_lock_guard_t;
+
+		friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
+		friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
+		template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl;
+		//template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_optional::xslta_accessing_fixed_optional_base2;
+		//template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_optional_base;
+		template<class _TPointer2, class _TLender2, class _Ty2, MSE_IMPL_EI_FORWARD_DECL( mse::impl::enable_if_t<(mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender2>::value)>)> friend class mse::impl::ns_xscope_accessing_fixed_optional::xscope_accessing_fixed_optional_base2;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::us::impl::xscope_accessing_fixed_optional_base;
 	};
 
 #ifdef MSE_HAS_CXX17
@@ -4585,105 +4633,274 @@ namespace mse {
 		}
 	}
 
-	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type, bool _ExclusiveAccess = false>
-	class xscope_accessing_fixed_optional {
+	namespace us {
+		namespace impl {
+			template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+			class xscope_accessing_fixed_optional_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+			public:
+				typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
+				typedef mse::impl::target_type<_TPointerToLender> unchecked_contained_optional_t;
+
+				typedef xscope_accessing_fixed_optional_base _Myt;
+
+				typedef typename unchecked_contained_optional_t::value_type value_type;
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				xscope_accessing_fixed_optional_base(xscope_accessing_fixed_optional_base&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				xscope_accessing_fixed_optional_base(xscope_accessing_fixed_optional_base&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+				typedef mse::impl::remove_const_t<_TLender> ncTLender;
+				/* Some optionals support structure locking even via const reference. */
+				typedef typename std::conditional<mse::impl::can_be_structure_locked_as_const<ncTLender>::value
+					, ncTLender, _TLender>::type maybe_remove_const_lender_t;
+
+				xscope_accessing_fixed_optional_base(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : m_src_ptr(src_xs_ptr) {}
+
+				constexpr explicit operator bool() const noexcept {
+					return bool(unchecked_contained_optional());
+				}
+				_NODISCARD constexpr bool has_value() const noexcept {
+					return unchecked_contained_optional().has_value();
+				}
+
+				_NODISCARD constexpr auto& value() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return unchecked_contained_optional().value();
+				}
+
+				template <class _Ty2>
+				_NODISCARD constexpr _Ty value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) const&
+					MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_12$); labels(alias_12$); this(_[alias_12$]); return_value(alias_12$) }")
+				{
+					return unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
+				}
+				template <class _Ty2>
+				_NODISCARD constexpr _Ty value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) &&
+					MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_12$); labels(alias_12$); this(_[alias_12$]); return_value(alias_12$) }")
+				{
+					return unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
+				}
+
+				_NODISCARD constexpr auto* operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return std::addressof((*this).value());
+				}
+				_NODISCARD constexpr auto& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return (*this).value();
+				}
+
+				//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(corresponding_xscope_fixed_optional_t);
+
+			private:
+				xscope_accessing_fixed_optional_base(const xscope_accessing_fixed_optional_base&) = delete;
+
+				auto& contained_optional() const { return (*m_src_ptr); }
+
+				template<class T, class EqualTo>
+				struct HasUncheckedContainedOptional_impl
+				{
+					template<class U, class V>
+					static auto test(U*) -> decltype(std::declval<U>().unchecked_contained_optional(), std::declval<V>(), bool(true));
+					template<typename, typename>
+					static auto test(...) -> std::false_type;
+
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct HasUncheckedContainedOptional : HasUncheckedContainedOptional_impl<
+					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+				/*
+				template<class HasUncheckedContainedOptional_t>
+				struct CB {
+					template<class _Ty2>
+					static auto& s_unchecked_contained_optional_helper1(_Ty2& this_obj) { return this_obj.contained_optional().unchecked_contained_optional(); }
+				};
+				template<>
+				struct CB<std::false_type> {
+					template<class _Ty2>
+					static auto& s_unchecked_contained_optional_helper1(_Ty2& this_obj) { return this_obj.contained_optional(); }
+				};
+				*/
+
+				auto& unchecked_contained_optional_helper1(const std::true_type&) const {
+					return contained_optional().unchecked_contained_optional();
+				}
+				auto& unchecked_contained_optional_helper1(const std::false_type&) const {
+					return contained_optional();
+				}
+
+				auto& unchecked_contained_optional() const {
+					return unchecked_contained_optional_helper1(typename HasUncheckedContainedOptional<decltype(contained_optional())>::type());
+					//return CB<typename HasUncheckedContainedOptional<decltype(contained_optional())>::type>::s_unchecked_contained_optional_helper1(*this);
+				}
+
+				_TPointerToLender m_src_ptr;
+
+			} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+				MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+		}
+	}
+
+	namespace impl {
+
+		namespace ns_xscope_accessing_fixed_optional {
+			template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>
+				, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender>::value)> MSE_IMPL_EIS >
+			class xscope_accessing_fixed_optional_base2 : public mse::us::impl::xscope_accessing_fixed_optional_base<_TPointerToLender, _TLender, _Ty> {
+				typedef mse::us::impl::xscope_accessing_fixed_optional_base<_TPointerToLender, _TLender, _Ty> base_class;
+			public:
+				typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
+				typedef xscope_accessing_fixed_optional_base2 _Myt;
+				typedef typename base_class::value_type value_type;
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				xscope_accessing_fixed_optional_base2(xscope_accessing_fixed_optional_base2&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				xscope_accessing_fixed_optional_base2(xscope_accessing_fixed_optional_base2&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+				typedef mse::impl::remove_const_t<_TLender> ncTLender;
+				/* Some optionals support structure locking even via const reference. */
+				typedef typename std::conditional<mse::impl::can_be_structure_locked_as_const<ncTLender>::value
+					, ncTLender, _TLender>::type maybe_remove_const_lender_t;
+
+				xscope_accessing_fixed_optional_base2(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr)
+					, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
+
+				~xscope_accessing_fixed_optional_base2() {
+					valid_if_IsSupportedLenderType();
+					valid_if_is_strong_ptr();
+				}
+
+				/* At the time of writing, lifetimes are only guaranteed to be transmitted properly to the immediate base class, so we override these
+				member functions with lifetime annotations in order to reexepress them for potential use by an immediately derived class. (Although,
+				since these return value lifetimes all happen to be the same as the default implied ones, they actually don't really need to be
+				explicitly expressed here or in the (immediate) base class. These redundant lifetime annotations are only present because they were
+				originally used before the implied defaults were established.) */
+
+				_NODISCARD constexpr auto& value() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return base_class::value();
+				}
+
+				template <class _Ty2>
+				_NODISCARD constexpr _Ty value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) const&
+					MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_12$); labels(alias_12$); this(_[alias_12$]); return_value(alias_12$) }")
+				{
+					return base_class::value_or(std::forward<_Ty2>(_Right));
+				}
+				template <class _Ty2>
+				_NODISCARD constexpr _Ty value_or(_Ty2&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) &&
+					MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(T, alias_12$); labels(alias_12$); this(_[alias_12$]); return_value(alias_12$) }")
+				{
+					return base_class::value_or(std::forward<_Ty2>(_Right));
+				}
+
+				_NODISCARD constexpr auto* operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return std::addressof(base_class::value());
+				}
+				_NODISCARD constexpr auto& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return base_class::value();
+				}
+
+			private:
+				xscope_accessing_fixed_optional_base2(const xscope_accessing_fixed_optional_base2&) = delete;
+
+				template<class T, class EqualTo>
+				struct IsSupportedLenderType_impl
+				{
+					template<class U, class V>
+					static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+					template<typename, typename>
+					static auto test(...) -> std::false_type;
+
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct IsSupportedLenderType : IsSupportedLenderType_impl<
+					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+				template<class _TLender2 = _TLender, MSE_IMPL_EIP mse::impl::enable_if_t<IsSupportedLenderType<_TLender2>::value> MSE_IMPL_EIS >
+				void valid_if_IsSupportedLenderType() const {}
+
+				template<class _TPointerToLender2 = _TPointerToLender, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_strong_ptr<_TPointerToLender>::value> MSE_IMPL_EIS >
+				void valid_if_is_strong_ptr() const {}
+
+				typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
+
+				xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
+
+				template<class TDynamicContainer> friend class mse::us::impl::Txscope_shared_const_structure_lock_guard;
+				template<class TDynamicContainer> friend class mse::us::impl::Txscope_shared_structure_lock_guard;
+
+			} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+				MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
+				MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
+
+			template<class T>
+			void takes_aco_const_pointer(mse::TXScopeAccessControlledConstPointer<T, mse::non_thread_safe_shared_mutex> const&) {}
+
+			template<class T, class EqualTo>
+			struct IsTXScopeAccessControlledConstPointer_impl
+			{
+				template<class U, class V>
+				static auto test(U* u) -> decltype(takes_aco_const_pointer(std::declval<U>()), std::declval<V>(), bool(true));
+				template<typename, typename>
+				static auto test(...) -> std::false_type;
+
+				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			};
+			template<class T, class EqualTo = T>
+			struct IsTXScopeAccessControlledConstPointer : IsTXScopeAccessControlledConstPointer_impl<
+				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+			/* xscope_accessing_fixed_optional_base2<> requires that the lending optional support a specific API
+			for locking the structure of its contents, while mse::us::impl::xscope_accessing_fixed_optional_base
+			doesn't do any locking and has no such API requirement. If _TPointerToLender is a
+			TXScopeExclusiveWriterObj<> const pointer, then the lending optional doesn't need to be locked as
+			the pointer itself takes care of that. So we will choose the base class for
+			mse::xscope_accessing_fixed_optional<> based on whether locking is required or not. */
+			template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+			using xscope_accessing_fixed_optional_base3 = mse::impl::conditional_t<IsTXScopeAccessControlledConstPointer<_TPointerToLender>::value, mse::us::impl::xscope_accessing_fixed_optional_base<_TPointerToLender, _TLender, _Ty>, xscope_accessing_fixed_optional_base2<_TPointerToLender, _TLender, _Ty> >;
+		}
+	}
+
+	template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>, bool _ExclusiveAccess = false
+		, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_xscope_accessing_fixed_optional::IsTXScopeAccessControlledConstPointer<_TPointerToLender>::value || mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender>::value)> MSE_IMPL_EIS >
+	class xscope_accessing_fixed_optional : public impl::ns_xscope_accessing_fixed_optional::xscope_accessing_fixed_optional_base3<_TPointerToLender, _TLender, _Ty> {
+		typedef impl::ns_xscope_accessing_fixed_optional::xscope_accessing_fixed_optional_base3<_TPointerToLender, _TLender, _Ty> base_class;
 	public:
+		typedef xscope_accessing_fixed_optional _Myt;
+		typedef typename base_class::value_type value_type;
+
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 		xscope_accessing_fixed_optional(xscope_accessing_fixed_optional&&) = delete;
-#define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ref(*src_xs_ptr)
-		~xscope_accessing_fixed_optional() {
-			if (_ExclusiveAccess) {
-				src_ref().access_unlock();
-			}
-			src_ref().structure_change_unlock();
-		}
 #else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-		xscope_accessing_fixed_optional(xscope_accessing_fixed_optional&& src) : m_src_ptr(MSE_FWD(src).m_src_ptr) {
-			src.m_src_ptr = nullptr;
-		}
-#define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))
-		~xscope_accessing_fixed_optional() {
-			if (m_src_ptr) {
-				if (_ExclusiveAccess) {
-					src_ref().access_unlock();
-				}
-				src_ref().structure_change_unlock();
-			}
-		}
+		xscope_accessing_fixed_optional(xscope_accessing_fixed_optional&&) = default;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-		xscope_accessing_fixed_optional(mse::TXScopeFixedPointer<_TLender> const src_xs_ptr) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
-			src_ref().structure_change_lock();
-			if (_ExclusiveAccess) {
-				src_ref().access_lock();
-			}
-		}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-			xscope_accessing_fixed_optional(_TLender* const src_xs_ptr) : MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF{
-				src_ref().structure_change_lock();
-				if (_ExclusiveAccess) {
-					src_ref().access_lock();
-				}
-		}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
-			constexpr explicit operator bool() const noexcept {
-			return bool(src_ref().unchecked_contained_optional());
-		}
-		_NODISCARD constexpr bool has_value() const noexcept {
-			return src_ref().unchecked_contained_optional().has_value();
-		}
-
-		_NODISCARD constexpr auto& value() const {
-			return src_ref().unchecked_contained_optional().value();
-		}
-
-		template <class _Ty2>
-		_NODISCARD constexpr T value_or(_Ty2&& _Right) const& {
-			return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
-		}
-		template <class _Ty2>
-		_NODISCARD constexpr T value_or(_Ty2&& _Right) && {
-			return src_ref().unchecked_contained_optional().value_or(std::forward<_Ty2>(_Right));
-		}
-
-		_NODISCARD constexpr auto* operator->() const {
-			return std::addressof((*this).value());
-		}
-		_NODISCARD constexpr auto& operator*() const& {
-			return (*this).value();
-		}
-
-		//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
+		xscope_accessing_fixed_optional(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr) {}
 
 	private:
 		xscope_accessing_fixed_optional(const xscope_accessing_fixed_optional&) = delete;
-
-#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-		_TLender& m_src_ref;
-		auto& src_ref() const { return m_src_ref; }
-		auto& src_ref() { return m_src_ref; }
-#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-		_TLender* m_src_ptr = nullptr;
-		auto& src_ref() const { assert(m_src_ptr); return *m_src_ptr; }
-		auto& src_ref() { assert(m_src_ptr); return *m_src_ptr; }
-#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-	};
+	} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+		MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
+		MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
 
 #ifdef MSE_HAS_CXX17
 	/* deduction guides */
-	template<class _TLender>
-	xscope_accessing_fixed_optional(mse::TXScopeFixedPointer<_TLender>) -> xscope_accessing_fixed_optional<_TLender>;
+	template<class _TPointerToLender>
+	xscope_accessing_fixed_optional(_TPointerToLender) -> xscope_accessing_fixed_optional<_TPointerToLender>;
 #endif /* MSE_HAS_CXX17 */
 
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TLender>
-	xscope_accessing_fixed_optional<_TLender> make_xscope_accessing_fixed_optional(mse::TXScopeFixedPointer<_TLender> const src_xs_ptr) {
-		return xscope_accessing_fixed_optional<_TLender>(src_xs_ptr);
-	}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-	template<class _TLender>
-	xscope_accessing_fixed_optional<_TLender> make_xscope_accessing_fixed_optional(_TLender* const src_xs_ptr) {
-		return xscope_accessing_fixed_optional<_TLender>(src_xs_ptr);
+	template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>
+		, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_xscope_accessing_fixed_optional::IsTXScopeAccessControlledConstPointer<_TPointerToLender>::value || mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender>::value)> MSE_IMPL_EIS >
+	auto make_xscope_accessing_fixed_optional(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"))
+		MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+	{
+		return xscope_accessing_fixed_optional<_TPointerToLender, _TLender, _Ty>(src_xs_ptr);
 	}
 
 	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
@@ -4728,6 +4945,7 @@ namespace mse {
 		struct SupportsXScopeAccessingFixedOptional_impl
 		{
 			template<class U, class V>
+			//static auto test(U*) -> decltype(&U::s_make_xscope_shared_structure_lock_guard, &V::s_make_xscope_shared_structure_lock_guard, bool(true));
 			static auto test(U*) -> decltype(mse::make_xscope_accessing_fixed_optional(std::addressof(std::declval<U>())), mse::make_xscope_accessing_fixed_optional(std::addressof(std::declval<V>())), bool(true));
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
@@ -4742,15 +4960,21 @@ namespace mse {
 
 	/* If the "lending" type is large and supports it, then xscope_borrowing_fixed_optional<> will "lock" the lending object for exclusive 
 	access during its "borrow". Otherwise it will instead move the contents from the lending object and return them at the end of the borrow. */
-	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
-	using xscope_borrowing_fixed_optional_base = typename std::conditional <
-		((64/*arbitrary*/ < sizeof(_TLender)) || (!std::is_nothrow_move_assignable<_TLender>::value)) && (impl::SupportsXScopeAccessingFixedOptional<_TLender>::value)
-		, xscope_accessing_fixed_optional<_TLender, T, true/*_ExclusiveAccess*/>, xscope_borrowing_via_move_fixed_optional<_TLender, T> > ::type;
+	template <class _TLender, class T, bool ShouldUse_xscope_accessing_fixed_optional>
+	struct xscope_borrowing_fixed_optional_base : xscope_accessing_fixed_optional<mse::TXScopeFixedPointer<_TLender>, _TLender, T, true/*_ExclusiveAccess*/> {
+		typedef xscope_accessing_fixed_optional<mse::TXScopeFixedPointer<_TLender>, _TLender, T, true/*_ExclusiveAccess*/> base_class;
+		using base_class::base_class;
+	};
+	template <class _TLender, class T>
+	struct xscope_borrowing_fixed_optional_base<_TLender, T, false> : xscope_borrowing_via_move_fixed_optional<_TLender, T> {
+		typedef xscope_borrowing_via_move_fixed_optional<_TLender, T> base_class;
+		using base_class::base_class;
+	};
 
 	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
-	class xscope_borrowing_fixed_optional : public xscope_borrowing_fixed_optional_base<_TLender, T> {
+	class xscope_borrowing_fixed_optional : public xscope_borrowing_fixed_optional_base<_TLender, T, ((64/*arbitrary*/ < sizeof(_TLender)) || (!std::is_nothrow_move_assignable<_TLender>::value)) && (mse::impl::SupportsXScopeAccessingFixedOptional<_TLender>::value)> {
 	public:
-		typedef xscope_borrowing_fixed_optional_base<_TLender, T> base_class;
+		typedef xscope_borrowing_fixed_optional_base<_TLender, T, ((64/*arbitrary*/ < sizeof(_TLender)) || (!std::is_nothrow_move_assignable<_TLender>::value)) && (mse::impl::SupportsXScopeAccessingFixedOptional<_TLender>::value)> base_class;
 
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 		xscope_borrowing_fixed_optional(xscope_borrowing_fixed_optional&&) = delete;
@@ -4759,7 +4983,7 @@ namespace mse {
 		xscope_borrowing_fixed_optional(xscope_borrowing_fixed_optional&& src) : base_class(MSE_FWD(src)) {}
 #define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-		xscope_borrowing_fixed_optional(mse::rsv::TXScopeFixedPointer<_TLender> const src_xs_ptr) : base_class(src_xs_ptr) {}
+		xscope_borrowing_fixed_optional(mse::TXScopeFixedPointer<_TLender> const src_xs_ptr) : base_class(src_xs_ptr) {}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		xscope_borrowing_fixed_optional(_TLender* const src_xs_ptr) : base_class(src_xs_ptr) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -5030,7 +5254,8 @@ namespace mse {
 
 		namespace impl {
 			namespace ns_xslta_accessing_fixed_optional {
-				template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+				template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>
+					, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender>::value)> MSE_IMPL_EIS >
 				class xslta_accessing_fixed_optional_base2 : public mse::rsv::us::impl::xslta_accessing_fixed_optional_base<_TPointerToLender, _TLender, _Ty> {
 					typedef mse::rsv::us::impl::xslta_accessing_fixed_optional_base<_TPointerToLender, _TLender, _Ty> base_class;
 				public:
@@ -5051,6 +5276,11 @@ namespace mse {
 
 					xslta_accessing_fixed_optional_base2(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr)
 						, m_xs_structure_lock_guard(_TLender::s_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) {}
+
+					~xslta_accessing_fixed_optional_base2() {
+						valid_if_IsSupportedLenderType();
+						valid_if_is_strong_ptr();
+					}
 
 					/* At the time of writing, lifetimes are only guaranteed to be transmitted properly to the immediate base class, so we override these
 					member functions with lifetime annotations in order to reexepress them for potential use by an immediately derived class. (Although,
@@ -5099,14 +5329,11 @@ namespace mse {
 					struct IsSupportedLenderType : IsSupportedLenderType_impl<
 						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 
-					static_assert(IsSupportedLenderType<_TLender>::value, "xslta_accessing_fixed_optional_base2<> does not support the given "
-						"pointer to optional argument. This may be due to the underlying optional type not being supported "
-						"or it may be due to the const qualification of the pointer target. A non-const pointer argument is "
-						"required for certain optional types.");
+					template<class _TLender2 = _TLender, MSE_IMPL_EIP mse::impl::enable_if_t<IsSupportedLenderType<_TLender2>::value> MSE_IMPL_EIS >
+					void valid_if_IsSupportedLenderType() const {}
 
-					static_assert(mse::impl::is_strong_ptr<_TPointerToLender>::value, "xscope_accessing_fixed_nii_optional_base2<> does not support the given "
-						"pointer to optional argument. This may be due to the pointer not being recognized as a 'strong' "
-						"pointer.");
+					template<class _TPointerToLender2 = _TPointerToLender, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_strong_ptr<_TPointerToLender>::value> MSE_IMPL_EIS >
+					void valid_if_is_strong_ptr() const {}
 
 					typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
 
@@ -5148,7 +5375,8 @@ namespace mse {
 			}
 		}
 
-		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>, bool _ExclusiveAccess = false >
+		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>, bool _ExclusiveAccess = false
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_xscope_accessing_fixed_optional::IsTXScopeAccessControlledConstPointer<_TPointerToLender>::value || mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender>::value)> MSE_IMPL_EIS >
 		class xslta_accessing_fixed_optional : public impl::ns_xslta_accessing_fixed_optional::xslta_accessing_fixed_optional_base3<_TPointerToLender, _TLender, _Ty> {
 			typedef impl::ns_xslta_accessing_fixed_optional::xslta_accessing_fixed_optional_base3<_TPointerToLender, _TLender, _Ty> base_class;
 		public:
@@ -5175,7 +5403,8 @@ namespace mse {
 		xslta_accessing_fixed_optional(_TPointerToLender) -> xslta_accessing_fixed_optional<_TPointerToLender>;
 #endif /* MSE_HAS_CXX17 */
 
-		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
+		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender>
+		, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::ns_xscope_accessing_fixed_optional::IsTXScopeAccessControlledConstPointer<_TPointerToLender>::value || mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender>::value)> MSE_IMPL_EIS >
 		auto make_xslta_accessing_fixed_optional(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
@@ -5225,6 +5454,7 @@ namespace mse {
 			struct SupportsXSLTAAccessingFixedOptional_impl
 			{
 				template<class U, class V>
+				//static auto test(U*) -> decltype(&U::s_make_xscope_shared_structure_lock_guard, &V::s_make_xscope_shared_structure_lock_guard, bool(true));
 				static auto test(U*) -> decltype(mse::rsv::make_xslta_accessing_fixed_optional(std::addressof(std::declval<U>())), mse::rsv::make_xslta_accessing_fixed_optional(std::addressof(std::declval<V>())), bool(true));
 				template<typename, typename>
 				static auto test(...) -> std::false_type;
@@ -5239,15 +5469,21 @@ namespace mse {
 
 		/* If the "lending" type is large and supports it, then xslta_borrowing_fixed_optional<> will "lock" the lending object for exclusive
 		access during its "borrow". Otherwise it will instead move the contents from the lending object and return them at the end of the borrow. */
-		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
-		using xslta_borrowing_fixed_optional_base = typename std::conditional <
-			((64/*arbitrary*/ < sizeof(_TLender)) || (!std::is_nothrow_move_assignable<_TLender>::value)) && (impl::SupportsXSLTAAccessingFixedOptional<_TLender>::value)
-			, xslta_accessing_fixed_optional<mse::rsv::TXSLTAPointer<_TLender>, _TLender, T, true/*_ExclusiveAccess*/>, xslta_borrowing_via_move_fixed_optional<_TLender, T> > ::type;
+		template <class _TLender, class T, bool ShouldUse_xscope_accessing_fixed_optional>
+		struct xslta_borrowing_fixed_optional_base : xslta_accessing_fixed_optional<mse::rsv::TXSLTAPointer<_TLender>, _TLender, T, true/*_ExclusiveAccess*/> {
+			typedef xslta_accessing_fixed_optional<mse::rsv::TXSLTAPointer<_TLender>, _TLender, T, true/*_ExclusiveAccess*/> base_class;
+			using base_class::base_class;
+		};
+		template <class _TLender, class T>
+		struct xslta_borrowing_fixed_optional_base<_TLender, T, false> : xslta_borrowing_via_move_fixed_optional<_TLender, T> {
+			typedef xslta_borrowing_via_move_fixed_optional<_TLender, T> base_class;
+			using base_class::base_class;
+		};
 
 		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
-		class xslta_borrowing_fixed_optional : public xslta_borrowing_fixed_optional_base<_TLender, T> {
+		class xslta_borrowing_fixed_optional : public xslta_borrowing_fixed_optional_base<_TLender, T, ((64/*arbitrary*/ < sizeof(_TLender)) || (!std::is_nothrow_move_assignable<_TLender>::value)) && (mse::rsv::impl::SupportsXSLTAAccessingFixedOptional<_TLender>::value)> {
 		public:
-			typedef xslta_borrowing_fixed_optional_base<_TLender, T> base_class;
+			typedef xslta_borrowing_fixed_optional_base<_TLender, T, ((64/*arbitrary*/ < sizeof(_TLender)) || (!std::is_nothrow_move_assignable<_TLender>::value)) && (mse::rsv::impl::SupportsXSLTAAccessingFixedOptional<_TLender>::value)> base_class;
 			typedef xslta_borrowing_fixed_optional _Myt;
 			typedef typename base_class::value_type value_type;
 
@@ -5521,7 +5757,8 @@ namespace mse {
 
 			friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 			friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
-			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_optional::xslta_accessing_fixed_optional_base2;
+			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl;
+			template<class _TPointer2, class _TLender2, class _Ty2, MSE_IMPL_EI_FORWARD_DECL(mse::impl::enable_if_t<(mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender2>::value)>)> friend class mse::rsv::impl::ns_xslta_accessing_fixed_optional::xslta_accessing_fixed_optional_base2;
 			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_optional_base;
 			//template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::impl::ns_xscope_accessing_fixed_optional::xscope_accessing_fixed_optional_base2;
 			//template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::us::impl::xscope_accessing_fixed_optional_base;
@@ -8118,6 +8355,7 @@ namespace mse {
 					std::swap(ilaptr48, ilaptr4);
 					std::swap(ilaptr49, ilaptr48);
 				}
+
 #endif // MSE_SELF_TESTS
 			}
 		};

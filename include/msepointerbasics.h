@@ -329,9 +329,13 @@ namespace mse {
 #if defined(_MSC_VER)
 #define MSE_IMPL_EIP typename =
 #define MSE_IMPL_EIS 
+#define MSE_IMPL_EI_FORWARD_DECL(x) typename
+#define MSE_IMPL_EIS_FORWARD_DECL
 #else // defined(_MSC_VER)
 #define MSE_IMPL_EIP 
 #define MSE_IMPL_EIS * = nullptr
+#define MSE_IMPL_EI_FORWARD_DECL(x) x *
+#define MSE_IMPL_EIS_FORWARD_DECL *
 #endif // defined(_MSC_VER)
 
 #define MSE_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
