@@ -762,7 +762,7 @@ namespace mse {
 				return TStrongVectorIterator(std::forward<Args>(args)...);
 			}
 
-		private:
+		//private:
 			auto vector_refcptr() { return (*this).target_container_ptr(); }
 			auto vector_refcptr() const { return (*this).target_container_ptr(); }
 		};
