@@ -3316,7 +3316,7 @@ namespace mse {
 		->xscope_fixed_nii_vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
 
-	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = std::allocator<_Ty>/*todo: replace with an mse::impl::container_allocator_type_if_available<_TLender>*/>
+	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A =  mse::impl::container_allocator_type_if_available<_TLender> >
 	class xscope_borrowing_fixed_nii_vector : public xscope_fixed_nii_vector<_Ty, _A>
 		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xscope_fixed_nii_vector<_Ty, _A>, xscope_borrowing_fixed_nii_vector<_TLender, _Ty, _A> >
 	{
@@ -3368,6 +3368,9 @@ namespace mse {
 		_TLender& m_src_ref;
 	};
 
+	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+	using xs_bf_nii_vector = xscope_borrowing_fixed_nii_vector<_TLender, _Ty, _A>; /* provisional shorter alias */
+
 #ifdef MSE_HAS_CXX17
 	/* deduction guides */
 	template<class _TLender>
@@ -3378,10 +3381,20 @@ namespace mse {
 	auto make_xscope_borrowing_fixed_nii_vector(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) {
 		return mse::TXScopeObj<xscope_borrowing_fixed_nii_vector<_TLender> >(src_xs_ptr);
 	}
+	/* provisional shorter alias */
+	template<class _TLender>
+	auto make_xs_bf_nii_vector(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) {
+		return make_xscope_borrowing_fixed_nii_vector<_TLender>(src_xs_ptr);
+	}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TLender>
 	auto make_xscope_borrowing_fixed_nii_vector(_TLender* src_xs_ptr) {
 		return mse::TXScopeObj<xscope_borrowing_fixed_nii_vector<_TLender> >(src_xs_ptr);
+	}
+	/* provisional shorter alias */
+	template<class _TLender>
+	auto make_xs_bf_nii_vector(_TLender* src_xs_ptr) {
+		return make_xscope_borrowing_fixed_nii_vector<_TLender>(src_xs_ptr);
 	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
@@ -4383,6 +4396,9 @@ namespace mse {
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
 
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		using xl_bf_vector =  xslta_borrowing_fixed_vector<_TLender, _Ty, _A>; /* provisional shorter alias */
+
 #ifdef MSE_HAS_CXX17
 		/* deduction guides */
 		template<class _TLender>
@@ -4394,7 +4410,15 @@ namespace mse {
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 		{
-			return xslta_borrowing_fixed_vector<_TLender>(src_xs_ptr);
+			return xslta_borrowing_fixed_vector<_TLender, _Ty, _A>(src_xs_ptr);
+		}
+		/* provisional shorter alias */
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		auto make_xl_bf_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+		{
+			return make_xslta_borrowing_fixed_vector<_TLender, _Ty, _A>(src_xs_ptr);
 		}
 #if !defined(MSE_SLTAPOINTER_DISABLED)
 		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
@@ -4402,7 +4426,15 @@ namespace mse {
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 		{
-			return xslta_borrowing_fixed_vector<_TLender>(src_xs_ptr);
+			return xslta_borrowing_fixed_vector<_TLender, _Ty, _A>(src_xs_ptr);
+		}
+		/* provisional shorter alias */
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+		auto make_xl_bf_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+		{
+			return make_xslta_borrowing_fixed_vector<_TLender, _Ty, _A>(src_xs_ptr);
 		}
 #endif // !defined(MSE_SLTAPOINTER_DISABLED)
 

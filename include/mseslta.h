@@ -98,6 +98,17 @@ this_class& operator=(this_class&& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime
 	}
 #endif // defined(__clang__)
 
+#ifndef MSE_IMPL_DISABLE_LT_SHORT_MACROS
+/* provisional */
+#define LT(...) MSE_ATTR_STR("mse::lifetime_labels("#__VA_ARGS__")")
+#define LTP(...) MSE_ATTR_PARAM_STR("mse::lifetime_labels("#__VA_ARGS__")")
+#define LT_RETVAL(...) MSE_ATTR_STR("mse::lifetime_return_value("#__VA_ARGS__")")
+#define LT_THIS(...) MSE_ATTR_STR("mse::lifetime_this("#__VA_ARGS__")")
+#define LT_ENCOMPASSES(x, y) MSE_ATTR_STR("mse::lifetime_encompasses("#x", "#y")")
+#define LT_FIRST_CAN_BE_ASSIGNED_TO_SECOND(x, y) MSE_ATTR_STR("mse::first_can_be_assigned_to_second("#x", "#y")")
+#define LT_FROM_TEMPLATE_PARAM_BY_NAME(x, y) MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name("#x", "#y")")
+#endif // !MSE_IMPL_DISABLE_LT_SHORT_MACROS
+
 namespace mse {
 	namespace us {
 		namespace impl {

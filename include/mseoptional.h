@@ -4994,6 +4994,9 @@ namespace mse {
 		xscope_borrowing_fixed_optional(const xscope_borrowing_fixed_optional&) = delete;
 	};
 
+	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+	using xs_bf_optional = xscope_borrowing_fixed_optional<_TLender, T>; /* provisional shorter alias */
+
 #ifdef MSE_HAS_CXX17
 	/* deduction guides */
 	template<class _TLender>
@@ -5005,10 +5008,20 @@ namespace mse {
 	xscope_borrowing_fixed_optional<_TLender> make_xscope_borrowing_fixed_optional(mse::TXScopeFixedPointer<_TLender> const src_xs_ptr) {
 		return xscope_borrowing_fixed_optional<_TLender>(src_xs_ptr);
 	}
+	/* provisional shorter alias */
+	template<class _TLender>
+	xscope_borrowing_fixed_optional<_TLender> make_xs_bf_optional(mse::TXScopeFixedPointer<_TLender> const src_xs_ptr) {
+		return make_xscope_borrowing_fixed_optional<_TLender>(src_xs_ptr);
+	}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 	template<class _TLender>
 	xscope_borrowing_fixed_optional<_TLender> make_xscope_borrowing_fixed_optional(_TLender* const src_xs_ptr) {
-		return xscope_borrowing_fixed_optional<_TLender>(src_xs_ptr);
+		return mse::TXScopeObj<xscope_borrowing_fixed_optional<_TLender> >(src_xs_ptr);
+	}
+	/* provisional shorter alias */
+	template<class _TLender>
+	xscope_borrowing_fixed_optional<_TLender> make_xs_bf_optional(_TLender* const src_xs_ptr) {
+		return make_xscope_borrowing_fixed_optional<_TLender>(src_xs_ptr);
 	}
 
 	namespace rsv {
@@ -5505,6 +5518,8 @@ namespace mse {
 			xslta_borrowing_fixed_optional(const xslta_borrowing_fixed_optional&) = delete;
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
+		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		using xl_bf_optional = xslta_borrowing_fixed_optional<_TLender, T>; /* provisional shorter alias */
 
 #ifdef MSE_HAS_CXX17
 		/* deduction guides */
@@ -5517,7 +5532,15 @@ namespace mse {
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 		{
-			return xslta_borrowing_fixed_optional<_TLender>(src_xs_ptr);
+			return xslta_borrowing_fixed_optional<_TLender, _Ty>(src_xs_ptr);
+		}
+		/* provisional shorter alias */
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender> >
+		auto make_xl_bf_optional(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+		{
+			return make_xslta_borrowing_fixed_optional<_TLender, _Ty>(src_xs_ptr);
 		}
 #if !defined(MSE_SLTAPOINTER_DISABLED)
 		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender> >
@@ -5525,7 +5548,15 @@ namespace mse {
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 		{
-			return xslta_borrowing_fixed_optional<_TLender>(src_xs_ptr);
+			return xslta_borrowing_fixed_optional<_TLender, _Ty>(src_xs_ptr);
+		}
+		/* provisional shorter alias */
+		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender> >
+		auto make_xl_bf_optional(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+		{
+			return make_xslta_borrowing_fixed_optional<_TLender, _Ty>(src_xs_ptr);
 		}
 #endif // !defined(MSE_SLTAPOINTER_DISABLED)
 

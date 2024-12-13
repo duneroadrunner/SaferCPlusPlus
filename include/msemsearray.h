@@ -9711,7 +9711,7 @@ namespace mse {
 			return base_class::subsection(pos, n);
 		}
 
-		TXScopeCSSSXSTERandomAccessConstSection<_TRAIterator>& operator=(const TXScopeCSSSXSTERandomAccessConstSection<_TRAIterator>& _Right_cref) = delete;
+		TXScopeCSSSXSTERandomAccessConstSection& operator=(const TXScopeCSSSXSTERandomAccessConstSection& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		template <typename _TSection>
@@ -9879,7 +9879,7 @@ namespace mse {
 			return base_class::subsection(pos, n);
 		}
 
-		TXScopeCSSSXSTERandomAccessSection<_TRAIterator>& operator=(const TXScopeCSSSXSTERandomAccessSection<_TRAIterator>& _Right_cref) = delete;
+		TXScopeCSSSXSTERandomAccessSection& operator=(const TXScopeCSSSXSTERandomAccessSection& _Right_cref) = delete;
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 		template <typename _TSection>
@@ -9889,16 +9889,30 @@ namespace mse {
 			-> decltype(section.subsection_pv(pos, n));
 	};
 
+	template <typename _TElement> using xs_span = TXScopeCSSSXSTERandomAccessSection<_TElement>; /* provisional shorter alias */
+
 	template <typename _TRAIterator>
 	auto make_xscope_csssxste_random_access_const_section(const _TRAIterator& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
 		typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*start_iter)> > _TElement;
 		return TXScopeCSSSXSTERandomAccessConstSection<_TElement>(TXScopeCSSSXSTERAConstIterator<_TElement>(start_iter), count);
 	}
+	/* provisional shorter alias */
+	template <typename _TRAIterator>
+	auto make_xs_const_span(const _TRAIterator& start_iter, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type count) {
+		return make_xscope_csssxste_random_access_const_section<_TRAIterator>(start_iter, count);
+	}
+
 	template <typename _TRALoneParam>
 	auto make_xscope_csssxste_random_access_const_section(const _TRALoneParam& param) {
 		typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xscope_random_access_const_section(param)[0])> > _TElement;
 		return TXScopeCSSSXSTERandomAccessConstSection<_TElement>(make_xscope_random_access_const_section(param));
 	}
+	/* provisional shorter alias */
+	template <typename _TRALoneParam>
+	auto make_xs_const_span(const _TRALoneParam& param) {
+		return make_xscope_csssxste_random_access_const_section<_TRALoneParam>(param);
+	}
+
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_csssxste_random_access_const_section)
 
@@ -9907,11 +9921,23 @@ namespace mse {
 		typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*start_iter)> > _TElement;
 		return TXScopeCSSSXSTERandomAccessSection<_TElement>(TXScopeCSSSXSTERAIterator<_TElement>(start_iter), count);
 	}
+	/* provisional shorter alias */
+	template <typename _TRAIterator>
+	auto make_xs_span(const _TRAIterator& start_iter, typename TXScopeRandomAccessSection<_TRAIterator>::size_type count) {
+		return make_xscope_csssxste_random_access_section<_TRAIterator>(start_iter, count);
+	}
+
 	template <typename _TRALoneParam>
 	auto make_xscope_csssxste_random_access_section(const _TRALoneParam& param) {
 		typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xscope_random_access_section(param)[0])> > _TElement;
 		return TXScopeCSSSXSTERandomAccessSection<_TElement>(make_xscope_random_access_section(param));
 	}
+	/* provisional shorter alias */
+	template <typename _TRALoneParam>
+	auto make_xs_span(const _TRALoneParam& param) {
+		return make_xscope_csssxste_random_access_section<_TRALoneParam>(param);
+	}
+
 	/* Overloads for rsv::TReturnableFParam<>. */
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_csssxste_random_access_section)
 
@@ -12125,7 +12151,7 @@ namespace mse {
 				return base_class::subsection(pos, n);
 			}
 
-			TXSLTACSSSXSTERandomAccessConstSection<_TRAIterator>& operator=(const TXSLTACSSSXSTERandomAccessConstSection<_TRAIterator>& _Right_cref) = delete;
+			TXSLTACSSSXSTERandomAccessConstSection& operator=(const TXSLTACSSSXSTERandomAccessConstSection& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 			template <typename _TSection>
@@ -12134,6 +12160,8 @@ namespace mse {
 			friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
 				-> decltype(section.subsection_pv(pos, n));
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
+
+		template <typename _TElement> using xl_const_span = TXSLTACSSSXSTERandomAccessConstSection<_TElement>; /* provisional shorter alias */
 
 		namespace impl {
 			namespace ns_xs_csssxste_ra_section {
@@ -12327,7 +12355,7 @@ namespace mse {
 				return base_class::subsection(pos, n);
 			}
 
-			TXSLTACSSSXSTERandomAccessSection<_TRAIterator>& operator=(const TXSLTACSSSXSTERandomAccessSection<_TRAIterator>& _Right_cref) = delete;
+			TXSLTACSSSXSTERandomAccessSection& operator=(const TXSLTACSSSXSTERandomAccessSection& _Right_cref) = delete;
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 			template <typename _TSection>
@@ -12337,26 +12365,50 @@ namespace mse {
 				-> decltype(section.subsection_pv(pos, n));
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
+		template <typename _TElement> using xl_span = TXSLTACSSSXSTERandomAccessSection<_TElement>; /* provisional shorter alias */
+
 		template <typename _TRAIterator>
-		auto make_xslta_csssxste_random_access_const_section(const _TRAIterator& start_iter, typename TXSLTARandomAccessConstSection<_TRAIterator>::size_type count) {
-			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*start_iter)> > _TElement;
+		auto make_xslta_csssxste_random_access_const_section(const _TRAIterator& start_iter, typename mse::impl::target_type<_TRAIterator>::size_type count) {
+			typedef mse::impl::target_type<_TRAIterator> _TElement;
 			return TXSLTACSSSXSTERandomAccessConstSection<_TElement>(TXSLTACSSSXSTERAConstIterator<_TElement>(start_iter), count);
 		}
+		/* provisional shorter alias */
+		template <typename _TRAIterator>
+		auto make_xl_const_span(const _TRAIterator& start_iter, typename mse::impl::target_type<_TRAIterator>::size_type count) {
+			return make_xslta_csssxste_random_access_const_section<_TRAIterator>(start_iter, count);
+		}
+
 		template <typename _TRALoneParam>
 		auto make_xslta_csssxste_random_access_const_section(const _TRALoneParam& param) {
 			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_const_section(param)[0])> > _TElement;
 			return TXSLTACSSSXSTERandomAccessConstSection<_TElement>(make_xslta_random_access_const_section(param));
 		}
+		/* provisional shorter alias */
+		template <typename _TRALoneParam>
+		auto make_xl_const_span(const _TRALoneParam& param) {
+			return make_xslta_csssxste_random_access_const_section(param);
+		}
 
 		template <typename _TRAIterator>
-		auto make_xslta_csssxste_random_access_section(const _TRAIterator& start_iter, typename TXSLTARandomAccessSection<_TRAIterator>::size_type count) {
-			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*start_iter)> > _TElement;
+		auto make_xslta_csssxste_random_access_section(const _TRAIterator& start_iter, typename mse::impl::target_type<_TRAIterator>::size_type count) {
+			typedef mse::impl::target_type<_TRAIterator> _TElement;
 			return TXSLTACSSSXSTERandomAccessSection<_TElement>(TXSLTACSSSXSTERAIterator<_TElement>(start_iter), count);
 		}
+		/* provisional shorter alias */
+		template <typename _TRAIterator>
+		auto make_xl_span(const _TRAIterator& start_iter, typename mse::impl::target_type<_TRAIterator>::size_type count) {
+			return make_xslta_csssxste_random_access_section<_TRAIterator>(start_iter, count);
+		}
+
 		template <typename _TRALoneParam>
 		auto make_xslta_csssxste_random_access_section(const _TRALoneParam& param) {
 			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_section(param)[0])> > _TElement;
 			return TXSLTACSSSXSTERandomAccessSection<_TElement>(make_xslta_random_access_section(param));
+		}
+		/* provisional shorter alias */
+		template <typename _TRALoneParam>
+		auto make_xl_span(const _TRALoneParam& param) {
+			return make_xslta_csssxste_random_access_section(param);
 		}
 
 	}

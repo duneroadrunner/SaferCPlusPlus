@@ -340,6 +340,8 @@ namespace mse {
 
 #define MSE_FWD(...) ::std::forward<decltype(__VA_ARGS__)>(__VA_ARGS__)
 
+#define MSE_COMMA ,
+
 #define MSE_IMPL_DESTRUCTOR_PREFIX1
 
 	/* This macro roughly simulates constructor inheritance. */
