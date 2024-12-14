@@ -12094,12 +12094,12 @@ namespace mse {
 				&& (!mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
 				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
 				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
-			TXSLTACSSSXSTERandomAccessConstSection(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(std::addressof(param)) {}
+			TXSLTACSSSXSTERandomAccessConstSection(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) : base_class(std::addressof(param)) {}
 			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<base_class, _TRALoneParam*>::value)
 				&& (!mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
 				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
 				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value) > MSE_IMPL_EIS >
-			TXSLTACSSSXSTERandomAccessConstSection(_TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(std::addressof(param)) {}
+			TXSLTACSSSXSTERandomAccessConstSection(_TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) : base_class(std::addressof(param)) {}
 
 			/* use the make_xslta_subsection() free function instead */
 			MSE_DEPRECATED TXSLTACSSSXSTERandomAccessConstSection xslta_subsection(size_type pos = 0, size_type n = npos) const {
@@ -12298,12 +12298,12 @@ namespace mse {
 				&& (!mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
 				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
 				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
-			TXSLTACSSSXSTERandomAccessSection(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(std::addressof(param)) {}
+			TXSLTACSSSXSTERandomAccessSection(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) : base_class(std::addressof(param)) {}
 			template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<base_class, _TRALoneParam*>::value)
 				&& (!mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
 				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
 				&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
-			TXSLTACSSSXSTERandomAccessSection(_TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : base_class(std::addressof(param)) {}
+			TXSLTACSSSXSTERandomAccessSection(_TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) : base_class(std::addressof(param)) {}
 
 			/* use the make_xslta_subsection() free function instead */
 			MSE_DEPRECATED TXSLTACSSSXSTERandomAccessSection xslta_subsection(size_type pos = 0, size_type n = npos) const {
@@ -12368,49 +12368,80 @@ namespace mse {
 		template <typename _TElement> using xl_span = TXSLTACSSSXSTERandomAccessSection<_TElement>; /* provisional shorter alias */
 
 		template <typename _TRAIterator>
-		auto make_xslta_csssxste_random_access_const_section(const _TRAIterator& start_iter, typename mse::impl::target_type<_TRAIterator>::size_type count) {
+		auto make_xslta_csssxste_random_access_const_section(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), typename TXSLTACSSSXSTERandomAccessConstSection<mse::impl::target_type<_TRAIterator> >::size_type count)
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
 			typedef mse::impl::target_type<_TRAIterator> _TElement;
 			return TXSLTACSSSXSTERandomAccessConstSection<_TElement>(TXSLTACSSSXSTERAConstIterator<_TElement>(start_iter), count);
 		}
 		/* provisional shorter alias */
 		template <typename _TRAIterator>
-		auto make_xl_const_span(const _TRAIterator& start_iter, typename mse::impl::target_type<_TRAIterator>::size_type count) {
+		auto make_xl_const_span(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), typename TXSLTACSSSXSTERandomAccessConstSection<mse::impl::target_type<_TRAIterator> >::size_type count)
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
 			return make_xslta_csssxste_random_access_const_section<_TRAIterator>(start_iter, count);
 		}
 
-		template <typename _TRALoneParam>
-		auto make_xslta_csssxste_random_access_const_section(const _TRALoneParam& param) {
-			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_const_section(param)[0])> > _TElement;
+		/* This _TRALoneParam constructor might need a stricter filter, but it is intended to match a pointer to a container. */
+		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_const_section(std::declval< _TRALoneParam>())[0])> >
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<TXSLTACSSSXSTERandomAccessConstSection<_TElement>, const _TRALoneParam>::value)
+			&& (mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+		auto make_xslta_csssxste_random_access_const_section(const _TRALoneParam param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
 			return TXSLTACSSSXSTERandomAccessConstSection<_TElement>(make_xslta_random_access_const_section(param));
 		}
 		/* provisional shorter alias */
-		template <typename _TRALoneParam>
-		auto make_xl_const_span(const _TRALoneParam& param) {
+		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_const_section(std::declval< _TRALoneParam>())[0])> >
+		, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<TXSLTACSSSXSTERandomAccessConstSection<_TElement>, const _TRALoneParam>::value)
+			&& (mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+		auto make_xl_const_span(const _TRALoneParam param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
 			return make_xslta_csssxste_random_access_const_section(param);
 		}
 
 		template <typename _TRAIterator>
-		auto make_xslta_csssxste_random_access_section(const _TRAIterator& start_iter, typename mse::impl::target_type<_TRAIterator>::size_type count) {
+		auto make_xslta_csssxste_random_access_section(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), typename TXSLTACSSSXSTERandomAccessSection<mse::impl::target_type<_TRAIterator> >::size_type count)
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
 			typedef mse::impl::target_type<_TRAIterator> _TElement;
 			return TXSLTACSSSXSTERandomAccessSection<_TElement>(TXSLTACSSSXSTERAIterator<_TElement>(start_iter), count);
 		}
 		/* provisional shorter alias */
 		template <typename _TRAIterator>
-		auto make_xl_span(const _TRAIterator& start_iter, typename mse::impl::target_type<_TRAIterator>::size_type count) {
+		auto make_xl_span(const _TRAIterator& start_iter MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), typename TXSLTACSSSXSTERandomAccessSection<mse::impl::target_type<_TRAIterator> >::size_type count)
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
 			return make_xslta_csssxste_random_access_section<_TRAIterator>(start_iter, count);
 		}
 
-		template <typename _TRALoneParam>
-		auto make_xslta_csssxste_random_access_section(const _TRALoneParam& param) {
-			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_section(param)[0])> > _TElement;
+		/* This _TRALoneParam function might need a stricter filter, but it is intended to match a pointer to a container. */
+		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_section(std::declval< _TRALoneParam>())[0])> >
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<TXSLTACSSSXSTERandomAccessSection<_TElement>, const _TRALoneParam>::value)
+			&& (mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+		auto make_xslta_csssxste_random_access_section(const _TRALoneParam param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
 			return TXSLTACSSSXSTERandomAccessSection<_TElement>(make_xslta_random_access_section(param));
 		}
 		/* provisional shorter alias */
-		template <typename _TRALoneParam>
-		auto make_xl_span(const _TRALoneParam& param) {
+		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_section(std::declval< _TRALoneParam>())[0])> >
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<TXSLTACSSSXSTERandomAccessSection<_TElement>, const _TRALoneParam>::value)
+			&& (mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
+			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
+		auto make_xl_span(const _TRALoneParam param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
+
 			return make_xslta_csssxste_random_access_section(param);
 		}
-
 	}
 
 	namespace rsv {
