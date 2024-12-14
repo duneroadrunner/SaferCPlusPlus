@@ -248,6 +248,9 @@ namespace mse {
 			friend class TXSLTAConstPointer;
 		} MSE_ATTR_STR("mse::lifetime_label(99)");
 
+		template<typename _Ty>
+		using xl_ptr = TXSLTAPointer< _Ty>; /* provisional shorter alias */
+
 		/* TXSLTAPointer<T> does implicitly convert to TXSLTAPointer<const T>. But some may prefer to
 		think of the pointer giving "const" access to the object rather than giving access to a "const object". */
 		template<typename _ncTy>
@@ -291,6 +294,9 @@ namespace mse {
 
 			_Ty* m_ptr MSE_ATTR_STR("mse::lifetime_label(99)");
 		} MSE_ATTR_STR("mse::lifetime_label(99)");
+
+		template<typename _Ty>
+		using xl_const_ptr = TXSLTAConstPointer< _Ty>; /* provisional shorter alias */
 
 #endif // MSE_SLTAPOINTER_DISABLED
 
