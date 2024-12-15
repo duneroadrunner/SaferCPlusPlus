@@ -9721,6 +9721,8 @@ namespace mse {
 			-> decltype(section.subsection_pv(pos, n));
 	};
 
+	template <typename _TElement> using xs_const_span = TXScopeCSSSXSTERandomAccessConstSection<_TElement>; /* provisional shorter alias */
+
 	namespace impl {
 		namespace ns_xs_csssxste_ra_section {
 			template <typename _TElement>
