@@ -20,7 +20,7 @@ While a "static safety analyzer/enforcer" like the scpptool would be required to
 
 Besides zero-overhead pointers that enforce some of the necessary restrictions that would be imposed by a complete "static safety analyzer/enforcer", the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and an unrestricted pointer that ensures memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat [draconian restrictions](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md) imposed by the (eventual completed) lifetime checker.
 
-To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. (An online interactive version of these examples is also [available](https://godbolt.org/z/hfjYx1MnK), but the whole collection is large enough that the build will likely time-out. Often, the documentation for individual library elements will include a link to a more specific interactive example that should build fine.)
+To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) your interested in. (An online interactive version of these examples is also [available](https://godbolt.org/z/dcnfMM3oT), but the whole collection is large enough that the build will likely time-out. Often, the documentation for individual library elements will include a link to a more specific interactive example that should build fine.)
 
 Elements in this library are currently based on the C++17 version of their counterpart APIs. (C++14 is still supported.)
 
@@ -3093,29 +3093,31 @@ usage example:
 
 `xscope_borrowing_fixed_nii_vector<>` is a kind of [`xscope_fixed_nii_vector<>`](#xscope_fixed_nii_vector) that, at construction, "borrows" (or "takes" by moving) the contents of a specified (via [scope pointer](#scope-pointers)) existing vector, then, upon destruction "returns" the (possibly modified) contents back to the original owner. Using a `xscope_borrowing_fixed_nii_vector<>` is generally the preferred way to access the elements in a (resizable) vector.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/93TYKh61j))
 ```cpp
     #include "msemsevector.h"
+    #include "msemsestring.h"
     #include "mseasyncshared.h"
-    
+
     int main(int argc, char* argv[]) {
-    
+
         auto xs_nii_vector1_xscpobj = mse::make_xscope(mse::nii_vector<int>{ 1, 2, 3 });
-        /* first we demonstrate some resizing operations on the nii_vector<> */
+
+        /* First we demonstrate some resizing operations on the nii_vector<>. */
         /* Note that the standard emplace(), insert() and erase() member functions return an iterator. Since nii_vector<> doesn't
-        support "implicit reference" iterators (i.e. iterators generated from the native "this" pointer) those operations are provided by
-        free functions that take an explicit (safe) "this" pointer used to generate and return an "explicit reference" iterator. */
+        support "implicit" iterators (i.e. iterators generated from the native "this" pointer) those operations are provided by
+        free functions that take an explicit (safe) "this" pointer used to generate and return an explicit iterator. */
         mse::push_back(&xs_nii_vector1_xscpobj, 4/*value*/);
         mse::erase(&xs_nii_vector1_xscpobj, 2/*position index*/);
         mse::insert(&xs_nii_vector1_xscpobj, 1/*position index*/, 5/*value*/);
-        mse::insert(&xs_nii_vector1_xscpobj, 0/*position index*/, { 6, 7, 8}/*value*/);
+        mse::insert(&xs_nii_vector1_xscpobj, 0/*position index*/, { 6, 7, 8 }/*value*/);
         mse::emplace(&xs_nii_vector1_xscpobj, 2/*position index*/, 9/*value*/);
 
-        const auto nii_vector1_expected = mse::nii_vector<int>{ 6, 7, 9, 8, 1, 5, 2, 4 };
-        assert(nii_vector1_expected == xs_nii_vector1_xscpobj);
+        const auto fnii_vector1_expected = mse::fixed_nii_vector<int>{ 6, 7, 9, 8, 1, 5, 2, 4 };
+        assert(fnii_vector1_expected == mse::make_xscope_borrowing_fixed_nii_vector(&xs_nii_vector1_xscpobj));
 
         /* Constructing a xscope_borrowing_fixed_nii_vector<> requires a (non-const) scope pointer to an eligible vector. */
-        auto xs_bf_nii_vector1_xscpobj = mse::make_xscope(mse::make_xscope_borrowing_fixed_nii_vector(&xs_nii_vector1_xscpobj));
+        auto xs_bf_nii_vector1_xscpobj = mse::make_xscope_borrowing_fixed_nii_vector(&xs_nii_vector1_xscpobj);
 
         {
             /* Here we're obtaining a scope iterator to the fixed vector. */
@@ -3127,6 +3129,7 @@ usage example:
             /* Here we're obtaining a scope pointer from a scope iterator. */
             auto xscp_ptr1 = mse::xscope_pointer(xscp_iter1);
             auto res3 = *xscp_ptr1;
+            *xscp_ptr1 = 7;
 
             auto xscp_citer3 = mse::make_xscope_begin_const_iterator(&xs_bf_nii_vector1_xscpobj);
             xscp_citer3 = xscp_iter1;
@@ -3150,11 +3153,15 @@ usage example:
         shared between asynchronous threads using "access requesters". */
 
         auto xs_shareable_nii_vector1 = mse::make_xscope(mse::nii_vector<shareable_A_t>{});
-        auto xs_aco_bf_nii_vector1 = mse::make_xscope(mse::make_xscope_access_controlled(mse::make_xscope_borrowing_fixed_nii_vector(&xs_shareable_nii_vector1)));
+        mse::TXScopeObj<mse::TXScopeAccessControlledObj<mse::xscope_borrowing_fixed_nii_vector<mse::nii_vector<shareable_A_t> > > > xs_aco_bf_nii_vector1(&xs_shareable_nii_vector1);
+        // which can also be written as
+        // auto xs_aco_bf_nii_vector1 = mse::make_xscope(mse::make_xscope_access_controlled(mse::xscope_borrowing_fixed_nii_vector<mse::nii_vector<shareable_A_t> >(&xs_shareable_nii_vector1)));
         auto xs_access_requester1 = mse::make_xscope_asyncsharedv2acoreadwrite(&xs_aco_bf_nii_vector1);
 
         auto xs_shareable_nii_vector2 = mse::make_xscope(mse::nii_vector<mse::nii_string>{ "abc", "def" });
-        auto xs_aco_bf_nii_vector2 = mse::make_xscope(mse::make_xscope_access_controlled(mse::make_xscope_borrowing_fixed_nii_vector(&xs_shareable_nii_vector2)));
+        mse::TXScopeObj<mse::TXScopeAccessControlledObj<mse::xscope_borrowing_fixed_nii_vector<mse::nii_vector<mse::nii_string> > > > xs_aco_bf_nii_vector2(&xs_shareable_nii_vector2);
+        // which can also be written as
+        // auto xs_aco_bf_nii_vector1 = mse::make_xscope(mse::make_xscope_access_controlled(mse::xscope_borrowing_fixed_nii_vector<mse::nii_vector<mse::nii_string> >(&xs_shareable_nii_vector2)));
         auto xs_access_requester2 = mse::make_xscope_asyncsharedv2acoreadwrite(&xs_aco_bf_nii_vector2);
 
         auto xs_shareable_nii_vector3 = mse::make_xscope(mse::nii_vector<A>{});
@@ -3715,7 +3722,7 @@ usage example:
 
 `TXScopeCSSSXSTERandomAccessSection<>` might be considered, in essence, the primary safe counterpart of `std::span<>`. While [`TXScopeAnyRandomAccessSection<>`](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection) more closely matches the flexibilty of `std::span<>`, `TXScopeCSSSXSTERandomAccessSection<>` would more closely match its (low) overhead.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/T1bdneMvb))
 
 ```cpp
     #include "msemsearray.h" //TXScopeCSSSXSTERandomAccessIterator/Section are defined in this header
@@ -3913,7 +3920,7 @@ Analogous to its vector counterpart, [`xscope_fixed_nii_vector<>`](#xscope_fixed
 
 Analogous to its vector counterpart, [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector), `xscope_borrowing_fixed_optional<>` is like [`xscope_fixed_optional<>`](#xscope_fixed_optional), except that, at construction, "borrows" the contents of a specified (via scope pointer) existing `optional<>`, then, upon destruction "releases" the (possibly modified) contents back to the original owner. Unlike `xscope_borrowing_fixed_nii_vector<>` though, the contained element, if any, is not (necessarily) moved when "borrowed", but equivalently, the "borrowing" object is granted "exclusive access" to the "lending" object for the duration of the borrow.
 
-usage example:
+usage example: ([link to interactive version](https://godbolt.org/z/75b3TrW9e))
 
 ```cpp
     #include "mseoptional.h"
