@@ -478,6 +478,7 @@ namespace mse {
 				&& (!std::is_same<_TRandomAccessIterator1, std::nullptr_t>::value)
 				&& (!std::is_same<_TRandomAccessIterator1, NULL_t>::value)
 				&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
+				&& (mse::impl::is_potentially_not_xscope<_TRandomAccessIterator1>::value)
 			> MSE_IMPL_EIS >
 			TLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(constructor_helper1(
 				typename HasOrInheritsPlusEqualsOperator<_TRandomAccessIterator1>::type(), random_access_iterator)) {

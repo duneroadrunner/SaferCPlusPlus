@@ -4522,7 +4522,7 @@ namespace mse {
 				not have access to a "this" pointer, these functions require a pointer to the container to be passed as the first
 				argument. Any returned iterator will contain a copy of the supplied pointer and inherit its safety properties. */
 
-				template<typename _TBasicStringPointer>
+				template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_begin(const _TBasicStringPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TBasicStringPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TBasicStringPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -4532,7 +4532,7 @@ namespace mse {
 					return retval;
 				}
 
-				template<typename _TBasicStringPointer>
+				template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_end(const _TBasicStringPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TBasicStringPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TBasicStringPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -4542,7 +4542,7 @@ namespace mse {
 					return retval;
 				}
 
-				template<typename _TBasicStringPointer>
+				template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_cbegin(const _TBasicStringPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TBasicStringPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TBasicStringPointer>();
 					Tss_const_iterator_type<_TBasicStringPointer> retval(owner_ptr, 0);
@@ -4559,7 +4559,7 @@ namespace mse {
 					return ss_cbegin(owner_ptr);
 				}
 
-				template<typename _TBasicStringPointer>
+				template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_cend(const _TBasicStringPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TBasicStringPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TBasicStringPointer>();
 					Tss_const_iterator_type<_TBasicStringPointer> retval(owner_ptr, 0);
@@ -4567,7 +4567,7 @@ namespace mse {
 					return retval;
 				}
 
-				template<typename _TBasicStringPointer>
+				template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_rbegin(const _TBasicStringPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TBasicStringPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TBasicStringPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -4575,7 +4575,7 @@ namespace mse {
 					return return_type(ss_end<_TBasicStringPointer>(owner_ptr));
 				}
 
-				template<typename _TBasicStringPointer>
+				template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_rend(const _TBasicStringPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TBasicStringPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TBasicStringPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -4583,13 +4583,13 @@ namespace mse {
 					return return_type(ss_begin<_TBasicStringPointer>(owner_ptr));
 				}
 
-				template<typename _TBasicStringPointer>
+				template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_crbegin(const _TBasicStringPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TBasicStringPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TBasicStringPointer>();
 					return (Tss_const_reverse_iterator_type<_TBasicStringPointer>(ss_cend<_TBasicStringPointer>(owner_ptr)));
 				}
 
-				template<typename _TBasicStringPointer>
+				template<typename _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_crend(const _TBasicStringPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TBasicStringPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TBasicStringPointer>();
 					return (Tss_const_reverse_iterator_type<_TBasicStringPointer>(ss_crbegin<_TBasicStringPointer>(owner_ptr)));
@@ -6704,7 +6704,7 @@ namespace mse {
 				not have access to a "this" pointer, these functions require a pointer to the container to be passed as the first
 				argument. Any returned iterator will contain a copy of the supplied pointer and inherit its safety properties. */
 
-				template<typename _TVectorPointer>
+				template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_begin(const _TVectorPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TVectorPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -6714,7 +6714,7 @@ namespace mse {
 					return retval;
 				}
 
-				template<typename _TVectorPointer>
+				template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_end(const _TVectorPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TVectorPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -6724,7 +6724,7 @@ namespace mse {
 					return retval;
 				}
 
-				template<typename _TVectorPointer>
+				template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_cbegin(const _TVectorPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TVectorPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr, 0);
@@ -6732,7 +6732,7 @@ namespace mse {
 					return retval;
 				}
 
-				template<typename _TVectorPointer>
+				template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_cend(const _TVectorPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TVectorPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					Tss_const_iterator_type<_TVectorPointer> retval(owner_ptr, 0);
@@ -6740,7 +6740,7 @@ namespace mse {
 					return retval;
 				}
 
-				template<typename _TVectorPointer>
+				template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_rbegin(const _TVectorPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TVectorPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -6748,7 +6748,7 @@ namespace mse {
 					return return_type(ss_end<_TVectorPointer>(owner_ptr));
 				}
 
-				template<typename _TVectorPointer>
+				template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_rend(const _TVectorPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TVectorPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -6756,13 +6756,13 @@ namespace mse {
 					return return_type(ss_begin<_TVectorPointer>(owner_ptr));
 				}
 
-				template<typename _TVectorPointer>
+				template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_crbegin(const _TVectorPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TVectorPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					return (Tss_const_reverse_iterator_type<_TVectorPointer>(ss_cend<_TVectorPointer>(owner_ptr)));
 				}
 
-				template<typename _TVectorPointer>
+				template<typename _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_crend(const _TVectorPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TVectorPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TVectorPointer>();
 					return (Tss_const_reverse_iterator_type<_TVectorPointer>(ss_crbegin<_TVectorPointer>(owner_ptr)));

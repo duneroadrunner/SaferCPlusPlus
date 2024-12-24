@@ -449,6 +449,7 @@ namespace mse {
 			(!std::is_convertible<_TPointer1, TAnyConstPointer>::value)
 			&& (!std::is_convertible<_TPointer1, TAnyPointer<_Ty>>::value)
 			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
+			&& (mse::impl::is_potentially_not_xscope<_TPointer1>::value)
 			> MSE_IMPL_EIS >
 		TAnyConstPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
@@ -763,7 +764,7 @@ namespace mse {
 		//MSE_USING(TPolyPointer, us::impl::TPolyPointerBase<_Ty>);
 		//TPolyPointer(const us::impl::TPolyPointerBase<_Ty>& p) : base_class(p) {}
 
-		template <typename _TPointer1>
+		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TPointer1>::value)> MSE_IMPL_EIS >
 		TPolyPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
@@ -1004,7 +1005,7 @@ namespace mse {
 		//TPolyConstPointer(const TPolyConstPointer& src) : base_class(src) {}
 		//TPolyConstPointer(const TPolyPointer<_Ty>& src) : base_class(src) {}
 
-		template <typename _TPointer1>
+		template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TPointer1>::value)> MSE_IMPL_EIS >
 		TPolyConstPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") : base_class(pointer) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TPointer1>();
 		}
@@ -1611,6 +1612,7 @@ namespace mse {
 		template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<TAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)
+			&& (mse::impl::is_potentially_not_xscope<_TRandomAccessIterator1>::value)
 			> MSE_IMPL_EIS >
 		TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)") : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
@@ -1650,6 +1652,7 @@ namespace mse {
 		template <typename _TRandomAccessConstIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator<_Ty>>::value)
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
+			&& (mse::impl::is_potentially_not_xscope<_TRandomAccessConstIterator1>::value)
 			> MSE_IMPL_EIS >
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessConstIterator1)") : base_class(random_access_const_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessConstIterator1>();
@@ -2223,6 +2226,7 @@ namespace mse {
 			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
+			&& (mse::impl::is_potentially_not_xscope<_TRandomAccessIterator1>::value)
 			> MSE_IMPL_EIS >
 		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)") : base_class(random_access_iterator) {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();

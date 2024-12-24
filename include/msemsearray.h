@@ -3205,7 +3205,7 @@ namespace mse {
 				template<typename _TArrayConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value)> MSE_IMPL_EIS >
 				using Tss_const_reverse_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
 
-				template<typename _TArrayPointer>
+				template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_begin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -3220,7 +3220,7 @@ namespace mse {
 					return ss_begin(owner_ptr);
 				}
 
-				template<typename _TArrayPointer>
+				template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_end(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -3230,7 +3230,7 @@ namespace mse {
 					return retval;
 				}
 
-				template<typename _TArrayPointer>
+				template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_cbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr, 0);
@@ -3238,7 +3238,7 @@ namespace mse {
 					return retval;
 				}
 
-				template<typename _TArrayPointer>
+				template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_cend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr, 0);
@@ -3246,7 +3246,7 @@ namespace mse {
 					return retval;
 				}
 
-				template<typename _TArrayPointer>
+				template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_rbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -3254,7 +3254,7 @@ namespace mse {
 					return return_type(ss_end<_TArrayPointer>(owner_ptr));
 				}
 
-				template<typename _TArrayPointer>
+				template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_rend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -3262,13 +3262,13 @@ namespace mse {
 					return return_type(ss_begin<_TArrayPointer>(owner_ptr));
 				}
 
-				template<typename _TArrayPointer>
+				template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_crbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_cend<_TArrayPointer>(owner_ptr)));
 				}
 
-				template<typename _TArrayPointer>
+				template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 				static auto ss_crend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 					mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 					return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_crbegin<_TArrayPointer>(owner_ptr)));
@@ -5060,7 +5060,7 @@ namespace mse {
 					template<typename _TArrayConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value)> MSE_IMPL_EIS >
 					using Tss_const_reverse_iterator_type = mse::impl::ns_nii_array::Tarray_ss_const_reverse_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex>;
 
-					template<typename _TArrayPointer>
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 					static auto ss_begin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -5075,7 +5075,7 @@ namespace mse {
 						return ss_begin(owner_ptr);
 					}
 
-					template<typename _TArrayPointer>
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 					static auto ss_end(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -5085,7 +5085,7 @@ namespace mse {
 						return retval;
 					}
 
-					template<typename _TArrayPointer>
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 					static auto ss_cbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr, 0);
@@ -5093,7 +5093,7 @@ namespace mse {
 						return retval;
 					}
 
-					template<typename _TArrayPointer>
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 					static auto ss_cend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						Tss_const_iterator_type<_TArrayPointer> retval(owner_ptr, 0);
@@ -5101,7 +5101,7 @@ namespace mse {
 						return retval;
 					}
 
-					template<typename _TArrayPointer>
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 					static auto ss_rbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
@@ -5117,13 +5117,13 @@ namespace mse {
 						return return_type(ss_begin<_TArrayPointer>(owner_ptr));
 					}
 
-					template<typename _TArrayPointer>
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 					static auto ss_crbegin(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_cend<_TArrayPointer>(owner_ptr)));
 					}
 
-					template<typename _TArrayPointer>
+					template<typename _TArrayPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayPointer>::value)> MSE_IMPL_EIS >
 					static auto ss_crend(const _TArrayPointer& owner_ptr) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TArrayPointer)") {
 						mse::impl::T_valid_if_not_an_xscope_type<_TArrayPointer>();
 						return (Tss_const_reverse_iterator_type<_TArrayPointer>(ss_crbegin<_TArrayPointer>(owner_ptr)));
