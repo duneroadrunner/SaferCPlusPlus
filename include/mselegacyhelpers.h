@@ -763,7 +763,7 @@ namespace mse {
 				return TStrongVectorIterator(std::forward<Args>(args)...);
 			}
 
-		//private:
+		private:
 			auto vector_refcptr() { return (*this).target_container_ptr(); }
 			auto vector_refcptr() const { return (*this).target_container_ptr(); }
 		};
@@ -1768,7 +1768,7 @@ namespace mse {
 			//void_star_replacement(void_star_replacement&&) = default;
 			void_star_replacement(std::nullptr_t) : base_class((void*)(nullptr)), m_is_nullptr(true) {}
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
-				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
+				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value) || (std::is_same<void const*, T>::value))> MSE_IMPL_EIS >
 			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(!bool(ptr)) {}
 
 			operator bool() const {
