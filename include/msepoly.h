@@ -1207,8 +1207,10 @@ namespace mse {
 				TAnyRandomAccessIteratorBase(_Ty arr[]) : m_any_random_access_iterator(TCommonizedRandomAccessIterator<_Ty, _Ty*>(arr)) {}
 
 				template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
-					(!std::is_convertible<_TRandomAccessIterator1 const *, TAnyRandomAccessIteratorBase const *>::value)
-					&& (!std::is_convertible<_TRandomAccessIterator1 const*, TAnyRandomAccessConstIteratorBase<_Ty> const*>::value)> MSE_IMPL_EIS >
+					(!std::is_convertible<_TRandomAccessIterator1 const *, TAnyRandomAccessIteratorBase<_Ty> const *>::value)
+					&& (!std::is_convertible<_TRandomAccessIterator1 const*, TAnyRandomAccessConstIteratorBase<_Ty> const*>::value)
+					&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
+				> MSE_IMPL_EIS >
 				TAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_any_random_access_iterator(constructor_helper1(typename std::is_base_of< TAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, _TRandomAccessIterator1>::type(), random_access_iterator)) {}
 
 				friend void swap(TAnyRandomAccessIteratorBase& first, TAnyRandomAccessIteratorBase& second) {
@@ -1384,7 +1386,11 @@ namespace mse {
 				TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessIteratorBase< _Ty>& src) : m_any_random_access_const_iterator(src.m_any_random_access_iterator) {}
 				TAnyRandomAccessConstIteratorBase(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
 
-				template <typename _TRandomAccessConstIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIteratorBase>::value> MSE_IMPL_EIS >
+				template <typename _TRandomAccessConstIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
+					(!std::is_convertible<_TRandomAccessConstIterator1 const*, TAnyRandomAccessIteratorBase<_Ty> const*>::value)
+					&& (!std::is_convertible<_TRandomAccessConstIterator1 const*, TAnyRandomAccessConstIteratorBase<_Ty> const*>::value)
+					&& (MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessConstIterator1, const _Ty) || MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessConstIterator1, _Ty))
+				> MSE_IMPL_EIS >
 				TAnyRandomAccessConstIteratorBase(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_any_random_access_const_iterator(constructor_helper1(typename std::is_base_of< TAnyRandomAccessConstIteratorBase<mse::impl::remove_const_t<_Ty> >, _TRandomAccessConstIterator1>::type(), random_access_const_iterator)) {}
 
 				friend void swap(TAnyRandomAccessConstIteratorBase& first, TAnyRandomAccessConstIteratorBase& second) {
@@ -1612,6 +1618,7 @@ namespace mse {
 		template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<TAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)
+			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
 			&& (mse::impl::is_potentially_not_xscope<_TRandomAccessIterator1>::value)
 			> MSE_IMPL_EIS >
 		TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)") : base_class(random_access_iterator) {
@@ -1652,6 +1659,7 @@ namespace mse {
 		template <typename _TRandomAccessConstIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 			(!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator<_Ty>>::value)
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
+			&& (MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessConstIterator1, const _Ty) || MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessConstIterator1, _Ty))
 			&& (mse::impl::is_potentially_not_xscope<_TRandomAccessConstIterator1>::value)
 			> MSE_IMPL_EIS >
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessConstIterator1)") : base_class(random_access_const_iterator) {
@@ -2225,7 +2233,7 @@ namespace mse {
 			(!std::is_convertible<_TRandomAccessIterator1, TNullableAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
-			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
+			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
 			&& (mse::impl::is_potentially_not_xscope<_TRandomAccessIterator1>::value)
 			> MSE_IMPL_EIS >
 		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)") : base_class(random_access_iterator) {
@@ -2298,8 +2306,8 @@ namespace mse {
 			(!std::is_convertible<_TRandomAccessIterator1, TXScopeNullableAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
-			//&& (!std::is_convertible<_TRandomAccessIterator1, int>::value)
-			> MSE_IMPL_EIS >
+			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
+		> MSE_IMPL_EIS >
 		TXScopeNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {}
 
 		friend void swap(TXScopeNullableAnyRandomAccessIterator& first, TXScopeNullableAnyRandomAccessIterator& second) {

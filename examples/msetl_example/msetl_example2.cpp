@@ -2372,7 +2372,7 @@ auto res12 = iptrwbv2[2];
 		xs_te_iter2 = xs_te_iter1;
 
 		{
-			auto std_array1 = std::array<mse::rsv::TXSLTAPointer<int>, 4>{ &i1, &i2, &i3, &i4 };
+			auto std_array1 = std::array<mse::rsv::TXSLTAPointer<int>, 4>{ &i1, & i2, & i3, & i4 };
 			mse::rsv::TXSLTACSSSXSTERandomAccessIterator<mse::rsv::TXSLTAPointer<int>> xs_te_iter1(mse::rsv::make_xslta_begin_iterator(&std_array1));
 			mse::rsv::TXSLTACSSSXSTERandomAccessIterator<mse::rsv::TXSLTAPointer<int>> xs_te_iter2 = mse::rsv::make_xslta_end_iterator(&std_array1);
 			auto res5 = xs_te_iter2 - xs_te_iter1;
