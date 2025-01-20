@@ -623,9 +623,22 @@ namespace mse {
 #endif // !MSE_HAS_CXX20
 
 
-namespace impl {
+	namespace impl {
 		template<typename _TPointer>
-		using target_type = mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())>;
+		struct target_type_impl {
+			typedef mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())> type;
+		};
+		template<>
+		struct target_type_impl<void*> {
+			typedef void type;
+		};
+		template<>
+		struct target_type_impl<void const *> {
+			typedef void const type;
+		};
+
+		template<typename _TPointer>
+		using target_type = mse::impl::remove_reference_t<typename target_type_impl<_TPointer>::type>;
 	}
 
 	namespace impl {

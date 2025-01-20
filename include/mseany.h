@@ -1033,8 +1033,6 @@ namespace mse
 				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
 				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
 			};
-			template<>
-			struct IsSupportedByContainedAny_any_impl<void*, void*> : std::false_type {};
 			template<class T, class EqualTo = T>
 			struct IsSupportedByContainedAny_any : IsSupportedByContainedAny_any_impl<
 				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};

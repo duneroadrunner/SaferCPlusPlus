@@ -320,6 +320,21 @@ namespace mse {
 
 namespace mse {
 	namespace lh {
+		class void_star_replacement;
+	}
+	namespace us {
+		namespace lh {
+			template<typename _Ty, typename _Ty2>
+			_Ty unsafe_cast(const _Ty2& x);
+			template<typename _Ty>
+			_Ty unsafe_cast(const mse::lh::void_star_replacement& x);
+			template<typename _Ty>
+			auto make_raw_pointer_from(_Ty&& ptr);
+			template<typename _Ty>
+			auto make_raw_pointer_from(_Ty& ptr);
+		}
+	}
+	namespace lh {
 		typedef decltype(NULL) NULL_t;
 		typedef decltype(0) ZERO_LITERAL_t;
 		static const auto NULL_AND_ZERO_ARE_THE_SAME_TYPE = std::is_same<NULL_t, ZERO_LITERAL_t>::value;
@@ -1399,95 +1414,7 @@ namespace mse {
 		void memset(_TIter iter, int value, size_t num_bytes) {
 			impl::us::memset_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), iter, value, num_bytes);
 		}
-	}
-	namespace us {
-		namespace lh {
 
-			/* "C-style" (unsafe) casts can convert a native pointer to a native pointer to an incompatible type. It cannot
-			convert an object that is not a native pointer(/reference) to an object of incompatible type. The "safe"
-			pointers in the library are (often) objects, not native pointers, but for compatibility with legacy code we
-			provide a function that can (unsafely) convert the library's safe pointers (and iterators) to corresponding
-			pointers (or iterators) pointing to incompatible types. */
-
-			namespace impl {
-				namespace ns_unsafe_cast {
-
-					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper4(std::false_type, const _Ty2& x) {
-						return (_Ty)(std::addressof(*x));
-					}
-					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper4(std::true_type, const _Ty2& x) {
-						if (x == nullptr) {
-							return nullptr;
-						}
-						return (_Ty)(std::addressof(*x));
-					}
-
-					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper3(std::false_type, const _Ty2& x) {
-						return (_Ty const &)(x);
-					}
-					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper3(std::true_type, const _Ty2& x) {
-						/* _Ty is a raw pointer type */
-						return unsafe_cast_helper4<_Ty>(typename mse::impl::IsNullable_msemsearray<_Ty2>::type(), x);
-					}
-
-					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper2(std::false_type, const _Ty2& x) {
-						return unsafe_cast_helper3<_Ty>(typename std::is_pointer<_Ty>::type(), x);
-					}
-					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper2(std::true_type, const _Ty2& x) {
-						return reinterpret_cast<_Ty const &>(x);
-					}
-				}
-			}
-			template<typename _Ty, typename _Ty2>
-			_Ty unsafe_cast(const _Ty2& x) {
-				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(std::false_type(), x);
-			}
-
-			/* Here we provide overloads for the unsafe_cast<>() function that support the (unsafe) casting of selected smart
-			pointers, akin to how a raw pointer can be cast to a raw pointer to an incompatible type via "C-style" cast. */
-
-#define MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(smart_pointer) \
-			template<typename _Ty, typename _Ty2> \
-			_Ty unsafe_cast(const smart_pointer<_Ty2>& x) { \
-				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(typename mse::impl::is_instantiation_of<_Ty, smart_pointer>::type(), x); \
-			}
-
-			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyRandomAccessIterator)
-			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyRandomAccessIterator)
-			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyPointer)
-			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyPointer)
-
-			template<typename _Ty, typename _Ty2, size_t _Size>
-			_Ty unsafe_cast(mse::lh::TNativeArrayReplacement<_Ty2, _Size>& x) {
-				return unsafe_cast<_Ty>(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty2>(x));
-			}
-			template<typename _Ty, typename _Ty2, size_t _Size>
-			_Ty unsafe_cast(const mse::lh::TNativeArrayReplacement<_Ty2, _Size>& x) {
-				return unsafe_cast<_Ty>(mse::lh::TLHNullableAnyRandomAccessIterator<const _Ty2>(x));
-			}
-
-
-			template<typename _Ty>
-			auto make_raw_pointer_from(_Ty&& ptr) {
-				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
-			}
-			template<typename _Ty>
-			auto make_raw_pointer_from(_Ty& ptr) {
-				/* Note that we don't declare the paramater as a const reference because it might be an
-				mse::lh::TNativeArrayReplacement<> whose "operator*()" and "operator*() const" return different types.
-				(Specifically, they return types that differ by a const qualifier.) */
-				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
-			}
-		}
-	}
-
-	namespace lh {
 		namespace impl {
 			template<class T>
 			struct NDRegisteredWrapped {
@@ -1760,6 +1687,8 @@ namespace mse {
 		}
 
 		/* todo: make distinct xscope and non-xscope versions */
+		/* todo: duplicate impl::explicitly_castable_any's interface and make it private member instead of a public
+		base class */
 		class void_star_replacement : public impl::explicitly_castable_any {
 		public:
 			typedef impl::explicitly_castable_any base_class;
@@ -1771,7 +1700,8 @@ namespace mse {
 			void_star_replacement(std::nullptr_t) : base_class((void*)(nullptr)), m_is_nullptr(true) {}
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
 				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value) || (std::is_same<void const*, T>::value))> MSE_IMPL_EIS >
-			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(!bool(ptr)) {}
+			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(!bool(ptr))
+					, m_shadow_void_const_ptr_for_unsafe_casts(make_void_const_ptr_helper1(typename std::integral_constant<bool, (std::is_same<void*, T>::value || std::is_same<void const*, T>::value)>::type(), ptr)) {}
 
 			operator bool() const {
 				return !m_is_nullptr;
@@ -1797,11 +1727,13 @@ namespace mse {
 			friend void swap(void_star_replacement& first, void_star_replacement& second) {
 				std::swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 				std::swap(first.m_is_nullptr, second.m_is_nullptr);
+				std::swap(first.m_shadow_void_const_ptr_for_unsafe_casts, second.m_shadow_void_const_ptr_for_unsafe_casts);
 			}
 
 			void_star_replacement& operator=(void_star_replacement _Right) {
 				std::swap(static_cast<base_class&>(*this), static_cast<base_class&>(_Right));
 				std::swap((*this).m_is_nullptr, _Right.m_is_nullptr);
+				std::swap((*this).m_shadow_void_const_ptr_for_unsafe_casts, _Right.m_shadow_void_const_ptr_for_unsafe_casts);
 				return (*this);
 			}
 
@@ -1814,8 +1746,126 @@ namespace mse {
 			}
 
 		private:
+			template<class T>
+			void const* make_void_const_ptr_helper1(std::true_type, const T& src_ptr) {
+				return src_ptr;
+			}
+			template<class T>
+			void const* make_void_const_ptr_helper1(std::false_type, const T& src_ptr) {
+				return mse::us::lh::make_raw_pointer_from(src_ptr);
+			}
+
 			bool m_is_nullptr = false;
+			void const* m_shadow_void_const_ptr_for_unsafe_casts = nullptr;
+
+			template<typename _Ty>
+			friend _Ty mse::us::lh::unsafe_cast(const mse::lh::void_star_replacement& x);
 		};
+	}
+	namespace us {
+		namespace lh {
+
+			/* "C-style" (unsafe) casts can convert a native pointer to a native pointer to an incompatible type. It cannot
+			convert an object that is not a native pointer(/reference) to an object of incompatible type. The "safe"
+			pointers in the library are (often) objects, not native pointers, but for compatibility with legacy code we
+			provide a function that can (unsafely) convert the library's safe pointers (and iterators) to corresponding
+			pointers (or iterators) pointing to incompatible types. */
+
+			namespace impl {
+				namespace ns_unsafe_cast {
+
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper5(std::false_type, const _Ty2& x) {
+						if (x == nullptr) {
+							return nullptr;
+						}
+						return (_Ty)(std::addressof(*x));
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper5(std::true_type, const _Ty2& x) {
+						/* _Ty2 is `void*` or `void const*` */
+						return (_Ty)(x);
+					}
+
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper4(std::false_type, const _Ty2& x) {
+						return (_Ty)(std::addressof(*x));
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper4(std::true_type, const _Ty2& x) {
+						typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<_Ty2> > ncTy2;
+						return unsafe_cast_helper5<_Ty>(typename std::integral_constant<bool, (std::is_same<void*, ncTy2>::value || std::is_same<void const*, ncTy2>::value)>::type(), x);
+					}
+
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper3(std::false_type, const _Ty2& x) {
+						return (_Ty const&)(x);
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper3(std::true_type, const _Ty2& x) {
+						/* _Ty is a raw pointer type */
+						return unsafe_cast_helper4<_Ty>(typename mse::impl::IsNullable_msemsearray<_Ty2>::type(), x);
+					}
+
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper2(std::false_type, const _Ty2& x) {
+						return unsafe_cast_helper3<_Ty>(typename std::is_pointer<_Ty>::type(), x);
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper2(std::true_type, const _Ty2& x) {
+						return reinterpret_cast<_Ty const&>(x);
+					}
+				}
+			}
+			template<typename _Ty, typename _Ty2>
+			_Ty unsafe_cast(const _Ty2& x) {
+				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(std::false_type(), x);
+			}
+
+			/* Here we provide overloads for the unsafe_cast<>() function that support the (unsafe) casting of selected smart
+			pointers, akin to how a raw pointer can be cast to a raw pointer to an incompatible type via "C-style" cast. */
+
+#define MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(smart_pointer) \
+			template<typename _Ty, typename _Ty2> \
+			_Ty unsafe_cast(const smart_pointer<_Ty2>& x) { \
+				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(typename mse::impl::is_instantiation_of<_Ty, smart_pointer>::type(), x); \
+			}
+
+			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyRandomAccessIterator)
+				MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyRandomAccessIterator)
+				MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyPointer)
+				MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyPointer)
+
+				template<typename _Ty, typename _Ty2, size_t _Size>
+			_Ty unsafe_cast(mse::lh::TNativeArrayReplacement<_Ty2, _Size>& x) {
+				return unsafe_cast<_Ty>(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty2>(x));
+			}
+			template<typename _Ty, typename _Ty2, size_t _Size>
+			_Ty unsafe_cast(const mse::lh::TNativeArrayReplacement<_Ty2, _Size>& x) {
+				return unsafe_cast<_Ty>(mse::lh::TLHNullableAnyRandomAccessIterator<const _Ty2>(x));
+			}
+			template<typename _Ty>
+			_Ty unsafe_cast(const mse::lh::void_star_replacement& x) {
+				return unsafe_cast<_Ty>(const_cast<void*>(x.m_shadow_void_const_ptr_for_unsafe_casts));
+			}
+
+			template<typename _Ty>
+			auto make_raw_pointer_from(_Ty& ptr) {
+				/* Note that we don't declare the paramater as a const reference because it might be an
+				mse::lh::TNativeArrayReplacement<> whose "operator*()" and "operator*() const" return different types.
+				(Specifically, they return types that differ by a const qualifier.) */
+				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
+			}
+			auto make_raw_pointer_from(mse::lh::void_star_replacement const& vsr) {
+				return unsafe_cast<void*>(vsr);
+			}
+			auto make_raw_pointer_from(mse::lh::void_star_replacement& vsr) {
+				return unsafe_cast<void*>(vsr);
+			}
+			auto make_raw_pointer_from(mse::lh::void_star_replacement&& vsr) {
+				return unsafe_cast<void*>(vsr);
+			}
+		}
 	}
 }
 

@@ -582,8 +582,6 @@ namespace mse {
 
 			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
 		};
-		template<>
-		struct IsNullable_msemsearray_impl<void*, void*> : std::false_type {};
 		template<class T, class EqualTo = T>
 		struct IsNullable_msemsearray : IsNullable_msemsearray_impl<
 			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
