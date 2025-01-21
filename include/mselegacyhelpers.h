@@ -328,10 +328,15 @@ namespace mse {
 			_Ty unsafe_cast(const _Ty2& x);
 			template<typename _Ty>
 			_Ty unsafe_cast(const mse::lh::void_star_replacement& x);
+
 			template<typename _Ty>
-			auto make_raw_pointer_from(_Ty&& ptr);
+			auto make_raw_pointer_from(_Ty&& ptr) -> decltype(unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr));
 			template<typename _Ty>
-			auto make_raw_pointer_from(_Ty& ptr);
+			auto make_raw_pointer_from(_Ty& ptr) -> decltype(unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr));
+
+			auto make_raw_pointer_from(mse::lh::void_star_replacement const& vsr) -> void*;
+			auto make_raw_pointer_from(mse::lh::void_star_replacement& vsr) -> void*;
+			auto make_raw_pointer_from(mse::lh::void_star_replacement&& vsr) -> void*;
 		}
 	}
 	namespace lh {
@@ -1850,19 +1855,19 @@ namespace mse {
 			}
 
 			template<typename _Ty>
-			auto make_raw_pointer_from(_Ty& ptr) {
+			auto make_raw_pointer_from(_Ty& ptr) -> decltype(unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr)) {
 				/* Note that we don't declare the paramater as a const reference because it might be an
 				mse::lh::TNativeArrayReplacement<> whose "operator*()" and "operator*() const" return different types.
 				(Specifically, they return types that differ by a const qualifier.) */
 				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
 			}
-			auto make_raw_pointer_from(mse::lh::void_star_replacement const& vsr) {
+			auto make_raw_pointer_from(mse::lh::void_star_replacement const& vsr) -> void* {
 				return unsafe_cast<void*>(vsr);
 			}
-			auto make_raw_pointer_from(mse::lh::void_star_replacement& vsr) {
+			auto make_raw_pointer_from(mse::lh::void_star_replacement& vsr) -> void* {
 				return unsafe_cast<void*>(vsr);
 			}
-			auto make_raw_pointer_from(mse::lh::void_star_replacement&& vsr) {
+			auto make_raw_pointer_from(mse::lh::void_star_replacement&& vsr) -> void* {
 				return unsafe_cast<void*>(vsr);
 			}
 		}
