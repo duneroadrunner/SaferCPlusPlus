@@ -2145,6 +2145,8 @@ namespace mse {
 			-> decltype(section.subsection_pv(pos, n));
 	};
 
+	using xs_string_csection = TXScopeCSSSXSTEStringConstSection<char>; /* provisional shorter alias */
+
 	namespace impl {
 		namespace ns_xs_csssxste_string_section {
 			template <typename _TElement, class _Traits = std::char_traits<_TElement> >
