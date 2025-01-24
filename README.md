@@ -3848,7 +3848,8 @@ usage example: ([link to interactive version](https://godbolt.org/z/T1bdneMvb))
 
 ### TXScopeCSSSXSTEStringSection, TXScopeCSSSXSTENRPStringSection
 
-`TXScopeCSSSXSTEStringSection<>` is the string specialized version of [`TXScopeCSSSXSTERandomAccessSection<>`](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection). Like [`TXScopeAnyStringSection<>`](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection), it can, with lower overhead but more restrictions, be used to enable functions to take as arguments sections of strings. While [`mstd::string_view`](#string_view) (/`TAnyStringConstSection<char>`) closely matches the interface and flexibilty of `std::string_view`, `TXScopeCSSSXSTEStringConstSection<char>` would more closely match its (low) overhead.
+`TXScopeCSSSXSTEStringSection<>` is the string specialized version of [`TXScopeCSSSXSTERandomAccessSection<>`](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection). Like [`TXScopeAnyStringSection<>`](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection), it can, with lower overhead but more restrictions, be used to enable functions to take as arguments sections of strings. While [`mstd::string_view`](#string_view) (/`TAnyStringConstSection<char>`) closely matches the interface and flexibilty of `std::string_view`, `TXScopeCSSSXSTEStringConstSection<char>` would more closely match its (low) overhead. As such, (though we don't use it in the example) a (provisional) shorter alias is defined:  
+`xs_string_csection` is an alias for `TXScopeCSSSXSTEStringConstSection<char>`  
 
 usage example:
 
