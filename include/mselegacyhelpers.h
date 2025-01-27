@@ -1708,7 +1708,7 @@ namespace mse {
 			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(!bool(ptr))
 					, m_shadow_void_const_ptr_for_unsafe_casts(make_void_const_ptr_helper1(typename std::integral_constant<bool, (std::is_same<void*, T>::value || std::is_same<void const*, T>::value)>::type(), ptr)) {}
 
-			operator bool() const {
+			explicit operator bool() const {
 				return !m_is_nullptr;
 			}
 
