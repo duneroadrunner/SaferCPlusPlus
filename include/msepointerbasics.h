@@ -809,8 +809,33 @@ namespace mse {
 		template<>
 		struct is_nonfunction_pointer<void const * const> : std::is_pointer<void const * const> {};
 
+		template <typename T, typename = mse::impl::enable_if_t<true> >
+		struct is_complete_type {
+			using type = typename std::integral_constant<bool, false>::type;
+			static constexpr const bool value = false;
+		};
+		template <typename T>
+		struct is_complete_type<T, mse::impl::enable_if_t<std::is_same<
+			std::integer_sequence<int, sizeof(T)>,
+			std::integer_sequence<int, sizeof(T)> >::value> > {
+			using type = typename std::integral_constant<bool, true>::type;
+			static constexpr const bool value = true;
+		};
+
+		template <typename _Ty, typename = mse::impl::enable_if_t<true> >
+		struct is_potentially_xscope {
+			using type = typename std::integral_constant<bool, true>::type;
+			static constexpr const bool value = true;
+		};
 		template<typename _Ty>
-		struct is_potentially_xscope : std::integral_constant<bool, mse::impl::disjunction<
+		struct is_potentially_xscope<_Ty, 
+#ifdef MSE_IMPL_PROHIBIT_XSCOPE_STATUS_EVALUATION_OF_INCOMPLETE_TYPES
+			mse::impl::enable_if_t<std::is_same<_Ty*, _Ty*>::value>
+#else // MSE_IMPL_PROHIBIT_XSCOPE_STATUS_EVALUATION_OF_INCOMPLETE_TYPES
+			mse::impl::enable_if_t<std::is_same<std::integer_sequence<int, sizeof(_Ty)>, std::integer_sequence<int, sizeof(_Ty)> >::value>
+#endif // MSE_IMPL_PROHIBIT_XSCOPE_STATUS_EVALUATION_OF_INCOMPLETE_TYPES
+		>
+			: std::integral_constant<bool, mse::impl::disjunction<
 			std::is_base_of<mse::us::impl::XScopeTagBase
 			, mse::impl::remove_reference_t<_Ty> >
 			, mse::impl::is_unique_ptr<mse::impl::remove_reference_t<_Ty> >
@@ -821,8 +846,20 @@ namespace mse {
 #endif // MSE_SCOPEPOINTER_DISABLED
 		>::value> {};
 
+		template <typename _Ty, typename = mse::impl::enable_if_t<true> >
+		struct is_potentially_not_xscope {
+			using type = typename std::integral_constant<bool, true>::type;
+			static constexpr const bool value = true;
+		};
 		template<typename _Ty>
-		struct is_potentially_not_xscope : std::integral_constant<bool, mse::impl::conjunction<
+		struct is_potentially_not_xscope<_Ty, 
+#ifdef MSE_IMPL_PROHIBIT_XSCOPE_STATUS_EVALUATION_OF_INCOMPLETE_TYPES
+			mse::impl::enable_if_t<std::is_same<_Ty*, _Ty*>::value>
+#else // MSE_IMPL_PROHIBIT_XSCOPE_STATUS_EVALUATION_OF_INCOMPLETE_TYPES
+			mse::impl::enable_if_t<std::is_same<std::integer_sequence<int, sizeof(_Ty)>, std::integer_sequence<int, sizeof(_Ty)> >::value>
+#endif // MSE_IMPL_PROHIBIT_XSCOPE_STATUS_EVALUATION_OF_INCOMPLETE_TYPES
+		>
+			: std::integral_constant<bool, mse::impl::conjunction<
 			mse::impl::negation<std::is_base_of<mse::us::impl::XScopeTagBase
 				, mse::impl::remove_reference_t<_Ty> > >
 			, mse::impl::negation<mse::impl::is_unique_ptr<mse::impl::remove_reference_t<_Ty> > >
