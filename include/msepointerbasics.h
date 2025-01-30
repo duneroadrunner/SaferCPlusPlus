@@ -839,7 +839,7 @@ namespace mse {
 			std::is_base_of<mse::us::impl::XScopeTagBase
 			, mse::impl::remove_reference_t<_Ty> >
 			, mse::impl::is_unique_ptr<mse::impl::remove_reference_t<_Ty> >
-			, std::is_pointer<mse::impl::remove_reference_t<_Ty> >
+			, is_nonfunction_pointer<mse::impl::remove_reference_t<_Ty> >
 #ifdef MSE_SCOPEPOINTER_DISABLED
 			, mse::impl::is_instantiation_of<mse::impl::remove_reference_t<_Ty>, mse::us::impl::TPointerForLegacy>
 			, mse::impl::is_instantiation_of<mse::impl::remove_reference_t<_Ty>, mse::us::impl::TPointer>
@@ -866,7 +866,7 @@ namespace mse {
 #if (!defined(MSE_SOME_NON_XSCOPE_POINTER_TYPE_IS_DISABLED)) && (!defined(MSE_SAFER_SUBSTITUTES_DISABLED)) && (!defined(MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS))
 #ifdef MSE_CHAR_STAR_EXEMPTED
 			/* When MSE_CHAR_STAR_EXEMPTED is defined, 'char*' types will be exempt from the restrictions otherwise applied to native pointers. */
-			, mse::impl::disjunction<mse::impl::negation<std::is_pointer<mse::impl::remove_reference_t<_Ty> > >
+			, mse::impl::disjunction<mse::impl::negation<is_nonfunction_pointer<mse::impl::remove_reference_t<_Ty> > >
 				, std::is_convertible<_Ty, const char *> >
 #else // MSE_CHAR_STAR_EXEMPTED
 			, mse::impl::negation<is_nonfunction_pointer<mse::impl::remove_reference_t<_Ty> > >

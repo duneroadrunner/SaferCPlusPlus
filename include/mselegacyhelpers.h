@@ -1000,7 +1000,26 @@ namespace mse {
 		class TNativeFunctionPointerReplacement : public mse::mstd::function<_Fty> {
 		public:
 			typedef mse::mstd::function<_Fty> base_class;
-			using base_class::base_class;
+			TNativeFunctionPointerReplacement() noexcept : base_class() {}
+			TNativeFunctionPointerReplacement(std::nullptr_t) noexcept : base_class(nullptr) {}
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+			TNativeFunctionPointerReplacement(_Ty2 val) : base_class(std::nullptr_t()) {
+				/* This constructor is just to support zero being used as a null pointer value. */
+				assert(0 == val);
+			}
+
+			template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const TNativeFunctionPointerReplacement*>::value)
+				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value) 
+				&& (!std::is_same<_Fty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Fty2, NULL_t>::value) && (mse::impl::is_potentially_not_xscope<_Fty2>::value)> MSE_IMPL_EIS >
+			TNativeFunctionPointerReplacement(const _Fty2& func) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Fty2)") : base_class(func) {
+				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
+			}
+			template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const TNativeFunctionPointerReplacement*>::value)
+				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value) 
+				&& (!std::is_same<_Fty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Fty2, NULL_t>::value) && (mse::impl::is_potentially_not_xscope<_Fty2>::value)> MSE_IMPL_EIS >
+			TNativeFunctionPointerReplacement(_Fty2&& func) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Fty2)") : base_class(MSE_FWD(func)) {
+				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
+			}
 
 			base_class const& operator*() const { return (*this); }
 			auto operator->() const { return std::addressof(operator*()); }
