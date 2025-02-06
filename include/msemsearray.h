@@ -1608,11 +1608,14 @@ namespace mse {
 		TFriendlyAugmentedRAIterator& operator --() { (*this).set_to_previous(); return (*this); }
 		TFriendlyAugmentedRAIterator operator--(int) { TFriendlyAugmentedRAIterator _Tmp = *this; (*this).set_to_previous(); return (_Tmp); }
 		void advance(difference_type n) {
+			/*
 			auto new_index = msear_int((*this).position()) + n;
 			if ((0 > new_index) || ((*this).target_container_ptr()->size() < msear_size_t(new_index))) {
 				MSE_THROW(nii_array_range_error("index out of range - void advance(difference_type n) - TFriendlyAugmentedRAIterator"));
 			}
-			else {
+			else 
+			*/
+			{
 				base_class::operator+=(n);
 			}
 		}

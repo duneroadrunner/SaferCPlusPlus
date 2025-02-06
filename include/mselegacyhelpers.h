@@ -322,6 +322,10 @@ namespace mse {
 
 namespace mse {
 	namespace lh {
+		typedef decltype(NULL) NULL_t;
+		typedef decltype(0) ZERO_LITERAL_t;
+		static const auto NULL_AND_ZERO_ARE_THE_SAME_TYPE = std::is_same<NULL_t, ZERO_LITERAL_t>::value;
+
 		class void_star_replacement;
 	}
 	namespace us {
@@ -332,16 +336,16 @@ namespace mse {
 			_Ty unsafe_cast(const mse::lh::void_star_replacement& x);
 
 			template<typename _Ty>
+			auto make_raw_pointer_from(_Ty const& ptr) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)));
+			template<typename _Ty>
 			auto make_raw_pointer_from(_Ty& ptr) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)));
+			template<typename _Ty>
+			auto make_raw_pointer_from(_Ty&& ptr) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)));
 
 			auto make_raw_pointer_from(mse::lh::void_star_replacement const& vsr) -> void*;
 		}
 	}
 	namespace lh {
-		typedef decltype(NULL) NULL_t;
-		typedef decltype(0) ZERO_LITERAL_t;
-		static const auto NULL_AND_ZERO_ARE_THE_SAME_TYPE = std::is_same<NULL_t, ZERO_LITERAL_t>::value;
-
 		template <typename _udTy, size_t _Size>
 		class TNativeArrayReplacement;
 
@@ -1872,11 +1876,18 @@ namespace mse {
 			}
 
 			template<typename _Ty>
-			auto make_raw_pointer_from(_Ty& ptr) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr))) {
-				/* Note that we don't declare the paramater as a const reference because it might be an
-				mse::lh::TNativeArrayReplacement<> whose "operator*()" and "operator*() const" return different types.
-				(Specifically, they return types that differ by a const qualifier.) */
+			auto make_raw_pointer_from(_Ty const& ptr) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr))) {
 				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
+			}
+			template<typename _Ty>
+			auto make_raw_pointer_from(_Ty& ptr) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr))) {
+				/* Note that, for example, in the case of mse::lh::TNativeArrayReplacement<>, its "operator*()" and "operator*() const" 
+				return different types. (Specifically, they return types that differ by a const qualifier.) */
+				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
+			}
+			template<typename _Ty>
+			auto make_raw_pointer_from(_Ty&& ptr) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr))) {
+				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(MSE_FWD(ptr));
 			}
 
 			auto make_raw_pointer_from(mse::lh::void_star_replacement const& vsr) -> void* {
@@ -1909,9 +1920,13 @@ namespace mse {
 				explicit TXScopeConstArrayOfRawPointersStore(mse::lh::TXScopeStrongVectorIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1)
 					: TXScopeConstArrayOfRawPointersStore(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> >(iter1)) {}
 				explicit TXScopeConstArrayOfRawPointersStore(mse::lh::TStrongVectorIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1)
-					: TXScopeConstArrayOfRawPointersStore(mse::lh::TLHNullableAnyRandomAccessIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> >(iter1)) {}
+					: TXScopeConstArrayOfRawPointersStore(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> >(iter1)) {}
+				TXScopeConstArrayOfRawPointersStore(_Ty* const* iter1) : m_converted_ptr(iter1) {}
 
 				_Ty* const* raw_pointer_to_stored_pointers() const {
+					if (m_converted_ptr) {
+						return m_converted_ptr;
+					}
 					if (1 <= m_pointer_vec.size()) {
 						return std::addressof(m_pointer_vec.front());
 					}
@@ -1922,6 +1937,7 @@ namespace mse {
 				}
 			private:
 				std::vector<_Ty*> m_pointer_vec;
+				_Ty* const* m_converted_ptr = nullptr;
 			};
 
 			template<typename _Ty>
@@ -1942,6 +1958,10 @@ namespace mse {
 			}
 			template<typename _Ty>
 			auto make_temporary_array_of_raw_pointers_from(mse::lh::TStrongVectorIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
+			}
+			template<typename _Ty>
+			auto make_temporary_array_of_raw_pointers_from(_Ty* const* iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
 			}
 		}
