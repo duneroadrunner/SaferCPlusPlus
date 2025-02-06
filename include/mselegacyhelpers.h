@@ -491,7 +491,7 @@ namespace mse {
 			}
 			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value) || (std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
 			TLHNullableAnyRandomAccessIterator(TNativeArrayReplacement<_Ty2, _Size>& val) : base_class(val.begin()) {}
-			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value) || (std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
+			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value)/* || (std::is_same<_Ty2, _Ty>::value)*/> MSE_IMPL_EIS >
 			TLHNullableAnyRandomAccessIterator(const TNativeArrayReplacement<_Ty2, _Size>& val) : base_class(val.cbegin()) {}
 
 			template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
@@ -513,10 +513,10 @@ namespace mse {
 
 			bool operator==(const TLHNullableAnyRandomAccessIterator& _Right_cref) const { return base_class::operator==(_Right_cref); }
 			bool operator!=(const TLHNullableAnyRandomAccessIterator& _Right_cref) const { return !((*this) == _Right_cref); }
-			template <typename _Ty2>
-			bool operator==(const _Ty2& _Right_cref) const { return operator==(TLHNullableAnyRandomAccessIterator(_Right_cref)); }
-			template <typename _Ty2>
-			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TLHNullableAnyRandomAccessIterator(_Right_cref)); }
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, TLHNullableAnyRandomAccessIterator>::value)> MSE_IMPL_EIS >
+			bool operator==(const _Ty2& _Right_cref) const { return operator==(TLHNullableAnyRandomAccessIterator<const _Ty>(_Right_cref)); }
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, TLHNullableAnyRandomAccessIterator>::value)> MSE_IMPL_EIS >
+			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TLHNullableAnyRandomAccessIterator<const _Ty>(_Right_cref)); }
 
 			TLHNullableAnyRandomAccessIterator& operator=(const TLHNullableAnyRandomAccessIterator& _Right_cref) {
 				base_class::operator=(_Right_cref);
