@@ -344,33 +344,76 @@ namespace mse {
 		}
 	}
 
+#ifndef MSE_IMPL_DO_NOT_USE_INT128_COMPILER_EXTENSION
+#ifdef __SIZEOF_INT128__
+#if ((18446744073709551615U == ULLONG_MAX) && (9223372036854775807 == LLONG_MAX))
+#define MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT __uint128_t
+#define MSE_IMPL_LONG_LONG_LONG_INT __int128_t
+#endif //((18446744073709551615 == ULLONG_MAX) && (9223372036854775807 == LLONG_MAX))
+#endif
+#endif // !MSE_IMPL_DO_NOT_USE_INT128_COMPILER_EXTENSION
+
 //define MSE_TINT_TYPE_WITH_THE_LOWER_FLOOR(_Ty, _Tz) typename std::conditional<impl::sg_can_exceed_lower_bound<_Tz, _Ty>(), _Ty, _Tz>::type
 
 	namespace impl {
-		/* We don't assume that char, short, long and long long all have distinct sizes. But in the common case where
-		each is double the size of the preceding type, efficient (run-time) arithmetic overflow detection for types
-		smaller other than the largest ones (long long and unsigned long long) can be enabled (by defining
-		MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC). */
+
+		template <class _Ty>
+		struct make_signed : public std::make_signed<_Ty> {};
+		template <class _Ty>
+		struct make_unsigned : public std::make_unsigned<_Ty> {};
+#ifdef MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+		template <> struct make_signed<MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT> { using type = MSE_IMPL_LONG_LONG_LONG_INT; };
+		template <> struct make_signed<MSE_IMPL_LONG_LONG_LONG_INT> { using type = MSE_IMPL_LONG_LONG_LONG_INT; };
+		template <> struct make_signed<const MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT> { using type = const MSE_IMPL_LONG_LONG_LONG_INT; };
+		template <> struct make_signed<const MSE_IMPL_LONG_LONG_LONG_INT> { using type = const MSE_IMPL_LONG_LONG_LONG_INT; };
+
+		template <> struct make_unsigned<MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT> { using type = MSE_IMPL_LONG_LONG_LONG_INT; };
+		template <> struct make_unsigned<MSE_IMPL_LONG_LONG_LONG_INT> { using type = MSE_IMPL_LONG_LONG_LONG_INT; };
+		template <> struct make_unsigned<const MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT> { using type = const MSE_IMPL_LONG_LONG_LONG_INT; };
+		template <> struct make_unsigned<const MSE_IMPL_LONG_LONG_LONG_INT> { using type = const MSE_IMPL_LONG_LONG_LONG_INT; };
+#endif // MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+
+#ifdef MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+		template<typename _Ty>
+		struct is_biggest_available_type {
+			static const bool value = std::is_same<MSE_IMPL_LONG_LONG_LONG_INT, _Ty>::value || std::is_same<MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT, _Ty>::value;
+		};
+#else // MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+		template<typename _Ty>
+		struct is_biggest_available_type {
+			static const bool value = std::is_same<long long int, _Ty>::value || std::is_same<unsigned long long int, _Ty>::value;
+		};
+#endif // MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+
+		/* Efficient (run-time) arithmetic overflow detection for types other than the largest ones are enabled by 
+		default. (It can be disabled by defining MSE_DISABLE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC). */
 		template<typename _Ty> struct next_bigger_native_int_type { typedef _Ty type; };
-		template<> struct next_bigger_native_int_type<char> { typedef short int type; };
-		template<> struct next_bigger_native_int_type<signed char> { typedef short int type; };
-		template<> struct next_bigger_native_int_type<short int> { typedef long int type; };
-		template<> struct next_bigger_native_int_type<long int> { typedef long long int type; };
-		template<> struct next_bigger_native_int_type<unsigned char> { typedef unsigned short int type; };
-		template<> struct next_bigger_native_int_type<unsigned short int> { typedef unsigned long int type; };
-		template<> struct next_bigger_native_int_type<unsigned long int> { typedef unsigned long long int type; };
-		template<> struct next_bigger_native_int_type<int> {
-			typedef typename std::conditional<(std::numeric_limits<long int>::digits > std::numeric_limits<int>::digits), long int, long long int>::type type;
+
+#ifdef MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+		template<> struct next_bigger_native_int_type<long long int> { typedef MSE_IMPL_LONG_LONG_LONG_INT type; };
+		template<> struct next_bigger_native_int_type<unsigned long long int> { typedef MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT type; };
+#endif // MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+
+#define NEXT_BIGGER_NATIVE_INT_TYPE_SPECIALIZATION(x, candidate_next_bigger) \
+		template<> struct next_bigger_native_int_type<x> { \
+			typedef typename std::conditional<(std::numeric_limits<x>::digits) < std::numeric_limits<candidate_next_bigger>::digits, candidate_next_bigger, typename next_bigger_native_int_type<candidate_next_bigger>::type>::type type; \
 		};
-		template<> struct next_bigger_native_int_type<unsigned int> {
-			typedef typename std::conditional<(std::numeric_limits<unsigned long int>::digits > std::numeric_limits<unsigned int>::digits), unsigned long int, unsigned long long int>::type type;
-		};
+
+		NEXT_BIGGER_NATIVE_INT_TYPE_SPECIALIZATION(unsigned long int, unsigned long long int);
+		NEXT_BIGGER_NATIVE_INT_TYPE_SPECIALIZATION(unsigned int, unsigned long int);
+		NEXT_BIGGER_NATIVE_INT_TYPE_SPECIALIZATION(unsigned short int, unsigned int);
+		NEXT_BIGGER_NATIVE_INT_TYPE_SPECIALIZATION(unsigned char, unsigned short int);
+		NEXT_BIGGER_NATIVE_INT_TYPE_SPECIALIZATION(long int, long long int);
+		NEXT_BIGGER_NATIVE_INT_TYPE_SPECIALIZATION(int, long int);
+		NEXT_BIGGER_NATIVE_INT_TYPE_SPECIALIZATION(short int, int);
+		NEXT_BIGGER_NATIVE_INT_TYPE_SPECIALIZATION(char, short int);
+		NEXT_BIGGER_NATIVE_INT_TYPE_SPECIALIZATION(signed char, short int);
 
 		namespace range_encompassing {
 			template<typename _Ty, typename _Tz>
 			struct next_bigger_candidate {
 				typedef typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value
-					, typename std::make_signed<_Ty>::type, _Ty>::type candidate_type;
+					, typename mse::impl::make_signed<_Ty>::type, _Ty>::type candidate_type;
 
 				typedef typename next_bigger_native_int_type<candidate_type>::type type;
 			};
@@ -378,10 +421,6 @@ namespace mse {
 			struct last_encompasses_first_two {
 				static const bool value = !((sg_can_exceed_upper_bound<candidate_type, _Ty>()) || (sg_can_exceed_upper_bound<candidate_type, _Tz>())
 					|| (sg_can_exceed_lower_bound<candidate_type, _Ty>()) || (sg_can_exceed_lower_bound<candidate_type, _Tz>()));
-			};
-			template<typename _Ty>
-			struct is_biggest_available_type {
-				static const bool value = std::is_same<long long int, _Ty>::value || std::is_same<unsigned long long int, _Ty>::value;
 			};
 
 			/* range_encompassing_native_int_type1<> determines the smallest (integer) type whose range encompasses the
@@ -421,7 +460,7 @@ namespace mse {
 			/* This template struct should deduce the smallest native integer type that can encompass the combined range
 			of both template parameters (or the one that comes closest if there isn't one). */
 			template<typename _Ty, typename _Tz> struct range_encompassing_native_int_type {
-				typedef typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value, typename std::make_signed<_Ty>::type, _Ty>::type candidate_type;
+				typedef typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value, typename mse::impl::make_signed<_Ty>::type, _Ty>::type candidate_type;
 
 				typedef typename std::conditional<!(is_biggest_available_type<candidate_type>::value || last_encompasses_first_two<_Ty, _Tz, candidate_type>::value)
 					, typename range_encompassing_native_int_type_helper2<typename next_bigger_candidate<candidate_type, _Tz>::type, _Tz>::type
@@ -431,30 +470,64 @@ namespace mse {
 
 		template<typename _Ty>
 		struct corresponding_TInt { typedef typename std::conditional<std::is_arithmetic<_Ty>::value, TInt<_Ty>, _Ty>::type type; };
+#ifdef MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+		template<>
+		struct corresponding_TInt<MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT> { typedef TInt<MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT> type; };
+		template<>
+		struct corresponding_TInt<MSE_IMPL_LONG_LONG_LONG_INT> { typedef TInt<MSE_IMPL_LONG_LONG_LONG_INT> type; };
+#endif // MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+
 #define MSE_TINT_TYPE(_Ty) typename mse::impl::corresponding_TInt<_Ty>::type
 #define MSE_NATIVE_INT_TYPE(_Ty) MSE_TINT_TYPE(_Ty)::base_type
 
 #define MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz) typename mse::impl::range_encompassing::range_encompassing_native_int_type<MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz)>::type
 
+#ifndef MSE_DISABLE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
+#define MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
+#endif // !MSE_DISABLE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
+
 #ifdef MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 #define MSE_NATIVE_INT_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
 #define MSE_NATIVE_INT_ADD_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
 #define MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value \
-, typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type, typename std::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type
+, typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type, typename mse::impl::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type
 #define MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
 #define MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
 #else // MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 #define MSE_NATIVE_INT_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
 #define MSE_NATIVE_INT_ADD_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
-#define MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) typename std::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
+#define MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
 #define MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
 #define MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)
 #endif //MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 
-#define MSE_TINT_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
-#define MSE_TINT_ADD_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_ADD_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
-#define MSE_TINT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
-#define MSE_TINT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
+//#define MSE_TINT_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
+
+#ifndef MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING
+#define MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING 127/*arbitrary*/
+#endif // !MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING
+
+		/* MSE_TINT_RESULT_TYPE1(_Ty, _Tz) should evaluate to the mse::TInt<> specialization that can encompass the range of 
+		results of a multiply operation on the two parameter types, if such a specialization is available, otherwise the 
+		specialization (of appropriated 'signed'ness) with the largest available range. If, however, that largest available
+		range is greater or equal to that of a 128-bit integer (arbitrary), then the resulting type should instead be the 
+		smallest specialization whose range encompasses the ranges of both parameters. Choosing a smaller specialization in 
+		this case may result in a narrowing conversion, and thus a run-time check, that would not have occurred otherwise. We 
+		choose to incur this extra run-time overhead to ensure that there will be an available (larger) integer type that can 
+		accommodate the result of any subsequent arithmetic operation. This allows us to ensure against unchecked overflow in
+		all arithmetic operations, at the cost of never using the largest available type as a return type of any arithmetic 
+		operation. Again, this policy is only used (and thus, full overflow checking achieved,) when the largest available 
+		integer type is 128-bits (arbitrary) or greater.
+		*/
+#define MSE_TINT_RESULT_TYPE1(_Ty, _Tz) TInt<typename std::conditional<mse::impl::is_biggest_available_type<MSE_NATIVE_INT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>::value \
+			&& (MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING <= std::numeric_limits<MSE_NATIVE_INT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>::digits) \
+		, MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz)) \
+		, MSE_NATIVE_INT_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz)) \
+	>::type>
+
+#define MSE_TINT_ADD_RESULT_TYPE1(_Ty, _Tz) MSE_TINT_RESULT_TYPE1(_Ty, _Tz)
+#define MSE_TINT_SUBTRACT_RESULT_TYPE1(_Ty, _Tz) typename mse::impl::make_signed<MSE_TINT_RESULT_TYPE1(_Ty, _Tz)>::type
+#define MSE_TINT_MULTIPLY_RESULT_TYPE1(_Ty, _Tz) MSE_TINT_RESULT_TYPE1(_Ty, _Tz)
 #define MSE_TINT_DIVIDE_RESULT_TYPE1(_Ty, _Tz) TInt<MSE_NATIVE_INT_DIVIDE_RESULT_TYPE1(MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz))>
 
 		/* The CNDInt and CNDSize_t classes are meant to substitute for standard "int" and "size_t" types. The differences between
@@ -512,7 +585,7 @@ namespace mse {
 
 		TInt& operator=(const TInt &x) { (*this).note_value_assignment(); (*this).m_val = x.m_val; return (*this); }
 		template<typename _Ty>
-		TInt& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = x/*static_cast<base_type>(x)*/; return (*this); }
+		TInt& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = (base_type)x; return (*this); }
 
 		operator base_type() const { (*this).assert_initialized(); return (*this).m_val; }
 		/* provisional */
@@ -527,13 +600,13 @@ namespace mse {
 		TInt& operator ^=(const TInt &x) { (*this).assert_initialized(); (*this).m_val ^= x.m_val; return (*this); }
 
 		auto operator -() const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return -MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_type, base_type)((*this).m_val); }
-		TInt& operator +=(const TInt &x) { (*this).assert_initialized(); (*this).m_val += x.m_val; return (*this); }
-		TInt& operator -=(const TInt &x) { (*this).assert_initialized(); (*this).m_val -= x.m_val; return (*this); }
-		TInt& operator *=(const TInt &x) { (*this).assert_initialized(); (*this).m_val *= x.m_val; return (*this); }
-		TInt& operator /=(const TInt &x) { (*this).assert_initialized(); (*this).m_val /= x.m_val; return (*this); }
-		TInt& operator %=(const TInt &x) { (*this).assert_initialized(); (*this).m_val %= x.m_val; return (*this); }
-		TInt& operator >>=(const TInt &x) { (*this).assert_initialized(); (*this).m_val >>= x.m_val; return (*this); }
-		TInt& operator <<=(const TInt &x) { (*this).assert_initialized(); (*this).m_val <<= x.m_val; return (*this); }
+		TInt& operator +=(const TInt &x) { (*this) = (*this) + x; return (*this); }
+		TInt& operator -=(const TInt &x) { (*this) = (*this) - x; return (*this); }
+		TInt& operator *=(const TInt &x) { (*this) = (*this) * x; return (*this); }
+		TInt& operator /=(const TInt &x) { (*this) = (*this) / x; return (*this); }
+		TInt& operator %=(const TInt &x) { (*this) = (*this) % x; return (*this); }
+		TInt& operator >>=(const TInt &x) { (*this) = (*this) >> x; return (*this); }
+		TInt& operator <<=(const TInt &x) { (*this) = (*this) << x; return (*this); }
 
 		auto operator +(const TInt &x) const -> MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt) { (*this).assert_initialized(); return (MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_type, base_type)((*this).m_val) + MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
@@ -599,22 +672,14 @@ namespace mse {
 		bool operator >=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) >= TInt<_Ty2>(x)); }
 
 		// INCREMENT/DECREMENT OPERATORS
-		TInt& operator ++() { (*this).assert_initialized(); (*this).m_val++; return (*this); }
+		TInt& operator ++() { (*this).assert_initialized(); (*this) += 1; return (*this); }
 		TInt operator ++(int) {
 			(*this).assert_initialized();
 			TInt tmp(*this); // copy
 			operator++(); // pre-increment
 			return tmp;   // return old value
 		}
-		TInt& operator --() {
-			(*this).assert_initialized();
-			if (0 <= std::numeric_limits<base_type>::lowest()) {
-				(*this) = (*this) - 1; return (*this);
-			}
-			else {
-				(*this).m_val--; return (*this);
-			}
-		}
+		TInt& operator --() { (*this).assert_initialized(); (*this) -= 1; return (*this); }
 		TInt operator --(int) {
 			(*this).assert_initialized();
 			TInt tmp(*this); // copy
@@ -720,6 +785,60 @@ namespace std {
 			return (hash<typename mse::TInt<TBase>::base_type>()(_Keyval));
 		}
 	};
+
+#define MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(x) \
+	template <> \
+	struct make_signed<mse::TInt<x> > { \
+		using type = mse::TInt<typename mse::impl::make_signed<x>::type>; \
+	}; \
+	template <> \
+	struct make_signed<mse::TInt<const x> > { \
+		using type = mse::TInt<typename mse::impl::make_signed<const x>::type>; \
+	}; \
+	template <> \
+	struct make_signed<const mse::TInt<x> > { \
+		using type = const mse::TInt<typename mse::impl::make_signed<x>::type>; \
+	}; \
+	template <> \
+	struct make_signed<const mse::TInt<const x> > { \
+		using type = const mse::TInt<typename mse::impl::make_signed<const x>::type>; \
+	};
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(unsigned char);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(unsigned short int);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(unsigned long int);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(unsigned long long int);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(unsigned int);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(char);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(short int);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(long int);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(long long int);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(int);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(signed char);
+
+#define MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(x) \
+	template <> \
+	struct make_unsigned<mse::TInt<x> > { \
+		using type = mse::TInt<typename mse::impl::make_unsigned<x>::type>; \
+	};
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(unsigned char);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(unsigned short int);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(unsigned long int);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(unsigned long long int);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(unsigned int);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(char);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(short int);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(long int);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(long long int);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(int);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(signed char);
+
+#ifdef MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(MSE_IMPL_LONG_LONG_LONG_INT);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(MSE_IMPL_LONG_LONG_LONG_INT);
+#endif // MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
+
 }
 
 namespace mse {
@@ -771,41 +890,29 @@ namespace mse {
 		CNDSignedSize_t operator -() const { (*this).assert_initialized(); /* Should unsigned types even support this operator? */
 			return (-(CNDSignedSize_t(m_val)));
 		}
-		CNDSize_t& operator +=(const CNDSize_t &x) { (*this).assert_initialized(); m_val += x.m_val; return (*this); }
-		CNDSize_t& operator -=(const CNDSize_t &x) {
-			(*this).assert_initialized();
-			//assert(0 <= std::numeric_limits<base_type>::lowest());
-			if (x.m_val > m_val) {
-				MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
-			}
-			m_val -= x.m_val; return (*this);
-		}
-		CNDSize_t& operator *=(const CNDSize_t &x) { (*this).assert_initialized(); m_val *= x.m_val; return (*this); }
-		CNDSize_t& operator /=(const CNDSize_t &x) { (*this).assert_initialized(); m_val /= x.m_val; return (*this); }
-		CNDSize_t& operator %=(const CNDSize_t &x) { (*this).assert_initialized(); m_val %= x.m_val; return (*this); }
-		CNDSize_t& operator >>=(const CNDSize_t &x) { (*this).assert_initialized(); m_val >>= x.m_val; return (*this); }
-		CNDSize_t& operator <<=(const CNDSize_t &x) { (*this).assert_initialized(); m_val <<= x.m_val; return (*this); }
+		CNDSize_t& operator +=(const CNDSize_t &x) { (*this) = (*this) + x; return (*this); }
+		CNDSize_t& operator -=(const CNDSize_t &x) { (*this) = (*this) - x; return (*this);  }
+		CNDSize_t& operator *=(const CNDSize_t &x) { (*this) = (*this) * x; return (*this); }
+		CNDSize_t& operator /=(const CNDSize_t &x) { (*this) = (*this) / x; return (*this); }
+		CNDSize_t& operator %=(const CNDSize_t &x) { (*this) = (*this) % x; return (*this); }
+		CNDSize_t& operator >>=(const CNDSize_t &x) { (*this) = (*this) >> x; return (*this); }
+		CNDSize_t& operator <<=(const CNDSize_t &x) { (*this) = (*this) << x; return (*this); }
 
-		CNDSize_t operator +(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val + x.m_val); }
-		CNDSize_t operator +(size_t x) const { (*this).assert_initialized(); return ((*this) + CNDSize_t(x)); }
+		auto operator +(const CNDSize_t& x) const->MSE_TINT_ADD_RESULT_TYPE1(CNDSize_t, CNDSize_t) { (*this).assert_initialized(); return (MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_type, base_type)((*this).m_val) + MSE_NATIVE_INT_ADD_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
-		auto operator +(const TInt<_Ty2> &x) const->MSE_TINT_ADD_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_ADD_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)((*this).m_val) + MSE_TINT_ADD_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		auto operator +(const TInt<_Ty2>& x) const->MSE_TINT_ADD_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_ADD_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)((*this).m_val) + MSE_TINT_ADD_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator +(_Ty2 x) const { (*this).assert_initialized(); return ((*this) + TInt<_Ty2>(x)); }
 
-		CNDSignedSize_t operator -(const CNDSize_t &x) const { (*this).assert_initialized(); return (CNDSignedSize_t(m_val) - CNDSignedSize_t(x.m_val)); }
-		CNDSignedSize_t operator -(const CNDInt &x) const { (*this).assert_initialized(); return (CNDSignedSize_t(m_val) - x); }
-		CNDSignedSize_t operator -(size_t x) const { (*this).assert_initialized(); return ((*this) - CNDSize_t(x)); }
+		auto operator -(const CNDSize_t& x) const->MSE_TINT_SUBTRACT_RESULT_TYPE1(CNDSize_t, CNDSize_t) { (*this).assert_initialized(); return (MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_type, base_type)((*this).m_val) - MSE_NATIVE_INT_SUBTRACT_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
-		auto operator -(const TInt<_Ty2> &x) const->MSE_TINT_SUBTRACT_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_SUBTRACT_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)((*this).m_val) - MSE_TINT_SUBTRACT_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		auto operator -(const TInt<_Ty2>& x) const->MSE_TINT_SUBTRACT_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_SUBTRACT_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)((*this).m_val) - MSE_TINT_SUBTRACT_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator -(_Ty2 x) const { (*this).assert_initialized(); return ((*this) - TInt<_Ty2>(x)); }
 
-		CNDSize_t operator *(const CNDSize_t &x) const { (*this).assert_initialized(); return (m_val * x.m_val); }
-		CNDSignedSize_t operator *(const CNDInt &x) const { (*this).assert_initialized(); return (CNDSignedSize_t(m_val) * x); }
-		CNDSize_t operator *(size_t x) const { (*this).assert_initialized(); return ((*this) * CNDSize_t(x)); }
+		auto operator *(const CNDSize_t& x) const->MSE_TINT_MULTIPLY_RESULT_TYPE1(CNDSize_t, CNDSize_t) { (*this).assert_initialized(); return (MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(base_type, base_type)((*this).m_val) * MSE_NATIVE_INT_MULTIPLY_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
-		auto operator *(const TInt<_Ty2> &x) const->MSE_TINT_MULTIPLY_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_MULTIPLY_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)((*this).m_val) * MSE_TINT_MULTIPLY_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
+		auto operator *(const TInt<_Ty2>& x) const->MSE_TINT_MULTIPLY_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>) { (*this).assert_initialized(); return (MSE_TINT_MULTIPLY_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)((*this).m_val) * MSE_TINT_MULTIPLY_RESULT_TYPE1(CNDSize_t, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator *(_Ty2 x) const { (*this).assert_initialized(); return ((*this) * TInt<_Ty2>(x)); }
 
@@ -869,21 +976,13 @@ namespace mse {
 		bool operator >=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) >= TInt<_Ty2>(x)); }
 
 		// INCREMENT/DECREMENT OPERATORS
-		CNDSize_t& operator ++() { (*this).assert_initialized(); m_val++; return (*this); }
+		CNDSize_t& operator ++() { (*this).assert_initialized(); (*this) += 1; return (*this); }
 		CNDSize_t operator ++(int) { (*this).assert_initialized();
 			CNDSize_t tmp(*this); // copy
 			operator++(); // pre-increment
 			return tmp;   // return old value
 		}
-		CNDSize_t& operator --() { (*this).assert_initialized();
-		(*this).assert_initialized();
-		if (0 <= std::numeric_limits<base_type>::lowest()) {
-				(*this) = (*this) - 1; return (*this);
-			}
-			else {
-				m_val--; return (*this);
-			}
-		}
+		CNDSize_t& operator --() { (*this).assert_initialized(); (*this) -= 1; return (*this); }
 		CNDSize_t operator --(int) { (*this).assert_initialized();
 			CNDSize_t tmp(*this); // copy
 			operator--(); // pre-decrement
