@@ -300,6 +300,13 @@ namespace mse {
 #define MSE_IMPL_MACRO_TEXT_EXPAND_THREE_ARGS_PB2(a,b,c)  a b c
 #define MSE_IMPL_MACRO_TEXT_EXPAND_THREE_ARGS_PB(a,b,c)  MSE_IMPL_MACRO_TEXT_EXPAND_THREE_ARGS_PB2(a,b,c)
 
+#ifdef MSE_HAS_CXX17
+#define MSE_IF_CONSTEXPR if constexpr
+#else // MSE_HAS_CXX17
+#define MSE_IF_CONSTEXPR if
+#endif // MSE_HAS_CXX17
+
+
 
 	/* This automatic (potential) definition of MSE_CHECK_USE_BEFORE_SET is also done in mseprimitives.h */
 #ifndef MSE_SUPPRESS_CHECK_USE_BEFORE_SET

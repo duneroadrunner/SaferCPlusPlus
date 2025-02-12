@@ -72,10 +72,16 @@
 #endif /*MSE_SAFER_SUBSTITUTES_DISABLED*/
 
 #if defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
-#define MSE_CONSTEXPR
+#define MSE_PRM_CONSTEXPR
 #else // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
-#define MSE_CONSTEXPR constexpr
+#define MSE_PRM_CONSTEXPR constexpr
 #endif // defined(MSVC2013_COMPATIBLE) || defined(MSVC2010_COMPATIBLE)
+
+#ifdef MSE_PRM_HAS_CXX17
+#define MSE_PRM_IF_CONSTEXPR if constexpr 
+#else // MSE_PRM_HAS_CXX17
+#define MSE_PRM_IF_CONSTEXPR if 
+#endif // MSE_PRM_HAS_CXX17
 
 #ifdef MSVC2015_COMPATIBLE
 #ifndef MSE_FORCE_PRIMITIVE_ASSIGN_RANGE_CHECK_ENABLED
@@ -297,7 +303,7 @@ namespace mse {
 
 	namespace impl {
 		template<typename _TDestination, typename _TSource>
-		MSE_CONSTEXPR static bool sg_can_exceed_upper_bound() {
+		MSE_PRM_CONSTEXPR static bool sg_can_exceed_upper_bound() {
 
 			return (
 				((std::numeric_limits<_TSource>::is_signed == std::numeric_limits<_TDestination>::is_signed)
@@ -310,7 +316,7 @@ namespace mse {
 				);
 		}
 		template<typename _TDestination, typename _TSource>
-		MSE_CONSTEXPR static bool sg_can_exceed_lower_bound() {
+		MSE_PRM_CONSTEXPR static bool sg_can_exceed_lower_bound() {
 			return (
 				(std::numeric_limits<_TSource>::is_signed && (!std::numeric_limits<_TDestination>::is_signed))
 				|| (std::numeric_limits<_TSource>::is_signed && (std::numeric_limits<_TSource>::digits > std::numeric_limits<_TDestination>::digits))
@@ -322,16 +328,16 @@ namespace mse {
 #ifndef MSE_PRIMITIVE_ASSIGN_RANGE_CHECK_DISABLED
 			/* This probably needs to be cleaned up. But at the moment this should be mostly compile time complexity. And
 			as is it avoids "signed/unsigned" mismatch warnings. */
-			MSE_CONSTEXPR const bool rhs_can_exceed_upper_bound = impl::sg_can_exceed_upper_bound<_TDestination, _TSource>();
-			MSE_CONSTEXPR const bool rhs_can_exceed_lower_bound = impl::sg_can_exceed_lower_bound<_TDestination, _TSource>();
-			MSE_CONSTEXPR const bool can_exceed_bounds = rhs_can_exceed_upper_bound || rhs_can_exceed_lower_bound;
-			if (can_exceed_bounds) {
-				if (rhs_can_exceed_upper_bound) {
+			MSE_PRM_CONSTEXPR const bool rhs_can_exceed_upper_bound = impl::sg_can_exceed_upper_bound<_TDestination, _TSource>();
+			MSE_PRM_CONSTEXPR const bool rhs_can_exceed_lower_bound = impl::sg_can_exceed_lower_bound<_TDestination, _TSource>();
+			MSE_PRM_CONSTEXPR const bool can_exceed_bounds = rhs_can_exceed_upper_bound || rhs_can_exceed_lower_bound;
+			MSE_PRM_IF_CONSTEXPR (can_exceed_bounds) {
+				MSE_PRM_IF_CONSTEXPR (rhs_can_exceed_upper_bound) {
 
 #ifdef MSE_SUPPRESS_CSIZE_T_TO_CINT_CONVERSION_RANGE_CHECK
-					MSE_CONSTEXPR const bool this_is_a_CSize_t_to_CInt_conversion = ((std::is_same<_TDestination, MSE_CINT_BASE_INTEGER_TYPE>::value || std::is_same<_TDestination, CNDInt>::value)
+					MSE_PRM_CONSTEXPR const bool this_is_a_CSize_t_to_CInt_conversion = ((std::is_same<_TDestination, MSE_CINT_BASE_INTEGER_TYPE>::value || std::is_same<_TDestination, CNDInt>::value)
 						&& (std::is_same<_TSource, TSize_t>::value || std::is_same<_TSource, size_t>::value));
-					if (!this_is_a_CSize_t_to_CInt_conversion) {
+					MSE_PRM_IF_CONSTEXPR (!this_is_a_CSize_t_to_CInt_conversion) {
 #endif // MSE_SUPPRESS_CSIZE_T_TO_CINT_CONVERSION_RANGE_CHECK
 
 					if (x > _TSource(std::numeric_limits<_TDestination>::max())) {
@@ -342,10 +348,10 @@ namespace mse {
 					}
 #endif // MSE_SUPPRESS_CSIZE_T_TO_CINT_CONVERSION_RANGE_CHECK
 				}
-				if (rhs_can_exceed_lower_bound) {
+				MSE_PRM_IF_CONSTEXPR (rhs_can_exceed_lower_bound) {
 					/* We're assuming that std::numeric_limits<>::lowest() will never be greater than zero. */
 					if (_TSource(0) > x) {
-						if (0 == std::numeric_limits<_TDestination>::lowest()) {
+						MSE_PRM_IF_CONSTEXPR (0 == std::numeric_limits<_TDestination>::lowest()) {
 							MSE_THROW(primitives_range_error("range error - value to be assigned is out of range of the target (integer) type"));
 						}
 						else if (x < _TSource(std::numeric_limits<_TDestination>::lowest())) {
@@ -518,6 +524,14 @@ namespace mse {
 
 //#define MSE_TINT_RESULT_TYPE1(_Ty, _Tz, TOption1) TInt<native_int_result_type1<MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz), TOption1>, TOption1>
 
+#ifndef MSE_IMPL_BITSIZE_AT_OR_ABOVE_WHICH_INCREMENT_OPERATORS_MAY_NOT_CHECK_FOR_OVERFLOW
+#define MSE_IMPL_BITSIZE_AT_OR_ABOVE_WHICH_INCREMENT_OPERATORS_MAY_NOT_CHECK_FOR_OVERFLOW 63/*arbitrary*/
+#endif // !MSE_IMPL_BITSIZE_AT_OR_ABOVE_WHICH_INCREMENT_OPERATORS_MAY_NOT_CHECK_FOR_OVERFLOW
+
+/* It's useful for our overflow checking implementation if the results of integer arithmetic operations are restrained 
+from promoting those results to the largest available (signed and unsigned) integer types. But this is presumably only 
+workable when the largest available integer types are generally larger than necessary for any value you might want to 
+store. Whether or not that is the case is perhaps kind of a judgement call. */
 #ifndef MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING
 #define MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING 127/*arbitrary*/
 #endif // !MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING
@@ -687,14 +701,31 @@ namespace mse {
 		bool operator >=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) >= TInt<_Ty2>(x)); }
 
 		// INCREMENT/DECREMENT OPERATORS
-		TInt& operator ++() { (*this).assert_initialized(); (*this) += 1; return (*this); }
+		TInt& operator ++() {
+			(*this).assert_initialized();
+			MSE_PRM_IF_CONSTEXPR (std::numeric_limits<base_type>::digits >= MSE_IMPL_BITSIZE_AT_OR_ABOVE_WHICH_INCREMENT_OPERATORS_MAY_NOT_CHECK_FOR_OVERFLOW) {
+				++((*this).m_val);
+			}
+			else {
+				(*this) += 1;
+			}
+			return (*this);
+		}
 		TInt operator ++(int) {
 			(*this).assert_initialized();
 			TInt tmp(*this); // copy
 			operator++(); // pre-increment
 			return tmp;   // return old value
 		}
-		TInt& operator --() { (*this).assert_initialized(); (*this) -= 1; return (*this); }
+		TInt& operator --() {
+			MSE_PRM_IF_CONSTEXPR (std::numeric_limits<base_type>::digits >= MSE_IMPL_BITSIZE_AT_OR_ABOVE_WHICH_INCREMENT_OPERATORS_MAY_NOT_CHECK_FOR_OVERFLOW) {
+				--((*this).m_val);
+			}
+			else {
+				(*this) -= 1;
+			}
+			return (*this);
+		}
 		TInt operator --(int) {
 			(*this).assert_initialized();
 			TInt tmp(*this); // copy
@@ -988,7 +1019,15 @@ namespace mse {
 		bool operator >=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) >= TInt<_Ty2>(x)); }
 
 		// INCREMENT/DECREMENT OPERATORS
-		TSize_t& operator ++() { (*this).assert_initialized(); (*this) += 1; return (*this); }
+		TSize_t& operator ++() {
+			MSE_PRM_IF_CONSTEXPR (std::numeric_limits<base_type>::digits >= MSE_IMPL_BITSIZE_AT_OR_ABOVE_WHICH_INCREMENT_OPERATORS_MAY_NOT_CHECK_FOR_OVERFLOW) {
+				++((*this).m_val);
+			}
+			else {
+				(*this) += 1;
+			}
+			return (*this);
+		}
 		TSize_t operator ++(int) { (*this).assert_initialized();
 			TSize_t tmp(*this); // copy
 			operator++(); // pre-increment
