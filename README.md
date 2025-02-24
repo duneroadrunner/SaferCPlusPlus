@@ -2788,7 +2788,7 @@ usage example: ([link to interactive version](https://godbolt.org/z/881eTGWdP))
     }
 ```
 
-And note that, like `CInt`, `CSize_t` implicitly (directly) converts to a signed integer, not a `size_t` or an unsigned integer. While you can, for example, assign a `CSize_t` directly to a `size_t`, note that such an operation involves two implicit conversions, first to a signed integer, then to a `size_t`.
+`CInt` and `CSize_t` also play well with native integer types. They can be assigned to each other and mixed as operands of arithmetic operations generally without issue.
 
 Btw, `CInt` is actually just an alias for a specific instantiation of the `TInt<>` template, which can be used to make a safe version of any given integer type. (Eg. `typedef mse::TInt<signed char> my_safe_small_int;`) 
 
