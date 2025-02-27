@@ -275,17 +275,21 @@ namespace std {
 
 namespace mse {
 
-	class disable_return_range_extension_t {};
-	class enable_return_range_extension_t {};
+	class disable_AR_range_extension_t {};
+	class enable_AR_range_extension_t {};
+	class disable_AR_overflow_checking_t {};
+	class enable_AR_overflow_checking_t {};
+	template<class... Bases>
+	struct int_options_t : Bases... { };
 
 #ifndef MSE_DISABLE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 //#define MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 #endif // !MSE_DISABLE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 
 #ifdef MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
-#define RETURN_RANGE_EXTENSION_DEFAULT mse::enable_return_range_extension_t
+#define RETURN_RANGE_EXTENSION_DEFAULT mse::int_options_t<mse::enable_AR_range_extension_t>
 #else // MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
-#define RETURN_RANGE_EXTENSION_DEFAULT mse::disable_return_range_extension_t
+#define RETURN_RANGE_EXTENSION_DEFAULT mse::int_options_t<>
 #endif // MSE_RETURN_RANGE_EXTENDED_TYPE_FOR_INTEGER_ARITHMETIC
 
 
@@ -364,14 +368,14 @@ namespace mse {
 		}
 	}
 
-#ifndef MSE_IMPL_DO_NOT_USE_INT128_COMPILER_EXTENSION
+#ifdef MSE_IMPL_USE_INT128_COMPILER_EXTENSION
 #ifdef __SIZEOF_INT128__
 #if ((18446744073709551615U == ULLONG_MAX) && (9223372036854775807 == LLONG_MAX))
 #define MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT __uint128_t
 #define MSE_IMPL_LONG_LONG_LONG_INT __int128_t
 #endif //((18446744073709551615 == ULLONG_MAX) && (9223372036854775807 == LLONG_MAX))
 #endif
-#endif // !MSE_IMPL_DO_NOT_USE_INT128_COMPILER_EXTENSION
+#endif // MSE_IMPL_USE_INT128_COMPILER_EXTENSION
 
 //define MSE_TINT_TYPE_WITH_THE_LOWER_FLOOR(_Ty, _Tz) typename std::conditional<impl::sg_can_exceed_lower_bound<_Tz, _Ty>(), _Ty, _Tz>::type
 
@@ -514,20 +518,20 @@ namespace mse {
 #define MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz) typename mse::impl::range_encompassing::range_encompassing_native_int_type<MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz)>::type
 
 		template<typename _Ty, typename _Tz, typename TOption1>
-		using native_int_result_type1 = typename std::conditional<std::is_same<TOption1, disable_return_range_extension_t>::value
+		using native_int_result_type1 = typename std::conditional<(!std::is_base_of<enable_AR_range_extension_t, TOption1>::value)
 			, MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz), typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type;
 
 		template<typename _Ty, typename _Tz, typename TOption1>
-		using native_int_add_result_type1 = typename std::conditional<std::is_same<TOption1, disable_return_range_extension_t>::value
+		using native_int_add_result_type1 = typename std::conditional<(!std::is_base_of<enable_AR_range_extension_t, TOption1>::value)
 			, MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz), typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type;
 
 		template<typename _Ty, typename _Tz, typename TOption1>
-		using native_int_subtract_result_type1 = typename std::conditional<std::is_same<TOption1, disable_return_range_extension_t>::value
+		using native_int_subtract_result_type1 = typename std::conditional<(!std::is_base_of<enable_AR_range_extension_t, TOption1>::value)
 			, typename mse::impl::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type
 			, typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value, typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type, typename mse::impl::make_signed<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type>::type;
 
 		template<typename _Ty, typename _Tz, typename TOption1>
-		using native_int_multiply_result_type1 = typename std::conditional<std::is_same<TOption1, disable_return_range_extension_t>::value
+		using native_int_multiply_result_type1 = typename std::conditional<(!std::is_base_of<enable_AR_range_extension_t, TOption1>::value)
 			, MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz), typename mse::impl::next_bigger_native_int_type<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz)>::type>::type;
 
 		template<typename _Ty, typename _Tz, typename TOption1>
@@ -646,7 +650,7 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 		TInt& operator &=(const TInt &x) { (*this).assert_initialized(); (*this).m_val &= x.m_val; return (*this); }
 		TInt& operator ^=(const TInt &x) { (*this).assert_initialized(); (*this).m_val ^= x.m_val; return (*this); }
 
-		auto operator -() const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt, TOption1) { (*this).assert_initialized(); return -mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>((*this).m_val); }
+		auto operator -() const->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt, TOption1) { (*this).assert_initialized(); return TInt{ 0 } - (*this); }
 		TInt& operator +=(const TInt &x) { (*this) = (*this) + x; return (*this); }
 		TInt& operator -=(const TInt &x) { (*this) = (*this) - x; return (*this); }
 		TInt& operator *=(const TInt &x) { (*this) = (*this) * x; return (*this); }
@@ -655,30 +659,166 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 		TInt& operator >>=(const TInt &x) { (*this) = (*this) >> x; return (*this); }
 		TInt& operator <<=(const TInt &x) { (*this) = (*this) << x; return (*this); }
 
-		auto operator +(const TInt &x) const -> MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt, TOption1) { (*this).assert_initialized(); return (mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>((*this).m_val) + mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>(x.m_val)); }
-		template<typename _Ty2>
-		auto operator +(const TInt<_Ty2> &x) const ->MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1)((*this).m_val) + MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1)(x.m_val)); }
+		template<typename TReturn, typename TArg1, typename TArg2>
+		void check_for_add_overflow(TArg1 x, TArg2 y) const {
+			MSE_PRM_IF_CONSTEXPR(std::is_base_of<mse::enable_AR_overflow_checking_t, TOption1>::value) {
+				/* We're assuming standard ranges for signed integers [-(2^(2^n-1)), 2^(2^n-1)-1], and that the range of TReturn  encompasses the range of TArg1 and TArg2. */
+				MSE_PRM_IF_CONSTEXPR((std::numeric_limits<TReturn>::max() > std::numeric_limits<TArg1>::max()) && (std::numeric_limits<TReturn>::max() > std::numeric_limits<TArg2>::max())
+					&& (((0 == std::numeric_limits<TArg1>::min()) && (0 == std::numeric_limits<TArg2>::min()))
+						|| ((std::numeric_limits<TReturn>::min() < std::numeric_limits<TArg1>::min()) && (std::numeric_limits<TReturn>::min() < std::numeric_limits<TArg2>::min())))) {
+					// no chance of overflow, nothing to do
+				}
+				else {
+					if ((0 < y) && (std::numeric_limits<TReturn>::max() - y < x)) {
+						MSE_THROW(primitives_range_error("range error - result of the addition operation is out of range of the target (integer) type"));
+					}
+					MSE_PRM_IF_CONSTEXPR(!((0 == std::numeric_limits<TArg1>::min()) && (0 == std::numeric_limits<TArg2>::min()))) {
+						if ((0 > y) && (std::numeric_limits<TReturn>::min() - y > x)) {
+							MSE_THROW(primitives_range_error("range error - result of the addition operation is out of range of the target (integer) type"));
+						}
+					}
+				}
+			}
+		}
+		auto operator +(const TInt& x) const->MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt, TOption1) {
+			(*this).assert_initialized();
+			check_for_add_overflow<mse::impl::native_int_add_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val); 
+			return (mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>((*this).m_val) + mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>(x.m_val));
+		}
+		template<typename _Ty2, typename TOption2>
+		auto operator +(const TInt<_Ty2, TOption2> &x) const ->MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
+			(*this).assert_initialized();
+			return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>((*this).m_val) + TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>(x.m_val));
+		}
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator +(_Ty2 x) const { (*this).assert_initialized(); return ((*this) + TInt<_Ty2>(x)); }
 
-		auto operator -(const TInt &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt, TOption1) { (*this).assert_initialized(); return (mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>((*this).m_val) - mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>(x.m_val)); }
+		template<typename TReturn, typename TArg1, typename TArg2>
+		void check_for_subtract_overflow(TArg1 x, TArg2 y) const {
+			MSE_PRM_IF_CONSTEXPR(std::is_base_of<mse::enable_AR_overflow_checking_t, TOption1>::value) {
+				/* We're assuming standard ranges for signed integers [-(2^(2^n-1)), 2^(2^n-1)-1], and that the range of TReturn  encompasses the range of TArg1 and TArg2. */
+				MSE_PRM_IF_CONSTEXPR((std::numeric_limits<TReturn>::max() > std::numeric_limits<TArg1>::max()) && (std::numeric_limits<TReturn>::max() > std::numeric_limits<TArg2>::max())
+					&& (((0 == std::numeric_limits<TArg1>::min()) && (0 == std::numeric_limits<TArg2>::min()))
+						|| ((std::numeric_limits<TReturn>::min() < std::numeric_limits<TArg1>::min()) && (std::numeric_limits<TReturn>::min() < std::numeric_limits<TArg2>::min())))) {
+					// no chance of overflow, nothing to do
+				}
+				else {
+					if ((0 < y) && (std::numeric_limits<TReturn>::min() + y > x)) {
+						MSE_THROW(primitives_range_error("range error - result of the subtraction operation is out of range of the target (integer) type"));
+					}
+					MSE_PRM_IF_CONSTEXPR(!((0 == std::numeric_limits<TArg1>::min()) && (0 == std::numeric_limits<TArg2>::min()))) {
+						if ((0 > y) && (std::numeric_limits<TReturn>::max() + y < x)) {
+							MSE_THROW(primitives_range_error("range error - result of the subtraction operation is out of range of the target (integer) type"));
+						}
+					}
+				}
+			}
+		}
+		auto operator -(const TInt &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt, TOption1) {
+			(*this).assert_initialized();
+			check_for_subtract_overflow<mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val);
+			return (mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>((*this).m_val) - mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>(x.m_val));
+		}
 		template<typename _Ty2>
-		auto operator -(const TInt<_Ty2> &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1)((*this).m_val) - MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1)(x.m_val)); }
+		auto operator -(const TInt<_Ty2> &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
+			(*this).assert_initialized();
+			return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>((*this).m_val) - TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator -(_Ty2 x) const { (*this).assert_initialized(); return ((*this) - TInt<_Ty2>(x)); }
 
-		auto operator *(const TInt &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt, TOption1) { (*this).assert_initialized(); return (mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>((*this).m_val) * mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>(x.m_val)); }
+		template<typename TReturn, typename TArg1, typename TArg2>
+		void check_for_multiply_overflow(TArg1 x, TArg2 y) const {
+			MSE_PRM_IF_CONSTEXPR(std::is_base_of<mse::enable_AR_overflow_checking_t, TOption1>::value) {
+				/* We're assuming standard ranges for signed integers [-(2^(2^n-1)), 2^(2^n-1)-1], and that the range of TReturn  encompasses the range of TArg1 and TArg2. */
+				MSE_PRM_IF_CONSTEXPR((std::numeric_limits<TReturn>::max() > std::numeric_limits<TArg1>::max()) && (std::numeric_limits<TReturn>::max() > std::numeric_limits<TArg2>::max())
+					&& (((0 == std::numeric_limits<TArg1>::min()) && (0 == std::numeric_limits<TArg2>::min()))
+						|| ((std::numeric_limits<TReturn>::min() < std::numeric_limits<TArg1>::min()) && (std::numeric_limits<TReturn>::min() < std::numeric_limits<TArg2>::min())))) {
+					// no chance of overflow, nothing to do
+				}
+				else {
+					/* needs to be checked */
+					if (0 < x) {
+						if (0 < y) {
+							if (std::numeric_limits<TReturn>::max() / y < x) {
+								MSE_THROW(primitives_range_error("range error - result of the multiplication operation is out of range of the target (integer) type"));
+							}
+						} else {
+							MSE_PRM_IF_CONSTEXPR(!((0 == std::numeric_limits<TArg1>::min()) && (0 == std::numeric_limits<TArg2>::min()))) {
+								if (0 > y) {
+									if (std::numeric_limits<TReturn>::min() / x > y) {
+										MSE_THROW(primitives_range_error("range error - result of the multiplication operation is out of range of the target (integer) type"));
+									}
+								}
+							}
+						}
+					} else {
+						MSE_PRM_IF_CONSTEXPR ((0 == std::numeric_limits<TArg1>::min())) {
+							// x must be 0
+						} else if (0 > x) {
+							if (0 < y) {
+								if (std::numeric_limits<TReturn>::min() / y > x) {
+									MSE_THROW(primitives_range_error("range error - result of the multiplication operation is out of range of the target (integer) type"));
+								}
+							} else {
+								MSE_PRM_IF_CONSTEXPR((0 == std::numeric_limits<TArg2>::min())) {
+									// y must be 0
+								} else {
+									if (((-1 == y) && (std::numeric_limits<TReturn>::min() == x))
+										|| ((-1 == x) && (std::numeric_limits<TReturn>::min() == y))) {
+										MSE_THROW(primitives_range_error("range error - result of the multiplication operation is out of range of the target (integer) type"));
+									} else {
+										if (std::numeric_limits<TReturn>::max() / y > x) {
+											MSE_THROW(primitives_range_error("range error - result of the multiplication operation is out of range of the target (integer) type"));
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		auto operator *(const TInt &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt, TOption1) {
+			(*this).assert_initialized();
+			check_for_multiply_overflow<mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val);
+			return (mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>((*this).m_val) * mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>(x.m_val));
+		}
 		template<typename _Ty2>
-		auto operator *(const TInt<_Ty2> &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1)((*this).m_val) * MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1)(x.m_val)); }
+		auto operator *(const TInt<_Ty2> &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
+			(*this).assert_initialized();
+			return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>((*this).m_val) * TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>(x.m_val));
+		}
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator *(_Ty2 x) const { (*this).assert_initialized(); return ((*this) * TInt<_Ty2>(x)); }
 
+		template<typename TReturn, typename TArg1, typename TArg2>
+		void check_for_divide_overflow(TArg1 x, TArg2 y) const {
+			MSE_PRM_IF_CONSTEXPR(std::is_base_of<mse::enable_AR_overflow_checking_t, TOption1>::value) {
+				/* We're assuming standard ranges for signed integers [-(2^(2^n-1)), 2^(2^n-1)-1], and that the range of TReturn  encompasses the range of TArg1 and TArg2. */
+				/* Division by zero is presumed to be already checked elsewhere. */
+				MSE_PRM_IF_CONSTEXPR((std::numeric_limits<TReturn>::max() > std::numeric_limits<TArg1>::max()) && (std::numeric_limits<TReturn>::max() > std::numeric_limits<TArg2>::max())
+					&& (((0 == std::numeric_limits<TArg1>::min()) && (0 == std::numeric_limits<TArg2>::min()))
+						|| ((std::numeric_limits<TReturn>::min() < std::numeric_limits<TArg1>::min()) && (std::numeric_limits<TReturn>::min() < std::numeric_limits<TArg2>::min())))) {
+					// no chance of overflow, nothing to do
+				}
+				else {
+					if ((-1 == y) && (std::numeric_limits<TReturn>::min() == x)) {
+						MSE_THROW(primitives_range_error("range error - result of the division operation is out of range of the target (integer) type"));
+					}
+				}
+			}
+		}
 		auto operator /(const TInt &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt, TOption1) {
+			(*this).assert_initialized();
 			if (x.m_val == 0) { MSE_THROW(std::domain_error("attempted division by zero - TInt")); }
-			(*this).assert_initialized(); return (mse::impl::native_int_divide_result_type1<base_type, base_type, TOption1>((*this).m_val) / mse::impl::native_int_divide_result_type1<base_type, base_type, TOption1>(x.m_val));
+			check_for_divide_overflow<mse::impl::native_int_divide_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val);
+			return (mse::impl::native_int_divide_result_type1<base_type, base_type, TOption1>((*this).m_val) / mse::impl::native_int_divide_result_type1<base_type, base_type, TOption1>(x.m_val));
 		}
 		template<typename _Ty2>
-		auto operator /(const TInt<_Ty2> &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1)((*this).m_val) / MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1)(x.m_val)); }
+		auto operator /(const TInt<_Ty2> &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
+			(*this).assert_initialized();
+			return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>((*this).m_val) / TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>(x.m_val));
+		}
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator /(_Ty2 x) const { (*this).assert_initialized(); return ((*this) / TInt<_Ty2>(x)); }
 
@@ -925,7 +1065,7 @@ namespace mse {
 	public:
 		typedef impl::TArithmeticBase1<size_t> base_class;
 		typedef size_t base_type;
-		typedef typename std::conditional<std::is_same<TOption1, disable_return_range_extension_t>::value, typename CNDInt::base_type, MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(base_type, signed char/*just to make sure the resulting type is signed*/)>::type signed_size_t;
+		typedef typename std::conditional<(!std::is_base_of<enable_AR_range_extension_t, TOption1>::value), typename CNDInt::base_type, MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(base_type, signed char/*just to make sure the resulting type is signed*/)>::type signed_size_t;
 		typedef TInt<signed_size_t, TOption1> TSignedSize_t;
 
 		TSize_t() : base_class() {}
