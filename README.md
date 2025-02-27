@@ -2800,7 +2800,7 @@ You can instantiate `TInt<>`s with overflow checking of arithmetic operations by
 
 Additionally (or separately), you can add the `mse::enable_AR_range_extension_t` option. (For example, `mse::TInt<int32_t, mse::int_options_t<mse::enable_AR_overflow_checking_t, mse::enable_AR_range_extension_t> >`.) That will cause the result of an arithmetic operation involving the `TInt<>` to be returned as a (larger) (`TInt<>`) type that can accomodate the range of possible results (without risk of overflow), if such a type is available. Assigning such a result, for example, back to one of the original `TInt<>` operands may result in a "narrowing" conversion that would be checked (at runtime).
 
-As of this writing, g++ and clang++ support 128-bit integers on 64-bit platforms as a compiler-specific extension. The library does recognize and use those. (You can prevent it from recognizing those by defining the `MSE_IMPL_DO_NOT_USE_INT128_COMPILER_EXTENSION` preprocessor macro.) 
+As of this writing, g++ and clang++ support 128-bit integers on 64-bit platforms as a compiler-specific extension. You can enable recognition and use of them (for example, in the above mentioned arithmetic return type range extension feature) by defining the MSE_IMPL_USE_INT128_COMPILER_EXTENSION preprocessor macro. 
 
 ### CNDInt, CNDSize_t and CNDBool
 
