@@ -548,7 +548,7 @@ from promoting those results to the largest available (signed and unsigned) inte
 workable when the largest available integer types are generally larger than necessary for any value you might want to 
 store. Whether or not that is the case is perhaps kind of a judgement call. */
 #ifndef MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING
-#define MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING 127/*arbitrary*/
+#define MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING 255/*arbitrary*/
 #endif // !MSE_IMPL_BITSIZE_REQUIRED_TO_RESERVE_THE_LARGEST_INTEGERS_FOR_OVERFLOW_CHECKING
 
 		/* MSE_TINT_RESULT_TYPE1(_Ty, _Tz) should evaluate to the mse::TInt<> specialization that can encompass the range of 
@@ -618,7 +618,6 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 	template <class _Ty>
 	struct make_unsigned : public mse::impl::make_unsigned<_Ty> {};
 
-
 	template<typename TBase/* = MSE_CINT_BASE_INTEGER_TYPE*/, typename TOption1/* = RETURN_RANGE_EXTENSION_DEFAULT*/>
 	class TInt : private impl::TArithmeticBase1<TBase> {
 	public:
@@ -682,8 +681,24 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 		}
 		auto operator +(const TInt& x) const->MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt, TOption1) {
 			(*this).assert_initialized();
-			check_for_add_overflow<mse::impl::native_int_add_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val); 
+
+#if defined __has_builtin
+#  if __has_builtin (__builtin_add_overflow)
+#    define MSE_IMPL_HAS__builtin_add_overflow
+#  endif
+#endif
+#ifdef MSE_IMPL_HAS__builtin_add_overflow
+			mse::impl::native_int_add_result_type1<base_type, base_type, TOption1> retval;
+			auto overflow_flag = __builtin_add_overflow(mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>((*this).m_val)
+				, mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>(x.m_val), &retval);
+			if (overflow_flag) {
+				MSE_THROW(primitives_range_error("range error - result of the addition operation is out of range of the target (integer) type"));
+			}
+			return retval;
+#else /*MSE_IMPL_HAS__builtin_add_overflow*/
+			check_for_add_overflow<mse::impl::native_int_add_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val);
 			return (mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>((*this).m_val) + mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>(x.m_val));
+#endif /*MSE_IMPL_HAS__builtin_add_overflow*/
 		}
 		template<typename _Ty2, typename TOption2>
 		auto operator +(const TInt<_Ty2, TOption2> &x) const ->MSE_TINT_ADD_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
@@ -716,8 +731,24 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 		}
 		auto operator -(const TInt &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt, TOption1) {
 			(*this).assert_initialized();
+
+#if defined __has_builtin
+#  if __has_builtin (__builtin_sub_overflow )
+#    define MSE_IMPL_HAS__builtin_sub_overflow 
+#  endif
+#endif
+#ifdef MSE_IMPL_HAS__builtin_sub_overflow 
+			mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1> retval;
+			auto overflow_flag = __builtin_sub_overflow(mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>((*this).m_val)
+				, mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>(x.m_val), &retval);
+			if (overflow_flag) {
+				MSE_THROW(primitives_range_error("range error - result of the subtraction operation is out of range of the target (integer) type"));
+			}
+			return retval;
+#else /*MSE_IMPL_HAS__builtin_sub_overflow*/
 			check_for_subtract_overflow<mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val);
 			return (mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>((*this).m_val) - mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>(x.m_val));
+#endif /*MSE_IMPL_HAS__builtin_sub_overflow*/
 		}
 		template<typename _Ty2>
 		auto operator -(const TInt<_Ty2> &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
@@ -780,8 +811,24 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 		}
 		auto operator *(const TInt &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt, TOption1) {
 			(*this).assert_initialized();
+
+#if defined __has_builtin
+#  if __has_builtin (__builtin_mul_overflow )
+#    define MSE_IMPL_HAS__builtin_mul_overflow 
+#  endif
+#endif
+#ifdef MSE_IMPL_HAS__builtin_mul_overflow 
+			mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1> retval;
+			auto overflow_flag = __builtin_mul_overflow(mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>((*this).m_val)
+				, mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>(x.m_val), &retval);
+			if (overflow_flag) {
+				MSE_THROW(primitives_range_error("range error - result of the multiply operation is out of range of the target (integer) type"));
+			}
+			return retval;
+#else /*MSE_IMPL_HAS__builtin_mul_overflow*/
 			check_for_multiply_overflow<mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val);
 			return (mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>((*this).m_val) * mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>(x.m_val));
+#endif /*MSE_IMPL_HAS__builtin_mul_overflow*/
 		}
 		template<typename _Ty2>
 		auto operator *(const TInt<_Ty2> &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
