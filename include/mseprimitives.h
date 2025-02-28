@@ -688,13 +688,17 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 #  endif
 #endif
 #ifdef MSE_IMPL_HAS__builtin_add_overflow
-			mse::impl::native_int_add_result_type1<base_type, base_type, TOption1> retval;
-			auto overflow_flag = __builtin_add_overflow(mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>((*this).m_val)
-				, mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>(x.m_val), &retval);
-			if (overflow_flag) {
-				MSE_THROW(primitives_range_error("range error - result of the addition operation is out of range of the target (integer) type"));
+			MSE_PRM_IF_CONSTEXPR(std::is_base_of<mse::enable_AR_overflow_checking_t, TOption1>::value) {
+				mse::impl::native_int_add_result_type1<base_type, base_type, TOption1> retval;
+				auto overflow_flag = __builtin_add_overflow(mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>((*this).m_val)
+					, mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>(x.m_val), &retval);
+				if (overflow_flag) {
+					MSE_THROW(primitives_range_error("range error - result of the addition operation is out of range of the target (integer) type"));
+				}
+				return retval;
+			} else {
+				return (mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>((*this).m_val) + mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>(x.m_val));
 			}
-			return retval;
 #else /*MSE_IMPL_HAS__builtin_add_overflow*/
 			check_for_add_overflow<mse::impl::native_int_add_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val);
 			return (mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>((*this).m_val) + mse::impl::native_int_add_result_type1<base_type, base_type, TOption1>(x.m_val));
@@ -738,13 +742,17 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 #  endif
 #endif
 #ifdef MSE_IMPL_HAS__builtin_sub_overflow 
-			mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1> retval;
-			auto overflow_flag = __builtin_sub_overflow(mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>((*this).m_val)
-				, mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>(x.m_val), &retval);
-			if (overflow_flag) {
-				MSE_THROW(primitives_range_error("range error - result of the subtraction operation is out of range of the target (integer) type"));
+			MSE_PRM_IF_CONSTEXPR(std::is_base_of<mse::enable_AR_overflow_checking_t, TOption1>::value) {
+				mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1> retval;
+				auto overflow_flag = __builtin_sub_overflow(mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>((*this).m_val)
+					, mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>(x.m_val), &retval);
+				if (overflow_flag) {
+					MSE_THROW(primitives_range_error("range error - result of the subtraction operation is out of range of the target (integer) type"));
+				}
+				return retval;
+			} else {
+				return (mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>((*this).m_val) - mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>(x.m_val));
 			}
-			return retval;
 #else /*MSE_IMPL_HAS__builtin_sub_overflow*/
 			check_for_subtract_overflow<mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val);
 			return (mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>((*this).m_val) - mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>(x.m_val));
@@ -809,7 +817,7 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 				}
 			}
 		}
-		auto operator *(const TInt &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt, TOption1) {
+		auto operator *(const TInt& x) const->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt, TOption1) {
 			(*this).assert_initialized();
 
 #if defined __has_builtin
@@ -818,13 +826,17 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 #  endif
 #endif
 #ifdef MSE_IMPL_HAS__builtin_mul_overflow 
-			mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1> retval;
-			auto overflow_flag = __builtin_mul_overflow(mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>((*this).m_val)
-				, mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>(x.m_val), &retval);
-			if (overflow_flag) {
-				MSE_THROW(primitives_range_error("range error - result of the multiply operation is out of range of the target (integer) type"));
+			MSE_PRM_IF_CONSTEXPR(std::is_base_of<mse::enable_AR_overflow_checking_t, TOption1>::value) {
+				mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1> retval;
+				auto overflow_flag = __builtin_mul_overflow(mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>((*this).m_val)
+					, mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>(x.m_val), &retval);
+				if (overflow_flag) {
+					MSE_THROW(primitives_range_error("range error - result of the multiply operation is out of range of the target (integer) type"));
+				}
+				return retval;
+			} else {
+				return (mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>((*this).m_val) * mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>(x.m_val));
 			}
-			return retval;
 #else /*MSE_IMPL_HAS__builtin_mul_overflow*/
 			check_for_multiply_overflow<mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val);
 			return (mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>((*this).m_val) * mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>(x.m_val));
