@@ -127,10 +127,10 @@ namespace mse {
 		public:
 			TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : m_first(std::move(_First)), m_last(std::move(_Last)) {}
 			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return m_first;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return m_first;
 			}
 			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return m_last;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return m_last;
 			}
 
 		private:
@@ -155,11 +155,11 @@ namespace mse {
 
 		template<class _InIt>
 		auto make_xscope_specialized_first_and_last_helper1(std::true_type, const _InIt& _First, const _InIt& _Last) {
-			return make_xscope_specialized_first_and_last_overloaded(_First, _Last);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_specialized_first_and_last_overloaded(_First, _Last);
 		}
 		template<class _InIt>
 		auto make_xscope_specialized_first_and_last_helper1(std::false_type, const _InIt& _First, const _InIt& _Last) {
-			return TXScopeSpecializedFirstAndLast<_InIt>(_First, _Last);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return TXScopeSpecializedFirstAndLast<_InIt>(_First, _Last);
 		}
 
 		template<class _InIt>
@@ -190,10 +190,10 @@ namespace mse {
 			TXScopeRangeIterProvider(const _ContainerPointer& _XscpPtr)
 				: m_specialized_first_and_last(mse::make_xscope_begin_iterator(_XscpPtr), mse::make_xscope_end_iterator(_XscpPtr)) {}
 			const auto& begin() const {
-				return m_specialized_first_and_last.first();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return m_specialized_first_and_last.first();
 			}
 			const auto& end() const {
-				return m_specialized_first_and_last.last();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return m_specialized_first_and_last.last();
 			}
 
 		private:
@@ -222,39 +222,39 @@ namespace mse {
 
 		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider_helper1(std::true_type, const _ContainerPointer& ptr) {
-			return mse::impl::make_xscope_specialized_range_iter_provider_overloaded(*ptr);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return mse::impl::make_xscope_specialized_range_iter_provider_overloaded(*ptr);
 		}
 		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider_helper1(std::false_type, const _ContainerPointer& ptr) {
-			return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
 		}
 
 		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider_helper2(const _ContainerPointer& ptr) {
-			return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
 		}
 		template<class _Container>
 		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeFixedConstPointer<_Container>& ptr) {
-			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
 		}
 		template<class _Container>
 		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeFixedPointer<_Container>& ptr) {
-			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		template<class _Container>
 		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeObjFixedConstPointer<_Container>& ptr) {
-			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
 		}
 		template<class _Container>
 		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeObjFixedPointer<_Container>& ptr) {
-			return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<_Container>::type(), ptr);
 		}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider(const _ContainerPointer& ptr) {
-			return make_xscope_range_iter_provider_helper2(ptr);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_range_iter_provider_helper2(ptr);
 		}
 	}
 
@@ -282,7 +282,7 @@ namespace mse {
 						break;
 					}
 				}
-				return _First + (current - xs_iters.first());
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return _First + (current - xs_iters.first());
 			}
 		};
 
@@ -301,10 +301,10 @@ namespace mse {
 				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
 				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr, Args...>(xs_iters.begin(), xs_iters.end(), _Pred, args...).result;
 				if (xs_iters.end() == res_it) {
-					return result_type{};
+					MSE_SUPPRESS_CHECK_IN_XSCOPE return result_type{};
 				}
 				else {
-					return result_type(mse::us::unsafe_make_xscope_pointer_to(*res_it));
+					MSE_SUPPRESS_CHECK_IN_XSCOPE return result_type(mse::us::unsafe_make_xscope_pointer_to(*res_it));
 				}
 			}
 		};
@@ -327,7 +327,7 @@ namespace mse {
 					MSE_SUPPRESS_CHECK_IN_XSCOPE MSE_THROW(std::logic_error("element not found - xscope_c_range_get_ref_to_element_known_to_be_present"));
 				}
 				else {
-					return mse::us::unsafe_make_xscope_pointer_to(*res_it);
+					MSE_SUPPRESS_CHECK_IN_XSCOPE return mse::us::unsafe_make_xscope_pointer_to(*res_it);
 				}
 			}
 		};
@@ -335,47 +335,53 @@ namespace mse {
 	template<class _InIt> using find_if_ptr_type = typename impl::c_find_if_ptr<_InIt, decltype(impl::find_if_ptr_placeholder_predicate())>::item_pointer_type;
 	template<class _InIt, class _Pr, class... Args>
 	inline _InIt find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
-		return impl::c_find_if_ptr<_InIt, _Pr, Args...>(_First, _Last, _Pred, args...).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return impl::c_find_if_ptr<_InIt, _Pr, Args...>(_First, _Last, _Pred, args...).result;
 	}
 
 	template<class _InIt, class _Pr, class... Args>
 	inline _InIt find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
 		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
-		return find_if_ptr(_First, _Last, pred2);
+		auto retval = find_if_ptr(_First, _Last, pred2);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
 	template<class _XScopeContainerPointer> using xscope_range_get_ref_if_ptr_type = typename impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer, decltype(impl::find_if_ptr_placeholder_predicate())>::item_pointer_type;
 	/* This function returns a (scope) optional that contains a scope pointer to the found element. */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_if_ptr(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
-		return impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
+		auto retval = impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
 	/* This function returns a (scope) optional that contains a scope pointer to the found element. */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
-		return xscope_range_get_ref_if_ptr(_XscpPtr, pred2);
+		auto retval = xscope_range_get_ref_if_ptr(_XscpPtr, pred2);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
 	template<class _XScopeContainerPointer> using xscope_range_get_ref_to_element_known_to_be_present_ptr_type = typename impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer, decltype(impl::find_if_ptr_placeholder_predicate())>::item_pointer_type;
 	/* This function returns a scope pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_to_element_known_to_be_present_ptr(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
-		return impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
+		auto retval = impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
 	/* This function returns a scope pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_to_element_known_to_be_present(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
-		return xscope_range_get_ref_to_element_known_to_be_present_ptr(_XscpPtr, pred2);
+		auto retval = xscope_range_get_ref_to_element_known_to_be_present_ptr(_XscpPtr, pred2);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
 	/* deprecated alias */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	MSE_DEPRECATED inline auto xscope_ra_const_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
-		return xscope_range_get_ref_if(_XscpPtr, _Pred, args...);
+		auto retval = xscope_range_get_ref_if(_XscpPtr, _Pred, args...);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
 #if 0
@@ -508,7 +514,7 @@ namespace mse {
 				for (; current != xs_iters.last(); unsafe_increment(current)) {
 					_Func(current, args...);
 				}
-				return (_Func);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return (_Func);
 			}
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
@@ -524,7 +530,8 @@ namespace mse {
 		private:
 			static result_type eval(const _ContainerPointer& _XscpPtr, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args) {
 				const auto xs_iters = make_xscope_range_iter_provider(_XscpPtr);
-				return c_for_each_ptr<decltype(xs_iters.begin()), _Fn>(xs_iters.begin(), xs_iters.end(), _Func, args...).result;
+				auto retval = c_for_each_ptr<decltype(xs_iters.begin()), _Fn>(xs_iters.begin(), xs_iters.end(), _Func, args...).result;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 			}
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
@@ -535,7 +542,8 @@ namespace mse {
 		MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
 		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 	{
-		return impl::c_for_each_ptr<_InIt, _Fn, Args...>(_First, _Last, _Func, args...).result;
+		auto retval = impl::c_for_each_ptr<_InIt, _Fn, Args...>(_First, _Last, _Func, args...).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
 	template<class _InIt, class _Fn, class... Args>
@@ -545,7 +553,7 @@ namespace mse {
 	{
 		auto func2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Func](auto ptr) { _Func(*ptr); });
 		for_each_ptr(_First, _Last, func2, args...);
-		return (_Func);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return (_Func);
 	}
 
 	template<class _XScopeContainerPointer> using xscope_range_for_each_ptr_type = typename impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer, decltype(impl::for_each_ptr_placeholder_function())>::item_pointer_type;
@@ -554,7 +562,8 @@ namespace mse {
 		MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
 		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 	{
-		return impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer, _Fn>(_XscpPtr, _Func, args...).result;
+		auto retval = impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer, _Fn>(_XscpPtr, _Func, args...).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
 	template<class _XScopeContainerPointer, class _Fn, class... Args>
@@ -564,7 +573,7 @@ namespace mse {
 	{
 		auto func2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Func](auto ptr) { _Func(*ptr); });
 		xscope_range_for_each_ptr(_XscpPtr, func2, args...);
-		return (_Func);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return (_Func);
 	}
 
 	/* sort() */
@@ -646,12 +655,12 @@ namespace mse {
 	}
 	template<class _InIt1, class _InIt2>
 	inline _InIt1 equal(const _InIt1& _First1, const _InIt1& _Last1, _InIt2 _First2) {
-		return impl::c_equal<_InIt1, _InIt2>(_First1, _Last1, _First2).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return impl::c_equal<_InIt1, _InIt2>(_First1, _Last1, _First2).result;
 	}
 
 	template<class _XScopeContainerPointer, class _InIt2>
 	inline auto xscope_range_equal(const _XScopeContainerPointer& _XscpPtr, _InIt2 _First2) {
-		return impl::xscope_c_range_equal<_XScopeContainerPointer, _InIt2>(_XscpPtr, _First2).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return impl::xscope_c_range_equal<_XScopeContainerPointer, _InIt2>(_XscpPtr, _First2).result;
 	}
 }
 
