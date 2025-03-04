@@ -7726,7 +7726,6 @@ namespace mse {
 			}
 			template <typename _TRALoneParam>
 			static auto s_count_from_lone_param2(std::false_type, const _TRALoneParam& param) {
-				/* The parameter is not a "random access section". */
 				return s_count_from_lone_param3(typename mse::impl::conjunction<mse::impl::is_random_access_container<_TRALoneParam>
 						, mse::impl::HasOrInheritsSizeMethod_msemsearray<_TRALoneParam> >::type(), param);
 			}
@@ -7737,7 +7736,7 @@ namespace mse {
 			}
 			template <typename _TRALoneParam>
 			static auto s_count_from_lone_param1(std::false_type, const _TRALoneParam& param) {
-				/* The parameter doesn't seem to be a container with a "begin()" member function. */
+				/* The parameter is not a "random access section". */
 				return s_count_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), param);
 			}
 			template <typename _TRALoneParam>
@@ -8441,6 +8440,15 @@ namespace mse {
 		TRandomAccessConstSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
 		TRandomAccessConstSection(const _TRALoneParam& param) : base_class(base_class::s_iter_from_lone_param(param), base_class::s_count_from_lone_param(param)) {}
+		template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_convertible<typename std::initializer_list<_Ty2>::iterator, _TRAIterator>::value> MSE_IMPL_EIS >
+		TRandomAccessConstSection(const std::initializer_list<_Ty2>& param) : TRandomAccessConstSection(
+				[&]() {
+					if (1 == param.size()) {
+						return TRandomAccessConstSection(*(param.begin()));
+					}
+					MSE_THROW(std::range_error("construction from the given initializer list type of the given size is not valid - TRandomAccessConstSection() - TRandomAccessConstSection"));
+				}()
+			) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRandomAccessConstSection() {
 			mse::impl::T_valid_if_not_an_xscope_type<_TRAIterator>();
 		}
@@ -9096,6 +9104,15 @@ namespace mse {
 		TRandomAccessSection(const _TRAIterator& start_iter, size_type count) : base_class(start_iter, count) {}
 		template <typename _TRALoneParam>
 		TRandomAccessSection(const _TRALoneParam& param) : base_class(base_class::s_iter_from_lone_param(param), base_class::s_count_from_lone_param(param)) {}
+		template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_convertible<typename std::initializer_list<_Ty2>::iterator, _TRAIterator>::value> MSE_IMPL_EIS >
+		TRandomAccessSection(const std::initializer_list<_Ty2>& param) : TRandomAccessSection(
+				[&]() {
+					if (1 == param.size()) {
+						return TRandomAccessSection(*(param.begin()));
+					}
+					MSE_THROW(std::range_error("construction from the given initializer list type of the given size is not valid - TRandomAccessSection() - TRandomAccessSection"));
+				}()
+			) {}
 		/* The presence of this constructor for native arrays should not be construed as condoning the use of native arrays. */
 		template<size_t Tn>
 		TRandomAccessSection(value_type(&native_array)[Tn]) : base_class(native_array) {}
@@ -9636,7 +9653,7 @@ namespace mse {
 	}
 
 	template <typename _TElement>
-	class TXScopeCSSSXSTERandomAccessConstSection : public mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<TXScopeCSSSXSTERAConstIterator<_TElement>, true/*IsFixed*/> {
+	class TXScopeCSSSXSTERandomAccessConstSection : public mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<TXScopeCSSSXSTERAConstIterator<_TElement>, true/*IsFixed*/>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<TXScopeCSSSXSTERAConstIterator<_TElement>, true/*IsFixed*/> base_class;
 		typedef TXScopeCSSSXSTERAConstIterator<_TElement> _TRAIterator;
@@ -9806,7 +9823,7 @@ namespace mse {
 	}
 
 	template <typename _TElement>
-	class TXScopeCSSSXSTERandomAccessSection : public mse::us::impl::ns_ra_section::TRandomAccessSectionBase<TXScopeCSSSXSTERAIterator<_TElement>, true/*IsFixed*/> {
+	class TXScopeCSSSXSTERandomAccessSection : public mse::us::impl::ns_ra_section::TRandomAccessSectionBase<TXScopeCSSSXSTERAIterator<_TElement>, true/*IsFixed*/>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase {
 	public:
 		typedef mse::us::impl::ns_ra_section::TRandomAccessSectionBase<TXScopeCSSSXSTERAIterator<_TElement>, true/*IsFixed*/> base_class;
 		typedef TXScopeCSSSXSTERAIterator<_TElement> _TRAIterator;
