@@ -78,6 +78,11 @@
 #define MSE_LH_MEMCPY(destination, source, num_bytes) memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMCMP(destination, source, num_bytes) memcmp(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) memset(ptr, value, num_bytes)
+#define MSE_LH_STRLEN(str) strlen(str)
+#define MSE_LH_STRNLEN_S(str, strsz) strlnen_s(str, strsz)
+#define MSE_LH_STRCPY(destination, source) strcpy(destination, source)
+#define MSE_LH_STRCMP(destination, source) strcmp(destination, source)
+#define MSE_LH_STRNCMP(destination, source, count) strncmp(destination, source, count)
 
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
 #define MSE_LH_POINTER_TYPE(element_type) element_type *
@@ -140,6 +145,11 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMCMP(destination, source, num_bytes) mse::lh::memcmp(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::memset(ptr, value, num_bytes)
+#define MSE_LH_STRLEN(str) mse::lh::strlen(str)
+#define MSE_LH_STRNLEN_S(str, strsz) mse::lh::strlnen_s(str, strsz)
+#define MSE_LH_STRCPY(destination, source) mse::lh::strcpy(destination, source)
+#define MSE_LH_STRCMP(destination, source) mse::lh::strcmp(destination, source)
+#define MSE_LH_STRNCMP(destination, source, count) mse::lh::strncmp(destination, source, count)
 
 /* MSE_LH_ADDRESSABLE_TYPE() is a type annotation used to indicate that the '&' operator may/will be used to obtain the address of
 the associated declared object(s). */
@@ -170,6 +180,29 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_IF_ENABLED(x) x
 #define MSE_LH_IF_DISABLED(x)
 
+namespace mse {
+	namespace lh {
+		namespace impl {
+			template<class _TIter>
+			size_t strnlen_s_helper1(std::false_type, _TIter const& str, size_t strsz) {
+				size_t count = 0;
+				while ((strsz > count) && ('\0' != str[count])) { count += 1; }
+				return count;
+			}
+			template<class _TIter>
+			size_t strnlen_s_helper1(std::true_type, _TIter const& str, size_t strsz) {
+				if (!str) {
+					return 0;
+				}
+				return strnlen_s_helper1(std::false_type(), str, strsz);
+			}
+		}
+		template<class _TIter>
+		size_t strnlen_s(_TIter const& str, size_t strsz) {
+			return impl::strnlen_s_helper1(typename mse::impl::IsNullable_msemsearray<_TIter>::type(), str, strsz);
+		}
+	}
+}
 #ifdef MSE_SAFER_SUBSTITUTES_DISABLED
 
 namespace mse {
@@ -272,25 +305,62 @@ namespace mse {
 		}
 
 		template<class _TIter>
-		size_t fread(_TIter ptr, size_t size, size_t count, FILE* stream) {
+		size_t fread(_TIter const& ptr, size_t size, size_t count, FILE* stream) {
 			return ::fread(ptr, size, count, stream);
 		}
 		template<class _TIter>
-		size_t fwrite(_TIter ptr, size_t size, size_t count, FILE* stream) {
+		size_t fwrite(_TIter const& ptr, size_t size, size_t count, FILE* stream) {
 			return ::fwrite(ptr, size, count, stream);
 		}
 
 		template<class _TIter, class _TIter2>
-		_TIter memcpy(_TIter destination, _TIter2 source, size_t num_bytes) {
-			return _TIter(::memcpy(destination, source, num_bytes));
+		_TIter memcpy(_TIter const& destination, _TIter2 const& source, size_t num_bytes) {
+			::memcpy(destination, source, num_bytes);
+			return destination;
+		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memcpy(). */
+		template<class _TElement, class _TIter2>
+		_TElement* memcpy(_TElement* destination, _TIter2 const& source, size_t num_bytes) {
+			::memcpy(destination, source, num_bytes);
+			return destination;
 		}
 		template<class _TIter, class _TIter2>
-		int memcmp(_TIter destination, _TIter2 source, size_t num_bytes) {
+		int memcmp(_TIter const& destination, _TIter2 const& source, size_t num_bytes) {
 			return ::memcmp(destination, source, num_bytes);
 		}
 		template<class _TIter>
-		void memset(_TIter iter, int value, size_t num_bytes) {
+		_TIter memset(_TIter const& iter, int value, size_t num_bytes) {
 			::memset(iter, value, num_bytes);
+			return iter;
+		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memcpy(). */
+		template<class _TElement>
+		_TElement* memset(_TElement* iter, int value, size_t num_bytes) {
+			::memset(iter, value, num_bytes);
+			return iter;
+		}
+		template<class _TIter>
+		size_t strlen(_TIter const& str) {
+			return ::strlen(str);
+		}
+		template<class _TIter, class _TIter2>
+		_TIter strcpy(_TIter const& destination, _TIter2 const& source) {
+			::strcpy(destination, source);
+			return destination;
+		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::strcpy(). */
+		template<class _TElement, class _TIter2>
+		_TElement* strcpy(_TElement* destination, _TIter2 const& source) {
+			::strcpy(destination, source);
+			return destination;
+		}
+		template<class _TIter, class _TIter2>
+		int strcmp(_TIter const& str1, _TIter2 const& str2) {
+			return ::strcmp(std::addressof(str1[0]), std::addressof(str2[0]));
+		}
+		template<class _TIter, class _TIter2>
+		int strncmp(_TIter const& str1, _TIter2 const& str2, size_t count) {
+			return ::strncmp(std::addressof(str1[0]), std::addressof(str2[0]), count);
 		}
 	}
 	namespace us {
@@ -942,6 +1012,7 @@ namespace mse {
 			using base_class::base_class;
 
 			TNativeArrayReplacement() {}
+			TNativeArrayReplacement(const TNativeArrayReplacement& src) = delete;
 			/* Technically, this constructor should only be enabled for 'char' types to support initialization from string literals. */
 			template <size_t _Size2, MSE_IMPL_EIP mse::impl::enable_if_t<(_Size2 <= _Size)> MSE_IMPL_EIS >
 			TNativeArrayReplacement(_Ty const (&arr1)[_Size2]) {
@@ -1243,39 +1314,59 @@ namespace mse {
 			impl::free_helper1(typename impl::IsSupportedByAllocateOverloaded<_TDynArrayIter>::type(), ptr);
 		}
 
+		namespace impl {
+			/* Memory safe approximation of fread(). */
+			template<class _TIter>
+			size_t fread(_TIter const& ptr, size_t size, size_t count, FILE* stream) {
+				typedef mse::impl::remove_reference_t<decltype((ptr)[0])> element_t;
+				thread_local std::vector<unsigned char> v;
+				v.resize(size * count);
+				auto num_bytes_read = ::fread(v.data(), size, count, stream);
+				auto num_items_read = num_bytes_read / sizeof(element_t);
+				size_t uc_index = 0;
+				size_t element_index = 0;
+				for (; element_index < num_items_read; uc_index += sizeof(element_t), element_index += 1) {
+					unsigned char* uc_ptr = &(v[uc_index]);
+					if (false) {
+						element_t* element_ptr = reinterpret_cast<element_t*>(uc_ptr);
+						ptr[element_index] = (*element_ptr);
+					}
+					else {
+						long long int adjusted_value = 0;
+						static_assert(sizeof(adjusted_value) >= sizeof(element_t), "The (memory safe) lh::fread() function does not support element types larger than `long long int`. ");
+						for (size_t i = 0; i < sizeof(element_t); i += 1) {
+							adjusted_value |= ((uc_ptr[i]) << (8 * ((sizeof(element_t) - 1) - i)));
+						}
+						/* Only element types that are (or can be constructed from) integral types are supported. */
+						ptr[element_index] = element_t(adjusted_value);
+					}
+				}
+				v.resize(0);
+				v.shrink_to_fit();
+				return num_bytes_read;
+			}
+		}
 		/* Memory safe approximation of fread(). */
 		template<class _TIter>
-		size_t fread(_TIter ptr, size_t size, size_t count, FILE* stream) {
-			typedef mse::impl::remove_reference_t<decltype((ptr)[0])> element_t;
-			thread_local std::vector<unsigned char> v;
-			v.resize(size * count);
-			auto num_bytes_read = ::fread(v.data(), size, count, stream);
-			auto num_items_read = num_bytes_read / sizeof(element_t);
-			size_t uc_index = 0;
-			size_t element_index = 0;
-			for (; element_index < num_items_read; uc_index += sizeof(element_t), element_index += 1) {
-				unsigned char* uc_ptr = &(v[uc_index]);
-				if (false) {
-					element_t* element_ptr = reinterpret_cast<element_t*>(uc_ptr);
-					ptr[element_index] = (*element_ptr);
-				}
-				else {
-					long long int adjusted_value = 0;
-					static_assert(sizeof(adjusted_value) >= sizeof(element_t), "The (memory safe) lh::fread() function does not support element types larger than `long long int`. ");
-					for (size_t i = 0; i < sizeof(element_t); i += 1) {
-						adjusted_value |= ((uc_ptr[i]) << (8 * ((sizeof(element_t) - 1) - i)));
-					}
-					/* Only element types that are (or can be constructed from) integral types are supported. */
-					ptr[element_index] = element_t(adjusted_value);
-				}
-			}
-			v.resize(0);
-			v.shrink_to_fit();
-			return num_bytes_read;
+		size_t fread(_TIter const& ptr, size_t size, size_t count, FILE* stream) {
+			return impl::fread(ptr, size, count, stream);
 		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memcpy(). */
+		template<class _TElement>
+		size_t fread(_TElement* ptr, size_t size, size_t count, FILE* stream) {
+			return impl::fread(ptr, size, count, stream);
+		}
+		/* And similarly, his overload is to allow native array replacements to decay to a (safe) iterator. */
+		template<class _udTy, size_t _Size>
+		size_t fread(TNativeArrayReplacement<_udTy, _Size>& nar, size_t size, size_t count, FILE* stream) {
+			typedef impl::const_preserving_decay_t<_udTy> _Ty;
+			typename mse::mstd::array<_Ty, _Size>::iterator ptr = nar;
+			return fread(ptr, size, count, stream);
+		}
+
 		/* Memory safe approximation of fwrite(). */
 		template<class _TIter>
-		size_t fwrite(_TIter ptr, size_t size, size_t count, FILE* stream) {
+		size_t fwrite(_TIter const& ptr, size_t size, size_t count, FILE* stream) {
 			typedef mse::impl::remove_reference_t<decltype((ptr)[0])> element_t;
 			auto num_items_to_write = size * count / sizeof(element_t);
 			thread_local std::vector<unsigned char> v;
@@ -1328,7 +1419,7 @@ namespace mse {
 
 			namespace us {
 				template<class _TIter, class _TIter2>
-				_TIter memcpy_helper1(std::true_type, _TIter destination, _TIter2 source, size_t num_bytes) {
+				_TIter memcpy_helper1(std::true_type, _TIter const& destination, _TIter2 const& source, size_t num_bytes) {
 					typedef mse::impl::remove_reference_t<decltype((destination)[0])> element_t;
 					auto num_items = num_bytes / sizeof(element_t);
 					//assert(num_items * sizeof(element_t) == num_bytes);
@@ -1351,19 +1442,31 @@ namespace mse {
 		}
 		/* Memory safe approximation of memcpy(). */
 		template<class _TIter, class _TIter2>
-		_TIter memcpy(_TIter destination, _TIter2 source, size_t num_bytes) {
+		_TIter memcpy(_TIter const& destination, _TIter2 const& source, size_t num_bytes) {
 			return impl::us::memcpy_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), destination, source, num_bytes);
+		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memcpy(). */
+		template<class _TElement, class _TIter2>
+		_TElement* memcpy(_TElement* destination, _TIter2 const& source, size_t num_bytes) {
+			return impl::us::memcpy_helper1(typename impl::HasOrInheritsSubscriptOperator<_TElement*>::type(), destination, source, num_bytes);
+		}
+		/* And similarly, his overload is to allow native array replacements to decay to a (safe) iterator. */
+		template<class _udTy, size_t _Size, class _TIter2>
+		auto memcpy(TNativeArrayReplacement<_udTy, _Size>& nar, _TIter2 const& source, size_t num_bytes) {
+			typedef impl::const_preserving_decay_t<_udTy> _Ty;
+			typename mse::mstd::array<_Ty, _Size>::iterator destination = nar;
+			return memcpy(destination, source, num_bytes);
 		}
 
 		namespace impl {
 			namespace us {
 				template<class _TIter, class _TIter2>
-				int memcmp_helper1(std::true_type, _TIter destination, _TIter2 source, size_t num_bytes) {
-					typedef mse::impl::remove_reference_t<decltype((destination)[0])> element_t;
+				int memcmp_helper1(std::true_type, _TIter const& source1, _TIter2 const& source2, size_t num_bytes) {
+					typedef mse::impl::remove_reference_t<decltype((source1)[0])> element_t;
 					auto num_items = num_bytes / sizeof(element_t);
 					//assert(num_items * sizeof(element_t) == num_bytes);
 					for (size_t i = 0; i < num_items; i += 1) {
-						auto diff = destination[i] - source[i];
+						auto diff = source1[i] - source2[i];
 						if (0 != diff) {
 							return diff;
 						}
@@ -1372,19 +1475,19 @@ namespace mse {
 				}
 
 				template<class _TPointer, class _TPointer2>
-				int memcmp_helper1(std::false_type, _TPointer destination, _TPointer2 source, size_t num_bytes) {
-					//typedef mse::impl::remove_reference_t<decltype(*destination)> element_t;
+				int memcmp_helper1(std::false_type, _TPointer source1, _TPointer2 source2, size_t num_bytes) {
+					//typedef mse::impl::remove_reference_t<decltype(*source1)> element_t;
 					//auto num_items = num_bytes / sizeof(element_t);
 					//assert(1 == num_items);
 					//assert(num_items * sizeof(element_t) == num_bytes);
-					return (*destination) - (*source);
+					return (*source1) - (*source2);
 				}
 			}
 		}
 		/* Memory safe approximation of memcmp(). */
 		template<class _TIter, class _TIter2>
-		int memcmp(_TIter destination, _TIter2 source, size_t num_bytes) {
-			return impl::us::memcmp_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), destination, source, num_bytes);
+		int memcmp(_TIter const& source1, _TIter2 const& source2, size_t num_bytes) {
+			return impl::us::memcmp_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), source1, source2, num_bytes);
 		}
 
 		namespace impl {
@@ -1414,7 +1517,7 @@ namespace mse {
 				}
 
 				template<class _TIter>
-				void memset_helper1(std::true_type, _TIter iter, int value, size_t num_bytes) {
+				_TIter memset_helper1(std::true_type, _TIter const& iter, int value, size_t num_bytes) {
 					typedef mse::impl::remove_reference_t<decltype(iter[0])> element_t;
 					const auto element_value = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t&, long long int>::type(), value);
 					auto num_items = num_bytes / sizeof(element_t);
@@ -1422,23 +1525,105 @@ namespace mse {
 					for (size_t i = 0; i < num_items; i += 1) {
 						iter[i] = element_value;
 					}
+					return iter;
 				}
 
 				template<class _TPointer>
-				void memset_helper1(std::false_type, _TPointer ptr, int value, size_t num_bytes) {
+				_TPointer memset_helper1(std::false_type, _TPointer ptr, int value, size_t num_bytes) {
 					typedef mse::impl::remove_reference_t<decltype(*ptr)> element_t;
 					//auto num_items = num_bytes / sizeof(element_t);
 					//assert(1 == num_items);
 					//assert(num_items * sizeof(element_t) == num_bytes);
 					//*ptr = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t&, long long int>::type(), value);
 					*ptr = memset_adjusted_value1<element_t>(typename std::is_constructible<element_t, long long int>::type(), value);
+					return ptr;
 				}
 			}
 		}
 		/* Memory safe approximation of memset(). */
 		template<class _TIter>
-		void memset(_TIter iter, int value, size_t num_bytes) {
-			impl::us::memset_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), iter, value, num_bytes);
+		_TIter memset(_TIter const& iter, int value, size_t num_bytes) {
+			return impl::us::memset_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), iter, value, num_bytes);
+		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memset(). */
+		template<class _TElement>
+		_TElement* memset(_TElement* iter, int value, size_t num_bytes) {
+			return impl::us::memset_helper1(typename impl::HasOrInheritsSubscriptOperator<_TElement*>::type(), iter, value, num_bytes);
+		}
+		/* And similarly, his overload is to allow native array replacements to decay to a (safe) iterator. */
+		template<class _udTy, size_t _Size>
+		auto memset(TNativeArrayReplacement<_udTy, _Size>& nar, int value, size_t num_bytes) {
+			typedef impl::const_preserving_decay_t<_udTy> _Ty;
+			typename mse::mstd::array<_Ty, _Size>::iterator destination = nar;
+			return memset(destination, value, num_bytes);
+		}
+
+		/* If at some point for some reason there is an urge to optimize these null-terminated string functions, remember that
+		the safe iterator arguments that are expected to be used would generally have access to the (stored) size of the
+		container that's holding the characters. */
+
+		template<class _TIter>
+		size_t strlen(_TIter const& str) {
+			size_t count = 0;
+			while ('\0' != str[count]) { count += 1; }
+			return count;
+		}
+
+		namespace impl {
+			template<class _TIter, class _TIter2>
+			_TIter strcpy(_TIter const& destination, _TIter2 const& source) {
+				size_t count = 0;
+				auto* next_char_ptr = std::addressof(source[0]);
+				while ('\0' != *next_char_ptr) {
+					destination[count] = *next_char_ptr;
+					count += 1;
+					next_char_ptr = std::addressof(source[count]);
+				}
+				destination[count] = '\0';
+				return destination;
+			}
+		}
+		template<class _TIter, class _TIter2>
+		_TIter strcpy(_TIter const& destination, _TIter2 const& source) {
+			return impl::strcpy(destination, source);
+		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::strcpy(). */
+		template<class _TElement, class _TIter2>
+		_TElement* strcpy(_TElement* destination, _TIter2 const& source) {
+			return impl::strcpy(destination, source);
+		}
+		template<class _udTy, size_t _Size, class _TIter2>
+		auto strcpy(TNativeArrayReplacement<_udTy, _Size>& nar, _TIter2 const& source) {
+			typedef impl::const_preserving_decay_t<_udTy> _Ty;
+			typename mse::mstd::array<_Ty, _Size>::iterator destination = nar;
+			return strcpy(destination, source);
+		}
+
+		template<class _TIter, class _TIter2>
+		int strcmp(_TIter const& str1, _TIter2 const& str2) {
+			strlen(str1);
+			strlen(str2);
+			/* todo: This is technically not safe without first verifying that the iterators target contiguous storage. */
+			return std::strcmp(std::addressof(str1[0]), std::addressof(str2[0]));
+		}
+
+		template<class _TIter, class _TIter2>
+		int strncmp(_TIter const& str1, _TIter2 const& str2, size_t count) {
+			/* I think this implementation should allow for the unusual case where, for example, str1 is null terminated at 
+			index 3, str2 is not null terminated and has a storage capacity of 5, and the count argument is 7. I don't know 
+			if such a case is technically "legal", but one could imagine standard strncmp() implementations (incidentally) 
+			supporting it. */
+			size_t count2 = 0;
+			while ((count > count2) && ('\0' != str1[count2]) && ('\0' != str2[count2])) {
+				count2 += 1;
+			}
+			if (count > count2) {
+				if (('\0' != str1[count2]) || ('\0' != str2[count2])) {
+					count2 += 1;
+				}
+			}
+			/* todo: This is technically not safe without first verifying that the iterators target contiguous storage. */
+			return std::strncmp(std::addressof(str1[0]), std::addressof(str2[0]), count2);
 		}
 
 		namespace impl {
