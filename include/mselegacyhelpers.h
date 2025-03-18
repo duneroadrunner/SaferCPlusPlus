@@ -1012,7 +1012,6 @@ namespace mse {
 			using base_class::base_class;
 
 			TNativeArrayReplacement() {}
-			TNativeArrayReplacement(const TNativeArrayReplacement& src) = delete;
 			/* Technically, this constructor should only be enabled for 'char' types to support initialization from string literals. */
 			template <size_t _Size2, MSE_IMPL_EIP mse::impl::enable_if_t<(_Size2 <= _Size)> MSE_IMPL_EIS >
 			TNativeArrayReplacement(_Ty const (&arr1)[_Size2]) {
