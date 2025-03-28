@@ -1687,7 +1687,7 @@ namespace mse {
 #endif /*defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)*/
 
 	template<typename _Ty>
-	_Ty* not_null_from_nullable(const _Ty* src) {
+	_Ty* not_null_from_nullable(_Ty* src) {
 		return src;
 	}
 
