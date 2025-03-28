@@ -1,4 +1,4 @@
-Mar 2025
+Feb 2025
 
 ### Overview
 
@@ -40,49 +40,51 @@ Tested with the microsoft compiler (v.19.41.34120) (Windows 10), g++13.2.0 and c
     <summary>Registered pointers</summary>
 
     1. [Overview](#registered-pointers)
-    2. [TRegisteredPointer](#tregisteredpointer)
-        1. [TRegisteredConstPointer](#tregisteredconstpointer)
-        2. [TRegisteredRefWrapper](#tregisteredrefwrapper)
-    3. [TCRegisteredPointer](#tcregisteredpointer)
-    4. [TNDRegisteredPointer, TNDCRegisteredPointer](#tndregisteredpointer-tndcregisteredpointer)
+    1. [TRegisteredPointer](#tregisteredpointer)
+        1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
+        2. [TRegisteredFixedPointer](#tregisteredfixedpointer)
+        3. [TRegisteredConstPointer](#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer)
+        4. [TRegisteredRefWrapper](#tregisteredrefwrapper)
+    2. [TCRegisteredPointer](#tcregisteredpointer)
+    3. [TNDRegisteredPointer, TNDCRegisteredPointer](#tndregisteredpointer-tndcregisteredpointer)
     </details>
 7. <details>
     <summary>Norad pointers</summary>
 
     1. [Overview](#norad-pointers)
-    2. [TNoradPointer](#tnoradpointer)
-        1. [TNoradNotNullPointer](#tnoradnotnullpointer)
+    1. [TNoradPointer](#tnoradpointer)
     </details>
 8. [Simple benchmarks](#simple-benchmarks)
 9. <details>
     <summary>Reference counting pointers</summary>
 
     1. [Overview](#reference-counting-pointers)
-    2. [TRefCountingPointer](#trefcountingpointer)
+    1. [TRefCountingPointer](#trefcountingpointer)
         1. [TRefCountingNotNullPointer](#trefcountingnotnullpointer)
-        2. [TRefCountingConstPointer](#trefcountingconstpointer-trefcountingnotnullconstpointer)
-    3. [Using registered pointers as weak pointers](#using-registered-pointers-as-weak-pointers-with-reference-counting-pointers)
+        2. [TRefCountingFixedPointer](#trefcountingfixedpointer)
+        3. [TRefCountingConstPointer](#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer)
+    2. [Using registered pointers as weak pointers](#using-registered-pointers-as-weak-pointers-with-reference-counting-pointers)
     </details>
 10. <details>
     <summary>Single owner pointer</summary>
 
     1. [Overview](#single-owner-pointer)
-    2. [TSingleOwnerPointer](#tsingleownerpointer)
+    1. [TSingleOwnerPointer](#tsingleownerpointer)
     </details>
 11. <details>
     <summary>Scope pointers</summary>
 
     1. [Overview](#scope-pointers)
-    2. [TXScopeFixedPointer](#txscopefixedpointer)
-    3. [TXScopeOwnerPointer](#txscopeownerpointer)
-    4. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
-    5. [make_xscope_borrowing_strong_pointer_store()](#make_xscope_borrowing_strong_pointer_store)
-    6. [TRegisteredProxyPointer](#tregisteredproxypointer)
-    7. [TNoradProxyPointer](#tnoradproxypointer)
-    8. [xscope_chosen()](#xscope_chosen)
-    9. [as_a_returnable_fparam()](#as_a_returnable_fparam)
-    10. [as_an_fparam()](#as_an_fparam)
-    11. [Conformance helpers](#conformance-helpers)
+    1. [TXScopeFixedPointer](#txscopefixedpointer)
+    2. [TXScopeOwnerPointer](#txscopeownerpointer)
+    3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
+    4. [make_xscope_borrowing_strong_pointer_store()](#make_xscope_borrowing_strong_pointer_store)
+    5. [TRegisteredProxyPointer](#tregisteredproxypointer)
+    6. [TNoradProxyPointer](#tnoradproxypointer)
+    7. [xscope_chosen()](#xscope_chosen)
+    8. [as_a_returnable_fparam()](#as_a_returnable_fparam)
+    9. [as_an_fparam()](#as_an_fparam)
+    10. [Conformance helpers](#conformance-helpers)
         1. [return_value()](#return_value)
         2. [TMemberObj](#tmemberobj)
     </details>
@@ -132,69 +134,69 @@ Tested with the microsoft compiler (v.19.41.34120) (Windows 10), g++13.2.0 and c
     <summary>Arrays</summary>
 
     1. [Overview](#arrays)
-    2. [mstd::array](#mstdarray)
-    3. [nii_array](#nii_array)
-    4. [xscope_nii_array](#xscope_nii_array)
-    5. [xscope_iterator](#xscope_iterator)
+    1. [mstd::array](#mstdarray)
+    2. [nii_array](#nii_array)
+    3. [xscope_nii_array](#xscope_nii_array)
+    4. [xscope_iterator](#xscope_iterator)
     </details>
 19. <details>
     <summary>Vectors</summary>
 
     1. [Overview](#vectors)
-    2. [mstd::vector](#mstdvector)
-    3. [nii_vector](#nii_vector)
-    4. [fixed_nii_vector](#fixed_nii_vector)
-    5. [xscope_borrowing_fixed_nii_vector](#xscope_borrowing_fixed_nii_vector)
-    6. [ivector](#ivector)
+    1. [mstd::vector](#mstdvector)
+    2. [nii_vector](#nii_vector)
+    3. [fixed_nii_vector](#fixed_nii_vector)
+    4. [xscope_borrowing_fixed_nii_vector](#xscope_borrowing_fixed_nii_vector)
+    5. [ivector](#ivector)
     </details>
 20. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
 21. <details>
     <summary>Strings</summary>
 
     1. [Overview](#strings)
-    2. [mstd::string](#mstdstring)
-    3. [nii_string](#nii_string)
-    4. [xscope_borrowing_fixed_nii_basic_string](#xscope_borrowing_fixed_nii_basic_string)
-    5. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
-    6. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
-    7. [mstd::string_view](#string_view)
-    8. [nrp_string_view](#nrp_string_view)
+    1. [mstd::string](#mstdstring)
+    2. [nii_string](#nii_string)
+    3. [xscope_borrowing_fixed_nii_basic_string](#xscope_borrowing_fixed_nii_basic_string)
+    4. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
+    5. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
+    6. [mstd::string_view](#string_view)
+    7. [nrp_string_view](#nrp_string_view)
     </details>
 22. <details>
     <summary>Poly Iterators and Sections</summary>
 
     1. [Overview](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
-    2. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
-    3. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
-    4. [TAnyStringSection](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection)
-    5. [TAnyNRPStringSection](#txscopeanynrpstringsection-txscopeanynrpstringconstsection-tanynrpstringsection-tanynrpstringconstsection)
-    6. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
-    7. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
+    1. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
+    2. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
+    3. [TAnyStringSection](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection)
+    4. [TAnyNRPStringSection](#txscopeanynrpstringsection-txscopeanynrpstringconstsection-tanynrpstringsection-tanynrpstringconstsection)
+    5. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
+    6. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
     </details>
 23. <details>
     <summary>Optionals</summary>
 
     1. [Overview](#optionals)
-    2. [mstd::optional](#mstdoptional)
-    3. [optional](#optional)
-    4. [fixed_optional](#fixed_optional)
-    5. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
+    1. [mstd::optional](#mstdoptional)
+    2. [optional](#optional)
+    3. [fixed_optional](#fixed_optional)
+    4. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
     </details>
 24. <details>
     <summary>Anys</summary>
 
     1. [Overview](#anys)
-    2. [mstd::any](#mstdany)
-    3. [any](#any)
-    4. [fixed_any](#fixed_any)
-    5. [xscope_borrowing_fixed_any](#xscope_borrowing_fixed_any)
+    1. [mstd::any](#mstdany)
+    2. [any](#any)
+    3. [fixed_any](#fixed_any)
+    4. [xscope_borrowing_fixed_any](#xscope_borrowing_fixed_any)
     </details>
 25. <details>
     <summary>Tuples</summary>
 
     1. [Overview](#tuples)
-    2. [mstd::tuple](#tuple)
-    3. [xscope_tuple](#xscope_tuple)
+    1. [mstd::tuple](#tuple)
+    2. [xscope_tuple](#xscope_tuple)
     </details>
 26. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
@@ -348,7 +350,44 @@ Another option that may often be more practical, is to add a level of indirectio
 
 And note that these registered pointers cannot be shared among asynchronous threads (enforced by the type system and scpptool). When you need to share objects between asynchronous threads, you can use the [safe sharing data types](#asynchronously-shared-objects) in this library.
 
-### TRegisteredConstPointer
+### TRegisteredNotNullPointer
+`TRegisteredNotNullPointer<>` is a version of `TRegisteredPointer<>` that cannot be constructed to a null value. Note that `TRegisteredPointer<>` does not implicitly convert to `TRegisteredNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function.
+
+### TRegisteredFixedPointer
+`TRegisteredFixedPointer<>` is a version of `TRegisteredNotNullPointer<>` that cannot be retargeted after construction (basically a "`const TRegisteredNotNullPointer<>`"). It is essentially a functional equivalent of a C++ reference.  
+
+usage example:
+
+```cpp
+    #include "mseregistered.h"
+    
+    int main(int argc, char* argv[]) {
+        class CA {
+        public:
+            CA(std::string str) : m_str(str) {}
+            std::string m_str;
+        };
+    
+        class CB {
+        public:
+            static void foo(mse::TRegisteredFixedConstPointer<CA> input1_fc_ptr, mse::TRegisteredFixedConstPointer<CA> 
+                input2_fc_ptr, mse::TRegisteredFixedPointer<CA> output_f_ptr) {
+                output_f_ptr->m_str = "output from " + input1_fc_ptr->m_str + " and " + input2_fc_ptr->m_str;
+                return;
+            }
+        };
+    
+        mse::TRegisteredObj<CA> in1_regobj("input1");
+        mse::TRegisteredPointer<CA> in2_regptr = mse::registered_new<CA>("input2");
+        auto out_regobj = mse::make_registered(CA("")); /* Alternative way to make a registered object. */
+    
+        CB::foo(&in1_regobj, &(*in2_regptr), &out_regobj);
+    
+        mse::registered_delete<CA>(in2_regptr);
+    }
+```
+
+### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
 `TRegisteredPointer<X>` does implicitly convert to `TRegisteredPointer<const X>`. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 ### TRegisteredRefWrapper
@@ -409,7 +448,11 @@ usage example: ([link to interactive version](https://godbolt.org/z/P87sdKf4h))
 
 (As with [`TRegisteredPointer<>`](#tregisteredpointer), if deleting a cregistered object via a pointer to its base class you'll need to use the `mse::us::cregistered_delete<>()` function instead.)
 
-#### TCRegisteredConstPointer
+#### TCRegisteredNotNullPointer
+
+#### TCRegisteredFixedPointer
+
+#### TCRegisteredConstPointer, TCRegisteredNotNullConstPointer, TCRegisteredFixedConstPointer
 
 ### TNDRegisteredPointer, TNDCRegisteredPointer
 
@@ -463,7 +506,9 @@ usage example: ([link to interactive version](https://godbolt.org/z/9nKG71W5h))
 
 `TNoradNotNullPointer<>` is a version of `TNoradPointer<>` that cannot be constructed to or assigned a null value. Because a `TNoradNotNullPointer<>` cannot outlive its target, it should be always safe to assume that it points to a validly allocated object. Note that `TNoradPointer<>` does not implicitly convert to `TNoradNotNullPointer<>`. When needed, the conversion can be done with the `mse::not_null_from_nullable()` function. 
 
-#### TNoradConstPointer, TNoradNotNullConstPointer TNDNoradPointer
+#### TNoradFixedPointer
+
+#### TNoradConstPointer, TNoradNotNullConstPointer, TNoradFixedConstPointer, TNDNoradPointer
 
 
 ### Simple benchmarks
@@ -515,7 +560,7 @@ You can see that the library's safe pointers are quite fast compared to, say, `s
 
 ### Reference counting pointers
 
-If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so and prevent it, or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is `std::shared_ptr<>`, which is notable for its thread-safe reference counting that can be handy when you're sharing an object among asynchronous threads, but is unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than `std::shared_ptr<>`, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use `mse::make_refcounting<>()` instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them.
+If you're going to use pointers, then to ensure they won't be used to access invalid memory you basically have two options - detect any attempt to do so (and thrwart the attempt), or, alternatively, ensure that the pointer targets a validly allocated object. Registered pointers rely on the former, and so-called "reference counting" pointers can be used to achieve the latter. The most famous reference counting pointer is `std::shared_ptr<>`, which is notable for its thread-safe reference counting that can be handy when you're sharing an object among asynchronous threads, but is unnecessarily costly when you aren't. So we provide fast reference counting pointers that forego any thread safety mechanisms. In addition to being substantially faster (and smaller) than `std::shared_ptr<>`, they are a bit more safety oriented in that they they don't support construction from raw pointers. (Use `mse::make_refcounting<>()` instead.) "Const", "not null" and "fixed" (non-retargetable) flavors are also provided with proper conversions between them.
 
 
 ### TRefCountingPointer
@@ -574,7 +619,11 @@ Same as `TRefCountingPointer<>`, but cannot be constructed to or assigned a null
 
 And also note that the `mse::make_refcounting<>()` function actually returns a `TRefCountingNotNullPointer<>`. When you want a regular `TRefCountingPointer<>`, you can use the `mse::make_nullable_refcounting<>()` function instead. 
 
-### TRefCountingConstPointer, TRefCountingNotNullConstPointer
+### TRefCountingFixedPointer
+
+Same as `TRefCountingNotNullPointer<>`, but cannot be retargeted after construction (basically a "`const TRefCountingNotNullPointer<>`").
+
+### TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer
 
 `TRefCountingPointer<X>` actually does implicitly convert to `TRefCountingPointer<const X>`. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
