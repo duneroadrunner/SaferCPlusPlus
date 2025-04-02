@@ -2452,7 +2452,7 @@ namespace mse {
 	class TXScopeNullableAnyPointer : public TXScopeAnyPointer<_Ty> {
 	public:
 		typedef TXScopeAnyPointer<_Ty> base_class;
-		TXScopeNullableAnyPointer() : base_class(mse::TRefCountingPointer<_Ty>()), m_is_null(true) {}
+		TXScopeNullableAnyPointer() : base_class(mse::us::impl::TPointer<_Ty>()), m_is_null(true) {}
 		TXScopeNullableAnyPointer(const std::nullptr_t& src) : TXScopeNullableAnyPointer() {}
 		TXScopeNullableAnyPointer(const TXScopeNullableAnyPointer& src) = default;
 		TXScopeNullableAnyPointer(const base_class& src) : base_class(src) {}
