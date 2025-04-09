@@ -7710,16 +7710,16 @@ namespace mse {
 
 	inline namespace literals {
 		inline namespace string_literals {
-			inline nii_basic_string<char> operator "" _niis(const char *z_str, size_t z_len) _NOEXCEPT {
+			inline nii_basic_string<char> operator ""_niis(const char *z_str, size_t z_len) _NOEXCEPT {
 				return nii_basic_string<char>(z_str, z_len);
 			}
-			inline nii_basic_string<wchar_t> operator "" _niis(const wchar_t *z_str, size_t z_len) _NOEXCEPT {
+			inline nii_basic_string<wchar_t> operator ""_niis(const wchar_t *z_str, size_t z_len) _NOEXCEPT {
 				return nii_basic_string<wchar_t>(z_str, z_len);
 			}
-			inline nii_basic_string<char16_t> operator "" _niis(const char16_t *z_str, size_t z_len) _NOEXCEPT {
+			inline nii_basic_string<char16_t> operator ""_niis(const char16_t *z_str, size_t z_len) _NOEXCEPT {
 				return nii_basic_string<char16_t>(z_str, z_len);
 			}
-			inline nii_basic_string<char32_t> operator "" _niis(const char32_t *z_str, size_t z_len) _NOEXCEPT {
+			inline nii_basic_string<char32_t> operator ""_niis(const char32_t *z_str, size_t z_len) _NOEXCEPT {
 				return nii_basic_string<char32_t>(z_str, z_len);
 			}
 		}
