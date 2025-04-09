@@ -2385,9 +2385,7 @@ namespace mse {
 			std::swap(first.m_is_null, second.m_is_null);
 		}
 
-		/* equality comparison operators are also publicly inherited from base class */
-		template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, TNullableAnyRandomAccessIterator>::value)> MSE_IMPL_EIS >
-		bool operator==(const _Ty2& rhs) const {
+		bool operator==(const TNullableAnyRandomAccessIterator& rhs) const {
 			if (rhs.m_is_null != (*this).m_is_null) {
 				return false;
 			}
@@ -2397,8 +2395,7 @@ namespace mse {
 			return mse::us::impl::as_ref<base_class>(*this) == mse::us::impl::as_ref<base_class>(rhs);
 		}
 #ifndef MSE_HAS_CXX20
-		template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, TNullableAnyRandomAccessIterator>::value)> MSE_IMPL_EIS >
-		bool operator!=(const _Ty2& rhs) const { return !((*this) == rhs); }
+		bool operator!=(const TNullableAnyRandomAccessIterator& rhs) const { return !((*this) == rhs); }
 #endif // !MSE_HAS_CXX20
 
 		TNullableAnyRandomAccessIterator& operator=(const std::nullptr_t& _Right_cref) {

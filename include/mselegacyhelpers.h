@@ -452,12 +452,14 @@ namespace mse {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 			}
 
+			/*
 			bool operator==(const TLHNullableAnyPointer& _Right_cref) const { return base_class::operator==(_Right_cref); }
 			bool operator!=(const TLHNullableAnyPointer& _Right_cref) const { return !((*this) == _Right_cref); }
 			template <typename _Ty2>
 			bool operator==(const _Ty2& _Right_cref) const { return operator==(TLHNullableAnyPointer(_Right_cref)); }
 			template <typename _Ty2>
 			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TLHNullableAnyPointer(_Right_cref)); }
+			*/
 
 			TLHNullableAnyPointer& operator=(const TLHNullableAnyPointer& _Right_cref) {
 				base_class::operator=(_Right_cref);
