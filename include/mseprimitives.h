@@ -183,7 +183,7 @@ namespace mse {
 
 #ifdef _MSC_VER
 #pragma warning( push )  
-#pragma warning( disable : 4100 4456 4189 4505 )
+#pragma warning( disable : 4100 4456 4189 4505 4127 4018 )
 #endif /*_MSC_VER*/
 
 #ifdef __clang__

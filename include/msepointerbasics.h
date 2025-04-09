@@ -330,10 +330,10 @@ namespace mse {
 		template <class _Ty> using decay_t = typename std::decay<_Ty>::type;
 	}
 
+#if !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
 	/* msvc(2019) seems to have some issues with the "proper" way of using std::enable_if_t<> as a template parameter, but the
 	old "improper" way seems to work in our use cases, so we use these macros for the prefix and suffix of std::enable_if_t<> to
 	accomodate this. */
-#if defined(_MSC_VER)
 #define MSE_IMPL_EIP typename =
 #define MSE_IMPL_EIS 
 #define MSE_IMPL_EI_FORWARD_DECL(x) typename
@@ -448,6 +448,23 @@ namespace mse {
 		};
 		template<class T, class EqualTo = T>
 		struct HasOrInheritsAssignmentOperator_pb : HasOrInheritsAssignmentOperator_pb_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+		template<class T, class EqualTo>
+		struct IsExplicitlyCastableToBool_pb_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(bool(std::declval<U>()), bool(std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...) -> std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+		};
+		template<>
+		struct IsExplicitlyCastableToBool_pb_impl<void*, void*> : std::false_type {};
+		template<class T, class EqualTo = T>
+		struct IsExplicitlyCastableToBool_pb : IsExplicitlyCastableToBool_pb_impl<
 			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 	}
 
@@ -586,10 +603,33 @@ namespace mse {
 		return (std::addressof(*_Right_cref) == std::addressof(*_Left_cref)); \
 	}
 
+#ifndef MSE_HAS_CXX20
+
+#define MSE_IMPL_EQUALITY_COMPARISON_OPERATOR_DELEGATING_DECLARATIONS(this_type, delegate_type) \
+	MSE_IMPL_EQUALITY_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type) \
+	MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type)
+
+#define MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(this_type) \
+	MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type)
+
 #define MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type) \
 	template<typename TPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<TPointer_ecwapt, this_type>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TPointer_ecwapt) \
-	&& (std::is_convertible<typename std::decay<TPointer_ecwapt>::type, bool>::value)> MSE_IMPL_EIS > \
+	&& (mse::impl::IsExplicitlyCastableToBool_pb<TPointer_ecwapt>::value)> MSE_IMPL_EIS > \
 	friend bool operator==(const this_type& _Left_cref, const TPointer_ecwapt& _Right_cref) { \
+		if (!bool(_Left_cref)) { \
+			if (!bool(_Right_cref)) { \
+				return true; \
+			} else { \
+				return false; \
+			} \
+		} else if (!bool(_Right_cref)) { \
+			return false; \
+		} \
+		return (std::addressof(*_Right_cref) == std::addressof(*_Left_cref)); \
+	} \
+	template<typename TPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<TPointer_ecwapt, this_type>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TPointer_ecwapt) \
+	&& (mse::impl::IsExplicitlyCastableToBool_pb<TPointer_ecwapt>::value)> MSE_IMPL_EIS > \
+	friend bool operator==(const TPointer_ecwapt& _Left_cref, const this_type& _Right_cref) { \
 		if (!bool(_Left_cref)) { \
 			if (!bool(_Right_cref)) { \
 				return true; \
@@ -602,20 +642,14 @@ namespace mse {
 		return (std::addressof(*_Right_cref) == std::addressof(*_Left_cref)); \
 	}
 
-#ifndef MSE_HAS_CXX20
-
-#define MSE_IMPL_EQUALITY_COMPARISON_OPERATOR_DELEGATING_DECLARATIONS(this_type, delegate_type) \
-	MSE_IMPL_EQUALITY_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type) \
-	MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type)
-
-#define MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(this_type) \
-	MSE_IMPL_NOT_EQUAL_OPERATOR_DECLARATION(this_type)
-
 #define MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(this_type) \
 	MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type) \
 	template<typename TPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<TPointer_ecwapt, this_type>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TPointer_ecwapt) \
-	&& (std::is_convertible<typename std::decay<TPointer_ecwapt>::type, bool>::value)> MSE_IMPL_EIS > \
-	friend bool operator!=(const this_type& _Left_cref, const TPointer_ecwapt& _Right_cref) { return !(_Left_cref == _Right_cref); }
+	&& (mse::impl::IsExplicitlyCastableToBool_pb<TPointer_ecwapt>::value)> MSE_IMPL_EIS > \
+	friend bool operator!=(const this_type& _Left_cref, const TPointer_ecwapt& _Right_cref) { return !(_Left_cref == _Right_cref); } \
+	template<typename TPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<TPointer_ecwapt, this_type>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TPointer_ecwapt) \
+	&& (mse::impl::IsExplicitlyCastableToBool_pb<TPointer_ecwapt>::value)> MSE_IMPL_EIS > \
+	friend bool operator!=(const TPointer_ecwapt& _Left_cref, const this_type& _Right_cref) { return !(_Left_cref == _Right_cref); }
 
 #else // !MSE_HAS_CXX20
 
@@ -623,6 +657,22 @@ namespace mse {
 	MSE_IMPL_EQUALITY_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type)
 
 #define MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(this_type)
+
+#define MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type) \
+	template<typename TPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<TPointer_ecwapt, this_type>::value) && MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TPointer_ecwapt) \
+	&& (mse::impl::IsExplicitlyCastableToBool_pb<TPointer_ecwapt>::value)> MSE_IMPL_EIS > \
+	friend bool operator==(const this_type& _Left_cref, const TPointer_ecwapt& _Right_cref) { \
+		if (!bool(_Left_cref)) { \
+			if (!bool(_Right_cref)) { \
+				return true; \
+			} else { \
+				return false; \
+			} \
+		} else if (!bool(_Right_cref)) { \
+			return false; \
+		} \
+		return (std::addressof(*_Right_cref) == std::addressof(*_Left_cref)); \
+	}
 
 #define MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(this_type) \
 	MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATION(this_type)
@@ -643,9 +693,39 @@ namespace mse {
 		struct target_type_impl<void const *> {
 			typedef void const type;
 		};
-
 		template<typename _TPointer>
 		using target_type = mse::impl::remove_reference_t<typename target_type_impl<_TPointer>::type>;
+
+		template<class T, class EqualTo>
+		struct IsDereferenceable_pb_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype((*std::declval<U>()), (*std::declval<V>()), bool(true));
+			template<typename, typename>
+			static auto test(...) -> std::false_type;
+
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+		};
+		template<>
+		struct IsDereferenceable_pb_impl<void*, void*> : std::false_type {};
+		template<class T, class EqualTo = T>
+		struct IsDereferenceable_pb : IsDereferenceable_pb_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(IsDereferenceable_pb<_Ty>::value)> MSE_IMPL_EIS >
+		void T_valid_if_is_dereferenceable() {}
+
+		template<typename _X, typename _TPointer>
+		struct target_or_void_type_impl {
+			typedef target_type<_TPointer> type;
+		};
+		template<typename _TPointer>
+		struct target_or_void_type_impl<std::false_type, _TPointer> {
+			typedef void type;
+		};
+		template<typename _TPointer>
+		using target_or_void_type = mse::impl::remove_reference_t<typename target_or_void_type_impl<typename mse::impl::IsDereferenceable_pb<_TPointer>::type, _TPointer>::type>;
 	}
 
 	namespace impl {
@@ -772,26 +852,6 @@ namespace mse {
 	}
 
 	namespace impl {
-		template<class T, class EqualTo>
-		struct IsDereferenceable_pb_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype((*std::declval<U>()), (*std::declval<V>()), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-		};
-		template<>
-		struct IsDereferenceable_pb_impl<void*, void*> : std::false_type {};
-		template<class T, class EqualTo = T>
-		struct IsDereferenceable_pb : IsDereferenceable_pb_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(IsDereferenceable_pb<_Ty>::value)> MSE_IMPL_EIS >
-		void T_valid_if_is_dereferenceable() {}
-
 		template <typename T> struct is_unqualified_shared_ptr : std::false_type {};
 		template <typename T> struct is_unqualified_shared_ptr<std::shared_ptr<T> > : std::true_type {};
 		template <typename T> struct is_shared_ptr : is_unqualified_shared_ptr<typename std::remove_cv<T>::type> {};
@@ -1412,7 +1472,7 @@ namespace mse {
 				_Ty* raw_pointer() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") { return m_ptr; }
 				_Ty* get() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") { return m_ptr; }
 
-				template<typename _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t < std::is_same<_Ty, _Ty2>::value && (!std::is_same<void*, mse::impl::remove_const_t<_Ty2> >::value)> MSE_IMPL_EIS >
+				template<typename _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t < std::is_same<_Ty, _Ty2>::value && (!std::is_same<void, mse::impl::remove_const_t<_Ty2> >::value)> MSE_IMPL_EIS >
 				_Ty2& operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					assert_initialized();
 #ifndef NDEBUG
@@ -1423,7 +1483,7 @@ namespace mse {
 					return (*m_ptr);
 				}
 
-				template<typename _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t < std::is_same<_Ty, _Ty2>::value && (!std::is_same<void*, mse::impl::remove_const_t<_Ty2> >::value)> MSE_IMPL_EIS >
+				template<typename _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t < std::is_same<_Ty, _Ty2>::value && (!std::is_same<void, mse::impl::remove_const_t<_Ty2> >::value)> MSE_IMPL_EIS >
 				_Ty2* operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					assert_initialized();
 #ifndef NDEBUG
