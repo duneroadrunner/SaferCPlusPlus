@@ -330,7 +330,7 @@ namespace mse {
 		template <class _Ty> using decay_t = typename std::decay<_Ty>::type;
 	}
 
-#if !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(MSE_HAS_CXX17)
 	/* msvc(2019) seems to have some issues with the "proper" way of using std::enable_if_t<> as a template parameter, but the
 	old "improper" way seems to work in our use cases, so we use these macros for the prefix and suffix of std::enable_if_t<> to
 	accomodate this. */
@@ -546,7 +546,6 @@ namespace mse {
 		return existing_function(std::forward<Args>(args)...); \
 	}
 
-
 #if defined(_MSC_VER) && !defined(MSE_HAS_CXX20) && !defined(MSE_MSC_CONFORMANCE_MODE)
 	/* Jan 2022: The microsoft compiler seems to default to "permissive" mode (/permissive+) for C++17 and lower. When
 	compiling in "conformance" mode (/permissive-) with C++17 and lower, you should define the MSE_MSC_CONFORMANCE_MODE
@@ -562,7 +561,7 @@ namespace mse {
 	/* Jan 2022: The microsoft compiler in "permissive" mode (/permissive+) seems to have some strange behavior (that
 	results in "ambiguous overload" compile errors when we attempt to filter for "dereferenceability" (i.e. require
 	the type to be some sort of pointer). So we substitute it with a simpler (and looser) criteria. */
-#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) ((!std::is_same<decltype(NULL), x>::value) && (!std::is_same<decltype(0), x>::value))
+#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) ((!std::is_same<decltype(NULL), x>::value) && (!std::is_same<decltype(0), x>::value) && (!std::is_same<decltype(nullptr), x>::value))
 #define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(pointer_t)
 #define MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(pointer_t, target_t) MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(pointer_t)
 #endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
@@ -1428,8 +1427,11 @@ namespace mse {
 				}
 
 				MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TPointer);
-				MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TPointer)
-				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TPointer)
+				MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TPointer);
+
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TPointer);
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 
 				bool operator!() const { assert_initialized(); return (!m_ptr); }
 				explicit operator bool() const {
