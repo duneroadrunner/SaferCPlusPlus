@@ -423,6 +423,7 @@ namespace mse {
 		class TLHNullableAnyPointer : public mse::TNullableAnyPointer<_Ty> {
 		public:
 			typedef mse::TNullableAnyPointer<_Ty> base_class;
+			typedef TLHNullableAnyPointer _Myt;
 			TLHNullableAnyPointer(const TLHNullableAnyPointer& src) = default;
 			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 			TLHNullableAnyPointer(_Ty2 val) : base_class(std::nullptr_t()) {
@@ -452,14 +453,57 @@ namespace mse {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 			}
 
-			/*
-			bool operator==(const TLHNullableAnyPointer& _Right_cref) const { return base_class::operator==(_Right_cref); }
-			bool operator!=(const TLHNullableAnyPointer& _Right_cref) const { return !((*this) == _Right_cref); }
-			template <typename _Ty2>
-			bool operator==(const _Ty2& _Right_cref) const { return operator==(TLHNullableAnyPointer(_Right_cref)); }
-			template <typename _Ty2>
-			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TLHNullableAnyPointer(_Right_cref)); }
-			*/
+			/* Some of the comparision operators are currently inherited from base class. */
+
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#if !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
+			friend bool operator==(const _Myt& _Left_cref, const _Myt& _Right_cref) {
+				if (!bool(_Left_cref)) {
+					if (!bool(_Right_cref)) {
+						return true;
+					}
+					else {
+						return false;
+					}
+				}
+				else if (!bool(_Right_cref)) {
+					return false;
+				}
+				return (std::addressof(*_Right_cref) == std::addressof(*_Left_cref));
+			}
+			friend bool operator!=(const _Myt& _Left_cref, const _Myt& _Right_cref) { return !(_Left_cref == _Right_cref); }
+#endif // !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
+
+			friend bool operator!=(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !(_Left_cref == _Right_cref); }
+			friend bool operator!=(const _Myt& _Left_cref, const NULL_t& _Right_cref) { assert(0 == _Right_cref); return !(_Left_cref == _Right_cref); }
+			friend bool operator==(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !bool(_Right_cref); }
+			friend bool operator==(const _Myt& _Left_cref, const NULL_t& _Right_cref) { assert(0 == _Right_cref); return !bool(_Left_cref); }
+
+			friend bool operator!=(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			friend bool operator!=(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			friend bool operator==(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !bool(_Right_cref); }
+			friend bool operator==(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !bool(_Left_cref); }
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#ifndef MSE_HAS_CXX20
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value) && (std::is_base_of<_Myt, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Left_cref); return bool(_Right_cref);
+			}
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<_Myt, TLHS>::value) && (std::is_same<NULL_t, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Right_cref); return bool(_Left_cref);
+			}
+
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value) && (std::is_base_of<_Myt, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Left_cref); return !bool(_Right_cref);
+			}
+#endif // !MSE_HAS_CXX20
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<_Myt, TLHS>::value) && (std::is_same<NULL_t, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Right_cref); return !bool(_Left_cref);
+			}
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 
 			TLHNullableAnyPointer& operator=(const TLHNullableAnyPointer& _Right_cref) {
 				base_class::operator=(_Right_cref);
@@ -487,6 +531,7 @@ namespace mse {
 		class TXScopeLHNullableAnyPointer : public mse::TXScopeNullableAnyPointer<_Ty> {
 		public:
 			typedef mse::TXScopeNullableAnyPointer<_Ty> base_class;
+			typedef TXScopeLHNullableAnyPointer _Myt;
 			TXScopeLHNullableAnyPointer(const TXScopeLHNullableAnyPointer& src) = default;
 			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 			TXScopeLHNullableAnyPointer(_Ty2 val) : base_class(std::nullptr_t()) {
@@ -515,12 +560,57 @@ namespace mse {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 			}
 
-			bool operator==(const TXScopeLHNullableAnyPointer& _Right_cref) const { return base_class::operator==(_Right_cref); }
-			bool operator!=(const TXScopeLHNullableAnyPointer& _Right_cref) const { return !((*this) == _Right_cref); }
-			template <typename _Ty2>
-			bool operator==(const _Ty2& _Right_cref) const { return operator==(TXScopeLHNullableAnyPointer(_Right_cref)); }
-			template <typename _Ty2>
-			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TXScopeLHNullableAnyPointer(_Right_cref)); }
+			/* Some of the comparision operators are currently inherited from base class. */
+
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#if !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
+			friend bool operator==(const _Myt& _Left_cref, const _Myt& _Right_cref) {
+				if (!bool(_Left_cref)) {
+					if (!bool(_Right_cref)) {
+						return true;
+					}
+					else {
+						return false;
+					}
+				}
+				else if (!bool(_Right_cref)) {
+					return false;
+				}
+				return (std::addressof(*_Right_cref) == std::addressof(*_Left_cref));
+			}
+			friend bool operator!=(const _Myt& _Left_cref, const _Myt& _Right_cref) { return !(_Left_cref == _Right_cref); }
+#endif // !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
+
+			friend bool operator!=(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !(_Left_cref == _Right_cref); }
+			friend bool operator!=(const _Myt& _Left_cref, const NULL_t& _Right_cref) { assert(0 == _Right_cref); return !(_Left_cref == _Right_cref); }
+			friend bool operator==(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !bool(_Right_cref); }
+			friend bool operator==(const _Myt& _Left_cref, const NULL_t& _Right_cref) { assert(0 == _Right_cref); return !bool(_Left_cref); }
+
+			friend bool operator!=(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			friend bool operator!=(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			friend bool operator==(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !bool(_Right_cref); }
+			friend bool operator==(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !bool(_Left_cref); }
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#ifndef MSE_HAS_CXX20
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value) && (std::is_base_of<_Myt, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Left_cref); return bool(_Right_cref);
+			}
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<_Myt, TLHS>::value) && (std::is_same<NULL_t, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Right_cref); return bool(_Left_cref);
+			}
+
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value) && (std::is_base_of<_Myt, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Left_cref); return !bool(_Right_cref);
+			}
+#endif // !MSE_HAS_CXX20
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<_Myt, TLHS>::value) && (std::is_same<NULL_t, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Right_cref); return !bool(_Left_cref);
+			}
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 
 			operator bool() const {
 				return base_class::operator bool();

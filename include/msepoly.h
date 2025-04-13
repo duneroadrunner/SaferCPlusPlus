@@ -2530,7 +2530,7 @@ namespace mse {
 
 		/* There is already a generic equality operator for all classes descended from TAnyPointerBaseV1<> . */
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) /* !defined(MSE_HAS_CXX17) && defined(_MSC_VER) */
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
 		friend bool operator!=(const std::nullptr_t& _Left_cref, const TNullableAnyPointer& _Right_cref) {
 			return !(_Left_cref == _Right_cref);
 		}
@@ -2544,7 +2544,7 @@ namespace mse {
 		friend bool operator==(const TNullableAnyPointer& _Left_cref, const std::nullptr_t&) {
 			return !bool(_Left_cref);
 		}
-#else // !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
 #ifndef MSE_HAS_CXX20
 		template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TNullableAnyPointer, TRHS>::value)> MSE_IMPL_EIS >
 		friend bool operator!=(const std::nullptr_t& _Left_cref, const TRHS& _Right_cref) {
@@ -2565,7 +2565,7 @@ namespace mse {
 			return !bool(_Left_cref);
 		}
 
-#endif // !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
 
 
 		explicit operator bool() const {
