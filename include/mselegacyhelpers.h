@@ -430,7 +430,9 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
-			template <size_t _Size>
+			/* Note that construction from a const reference to a TNativeArrayReplacement<> is not the same as construction from a 
+			non-const reference. */
+			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value) || (std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
 			TLHNullableAnyPointer(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
 			template <size_t _Size>
 			TLHNullableAnyPointer(const TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.cbegin()) {}
@@ -651,6 +653,8 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
+			/* Note that construction from a const reference to a TNativeArrayReplacement<> is not the same as construction from a
+			non-const reference. */
 			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value) || (std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
 			TLHNullableAnyRandomAccessIterator(TNativeArrayReplacement<_Ty2, _Size>& val) : base_class(val.begin()) {}
 			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value)/* || (std::is_same<_Ty2, _Ty>::value)*/> MSE_IMPL_EIS >
@@ -673,12 +677,67 @@ namespace mse {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 			}
 
-			bool operator==(const TLHNullableAnyRandomAccessIterator& _Right_cref) const { return base_class::operator==(_Right_cref); }
-			bool operator!=(const TLHNullableAnyRandomAccessIterator& _Right_cref) const { return !((*this) == _Right_cref); }
-			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, TLHNullableAnyRandomAccessIterator>::value)> MSE_IMPL_EIS >
-			bool operator==(const _Ty2& _Right_cref) const { return operator==(TLHNullableAnyRandomAccessIterator<const _Ty>(_Right_cref)); }
-			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, TLHNullableAnyRandomAccessIterator>::value)> MSE_IMPL_EIS >
-			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TLHNullableAnyRandomAccessIterator<const _Ty>(_Right_cref)); }
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+			friend bool operator!=(const NULL_t& _Left_cref, const TLHNullableAnyRandomAccessIterator& _Right_cref) {
+				return !(_Left_cref == _Right_cref);
+			}
+			friend bool operator!=(const TLHNullableAnyRandomAccessIterator& _Left_cref, const NULL_t& _Right_cref) {
+				return !(_Left_cref == _Right_cref);
+			}
+
+			friend bool operator==(const NULL_t&, const TLHNullableAnyRandomAccessIterator& _Right_cref) {
+				return !bool(_Right_cref);
+			}
+			friend bool operator==(const TLHNullableAnyRandomAccessIterator& _Left_cref, const NULL_t&) {
+				return !bool(_Left_cref);
+			}
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+			/* We use a templated equality comparison operator to avoid potentially competing with the base class equality comparison with nullptr operator. */
+#ifndef MSE_HAS_CXX20
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value || std::is_same<ZERO_LITERAL_t, TLHS>::value) && std::is_base_of<TLHNullableAnyRandomAccessIterator, TRHS>::value> MSE_IMPL_EIS >
+			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Left_cref);
+				return bool(_Right_cref);
+			}
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TLHNullableAnyRandomAccessIterator, TLHS>::value && (std::is_same<NULL_t, TRHS>::value || std::is_same<ZERO_LITERAL_t, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Right_cref);
+				return bool(_Left_cref);
+			}
+
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value || std::is_same<ZERO_LITERAL_t, TLHS>::value) && std::is_base_of<TLHNullableAnyRandomAccessIterator, TRHS>::value> MSE_IMPL_EIS >
+			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Left_cref);
+				return !bool(_Right_cref);
+			}
+#endif // !MSE_HAS_CXX20
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TLHNullableAnyRandomAccessIterator, TLHS>::value && (std::is_same<NULL_t, TRHS>::value || std::is_same<ZERO_LITERAL_t, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Right_cref);
+				return !bool(_Left_cref);
+			}
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+
+#ifndef MSE_HAS_CXX20
+			template <size_t _Size>
+			friend bool operator!=(const TNativeArrayReplacement<_Ty, _Size>& _Left_cref, const TLHNullableAnyRandomAccessIterator& _Right_cref) {
+				return !(TLHNullableAnyRandomAccessIterator(_Left_cref) == _Right_cref);
+			}
+			template <size_t _Size>
+			friend bool operator!=(const TLHNullableAnyRandomAccessIterator& _Left_cref, const TNativeArrayReplacement<_Ty, _Size>& _Right_cref) {
+				return !(_Left_cref == TLHNullableAnyRandomAccessIterator(_Right_cref));
+			}
+
+			template <size_t _Size>
+			friend bool operator==(const TNativeArrayReplacement<_Ty, _Size>& _Left_cref, const TLHNullableAnyRandomAccessIterator& _Right_cref) {
+				return (TLHNullableAnyRandomAccessIterator(_Left_cref) == _Right_cref);
+			}
+#endif // !MSE_HAS_CXX20
+			template <size_t _Size>
+			friend bool operator==(const TLHNullableAnyRandomAccessIterator& _Left_cref, TNativeArrayReplacement<_Ty, _Size>& _Right_cref) {
+				return (_Left_cref == TLHNullableAnyRandomAccessIterator(_Right_cref));
+			}
+
 
 			TLHNullableAnyRandomAccessIterator& operator=(const TLHNullableAnyRandomAccessIterator& _Right_cref) {
 				base_class::operator=(_Right_cref);
@@ -764,15 +823,6 @@ namespace mse {
 		};
 
 		template <typename _Ty>
-		bool operator==(const NULL_t lhs, const TLHNullableAnyRandomAccessIterator<_Ty>& rhs) { return rhs == lhs; }
-		template <typename _Ty>
-		bool operator!=(const NULL_t lhs, const TLHNullableAnyRandomAccessIterator<_Ty>& rhs) { return rhs != lhs; }
-		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
-		bool operator==(const _Ty2 lhs, const TLHNullableAnyRandomAccessIterator<_Ty>& rhs) { return rhs == lhs; }
-		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
-		bool operator!=(const _Ty2 lhs, const TLHNullableAnyRandomAccessIterator<_Ty>& rhs) { return rhs != lhs; }
-
-		template <typename _Ty>
 		class TXScopeLHNullableAnyRandomAccessIterator : public mse::TXScopeNullableAnyRandomAccessIterator<_Ty> {
 		public:
 			typedef mse::TXScopeNullableAnyRandomAccessIterator<_Ty> base_class;
@@ -812,12 +862,42 @@ namespace mse {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 			}
 
-			bool operator==(const TXScopeLHNullableAnyRandomAccessIterator& _Right_cref) const { return base_class::operator==(_Right_cref); }
-			bool operator!=(const TXScopeLHNullableAnyRandomAccessIterator& _Right_cref) const { return !((*this) == _Right_cref); }
-			template <typename _Ty2>
-			bool operator==(const _Ty2& _Right_cref) const { return operator==(TXScopeLHNullableAnyRandomAccessIterator(_Right_cref)); }
-			template <typename _Ty2>
-			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TXScopeLHNullableAnyRandomAccessIterator(_Right_cref)); }
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+			friend bool operator!=(const NULL_t& _Left_cref, const TXScopeLHNullableAnyRandomAccessIterator& _Right_cref) {
+				return !(_Left_cref == _Right_cref);
+			}
+			friend bool operator!=(const TXScopeLHNullableAnyRandomAccessIterator& _Left_cref, const NULL_t& _Right_cref) {
+				return !(_Left_cref == _Right_cref);
+			}
+
+			friend bool operator==(const NULL_t&, const TXScopeLHNullableAnyRandomAccessIterator& _Right_cref) {
+				return !bool(_Right_cref);
+			}
+			friend bool operator==(const TXScopeLHNullableAnyRandomAccessIterator& _Left_cref, const NULL_t&) {
+				return !bool(_Left_cref);
+			}
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+			/* We use a templated equality comparison operator to avoid potential arguments being implicitly converted. */
+#ifndef MSE_HAS_CXX20
+			template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TXScopeLHNullableAnyRandomAccessIterator, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const NULL_t& _Left_cref, const TRHS& _Right_cref) {
+				return bool(_Right_cref);
+			}
+			template<typename TLHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TXScopeLHNullableAnyRandomAccessIterator, TLHS>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const TLHS& _Left_cref, const NULL_t& _Right_cref) {
+				return bool(_Left_cref);
+			}
+
+			template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TXScopeLHNullableAnyRandomAccessIterator, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const NULL_t&, const TRHS& _Right_cref) {
+				return !bool(_Right_cref);
+			}
+#endif // !MSE_HAS_CXX20
+			template<typename TLHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TXScopeLHNullableAnyRandomAccessIterator, TLHS>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const TLHS& _Left_cref, const NULL_t&) {
+				return !bool(_Left_cref);
+			}
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
 
 			explicit operator bool() const {
 				return base_class::operator bool();

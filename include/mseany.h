@@ -3239,18 +3239,20 @@ namespace mse {
 		template<class _Ty, class TID = void>
 		struct test_pointer {
 			test_pointer() : m_ptr(nullptr) {}
-			test_pointer(_Ty* ptr) : m_ptr(ptr) {}
+			explicit test_pointer(_Ty* ptr) : m_ptr(ptr) {}
 			test_pointer(const test_pointer& src) = default;
 			_Ty& operator*() const { return (*m_ptr); }
 			_Ty* operator->() const { return m_ptr; }
-			bool operator==(const test_pointer& _Right_cref) const { return (m_ptr == _Right_cref); }
-			bool operator!=(const test_pointer& _Right_cref) const { return (!((*this) == _Right_cref)); }
+			bool operator==(const test_pointer& _Right_cref) const { return (m_ptr == _Right_cref.m_ptr); }
+#ifndef MSE_HAS_CXX20
+			bool operator!=(const test_pointer& _Right_cref) const { return (!((*this) == _Right_cref.m_ptr)); }
+#endif // !MSE_HAS_CXX20
 			explicit operator bool() const { return (m_ptr != nullptr); }
 			_Ty* m_ptr = nullptr;
 		};
 
 		template<class T, class TID, class EqualTo>
-		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany_impl
+		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any_impl
 		{
 			template<class U, class V>
 			static auto test(U*) -> decltype((std::declval<U>() == std::declval<test_pointer<mse::impl::remove_reference_t<decltype(*std::declval<U>())>, TID> >())
@@ -3258,20 +3260,20 @@ namespace mse {
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
 
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-#else // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-			/* Apr 2025: When compiling in C++17 permissive mode, msvc2022 complained: "mseany.h(3268,45): error C1202: recursive type or function dependency context too complex".
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+			/* Apr 2025: When compiling in C++17 mode, msvc2022 complained: "mseany.h(3268,45): error C1202: recursive type or function dependency context too complex".
 			For now we're just going to simplify it in a way that disables the ability to compare "any" pointers to other types of pointers. */
 			using type = std::true_type;
 			static const bool value = true;
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 		};
 		template<class TID>
-		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany_impl<void*, TID, void*> : std::false_type {};
+		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any_impl<void*, TID, void*> : std::false_type {};
 		template<class T, class TID = void, class EqualTo = T>
-		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany : SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany_impl<
+		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any : SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any_impl<
 			mse::impl::remove_reference_t<T>, TID, mse::impl::remove_reference_t<EqualTo> >::type {};
 
 		template<class T, class TPotentialBaseClass>
@@ -3350,14 +3352,16 @@ namespace mse {
 				MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt);
 				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(_Myt);
 #else // !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
-				/* We use a templated equality comparison operator to avoid potential arguments from being implicitly converted. */
+				/* We use a templated equality comparison operator to avoid potential arguments being implicitly converted. */
 #ifndef MSE_HAS_CXX20
 				template<typename TLHSPointer_ecwapt, typename TRHSPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(std::is_base_of<_Myt, TLHSPointer_ecwapt>::value || std::is_base_of<_Myt, TRHSPointer_ecwapt>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TLHSPointer_ecwapt) && (mse::impl::IsExplicitlyCastableToBool_pb<TLHSPointer_ecwapt>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSPointer_ecwapt) && (mse::impl::IsExplicitlyCastableToBool_pb<TRHSPointer_ecwapt>::value)
-					&& ((std::is_base_of<_Myt, TLHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TLHSPointer_ecwapt, _Myt>, _Myt>::value))
-					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value))
+					&& ((std::is_base_of<_Myt, TLHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TLHSPointer_ecwapt, _Myt>, _Myt>::value)
+						|| (std::is_base_of<TAnyPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TLHSPointer_ecwapt>::value))
+					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value)
+						|| (std::is_base_of<TAnyPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TRHSPointer_ecwapt>::value))
 				> MSE_IMPL_EIS >
 				friend bool operator!=(const TLHSPointer_ecwapt& _Left_cref, const TRHSPointer_ecwapt& _Right_cref) {
 					return !(_Left_cref == _Right_cref);
@@ -3367,14 +3371,18 @@ namespace mse {
 					(std::is_base_of<_Myt, TLHSPointer_ecwapt>::value || std::is_base_of<_Myt, TRHSPointer_ecwapt>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TLHSPointer_ecwapt) && (mse::impl::IsExplicitlyCastableToBool_pb<TLHSPointer_ecwapt>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSPointer_ecwapt) && (mse::impl::IsExplicitlyCastableToBool_pb<TRHSPointer_ecwapt>::value)
-					&& ((std::is_base_of<_Myt, TLHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TLHSPointer_ecwapt, _Myt>, _Myt>::value))
-					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value))
+					&& ((std::is_base_of<_Myt, TLHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TLHSPointer_ecwapt, _Myt>, _Myt>::value)
+						|| (std::is_base_of<TAnyPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TLHSPointer_ecwapt>::value))
+					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value)
+						|| (std::is_base_of<TAnyPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TRHSPointer_ecwapt>::value))
 				> MSE_IMPL_EIS >
 #else // !MSE_HAS_CXX20
 				template<typename TLHSPointer_ecwapt, typename TRHSPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(std::is_base_of<_Myt, TLHSPointer_ecwapt>::value) 
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSPointer_ecwapt) && (mse::impl::IsExplicitlyCastableToBool_pb<TRHSPointer_ecwapt>::value) 
-					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value))> MSE_IMPL_EIS >
+					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value)
+						|| (std::is_base_of<TAnyPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TRHSPointer_ecwapt>::value))
+				> MSE_IMPL_EIS >
 #endif // !MSE_HAS_CXX20
 				friend bool operator==(const TLHSPointer_ecwapt& _Left_cref, const TRHSPointer_ecwapt& _Right_cref) {
 					if (!bool(_Left_cref)) {
@@ -3528,14 +3536,16 @@ namespace mse {
 				MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt);
 				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(_Myt);
 #else // !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
-				/* We use a templated equality comparison operator to avoid potential arguments from being implicitly converted. */
+				/* We use a templated equality comparison operator to avoid potential arguments being implicitly converted. */
 #ifndef MSE_HAS_CXX20
 				template<typename TLHSPointer_ecwapt, typename TRHSPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(std::is_base_of<_Myt, TLHSPointer_ecwapt>::value || std::is_base_of<_Myt, TRHSPointer_ecwapt>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TLHSPointer_ecwapt) && (mse::impl::IsExplicitlyCastableToBool_pb<TLHSPointer_ecwapt>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSPointer_ecwapt) && (mse::impl::IsExplicitlyCastableToBool_pb<TRHSPointer_ecwapt>::value)
-					&& ((std::is_base_of<_Myt, TLHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<_Ty>, TLHSPointer_ecwapt>::value) || ((!std::is_base_of<TAnyPointerBaseV1<_Ty>, TLHSPointer_ecwapt>::value) && (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TLHSPointer_ecwapt, _Myt>, _Myt>::value)))
-					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<_Ty>, TRHSPointer_ecwapt>::value) || ((!std::is_base_of<TAnyPointerBaseV1<_Ty>, TRHSPointer_ecwapt>::value) && (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value)))
+					&& ((std::is_base_of<_Myt, TLHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<_Ty>, TLHSPointer_ecwapt>::value) || ((!std::is_base_of<TAnyPointerBaseV1<_Ty>, TLHSPointer_ecwapt>::value) && (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TLHSPointer_ecwapt, _Myt>, _Myt>::value))
+						|| (std::is_base_of<TAnyConstPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TLHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TLHSPointer_ecwapt>::value))
+					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<_Ty>, TRHSPointer_ecwapt>::value) || ((!std::is_base_of<TAnyPointerBaseV1<_Ty>, TRHSPointer_ecwapt>::value) && (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value))
+						|| (std::is_base_of<TAnyConstPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TRHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TRHSPointer_ecwapt>::value))
 				> MSE_IMPL_EIS >
 				friend bool operator!=(const TLHSPointer_ecwapt& _Left_cref, const TRHSPointer_ecwapt& _Right_cref) {
 					return !(_Left_cref == _Right_cref);
@@ -3545,14 +3555,18 @@ namespace mse {
 					(std::is_base_of<_Myt, TLHSPointer_ecwapt>::value || std::is_base_of<_Myt, TRHSPointer_ecwapt>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TLHSPointer_ecwapt) && (mse::impl::IsExplicitlyCastableToBool_pb<TLHSPointer_ecwapt>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSPointer_ecwapt) && (mse::impl::IsExplicitlyCastableToBool_pb<TRHSPointer_ecwapt>::value)
-					&& ((std::is_base_of<_Myt, TLHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<_Ty>, TLHSPointer_ecwapt>::value) || ((!std::is_base_of<TAnyPointerBaseV1<_Ty>, TLHSPointer_ecwapt>::value) && (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TLHSPointer_ecwapt, _Myt>, _Myt>::value)))
-					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<_Ty>, TRHSPointer_ecwapt>::value) || ((!std::is_base_of<TAnyPointerBaseV1<_Ty>, TRHSPointer_ecwapt>::value) && (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value)))
+					&& ((std::is_base_of<_Myt, TLHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<_Ty>, TLHSPointer_ecwapt>::value) || ((!std::is_base_of<TAnyPointerBaseV1<_Ty>, TLHSPointer_ecwapt>::value) && (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TLHSPointer_ecwapt, _Myt>, _Myt>::value))
+						|| (std::is_base_of<TAnyConstPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TLHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TLHSPointer_ecwapt>::value))
+					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<_Ty>, TRHSPointer_ecwapt>::value) || ((!std::is_base_of<TAnyPointerBaseV1<_Ty>, TRHSPointer_ecwapt>::value) && (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value))
+						|| (std::is_base_of<TAnyConstPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TRHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TRHSPointer_ecwapt>::value))
 				> MSE_IMPL_EIS >
 #else // !MSE_HAS_CXX20
 				template<typename TLHSPointer_ecwapt, typename TRHSPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(std::is_base_of<_Myt, TLHSPointer_ecwapt>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSPointer_ecwapt) && (mse::impl::IsExplicitlyCastableToBool_pb<TRHSPointer_ecwapt>::value)
-					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<_Ty>, TRHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_mseany<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value))> MSE_IMPL_EIS >
+					&& ((std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<_Ty>, TRHSPointer_ecwapt>::value) || (!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSPointer_ecwapt, _Myt>, _Myt>::value)
+						|| (std::is_base_of<TAnyConstPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TRHSPointer_ecwapt>::value) || (std::is_base_of<TAnyPointerBaseV1<mse::impl::remove_const_t<_Ty> >, TRHSPointer_ecwapt>::value))
+				> MSE_IMPL_EIS >
 #endif // !MSE_HAS_CXX20
 				friend bool operator==(const TLHSPointer_ecwapt& _Left_cref, const TRHSPointer_ecwapt& _Right_cref) {
 					if (!bool(_Left_cref)) {
