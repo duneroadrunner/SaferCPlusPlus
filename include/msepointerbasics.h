@@ -725,6 +725,9 @@ namespace mse {
 		};
 		template<typename _TPointer>
 		using target_or_void_type = mse::impl::remove_reference_t<typename target_or_void_type_impl<typename mse::impl::IsDereferenceable_pb<_TPointer>::type, _TPointer>::type>;
+
+		template<typename _TPointer, typename _TDefault = void>
+		using target_or_given_default_type = mse::impl::conditional_t<std::is_same<void, target_or_void_type<_TPointer> >::value, _TDefault, target_or_void_type<_TPointer> >;
 	}
 
 	namespace impl {

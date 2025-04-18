@@ -3236,6 +3236,36 @@ namespace mse {
 			return false;
 		}
 
+		template<class T, class TPotentialBaseClass>
+		using first_or_placeholder_if_subclass_of_second_mseany = mse::impl::conditional_t<std::is_base_of<TPotentialBaseClass, T>::value, mse::impl::TPlaceHolder<T, TPotentialBaseClass>, T>;
+
+		template<class T, class PotentialBase, class... OtherPotentialBases>
+		struct first_is_or_is_subclass_of_any : public mse::impl::conditional_t<first_is_or_is_subclass_of_any<T, PotentialBase>::value
+			, first_is_or_is_subclass_of_any<T, PotentialBase>, first_is_or_is_subclass_of_any<T, OtherPotentialBases...> > {};
+		template<class T, class PotentialBase>
+		struct first_is_or_is_subclass_of_any<T, PotentialBase> {
+			static const bool value = std::is_base_of<PotentialBase, T>::value;
+		};
+
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+	}
+	namespace us {
+		namespace impl {
+			template <typename _Ty> class TAnyPointerBaseV1;
+			template <typename _Ty> class TAnyConstPointerBaseV1;
+		}
+	}
+	template <typename _Ty> class TNullableAnyPointer;
+	template <typename _Ty> class TXScopeNullableAnyPointer;
+	namespace lh {
+#if !defined(MSE_SAFER_SUBSTITUTES_DISABLED)
+		template <typename _Ty> class TLHNullableAnyPointer;
+		template <typename _Ty> class TXScopeLHNullableAnyPointer;
+#endif // !defined(MSE_SAFER_SUBSTITUTES_DISABLED)
+	}
+	namespace impl {
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+
 		template<class _Ty, class TID = void>
 		struct test_pointer {
 			test_pointer() : m_ptr(nullptr) {}
@@ -3262,9 +3292,19 @@ namespace mse {
 
 #if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 			/* Apr 2025: When compiling in C++17 mode, msvc2022 complained: "mseany.h(3268,45): error C1202: recursive type or function dependency context too complex".
-			For now we're just going to simplify it in a way that disables the ability to compare "any" pointers to other types of pointers. */
-			using type = std::true_type;
-			static const bool value = true;
+			For now we're just going to simplify it by just comparing to the set of matches we know about. */
+			static const bool value = mse::impl::first_is_or_is_subclass_of_any<T
+				, mse::us::impl::TAnyPointerBaseV1<mse::impl::target_or_given_default_type<T, std::nullptr_t> >
+				, mse::us::impl::TAnyConstPointerBaseV1<mse::impl::target_or_given_default_type<T, std::nullptr_t> >
+				, mse::us::impl::TAnyConstPointerBaseV1<mse::impl::remove_const_t<mse::impl::target_or_given_default_type<T, std::nullptr_t> > >
+				, mse::TNullableAnyPointer<mse::impl::target_or_given_default_type<T, std::nullptr_t> >
+				, mse::TXScopeNullableAnyPointer<mse::impl::target_or_given_default_type<T, std::nullptr_t> >
+#if !defined(MSE_SAFER_SUBSTITUTES_DISABLED)
+				, mse::lh::TLHNullableAnyPointer<mse::impl::target_or_given_default_type<T, std::nullptr_t> >
+				, mse::lh::TXScopeLHNullableAnyPointer<mse::impl::target_or_given_default_type<T, std::nullptr_t> >
+#endif // !defined(MSE_SAFER_SUBSTITUTES_DISABLED)
+			>::value;
+			using type = mse::impl::conditional_t<value, std::true_type, std::false_type>;
 #else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
 			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
@@ -3275,9 +3315,6 @@ namespace mse {
 		template<class T, class TID = void, class EqualTo = T>
 		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any : SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any_impl<
 			mse::impl::remove_reference_t<T>, TID, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-		template<class T, class TPotentialBaseClass>
-		using first_or_placeholder_if_subclass_of_second_mseany = mse::impl::conditional_t<std::is_base_of<TPotentialBaseClass, T>::value, mse::impl::TPlaceHolder<T, TPotentialBaseClass>, T>;
 	}
 
 	namespace us {

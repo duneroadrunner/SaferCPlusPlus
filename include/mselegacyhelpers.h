@@ -124,6 +124,9 @@
 /* generally prefer MSE_LH_ALLOC_DYN_ARRAY1() or MSE_LH_ALLOC_POINTER1() over MSE_LH_ALLOC() */
 #define MSE_LH_ALLOC(element_type, ptr, num_bytes) mse::lh::allocate(ptr, num_bytes)
 
+/* Note: MSE_LH_ARRAY_ITERATOR_TYPE() / mse::lh::TLHNullableAnyRandomAccessIterator<> is intended to replace legacy raw 
+pointers being used as array/buffer iterators, and as such is different from "conventional" iterators in that "one past 
+the last element" end markers are not valid values. Valid values are either null, or point to a valid object. */
 #define MSE_LH_ARRAY_ITERATOR_TYPE(element_type) mse::lh::TLHNullableAnyRandomAccessIterator< element_type >
 /* MSE_LH_LOCAL_VAR_ONLY_ARRAY_ITERATOR_TYPE is a significantly restricted version of MSE_LH_ARRAY_ITERATOR_TYPE. You might choose to
 use it, despite its restrictions, as a local variable type because it accepts some (high performance) iterators that (the 
@@ -631,14 +634,358 @@ namespace mse {
 		bool operator!=(const _Ty2 lhs, const TXScopeLHNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
 #endif // !MSE_HAS_CXX20
 
+		namespace us {
+			namespace impl {
+				template <typename _Ty>
+				class TLHNullableAnyRandomAccessIteratorBase {
+				public:
+					typedef mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty> base_class;
+					MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+					typedef TLHNullableAnyRandomAccessIteratorBase _Myt;
+
+					//MSE_USING(TLHNullableAnyRandomAccessIteratorBase, base_class);
+					TLHNullableAnyRandomAccessIteratorBase() : m_iter() {}
+					TLHNullableAnyRandomAccessIteratorBase(const std::nullptr_t& src) : m_iter() {}
+					TLHNullableAnyRandomAccessIteratorBase(const base_class& src) : m_iter(src) {}
+					TLHNullableAnyRandomAccessIteratorBase(_Ty arr[]) : m_iter(arr) {}
+
+					TLHNullableAnyRandomAccessIteratorBase(const TLHNullableAnyRandomAccessIteratorBase& src) = default;
+
+					template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
+					TLHNullableAnyRandomAccessIteratorBase(_Ty2 val) : m_iter(std::nullptr_t()) {
+						/* This constructor is just to support zero being used as a null pointer value. */
+						assert(0 == val);
+					}
+					/* Note that construction from a const reference to a TNativeArrayReplacement<> is not the same as construction from a
+					non-const reference. */
+					template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value) || (std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
+					TLHNullableAnyRandomAccessIteratorBase(TNativeArrayReplacement<_Ty2, _Size>& val) : m_iter(val.begin()) {}
+					template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value)/* || (std::is_same<_Ty2, _Ty>::value)*/> MSE_IMPL_EIS >
+					TLHNullableAnyRandomAccessIteratorBase(const TNativeArrayReplacement<_Ty2, _Size>& val) : m_iter(val.cbegin()) {}
+
+					template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(!std::is_convertible<_TRandomAccessIterator1, TLHNullableAnyRandomAccessIteratorBase>::value)
+						&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
+						&& (!std::is_same<_TRandomAccessIterator1, std::nullptr_t>::value)
+						&& (!std::is_same<_TRandomAccessIterator1, NULL_t>::value)
+						&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
+						&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
+					> MSE_IMPL_EIS >
+					TLHNullableAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_iter(constructor_helper1(
+						typename HasOrInheritsPlusEqualsOperator<_TRandomAccessIterator1>::type(), random_access_iterator)) {
+					}
+
+					friend void swap(TLHNullableAnyRandomAccessIteratorBase& first, TLHNullableAnyRandomAccessIteratorBase& second) {
+						swap(first.contained_iter(), second.contained_iter());
+					}
+
+					_Ty& operator*() const {
+						return *((*this).contained_iter());
+					}
+					_Ty* operator->() const {
+						return (*this).contained_iter().operator->();
+					}
+					reference operator[](difference_type _Off) const {
+						return (*this).contained_iter().operator[](_Off);
+					}
+					void operator +=(difference_type x) {
+						(*this).contained_iter().operator+=(x);
+					}
+					void operator -=(difference_type x) { operator +=(-x); }
+					TLHNullableAnyRandomAccessIteratorBase& operator ++() { operator +=(1); return (*this); }
+					TLHNullableAnyRandomAccessIteratorBase operator ++(int) { auto _Tmp = (*this); operator +=(1); return _Tmp; }
+					TLHNullableAnyRandomAccessIteratorBase& operator --() { operator -=(1); return (*this); }
+					TLHNullableAnyRandomAccessIteratorBase operator --(int) { auto _Tmp = (*this); operator -=(1); return _Tmp; }
+
+					TLHNullableAnyRandomAccessIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+					TLHNullableAnyRandomAccessIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+					difference_type operator-(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& _Right_cref) const {
+						return ((*this).contained_iter() - _Right_cref.contained_iter());
+					}
+
+#if !defined(MSE_HAS_CXX17)
+					MSE_IMPL_LESS_THAN_OPERATOR_DECLARATION(TLHNullableAnyRandomAccessIteratorBase);
+					MSE_IMPL_GREATER_THAN_OPERATOR_DECLARATION(TLHNullableAnyRandomAccessIteratorBase);
+					MSE_IMPL_GREATER_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(TLHNullableAnyRandomAccessIteratorBase);
+					MSE_IMPL_LESS_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(TLHNullableAnyRandomAccessIteratorBase);
+
+					friend bool operator==(const TLHNullableAnyRandomAccessIteratorBase& lhs, const TLHNullableAnyRandomAccessIteratorBase& rhs) {
+						return mse::lh::TXScopeLHNullableAnyPointer<_Ty>(lhs) == mse::lh::TXScopeLHNullableAnyPointer<_Ty>(rhs);
+					}
+					friend bool operator!=(const TLHNullableAnyRandomAccessIteratorBase& lhs, const TLHNullableAnyRandomAccessIteratorBase& rhs) { return !(lhs == rhs); }
+#else // !defined(MSE_HAS_CXX17)
+					/* We use a templated equality comparison operator to avoid potential arguments being implicitly converted. */
+#ifndef MSE_HAS_CXX20
+					MSE_IMPL_LESS_THAN_OPERATOR_DECLARATION(TLHNullableAnyRandomAccessIteratorBase);
+					MSE_IMPL_GREATER_THAN_OPERATOR_DECLARATION(TLHNullableAnyRandomAccessIteratorBase);
+					MSE_IMPL_GREATER_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(TLHNullableAnyRandomAccessIteratorBase);
+					MSE_IMPL_LESS_THAN_OR_EQUAL_TO_OPERATOR_DECLARATION(TLHNullableAnyRandomAccessIteratorBase);
+
+					template<typename TLHSIterator_ecwapt, typename TRHSIterator_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(std::is_base_of<_Myt, TLHSIterator_ecwapt>::value || std::is_base_of<_Myt, TRHSIterator_ecwapt>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TLHSIterator_ecwapt) && (mse::impl::SupportsSubtraction_poly<TLHSIterator_ecwapt>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSIterator_ecwapt) && (mse::impl::SupportsSubtraction_poly<TRHSIterator_ecwapt>::value)
+						&& ((!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TLHSIterator_ecwapt, _Myt>, _Myt>::value)
+							|| (mse::impl::first_is_or_is_subclass_of_any<TLHSIterator_ecwapt, _Myt, mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty>, TLHNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::remove_const_t<_Ty> > >::value))
+						&& ((!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSIterator_ecwapt, _Myt>, _Myt>::value)
+							|| (mse::impl::first_is_or_is_subclass_of_any<TRHSIterator_ecwapt, _Myt, mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty>, TLHNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::remove_const_t<_Ty> > >::value))
+					> MSE_IMPL_EIS >
+					friend bool operator!=(const TLHSIterator_ecwapt& _Left_cref, const TRHSIterator_ecwapt& _Right_cref) {
+						return !(_Left_cref == _Right_cref);
+					}
+
+					template<typename TLHSIterator_ecwapt, typename TRHSIterator_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(std::is_base_of<_Myt, TLHSIterator_ecwapt>::value || std::is_base_of<_Myt, TRHSIterator_ecwapt>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TLHSIterator_ecwapt) && (mse::impl::SupportsSubtraction_poly<TLHSIterator_ecwapt>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSIterator_ecwapt) && (mse::impl::SupportsSubtraction_poly<TRHSIterator_ecwapt>::value)
+						&& ((!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TLHSIterator_ecwapt, _Myt>, _Myt>::value)
+							|| (mse::impl::first_is_or_is_subclass_of_any<TLHSIterator_ecwapt, _Myt, mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty>, TLHNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::remove_const_t<_Ty> > >::value))
+						&& ((!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSIterator_ecwapt, _Myt>, _Myt>::value)
+							|| (mse::impl::first_is_or_is_subclass_of_any<TRHSIterator_ecwapt, _Myt, mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty>, TLHNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::remove_const_t<_Ty> > >::value))
+					> MSE_IMPL_EIS >
+#else // !MSE_HAS_CXX20
+					template<typename TLHSIterator_ecwapt, typename TRHSIterator_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(std::is_base_of<_Myt, TLHSIterator_ecwapt>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSIterator_ecwapt) && (mse::impl::SupportsSubtraction_poly<TRHSIterator_ecwapt>::value)
+						&& ((!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSIterator_ecwapt, _Myt>, _Myt>::value)
+							|| (mse::impl::first_is_or_is_subclass_of_any<TRHSIterator_ecwapt, _Myt, mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty> >::value))
+					> MSE_IMPL_EIS >
+					friend std::strong_ordering operator<=>(const TLHSIterator_ecwapt& _Left_cref, const TRHSIterator_ecwapt& _Right_cref) {
+						return (_Left_cref.contained_iter() <=> _Right_cref);
+					}
+
+					template<typename TLHSIterator_ecwapt, typename TRHSIterator_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
+						(std::is_base_of<_Myt, TLHSIterator_ecwapt>::value)
+						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSIterator_ecwapt) && (mse::impl::SupportsSubtraction_poly<TRHSIterator_ecwapt>::value)
+						&& ((!mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::first_or_placeholder_if_subclass_of_second_mseany<TRHSIterator_ecwapt, _Myt>, _Myt>::value)
+							|| (mse::impl::first_is_or_is_subclass_of_any<TRHSIterator_ecwapt, _Myt, mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty>, TLHNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::remove_const_t<_Ty> > >::value))
+					> MSE_IMPL_EIS >
+#endif // !MSE_HAS_CXX20
+					/* Note that, unlike with "conventional" iterators, this equality comparison operator may dereference the iterator if its
+					value is not null. So, for example, "one past the last element" end markers are not valid values for this iterator type. */
+					friend bool operator==(const TLHSIterator_ecwapt& _Left_cref, const TRHSIterator_ecwapt& _Right_cref) {
+						bool null_and_not_null_flag = false;
+						MSE_IF_CONSTEXPR(mse::impl::IsExplicitlyCastableToBool_pb<TLHSIterator_ecwapt>::value) {
+							MSE_IF_CONSTEXPR(mse::impl::IsExplicitlyCastableToBool_pb<TRHSIterator_ecwapt>::value) {
+								if (bool(_Right_cref) != bool(_Left_cref)) {
+									null_and_not_null_flag = true;
+								}
+								else if (!bool(_Left_cref)) {
+									/* If both sides are null, we'll treat the values as equivalent? */
+									return true;
+								}
+							} else if (!bool(_Left_cref)) {
+								null_and_not_null_flag = true;
+							}
+						} else MSE_IF_CONSTEXPR(mse::impl::IsExplicitlyCastableToBool_pb<TRHSIterator_ecwapt>::value) {
+							if (!bool(_Right_cref)) {
+								null_and_not_null_flag = true;
+							}
+						}
+						if (null_and_not_null_flag) {
+							return false;
+						}
+						return (std::addressof(*_Right_cref) == std::addressof(*_Left_cref));
+					}
+#endif // !defined(MSE_HAS_CXX17)
+
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+					friend bool operator!=(const std::nullptr_t& _Left_cref, const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
+						return !(_Left_cref == _Right_cref);
+					}
+					friend bool operator!=(const TLHNullableAnyRandomAccessIteratorBase& _Left_cref, const std::nullptr_t& _Right_cref) {
+						return !(_Left_cref == _Right_cref);
+					}
+
+					friend bool operator==(const std::nullptr_t&, const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
+						return !bool(_Right_cref);
+					}
+					friend bool operator==(const TLHNullableAnyRandomAccessIteratorBase& _Left_cref, const std::nullptr_t&) {
+						return !bool(_Left_cref);
+					}
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#ifndef MSE_HAS_CXX20
+					template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TRHS>::value)> MSE_IMPL_EIS >
+					friend bool operator!=(const std::nullptr_t& _Left_cref, const TRHS& _Right_cref) {
+						return bool(_Right_cref);
+					}
+					template<typename TLHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TLHS>::value)> MSE_IMPL_EIS >
+					friend bool operator!=(const TLHS& _Left_cref, const std::nullptr_t& _Right_cref) {
+						return bool(_Left_cref);
+					}
+
+					template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TRHS>::value)> MSE_IMPL_EIS >
+					friend bool operator==(const std::nullptr_t&, const TRHS& _Right_cref) {
+						return !bool(_Right_cref);
+					}
+#endif // !MSE_HAS_CXX20
+					template<typename TLHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TLHS>::value)> MSE_IMPL_EIS >
+					friend bool operator==(const TLHS& _Left_cref, const std::nullptr_t&) {
+						return !bool(_Left_cref);
+					}
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+					friend bool operator!=(const NULL_t& _Left_cref, const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
+						return !(_Left_cref == _Right_cref);
+					}
+					friend bool operator!=(const TLHNullableAnyRandomAccessIteratorBase& _Left_cref, const NULL_t& _Right_cref) {
+						return !(_Left_cref == _Right_cref);
+					}
+
+					friend bool operator==(const NULL_t&, const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
+						return !bool(_Right_cref);
+					}
+					friend bool operator==(const TLHNullableAnyRandomAccessIteratorBase& _Left_cref, const NULL_t&) {
+						return !bool(_Left_cref);
+					}
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+					/* We use a templated equality comparison operator to avoid potentially competing with the base class equality comparison with nullptr operator. */
+#ifndef MSE_HAS_CXX20
+					template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value || std::is_same<ZERO_LITERAL_t, TLHS>::value) && std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TRHS>::value> MSE_IMPL_EIS >
+					friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+						assert(0 == _Left_cref);
+						return bool(_Right_cref);
+					}
+					template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TLHS>::value && (std::is_same<NULL_t, TRHS>::value || std::is_same<ZERO_LITERAL_t, TRHS>::value)> MSE_IMPL_EIS >
+					friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+						assert(0 == _Right_cref);
+						return bool(_Left_cref);
+					}
+
+					template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value || std::is_same<ZERO_LITERAL_t, TLHS>::value) && std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TRHS>::value> MSE_IMPL_EIS >
+					friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+						assert(0 == _Left_cref);
+						return !bool(_Right_cref);
+					}
+#endif // !MSE_HAS_CXX20
+					template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TLHS>::value && (std::is_same<NULL_t, TRHS>::value || std::is_same<ZERO_LITERAL_t, TRHS>::value)> MSE_IMPL_EIS >
+					friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+						assert(0 == _Right_cref);
+						return !bool(_Left_cref);
+					}
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+
+#if 0
+#ifndef MSE_HAS_CXX20
+					template <size_t _Size>
+					friend bool operator!=(const TNativeArrayReplacement<_Ty, _Size>& _Left_cref, const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
+						return !(TLHNullableAnyRandomAccessIteratorBase(_Left_cref) == _Right_cref);
+					}
+					template <size_t _Size>
+					friend bool operator!=(const TLHNullableAnyRandomAccessIteratorBase& _Left_cref, const TNativeArrayReplacement<_Ty, _Size>& _Right_cref) {
+						return !(_Left_cref == TLHNullableAnyRandomAccessIteratorBase(_Right_cref));
+					}
+
+					template <size_t _Size>
+					friend bool operator==(const TNativeArrayReplacement<_Ty, _Size>& _Left_cref, const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
+						return (TLHNullableAnyRandomAccessIteratorBase(_Left_cref) == _Right_cref);
+					}
+#endif // !MSE_HAS_CXX20
+					template <size_t _Size>
+					friend bool operator==(const TLHNullableAnyRandomAccessIteratorBase& _Left_cref, TNativeArrayReplacement<_Ty, _Size>& _Right_cref) {
+						return (_Left_cref == TLHNullableAnyRandomAccessIteratorBase(_Right_cref));
+					}
+#endif // 0
+
+
+					TLHNullableAnyRandomAccessIteratorBase& operator=(const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
+						(*this).contained_iter() = _Right_cref.contained_iter();
+						return (*this);
+					}
+
+					explicit operator bool() const {
+						return bool((*this).contained_iter());
+					}
+
+					//MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TLHNullableAnyRandomAccessIteratorBase);
+
+					void async_not_shareable_and_not_passable_tag() const {}
+
+					template<class T, class EqualTo>
+					struct HasOrInheritsPlusEqualsOperator_impl
+					{
+						template<class U, class V>
+						static auto test(U*) -> decltype(std::declval<U>() += 1, std::declval<V>() += 1, bool(true));
+						template<typename, typename>
+						static auto test(...) -> std::false_type;
+
+						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+					};
+					template<class T, class EqualTo = T>
+					struct HasOrInheritsPlusEqualsOperator : HasOrInheritsPlusEqualsOperator_impl<
+						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+				private:
+
+					template <typename _TRandomAccessIterator1>
+					static auto constructor_helper2(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
+						/* The element type of this iterator and the element type of the random_access_iterator parameter are both
+						intergral types of the same size, but not the same type. (Generally, one is signed and the other is
+						not/un-signed.) Here we allow the "reinterpretation" of random_access_iterator as being an iterator that
+						points to elements of type _Ty. This is technically not "type safe", but it doesn't really compromise
+						"memory safety". At some point we may want to make it so that this functionality is only accessible by the
+						unsafe_cast<>() function. */
+						typedef mse::impl::remove_reference_t<decltype(*random_access_iterator)> _Ty2;
+						auto temp = TLHNullableAnyRandomAccessIteratorBase<_Ty2>(random_access_iterator);
+						return reinterpret_cast<TLHNullableAnyRandomAccessIteratorBase&>(temp);
+					}
+					template <typename _TRandomAccessIterator1>
+					static auto constructor_helper2(std::false_type, const _TRandomAccessIterator1& random_access_iterator) {
+						return random_access_iterator;
+					}
+
+					template <typename _TRandomAccessIterator1>
+					static auto constructor_helper1(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
+						typedef mse::impl::remove_reference_t<decltype(*random_access_iterator)> _Ty2;
+						typedef mse::impl::remove_const_t<_Ty> _ncTy;
+						typedef mse::impl::remove_const_t<_Ty2> _ncTy2;
+						typedef typename mse::impl::conjunction<std::is_integral<_Ty>, std::is_integral<_Ty2>
+							, mse::impl::negation< std::is_same<_ncTy, _ncTy2 > >
+							, std::integral_constant<bool, sizeof(_Ty) == sizeof(_Ty2)> >::type res1_t;
+						/* res1_t is std::true_type if the element type of this iterator and the element type of the random_access_iterator
+						parameter are both intergral types of the same size, but not the same type. (Generally, one is signed and the
+						other is not/un-signed.) */
+						return constructor_helper2(res1_t(), random_access_iterator);
+					}
+					template <typename _TPointer1>
+					static auto constructor_helper1(std::false_type, const _TPointer1& pointer1) {
+						/* For legacy compatibility we're going to support interpreting pointers as iterators to an array of size 1. */
+						auto lh_any_pointer1 = TLHNullableAnyPointer<_Ty>(pointer1);
+						/* mse::nii_array<_Ty, 1> has been designed to be "bit identical" to std::array<_Ty, 1> which should be
+						"bit identical" to _Ty[1] which should be "bit identical" to _Ty, so it should be safe reinterpret a
+						pointer to a _Ty as a pointer to a mse::nii_array<_Ty, 1>.*/
+						auto lh_any_pointer2 = *reinterpret_cast<const TLHNullableAnyPointer<mse::nii_array<_Ty, 1> >*>(std::addressof(lh_any_pointer1));
+						return mse::make_begin_iterator(lh_any_pointer2);
+					}
+
+					MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
+
+					const base_class& contained_iter() const& { return (*this).m_iter; }
+					//const base_class& contained_iter() const&& { return (*this).m_iter; }
+					base_class& contained_iter()& { return (*this).m_iter; }
+					base_class&& contained_iter()&& { return std::move(*this).m_iter; }
+
+					base_class m_iter;
+
+					template <typename _Ty2>
+					friend class TXScopeLHNullableAnyRandomAccessIterator;
+				};
+			}
+		}
+
 		template <typename _Ty>
 		class TXScopeLHNullableAnyRandomAccessIterator;
 
+		/* Note: MSE_LH_ARRAY_ITERATOR_TYPE() / mse::lh::TLHNullableAnyRandomAccessIterator<> is intended to replace legacy raw
+		pointers being used as array/buffer iterators, and as such is different from "conventional" iterators in that "one past
+		the last element" end markers are not valid values. Valid values are either null, or point to a valid object. */
 		template <typename _Ty>
-		class TLHNullableAnyRandomAccessIterator : public mse::TNullableAnyRandomAccessIterator<_Ty> {
+		class TLHNullableAnyRandomAccessIterator : public mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<_Ty> {
 		public:
-			typedef mse::TNullableAnyRandomAccessIterator<_Ty> base_class;
+			typedef mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+			typedef TLHNullableAnyRandomAccessIterator _Myt;
 
 			//MSE_USING(TLHNullableAnyRandomAccessIterator, base_class);
 			TLHNullableAnyRandomAccessIterator() : base_class() {}
@@ -646,7 +993,7 @@ namespace mse {
 			TLHNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
 			TLHNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
 
-			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator& src) : base_class(src) {}
+			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator& src) = default;
 
 			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 			TLHNullableAnyRandomAccessIterator(_Ty2 val) : base_class(std::nullptr_t()) {
@@ -669,163 +1016,42 @@ namespace mse {
 				&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
 				&& (mse::impl::is_potentially_not_xscope<_TRandomAccessIterator1>::value)
 			> MSE_IMPL_EIS >
-			TLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(constructor_helper1(
-				typename HasOrInheritsPlusEqualsOperator<_TRandomAccessIterator1>::type(), random_access_iterator)) {
+			TLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator)  MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)")
+				: base_class(random_access_iterator)
+			{
+				mse::impl::T_valid_if_not_an_xscope_type<_TRandomAccessIterator1>();
 			}
 
 			friend void swap(TLHNullableAnyRandomAccessIterator& first, TLHNullableAnyRandomAccessIterator& second) {
-				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
+				swap(first.contained_iter(), second.contained_iter());
 			}
-
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
-			friend bool operator!=(const NULL_t& _Left_cref, const TLHNullableAnyRandomAccessIterator& _Right_cref) {
-				return !(_Left_cref == _Right_cref);
-			}
-			friend bool operator!=(const TLHNullableAnyRandomAccessIterator& _Left_cref, const NULL_t& _Right_cref) {
-				return !(_Left_cref == _Right_cref);
-			}
-
-			friend bool operator==(const NULL_t&, const TLHNullableAnyRandomAccessIterator& _Right_cref) {
-				return !bool(_Right_cref);
-			}
-			friend bool operator==(const TLHNullableAnyRandomAccessIterator& _Left_cref, const NULL_t&) {
-				return !bool(_Left_cref);
-			}
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
-			/* We use a templated equality comparison operator to avoid potentially competing with the base class equality comparison with nullptr operator. */
-#ifndef MSE_HAS_CXX20
-			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value || std::is_same<ZERO_LITERAL_t, TLHS>::value) && std::is_base_of<TLHNullableAnyRandomAccessIterator, TRHS>::value> MSE_IMPL_EIS >
-			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
-				assert(0 == _Left_cref);
-				return bool(_Right_cref);
-			}
-			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TLHNullableAnyRandomAccessIterator, TLHS>::value && (std::is_same<NULL_t, TRHS>::value || std::is_same<ZERO_LITERAL_t, TRHS>::value)> MSE_IMPL_EIS >
-			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
-				assert(0 == _Right_cref);
-				return bool(_Left_cref);
-			}
-
-			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value || std::is_same<ZERO_LITERAL_t, TLHS>::value) && std::is_base_of<TLHNullableAnyRandomAccessIterator, TRHS>::value> MSE_IMPL_EIS >
-			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
-				assert(0 == _Left_cref);
-				return !bool(_Right_cref);
-			}
-#endif // !MSE_HAS_CXX20
-			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TLHNullableAnyRandomAccessIterator, TLHS>::value && (std::is_same<NULL_t, TRHS>::value || std::is_same<ZERO_LITERAL_t, TRHS>::value)> MSE_IMPL_EIS >
-			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
-				assert(0 == _Right_cref);
-				return !bool(_Left_cref);
-			}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
-
-#ifndef MSE_HAS_CXX20
-			template <size_t _Size>
-			friend bool operator!=(const TNativeArrayReplacement<_Ty, _Size>& _Left_cref, const TLHNullableAnyRandomAccessIterator& _Right_cref) {
-				return !(TLHNullableAnyRandomAccessIterator(_Left_cref) == _Right_cref);
-			}
-			template <size_t _Size>
-			friend bool operator!=(const TLHNullableAnyRandomAccessIterator& _Left_cref, const TNativeArrayReplacement<_Ty, _Size>& _Right_cref) {
-				return !(_Left_cref == TLHNullableAnyRandomAccessIterator(_Right_cref));
-			}
-
-			template <size_t _Size>
-			friend bool operator==(const TNativeArrayReplacement<_Ty, _Size>& _Left_cref, const TLHNullableAnyRandomAccessIterator& _Right_cref) {
-				return (TLHNullableAnyRandomAccessIterator(_Left_cref) == _Right_cref);
-			}
-#endif // !MSE_HAS_CXX20
-			template <size_t _Size>
-			friend bool operator==(const TLHNullableAnyRandomAccessIterator& _Left_cref, TNativeArrayReplacement<_Ty, _Size>& _Right_cref) {
-				return (_Left_cref == TLHNullableAnyRandomAccessIterator(_Right_cref));
-			}
-
 
 			TLHNullableAnyRandomAccessIterator& operator=(const TLHNullableAnyRandomAccessIterator& _Right_cref) {
-				base_class::operator=(_Right_cref);
+				(*this).contained_iter() = _Right_cref.contained_iter();
 				return (*this);
-			}
-			/*
-			template <typename _Ty2>
-			TLHNullableAnyRandomAccessIterator& operator=(const _Ty2& _Right_cref) {
-				operator=(TLHNullableAnyRandomAccessIterator(_Right_cref));
-				return (*this);
-			}
-			*/
-
-			explicit operator bool() const {
-				return base_class::operator bool();
 			}
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TLHNullableAnyRandomAccessIterator);
 
 			void async_not_shareable_and_not_passable_tag() const {}
 
-			template<class T, class EqualTo>
-			struct HasOrInheritsPlusEqualsOperator_impl
-			{
-				template<class U, class V>
-				static auto test(U*) -> decltype(std::declval<U>() += 1, std::declval<V>() += 1, bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct HasOrInheritsPlusEqualsOperator : HasOrInheritsPlusEqualsOperator_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
 		private:
-
-			template <typename _TRandomAccessIterator1>
-			static auto constructor_helper2(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
-				/* The element type of this iterator and the element type of the random_access_iterator parameter are both
-				intergral types of the same size, but not the same type. (Generally, one is signed and the other is
-				not/un-signed.) Here we allow the "reinterpretation" of random_access_iterator as being an iterator that
-				points to elements of type _Ty. This is technically not "type safe", but it doesn't really compromise
-				"memory safety". At some point we may want to make it so that this functionality is only accessible by the
-				unsafe_cast<>() function. */
-				typedef mse::impl::remove_reference_t<decltype(*random_access_iterator)> _Ty2;
-				auto temp = TLHNullableAnyRandomAccessIterator<_Ty2>(random_access_iterator);
-				return reinterpret_cast<TLHNullableAnyRandomAccessIterator&>(temp);
-			}
-			template <typename _TRandomAccessIterator1>
-			static auto constructor_helper2(std::false_type, const _TRandomAccessIterator1& random_access_iterator) {
-				return random_access_iterator;
-			}
-
-			template <typename _TRandomAccessIterator1>
-			static auto constructor_helper1(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
-				typedef mse::impl::remove_reference_t<decltype(*random_access_iterator)> _Ty2;
-				typedef mse::impl::remove_const_t<_Ty> _ncTy;
-				typedef mse::impl::remove_const_t<_Ty2> _ncTy2;
-				typedef typename mse::impl::conjunction<std::is_integral<_Ty>, std::is_integral<_Ty2>
-					, mse::impl::negation< std::is_same<_ncTy, _ncTy2 > >
-					, std::integral_constant<bool, sizeof(_Ty) == sizeof(_Ty2)> >::type res1_t;
-				/* res1_t is std::true_type if the element type of this iterator and the element type of the random_access_iterator
-				parameter are both intergral types of the same size, but not the same type. (Generally, one is signed and the
-				other is not/un-signed.) */
-				return constructor_helper2(res1_t(), random_access_iterator);
-			}
-			template <typename _TPointer1>
-			static auto constructor_helper1(std::false_type, const _TPointer1& pointer1) {
-				/* For legacy compatibility we're going to support interpreting pointers as iterators to an array of size 1. */
-				auto lh_any_pointer1 = TLHNullableAnyPointer<_Ty>(pointer1);
-				/* mse::nii_array<_Ty, 1> has been designed to be "bit identical" to std::array<_Ty, 1> which should be
-				"bit identical" to _Ty[1] which should be "bit identical" to _Ty, so it should be safe reinterpret a
-				pointer to a _Ty as a pointer to a mse::nii_array<_Ty, 1>.*/
-				auto lh_any_pointer2 = *reinterpret_cast<const TLHNullableAnyPointer<mse::nii_array<_Ty, 1> >*>(std::addressof(lh_any_pointer1));
-				return mse::make_begin_iterator(lh_any_pointer2);
-			}
 
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
-			template <typename _Ty2>
-			friend class TXScopeLHNullableAnyRandomAccessIterator;
+			const base_class& contained_iter() const& { return (*this); }
+			//const base_class& contained_iter() const&& { return (*this); }
+			base_class& contained_iter()& { return (*this); }
+			base_class&& contained_iter()&& { return std::move(*this); }
 		};
 
+		/* Note: mse::lh::TXScopeLHNullableAnyRandomAccessIterator<> is intended to replace legacy raw pointers being used as 
+		array/buffer iterators, and as such is different from "conventional" iterators in that "one past the last element" end 
+		markers are not valid values. Valid values are either null, or point to a valid object. */
 		template <typename _Ty>
-		class TXScopeLHNullableAnyRandomAccessIterator : public mse::TXScopeNullableAnyRandomAccessIterator<_Ty> {
+		class TXScopeLHNullableAnyRandomAccessIterator : public mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<_Ty> {
 		public:
-			typedef mse::TXScopeNullableAnyRandomAccessIterator<_Ty> base_class;
+			typedef mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<_Ty> base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			//MSE_USING(TXScopeLHNullableAnyRandomAccessIterator, base_class);
@@ -841,10 +1067,12 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
-			template <size_t _Size>
-			TXScopeLHNullableAnyRandomAccessIterator(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
-			template <size_t _Size>
-			TXScopeLHNullableAnyRandomAccessIterator(const TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.cbegin()) {}
+			/* Note that construction from a const reference to a TNativeArrayReplacement<> is not the same as construction from a
+			non-const reference. */
+			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value) || (std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
+			TXScopeLHNullableAnyRandomAccessIterator(TNativeArrayReplacement<_Ty2, _Size>& val) : base_class(val.begin()) {}
+			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value)/* || (std::is_same<_Ty2, _Ty>::value)*/> MSE_IMPL_EIS >
+			TXScopeLHNullableAnyRandomAccessIterator(const TNativeArrayReplacement<_Ty2, _Size>& val) : base_class(val.cbegin()) {}
 
 			template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 				(!std::is_convertible<_TRandomAccessIterator1, TXScopeLHNullableAnyRandomAccessIterator>::value)
@@ -854,53 +1082,10 @@ namespace mse {
 				&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
 				&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
 			> MSE_IMPL_EIS >
-			TXScopeLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(constructor_helper1(
-				typename TLHNullableAnyRandomAccessIterator<_Ty>::template HasOrInheritsPlusEqualsOperator<_TRandomAccessIterator1>::type(), random_access_iterator)) {
-			}
+			TXScopeLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) : base_class(random_access_iterator) {}
 
 			friend void swap(TXScopeLHNullableAnyRandomAccessIterator& first, TXScopeLHNullableAnyRandomAccessIterator& second) {
-				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
-			}
-
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
-			friend bool operator!=(const NULL_t& _Left_cref, const TXScopeLHNullableAnyRandomAccessIterator& _Right_cref) {
-				return !(_Left_cref == _Right_cref);
-			}
-			friend bool operator!=(const TXScopeLHNullableAnyRandomAccessIterator& _Left_cref, const NULL_t& _Right_cref) {
-				return !(_Left_cref == _Right_cref);
-			}
-
-			friend bool operator==(const NULL_t&, const TXScopeLHNullableAnyRandomAccessIterator& _Right_cref) {
-				return !bool(_Right_cref);
-			}
-			friend bool operator==(const TXScopeLHNullableAnyRandomAccessIterator& _Left_cref, const NULL_t&) {
-				return !bool(_Left_cref);
-			}
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
-			/* We use a templated equality comparison operator to avoid potential arguments being implicitly converted. */
-#ifndef MSE_HAS_CXX20
-			template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TXScopeLHNullableAnyRandomAccessIterator, TRHS>::value)> MSE_IMPL_EIS >
-			friend bool operator!=(const NULL_t& _Left_cref, const TRHS& _Right_cref) {
-				return bool(_Right_cref);
-			}
-			template<typename TLHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TXScopeLHNullableAnyRandomAccessIterator, TLHS>::value)> MSE_IMPL_EIS >
-			friend bool operator!=(const TLHS& _Left_cref, const NULL_t& _Right_cref) {
-				return bool(_Left_cref);
-			}
-
-			template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TXScopeLHNullableAnyRandomAccessIterator, TRHS>::value)> MSE_IMPL_EIS >
-			friend bool operator==(const NULL_t&, const TRHS& _Right_cref) {
-				return !bool(_Right_cref);
-			}
-#endif // !MSE_HAS_CXX20
-			template<typename TLHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TXScopeLHNullableAnyRandomAccessIterator, TLHS>::value)> MSE_IMPL_EIS >
-			friend bool operator==(const TLHS& _Left_cref, const NULL_t&) {
-				return !bool(_Left_cref);
-			}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
-
-			explicit operator bool() const {
-				return base_class::operator bool();
+				swap(first.contained_iter(), second.contained_iter());
 			}
 
 			MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeLHNullableAnyRandomAccessIterator);
@@ -909,32 +1094,13 @@ namespace mse {
 
 		private:
 
-			template <typename _TRandomAccessIterator1>
-			static auto constructor_helper1(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
-				return random_access_iterator;
-			}
-			template <typename _TPointer1>
-			static auto constructor_helper1(std::false_type, const _TPointer1& pointer1) {
-				/* For legacy compatibility we're going to support interpreting pointers as iterators to an array of size 1. */
-				auto lh_any_pointer1 = TXScopeLHNullableAnyPointer<_Ty>(pointer1);
-				/* mse::nii_array<_Ty, 1> has been designed to be "bit identical" to std::array<_Ty, 1> which should be
-				"bit identical" to _Ty[1] which should be "bit identical" to _Ty, so it should be safe reinterpret a
-				pointer to a _Ty as a pointer to a mse::nii_array<_Ty, 1>.*/
-				auto lh_any_pointer2 = *reinterpret_cast<const TXScopeLHNullableAnyPointer<mse::nii_array<_Ty, 1> >*>(std::addressof(lh_any_pointer1));
-				return mse::make_xscope_begin_iterator(lh_any_pointer2);
-			}
-
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
-		};
 
-		template <typename _Ty>
-		bool operator==(const NULL_t lhs, const TXScopeLHNullableAnyRandomAccessIterator<_Ty>& rhs) { return rhs == lhs; }
-		template <typename _Ty>
-		bool operator!=(const NULL_t lhs, const TXScopeLHNullableAnyRandomAccessIterator<_Ty>& rhs) { return rhs != lhs; }
-		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
-		bool operator==(const _Ty2 lhs, const TXScopeLHNullableAnyRandomAccessIterator<_Ty>& rhs) { return rhs == lhs; }
-		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
-		bool operator!=(const _Ty2 lhs, const TXScopeLHNullableAnyRandomAccessIterator<_Ty>& rhs) { return rhs != lhs; }
+			const base_class& contained_iter() const& { return (*this); }
+			//const base_class& contained_iter() const&& { return (*this); }
+			base_class& contained_iter()& { return (*this); }
+			base_class&& contained_iter()&& { return std::move(*this); }
+		};
 
 		template <typename _Ty>
 		using TStrongTargetVector = 
