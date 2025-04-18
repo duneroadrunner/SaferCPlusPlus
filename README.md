@@ -34,7 +34,6 @@ Tested with the microsoft compiler (v.19.41.34120) (Windows 10), g++13.2.0 and c
 4. Comparisons
     1. [SaferCPlusPlus versus Clang/LLVM Sanitizers](#safercplusplus-versus-clangllvm-sanitizers)
     2. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
-    3. [SaferCPlusPlus versus Checked C](#safercplusplus-versus-checked-c)
 5. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
 6. <details>
     <summary>Registered pointers</summary>
@@ -43,8 +42,7 @@ Tested with the microsoft compiler (v.19.41.34120) (Windows 10), g++13.2.0 and c
     1. [TRegisteredPointer](#tregisteredpointer)
         1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
         2. [TRegisteredFixedPointer](#tregisteredfixedpointer)
-        3. [TRegisteredConstPointer](#tregisteredconstpointer-tregisterednotnullconstpointer-tregisteredfixedconstpointer)
-        4. [TRegisteredRefWrapper](#tregisteredrefwrapper)
+        3. [TRegisteredRefWrapper](#tregisteredrefwrapper)
     2. [TCRegisteredPointer](#tcregisteredpointer)
     3. [TNDRegisteredPointer, TNDCRegisteredPointer](#tndregisteredpointer-tndcregisteredpointer)
     </details>
@@ -62,7 +60,6 @@ Tested with the microsoft compiler (v.19.41.34120) (Windows 10), g++13.2.0 and c
     1. [TRefCountingPointer](#trefcountingpointer)
         1. [TRefCountingNotNullPointer](#trefcountingnotnullpointer)
         2. [TRefCountingFixedPointer](#trefcountingfixedpointer)
-        3. [TRefCountingConstPointer](#trefcountingconstpointer-trefcountingnotnullconstpointer-trefcountingfixedconstpointer)
     2. [Using registered pointers as weak pointers](#using-registered-pointers-as-weak-pointers-with-reference-counting-pointers)
     </details>
 10. <details>
@@ -90,9 +87,9 @@ Tested with the microsoft compiler (v.19.41.34120) (Windows 10), g++13.2.0 and c
     </details>
 12. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
 13. [Poly pointers](#poly-pointers)
-    1. [TXScopePolyPointer](#txscopepolypointer-txscopepolyconstpointer)
-    2. [TPolyPointer](#tpolypointer-tpolyconstpointer)
-    3. [TAnyPointer](#txscopeanypointer-txscopeanyconstpointer-tanypointer-tanyconstpointer)
+    1. [TXScopePolyPointer](#txscopepolypointer)
+    2. [TPolyPointer](#tpolypointer)
+    3. [TAnyPointer](#txscopeanypointer-tanypointer)
 14. [pointer_to()](#pointer_to)
 15. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
 16. <details>
@@ -267,12 +264,6 @@ There are situations where restrictions on object accessibility can be beneficia
 
 Overall though, there's probably more commonality than difference between the Rust and the SaferCPlusPlus memory safety strategies. At least compared to other current languages. So, perhaps as expected, you could think of the comparison between SaferCPlusPlus and Rust as essentially the comparison between C++ and Rust, with diminished discrepancies in memory safety and performance.
 
-### SaferCPlusPlus versus Checked C
-
-"Checked C", like SaferCPlusPlus, takes the approach of extending the language with safer elements that can directly substitute for unsafe native elements. In chapter 9 of their [spec](https://github.com/Microsoft/checkedc/releases/download/v0.5-final/checkedc-v0.5.pdf), there is an extensive survey of existing (and historical) efforts to address C/C++ memory safety. There they make the argument for the (heretofore neglected) "language extension" approach (basically citing performance, compatibility and the support for granular mixing of safe and unsafe code), that applies to SaferCPlusPlus as well.
-
-Checked C and SaferCPlusPlus are more complementary than competitive. Checked C targets low-level system C code and basically only addresses the array bounds checking issue, including pointer arithmetic, where SaferCPlusPlus skews more toward C++ code and legacy code that would benefit from being converted to modern C++. It seems that Checked C is not yet ready for deployment (as of Sep 2016), but one could imagine both solutions being used, with little contention, in projects that have both low-level system type code and higher-level application type code.
-
 ### Getting started on safening existing code
 
 The elements in this library are straightforward enough that a separate tutorial, beyond the examples given in the documentation, is probably not necessary. But if you're wondering how best to start, probably the easiest and most effective thing to do is to replace the vectors and arrays in your code (that aren't being shared between threads) with [`mse::mstd::vector<>`](#mstdvector) and [`mse::mstd::array<>`](#mstdarray). You can substitute `std::string_view` with [`mse::nrp_string_view`](#nrp_string_view), and your `std::string`s with [`mse::mstd::string`](#mstdstring).
@@ -387,9 +378,6 @@ usage example:
     }
 ```
 
-### TRegisteredConstPointer, TRegisteredNotNullConstPointer, TRegisteredFixedConstPointer
-`TRegisteredPointer<X>` does implicitly convert to `TRegisteredPointer<const X>`. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
-
 ### TRegisteredRefWrapper
 Just a registered version of [`std::reference_wrapper<>`](http://en.cppreference.com/w/cpp/utility/functional/reference_wrapper).  
 
@@ -452,8 +440,6 @@ usage example: ([link to interactive version](https://godbolt.org/z/P87sdKf4h))
 
 #### TCRegisteredFixedPointer
 
-#### TCRegisteredConstPointer, TCRegisteredNotNullConstPointer, TCRegisteredFixedConstPointer
-
 ### TNDRegisteredPointer, TNDCRegisteredPointer
 
 When pointing to a valid object, [`TRegisteredPointer<>` and `TCRegisteredPointer<>`](#registered-pointers) essentially behave like raw pointers. So when in "disabled" mode, they are just aliased to raw pointers. However, in cases when their target object becomes invalid (i.e. is destroyed), the behavior of registered pointers is not the same as raw pointers. Specifically, registered pointers are automatically set to null when their target object is destroyed. So any code that relies on this behavior might not work properly when the registered pointers are substituted with raw pointers.
@@ -508,7 +494,7 @@ usage example: ([link to interactive version](https://godbolt.org/z/9nKG71W5h))
 
 #### TNoradFixedPointer
 
-#### TNoradConstPointer, TNoradNotNullConstPointer, TNoradFixedConstPointer, TNDNoradPointer
+#### TNDNoradPointer
 
 
 ### Simple benchmarks
@@ -622,10 +608,6 @@ And also note that the `mse::make_refcounting<>()` function actually returns a `
 ### TRefCountingFixedPointer
 
 Same as `TRefCountingNotNullPointer<>`, but cannot be retargeted after construction (basically a "`const TRefCountingNotNullPointer<>`").
-
-### TRefCountingConstPointer, TRefCountingNotNullConstPointer, TRefCountingFixedConstPointer
-
-`TRefCountingPointer<X>` actually does implicitly convert to `TRefCountingPointer<const X>`. But some prefer to think of the pointer giving "const" access to the object rather than giving access to a "const object".
 
 ### Using registered pointers as weak pointers with reference counting pointers
 
@@ -860,8 +842,6 @@ usage example:
     }
 ```
 
-#### TXScopeFixedConstPointer
-
 ### TXScopeOwnerPointer
 `TXScopeOwnerPointer<>` is kind of like an `std::unique_ptr<>` whose use is restricted by the rules of scope objects. So, it must live to the end of the scope in which it is declared (i.e. basically be declared as a non-static local (or `thread_local` variable)) and can only be used as a member of objects which are themselves scope objects. You can use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Unlike `std::unique_ptr<>`s, you may not use `std::move()` with `TXScopeOwnerPointer<>`s. If you're not using a conformance helper tool like [scpptool](https://github.com/duneroadrunner/scpptool) to enforce this, you can disable `TXScopeOwnerPointer<>`'s move constructor by defining the `MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY` preprocessor symbol.
 
@@ -980,9 +960,9 @@ usage example:
 
 Scope pointers have limitations, (currently) for example, in terms of their ability to be retargeted, and their ability to be stored in dynamic containers. When necessary, you can circumvent these sorts of limitations by creating "registered proxy" pointers corresponding to given scope pointers. 
 
-Registered proxy pointers are basically just [registered pointers](#registered-pointers) which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TRegisteredProxyPointer<T>` is similar to a `TRegisteredConstPointer<TXScopeFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the [`TXScopeFixedPointer<T>`](#txscopefixedpointer). They are also convertible back to scope pointers when needed. 
+Registered proxy pointers are basically just [registered pointers](#registered-pointers) which target scope pointers, except that (more conveniently) they dereference to the scope pointer's target object rather than the scope pointer itself. That is, a `TRegisteredProxyPointer<T>` is similar to a `TRegisteredPointer<TXScopeFixedPointer<T> >`, except that it dereferences to the object of type `T` rather than the [`TXScopeFixedPointer<T>`](#txscopefixedpointer). They are also convertible back to scope pointers when needed. 
 
-To be clear, a `TRegisteredProxyPointer<T>` doesn't have any functionality that a `TRegisteredConstPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some situations.
+To be clear, a `TRegisteredProxyPointer<T>` doesn't have any functionality that a `TRegisteredPointer<TXScopeFixedPointer<T> >` does not already have, it's just more convenient in some situations.
 
 usage example: ([link to interactive version](https://godbolt.org/z/EbesrKoW6))
 
@@ -1036,7 +1016,7 @@ usage example: ([link to interactive version](https://godbolt.org/z/EbesrKoW6))
     }
 ```
 
-#### TRegisteredProxyPointer, TRegisteredProxyNotNullPointer, TRegisteredProxyFixedPointer, TRegisteredProxyConstPointer, TRegisteredProxyNotNullConstPointer, TRegisteredProxyFixedConstPointer
+#### TRegisteredProxyPointer, TRegisteredProxyNotNullPointer, TRegisteredProxyFixedPointer
 
 ### TNoradProxyPointer
 
@@ -1100,7 +1080,7 @@ usage example: ([link to interactive version](https://godbolt.org/z/WojT9P755))
     }
 ```
 
-#### TNoradProxyPointer, TNoradProxyNotNullPointer, TNoradProxyFixedPointer, TNoradProxyConstPointer, TNoradProxyNotNullConstPointer, TNoradProxyFixedConstPointer
+#### TNoradProxyPointer, TNoradProxyNotNullPointer, TNoradProxyFixedPointer
 
 ### xscope_chosen()
 
@@ -1251,7 +1231,7 @@ int main(int argc, char* argv[]) {
 
 *Note, if you are using [scpptool](https://github.com/duneroadrunner/scpptool) for safety enforcement, you can instead just use const references in the usual way.*
 
-`rsv::TFParam<>` is just a transparent template wrapper for function parameter declarations. In most cases use of this wrapper is not necessary, but in some cases it enables functionality only available to variables that are function parameters. Specifically, it allows functions to support arguments that are scope pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so in the case of function parameters, the `rsv::TFParam<>` wrapper enables certain scope pointer/reference types (like `TXScopeFixedConstPointer<>`, and "[random access const sections](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" scope types) to be constructed from their "functionally disabled" counterparts.
+`rsv::TFParam<>` is just a transparent template wrapper for function parameter declarations. In most cases use of this wrapper is not necessary, but in some cases it enables functionality only available to variables that are function parameters. Specifically, it allows functions to support arguments that are scope pointer/references to temporary objects. For safety reasons, by default, scope pointer/references to temporaries are actually "functionally disabled" types distinct from regular scope pointer/reference types. Because it's safe to do so in the case of function parameters, the `rsv::TFParam<>` wrapper enables certain scope pointer/reference types (like `TXScopeFixedPointer<>`, and "[random access const sections](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)" scope types) to be constructed from their "functionally disabled" counterparts.
 
 In the case of function templates, sometimes you want the parameter types to be auto-deduced, and use of the `mse::rsv::TFParam<>` wrapper can interfere with that. In those cases you can instead convert parameters to their wrapped type after-the-fact using the `rsv::as_an_fparam()` function. Note that using this function (or the `rsv::TFParam<>` wrapper) on anything other than function parameters would be unsafe, and wouldn't be prevented by the type system. Safety enforcement is reliant on a companion tool like [scpptool](https://github.com/duneroadrunner/scpptool).
 
@@ -1548,8 +1528,8 @@ Poly pointers are "chameleon" (type-erased) pointers that can be constructed fro
 
 Note that poly pointers support only basic facilities common to all the covered pointer and iterator types, providing essentially the functionality of a C++ reference. For example, this means no assignment operator, and no `operator bool()`. Where null pointer values are desired you might consider using [`mse::mstd::optional<>`](#optional-xscope_optional) or `std::optional<>` instead.  
 
-### TXScopePolyPointer, TXScopePolyConstPointer
-Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (`TXScopeFixedPointer<>` or `TXScopeFixedConstPointer<>`), they must observe the same usage restrictions.
+### TXScopePolyPointer
+Scope poly pointers are primarily intended to be used in function parameter declarations. In particular, as they can be constructed from a scope pointer (`TXScopeFixedPointer<>`), they must observe the same usage restrictions.
 
 usage example:
 
@@ -1649,11 +1629,11 @@ usage example:
     }
 ```
 
-### TPolyPointer, TPolyConstPointer
+### TPolyPointer
 These poly pointers do not support construction from scope pointers, and thus are not bound by the same usage restrictions. For example, these poly pointers may be used as a member of a class or struct.
 
-### TXScopeAnyPointer, TXScopeAnyConstPointer, TAnyPointer, TAnyConstPointer
-"Any" pointers are also “chameleon” (type-erased) pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by [`make_pointer_to_member_v2()`](#make_pointer_to_member_v2) to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the [scope poly pointer](#txscopepolypointer-txscopepolyconstpointer) usage example.  
+### TXScopeAnyPointer, TAnyPointer
+"Any" pointers are also “chameleon” (type-erased) pointers that behave similarly to poly pointers. One difference is that unlike poly pointers which can only be directly constructed from a finite set of pointer types, "any" pointers can be constructed from almost any kind of pointer. But poly pointers can be constructed from "any" pointers, so indirectly, via "any" pointers, pretty much any type of pointer converts to a poly pointer too. In particular, if you wanted to pass a pointer generated by [`make_pointer_to_member_v2()`](#make_pointer_to_member_v2) to a function that takes a poly pointer, you would first need to wrap it an "any" pointer. This is demonstrated in the [scope poly pointer](#txscopepolypointer) usage example.  
 
 "Any" pointers can also be used as function arguments. The contained pointer's original value can be recovered using the [`maybe_any_cast<>()`](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/README.md#anys) template function. The choice between using poly pointers versus "any" pointers is similar to the choice between [`std::variant` and `std::any`](http://www.boost.org/doc/libs/1_63_0/doc/html/variant/misc.html#variant.versus-any). (Though at the time of writing, the implementation of poly pointers is not as complete as that of "any" pointers, so generally the latter are recommended over the former.)
 
