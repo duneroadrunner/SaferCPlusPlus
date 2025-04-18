@@ -751,7 +751,7 @@ namespace mse {
 							|| (mse::impl::first_is_or_is_subclass_of_any<TRHSIterator_ecwapt, _Myt, mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty> >::value))
 					> MSE_IMPL_EIS >
 					friend std::strong_ordering operator<=>(const TLHSIterator_ecwapt& _Left_cref, const TRHSIterator_ecwapt& _Right_cref) {
-						return (_Left_cref.contained_iter() <=> _Right_cref);
+						return (mse::us::impl::as_ref<_Myt>(_Left_cref).contained_iter() <=> _Right_cref);
 					}
 
 					template<typename TLHSIterator_ecwapt, typename TRHSIterator_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
