@@ -441,6 +441,7 @@ namespace mse {
 			TLHNullableAnyPointer(const TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.cbegin()) {}
 
 			//MSE_USING(TLHNullableAnyPointer, base_class);
+			TLHNullableAnyPointer(const base_class& src) : base_class(src) {}
 			TLHNullableAnyPointer() = default;
 			TLHNullableAnyPointer(std::nullptr_t) : base_class(std::nullptr_t()) {}
 			template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
