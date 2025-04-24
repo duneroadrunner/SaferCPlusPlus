@@ -612,9 +612,9 @@ namespace mse {
 
 		/* provisional */
 		typedef mse::us::impl::base_type_t<base_class> base_type;
-		const base_type& mse_base_type_ref() const& { return (const base_type&)(mse::us::impl::as_ref<base_class>(*this)); }
+		const base_type& mse_base_type_ref() const& { return mse::us::impl::raw_reference_to<const base_type>(mse::us::impl::as_ref<const base_class>(*this)); }
 		const base_type& mse_base_type_ref() const&& = delete;
-		base_type& mse_base_type_ref()& { return (base_type&)(mse::us::impl::as_ref<base_class>(*this)); }
+		base_type& mse_base_type_ref()& { return mse::us::impl::raw_reference_to<base_type>(mse::us::impl::as_ref<base_class>(*this)); }
 		base_type& mse_base_type_ref() && = delete;
 
 	private:
