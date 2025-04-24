@@ -18,6 +18,11 @@
 #include <string.h>
 #endif // !MSE_LEGACYHELPERS_DISABLED
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <stdint.h>
+
 #ifdef _MSC_VER
 #pragma warning( push )  
 #pragma warning( disable : 4100 4456 4189 4127 4702 )
@@ -71,6 +76,7 @@
 
 #define MSE_LH_FREAD(ptr, size, count, stream) fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) fwrite(ptr, size, count, stream)
+#define MSE_LH_GETLINE(lineptr, nptr, stream) getline(lineptr, nptr, stream)
 
 #define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) memcpy(destination, source, num_bytes)
 #define MSE_LH_TYPED_MEMCMP(element_type, destination, source, num_bytes) memcmp(destination, source, num_bytes)
@@ -141,6 +147,7 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 
 #define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::fwrite(ptr, size, count, stream)
+#define MSE_LH_GETLINE(lineptr, nptr, stream) mse::lh::getline(lineptr, nptr, stream)
 
 #define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::memcpy<mse::lh::TLHNullableAnyRandomAccessIterator<element_type>, mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >(destination, source, num_bytes)
 #define MSE_LH_TYPED_MEMCMP(element_type, destination, source, num_bytes) mse::lh::memcmp< mse::lh::TLHNullableAnyRandomAccessIterator<element_type>, mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >(destination, source, num_bytes)
@@ -1962,6 +1969,120 @@ namespace mse {
 			}
 			/* todo: This is technically not safe without first verifying that the iterators target contiguous storage. */
 			return std::strncmp(std::addressof(str1[0]), std::addressof(str2[0]), count2);
+		}
+
+		typedef intptr_t lh_ssize_t;
+
+		namespace us {
+			namespace impl {
+				/* Apr 2025: C getline() implementation from stackoverflow comment: https://stackoverflow.com/a/47229318 */
+
+				/* Modifications, public domain as well, by Antti Haapala, 11/10/2017
+				   - Switched to getc on 5/23/2019
+				   - Proper error handling on IO error and wraparound
+					 check on buffer extension 3/31/2025 - 4/2/2025
+				*/
+
+				static const size_t MINIMUM_BUFFER_SIZE = 128;
+
+				lh_ssize_t lh_getline(char** lineptr, size_t* n, FILE* stream) {
+					size_t pos;
+					int c;
+
+					if (lineptr == NULL || stream == NULL || n == NULL) {
+						errno = EINVAL;
+						return -1;
+					}
+
+					c = getc(stream);
+					if (c == EOF) {
+						return -1;
+					}
+
+					if (*lineptr == NULL) {
+						*lineptr = (char*)malloc(MINIMUM_BUFFER_SIZE);
+						if (*lineptr == NULL) {
+							return -1;
+						}
+						*n = MINIMUM_BUFFER_SIZE;
+					}
+
+					pos = 0;
+					while (c != EOF) {
+						if (pos + 1 >= *n) {
+							size_t new_size = *n + (*n >> 2);
+
+							// have some reasonable minimum
+							if (new_size < MINIMUM_BUFFER_SIZE) {
+								new_size = MINIMUM_BUFFER_SIZE;
+							}
+
+							// size_t wraparound
+							if (new_size <= *n) {
+								errno = ENOMEM;
+								return -1;
+							}
+
+							// Note you might also want to check that PTRDIFF_MAX
+							// is not exceeded!
+
+							char* new_ptr = (char*)realloc(*lineptr, new_size);
+							if (new_ptr == NULL) {
+								return -1;
+							}
+							*n = new_size;
+							*lineptr = new_ptr;
+						}
+
+						((unsigned char*)(*lineptr))[pos++] = (unsigned char)c;
+						if (c == '\n') {
+							break;
+						}
+						c = getc(stream);
+					}
+
+					(*lineptr)[pos] = '\0';
+
+					// if an IO error occurred, return -1
+					if (c == EOF && !feof(stream)) {
+						return -1;
+					}
+
+					// otherwise we successfully read until the end-of-file
+					// or the delimiter
+					return pos;
+				}
+			}
+		}
+
+		template<typename TPointerToCharBufferPointer, typename TPointerToSize_t, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointerToCharBufferPointer>::value) || (mse::impl::IsDereferenceable_pb<TPointerToSize_t>::value)> MSE_IMPL_EIS >
+		lh_ssize_t getline(TPointerToCharBufferPointer lineptr, TPointerToSize_t nptr, FILE* stream) {
+			struct CBufPtr {
+				~CBufPtr() {
+					free(m_char_buf_ptr);
+				}
+				char* m_char_buf_ptr = nullptr;
+			};
+			CBufPtr temp_char_buf_ptr_obj;
+			size_t n = *nptr;
+			auto res = us::impl::lh_getline(&(temp_char_buf_ptr_obj.m_char_buf_ptr), &n, stream);
+			if (0 > res) {
+				/* fail */
+				return -1;
+			}
+			const size_t length_including_null_terminator = (size_t)res + 1;
+			auto char_buffer_iter = *lineptr;
+			if (length_including_null_terminator > n) {
+				char_buffer_iter = reallocate(char_buffer_iter, length_including_null_terminator);
+				if (decltype(char_buffer_iter)() == char_buffer_iter) {
+					/* reallocation seems to have failed */
+					return -1;
+				}
+			}
+			for (size_t i = 0; i < length_including_null_terminator; ++i) {
+				char_buffer_iter[i] = (temp_char_buf_ptr_obj.m_char_buf_ptr)[i];
+			}
+			return res;
 		}
 
 		namespace impl {
