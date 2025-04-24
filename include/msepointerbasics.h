@@ -1548,6 +1548,38 @@ namespace mse {
 				void assert_initialized() const {}
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 			};
+
+			template<typename _Ty>
+			class TOpaqueImplicitlyConvertingWrapper1 {
+			public:
+				typedef TOpaqueImplicitlyConvertingWrapper1 _Myt;
+				TOpaqueImplicitlyConvertingWrapper1(const TOpaqueImplicitlyConvertingWrapper1& src) = default;
+				TOpaqueImplicitlyConvertingWrapper1(TOpaqueImplicitlyConvertingWrapper1&& src) = default;
+				TOpaqueImplicitlyConvertingWrapper1() = default;
+				TOpaqueImplicitlyConvertingWrapper1(const _Ty& src) : m_val(src) {}
+
+				template<typename ...Args, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_constructible<_Ty, Args...>::value
+					&& !mse::impl::is_a_pair_with_the_first_a_base_of_the_second<TOpaqueImplicitlyConvertingWrapper1, Args...>::value> MSE_IMPL_EIS >
+				TOpaqueImplicitlyConvertingWrapper1(Args&&...args) : m_val(std::forward<Args>(args)...) {}
+
+				_Myt& operator=(const _Myt& x) { m_val = x.m_val; return (*this); }
+
+				operator _Ty const() const {
+					return m_val;
+				}
+				operator _Ty& () {
+					return m_val;
+				}
+				/* provisional */
+				typedef _Ty base_type;
+				const base_type& mse_base_type_ref() const& { return m_val; }
+				const base_type& mse_base_type_ref() const&& = delete;
+				base_type& mse_base_type_ref()& { return m_val; }
+				base_type& mse_base_type_ref() && = delete;
+
+			private:
+				_Ty m_val;
+			};
 		}
 	}
 
@@ -2012,6 +2044,22 @@ namespace mse {
 
 		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::ExclusivePointerTagBase, _Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_exclusive_pointer_pb() {}
+
+
+		template<typename _Tz, typename _Ty>
+		struct type_or_underlying_type_helper1 {
+			typedef _Ty type;
+		};
+		template<typename _Ty>
+		struct type_or_underlying_type_helper1<std::true_type, _Ty> {
+			typedef typename std::underlying_type<_Ty>::type type;
+		};
+		template<typename _Ty>
+		struct type_or_underlying_type {
+			typedef typename type_or_underlying_type_helper1<typename std::is_enum<_Ty>::type, _Ty>::type type;
+		};
+		template<typename _Ty>
+		using type_or_underlying_type_t = typename type_or_underlying_type<_Ty>::type;
 	}
 
 	namespace us {

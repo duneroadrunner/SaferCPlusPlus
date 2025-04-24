@@ -895,13 +895,14 @@ namespace mse {
 #else // MSE_SCOPEPOINTER_RUNTIME_CHECKS_ENABLED
 
 			template<typename _TROz>
-			class TXScopeObjBase : public _TROz {
+			class TXScopeObjBase : public mse::impl::conditional_t<std::is_enum<_TROz>::value, mse::us::impl::TOpaqueImplicitlyConvertingWrapper1<_TROz>, _TROz> {
 			public:
+				typedef mse::impl::conditional_t<std::is_enum<_TROz>::value, mse::us::impl::TOpaqueImplicitlyConvertingWrapper1<_TROz>, _TROz> base_class;
 				MSE_SCOPE_USING(TXScopeObjBase, _TROz);
 				TXScopeObjBase(const TXScopeObjBase& _X) = default;
 				TXScopeObjBase(TXScopeObjBase&& _X) = default;
-				//TXScopeObjBase(const TXScopeObjBase& _X) : _TROz(_X) {}
-				//TXScopeObjBase(TXScopeObjBase&& _X) : _TROz(MSE_FWD(_X)) {}
+				//TXScopeObjBase(const TXScopeObjBase& _X) : base_class(_X) {}
+				//TXScopeObjBase(TXScopeObjBase&& _X) : base_class(MSE_FWD(_X)) {}
 
 				TXScopeObjBase& operator=(TXScopeObjBase&& _X) { _TROz::operator=(MSE_FWD(_X)); return (*this); }
 				TXScopeObjBase& operator=(const TXScopeObjBase& _X) { _TROz::operator=(_X); return (*this); }
@@ -916,6 +917,13 @@ namespace mse {
 				auto operator&() const {
 					return this;
 				}
+
+				/* provisional */
+				typedef mse::us::impl::base_type_t<base_class> base_type;
+				const base_type& mse_base_type_ref() const& { return (const base_type&)(mse::us::impl::as_ref<base_class>(*this)); }
+				const base_type& mse_base_type_ref() const&& = delete;
+				base_type& mse_base_type_ref()& { return (base_type&)(mse::us::impl::as_ref<base_class>(*this)); }
+				base_type& mse_base_type_ref() && = delete;
 			};
 
 			template<typename _Ty, lifetime_info1_t lt_info1 = no_lifetime_info1>

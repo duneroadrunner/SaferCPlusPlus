@@ -633,7 +633,7 @@ namespace mse {
 		references targeting the object and verify that there are none outstanding when the object is destroyed. Note that
 		TGNoradObj can be used with objects allocated on the stack. */
 			template<typename _TROFLy, typename _TRefCounter>
-			class TGNoradObj : public _TROFLy
+			class TGNoradObj : public  mse::impl::conditional_t < std::is_enum<_TROFLy>::value, mse::us::impl::TOpaqueImplicitlyConvertingWrapper1<_TROFLy>, _TROFLy>
 				, public std::conditional<(!mse::impl::is_derived_from<_TROFLy, mse::us::impl::AsyncNotShareableTagBase>::value)
 					&& (std::is_arithmetic/*as opposed to say, atomic*/<_TRefCounter>::value)
 					, mse::us::impl::AsyncNotShareableTagBase, mse::impl::TPlaceHolder<mse::us::impl::AsyncNotShareableTagBase, TGNoradObj<_TROFLy, _TRefCounter> > >::type
@@ -643,7 +643,7 @@ namespace mse {
 				, public std::conditional<mse::impl::is_shared_ptr<_TROFLy>::value || mse::impl::is_unique_ptr<_TROFLy>::value, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<mse::us::impl::StrongPointerTagBase, TGNoradObj<_TROFLy, _TRefCounter> > >::type
 			{
 			public:
-				typedef _TROFLy base_class;
+				typedef  mse::impl::conditional_t < std::is_enum<_TROFLy>::value, mse::us::impl::TOpaqueImplicitlyConvertingWrapper1<_TROFLy>, _TROFLy> base_class;
 
 				MSE_NORAD_OBJ_USING(TGNoradObj, _TROFLy);
 				TGNoradObj(const TGNoradObj& _X) : _TROFLy(_X) {}
@@ -675,6 +675,13 @@ namespace mse {
 				TGNoradNotNullConstPointer<_TROFLy, _TRefCounter> mse_norad_nnptr() const { return TGNoradFixedConstPointer<_TROFLy, _TRefCounter>(this); }
 				TGNoradFixedPointer<_TROFLy, _TRefCounter> mse_norad_fptr() { return TGNoradFixedPointer<_TROFLy, _TRefCounter>(this); }
 				TGNoradFixedConstPointer<_TROFLy, _TRefCounter> mse_norad_fptr() const { return TGNoradFixedConstPointer<_TROFLy, _TRefCounter>(this); }
+
+				/* provisional */
+				typedef mse::us::impl::base_type_t<base_class> base_type;
+				const base_type& mse_base_type_ref() const& { return (const base_type&)(mse::us::impl::as_ref<base_class>(*this)); }
+				const base_type& mse_base_type_ref() const&& = delete;
+				base_type& mse_base_type_ref()& { return (base_type&)(mse::us::impl::as_ref<base_class>(*this)); }
+				base_type& mse_base_type_ref() && = delete;
 
 			private:
 				void increment_refcount() const { m_counter += 1; }

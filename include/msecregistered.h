@@ -578,10 +578,12 @@ namespace mse {
 	destruction so that TNDCRegisteredPointers will avoid referencing destroyed objects. Note that TNDCRegisteredObj can be used with
 	objects allocated on the stack. */
 	template<typename _TROFLy>
-	class TNDCRegisteredObj : public _TROFLy, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotShareableTagBase, _TROFLy, TNDCRegisteredObj<_TROFLy> >
+	class TNDCRegisteredObj : public mse::impl::conditional_t<std::is_enum<_TROFLy>::value, mse::us::impl::TOpaqueImplicitlyConvertingWrapper1<_TROFLy>, _TROFLy>
+		, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::AsyncNotShareableTagBase, _TROFLy, TNDCRegisteredObj<_TROFLy> >
+		, public std::conditional<mse::impl::is_shared_ptr<_TROFLy>::value || mse::impl::is_unique_ptr<_TROFLy>::value, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<mse::us::impl::StrongPointerTagBase, TNDRegisteredObj<_TROFLy> > >::type
 	{
 	public:
-		typedef _TROFLy base_class;
+		typedef mse::impl::conditional_t<std::is_enum<_TROFLy>::value, mse::us::impl::TOpaqueImplicitlyConvertingWrapper1<_TROFLy>, _TROFLy> base_class;
 
 		MSE_CREGISTERED_OBJ_USING(TNDCRegisteredObj, _TROFLy);
 		TNDCRegisteredObj(const TNDCRegisteredObj& _X) : _TROFLy(_X) {}
@@ -607,6 +609,13 @@ namespace mse {
 		TNDCRegisteredNotNullConstPointer<_TROFLy> mse_cregistered_nnptr() const { return TNDCRegisteredFixedConstPointer<_TROFLy>(this); }
 		TNDCRegisteredFixedPointer<_TROFLy> mse_cregistered_fptr() { return TNDCRegisteredFixedPointer<_TROFLy>(this); }
 		TNDCRegisteredFixedConstPointer<_TROFLy> mse_cregistered_fptr() const { return TNDCRegisteredFixedConstPointer<_TROFLy>(this); }
+
+		/* provisional */
+		typedef mse::us::impl::base_type_t<base_class> base_type;
+		const base_type& mse_base_type_ref() const& { return (const base_type&)(mse::us::impl::as_ref<base_class>(*this)); }
+		const base_type& mse_base_type_ref() const&& = delete;
+		base_type& mse_base_type_ref()& { return (base_type&)(mse::us::impl::as_ref<base_class>(*this)); }
+		base_type& mse_base_type_ref() && = delete;
 
 	private:
 		void register_pointer(const mse::us::impl::CCRegisteredNode& node_cref) const {
