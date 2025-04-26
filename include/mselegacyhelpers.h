@@ -1175,17 +1175,15 @@ namespace mse {
 				*/
 			}
 
-			bool operator==(const TStrongVectorIterator& _Right_cref) const {
-				if (!((*this).target_container_ptr() == _Right_cref.target_container_ptr())) {
+			friend bool operator==(const TStrongVectorIterator& _Left_cref, const TStrongVectorIterator& _Right_cref) {
+				if (!(_Left_cref.target_container_ptr() == _Right_cref.target_container_ptr())) {
 					return false;
 				}
-				return base_class::operator==(_Right_cref);
+				return (mse::us::impl::as_ref<base_class>(_Left_cref) == mse::us::impl::as_ref<base_class>(_Right_cref));
 			}
-			bool operator!=(const TStrongVectorIterator& _Right_cref) const { return !((*this) == _Right_cref); }
-			template <typename _Ty2>
-			bool operator==(const _Ty2& _Right_cref) const { return operator==(TStrongVectorIterator(_Right_cref)); }
-			template <typename _Ty2>
-			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TStrongVectorIterator(_Right_cref)); }
+#ifndef MSE_HAS_CXX20
+			friend bool operator!=(const TStrongVectorIterator& _Left_cref, const TStrongVectorIterator& _Right_cref) { return !(_Left_cref == _Right_cref); }
+#endif // !MSE_HAS_CXX20
 
 			TStrongVectorIterator& operator=(const TStrongVectorIterator& _Right_cref) {
 				base_class::operator=(_Right_cref);
@@ -1275,12 +1273,15 @@ namespace mse {
 				*/
 			}
 
-			bool operator==(const TXScopeStrongVectorIterator& _Right_cref) const { return base_class::operator==(_Right_cref); }
-			bool operator!=(const TXScopeStrongVectorIterator& _Right_cref) const { return !((*this) == _Right_cref); }
-			template <typename _Ty2>
-			bool operator==(const _Ty2& _Right_cref) const { return operator==(TXScopeStrongVectorIterator(_Right_cref)); }
-			template <typename _Ty2>
-			bool operator!=(const _Ty2& _Right_cref) const { return !((*this) == TXScopeStrongVectorIterator(_Right_cref)); }
+			friend bool operator==(const TXScopeStrongVectorIterator& _Left_cref, const TXScopeStrongVectorIterator& _Right_cref) {
+				if (!(_Left_cref.target_container_ptr() == _Right_cref.target_container_ptr())) {
+					return false;
+				}
+				return (mse::us::impl::as_ref<base_class>(_Left_cref) == mse::us::impl::as_ref<base_class>(_Right_cref));
+			}
+#ifndef MSE_HAS_CXX20
+			friend bool operator!=(const TXScopeStrongVectorIterator& _Left_cref, const TXScopeStrongVectorIterator& _Right_cref) { return !(_Left_cref == _Right_cref); }
+#endif // !MSE_HAS_CXX20
 
 			TXScopeStrongVectorIterator& operator=(const TXScopeStrongVectorIterator& _Right_cref) {
 				base_class::operator=(_Right_cref);
@@ -2071,16 +2072,18 @@ namespace mse {
 				return -1;
 			}
 			const size_t length_including_null_terminator = (size_t)res + 1;
-			auto char_buffer_iter = *lineptr;
-			if (length_including_null_terminator > n) {
-				char_buffer_iter = reallocate(char_buffer_iter, length_including_null_terminator);
-				if (decltype(char_buffer_iter)() == char_buffer_iter) {
+			auto& char_buffer_iter_ref = *lineptr;
+			if (length_including_null_terminator > *nptr) {
+				char_buffer_iter_ref = reallocate(char_buffer_iter_ref, length_including_null_terminator);
+				if (mse::impl::remove_reference_t<decltype(char_buffer_iter_ref)>() == char_buffer_iter_ref) {
 					/* reallocation seems to have failed */
+					*nptr = 0;
 					return -1;
 				}
+				*nptr = length_including_null_terminator;
 			}
 			for (size_t i = 0; i < length_including_null_terminator; ++i) {
-				char_buffer_iter[i] = (temp_char_buf_ptr_obj.m_char_buf_ptr)[i];
+				char_buffer_iter_ref[i] = (temp_char_buf_ptr_obj.m_char_buf_ptr)[i];
 			}
 			return res;
 		}
@@ -2388,11 +2391,13 @@ namespace mse {
 				}
 				return T(*this) == rhs;
 			}
+#ifndef MSE_HAS_CXX20
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
 				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
 			bool operator!=(const T& rhs) const {
 				return !((*this) == rhs);
 			}
+#endif // !MSE_HAS_CXX20
 
 			friend void swap(void_star_replacement& first, void_star_replacement& second) {
 				std::swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
