@@ -2366,6 +2366,7 @@ namespace mse {
 		public:
 			typedef impl::explicitly_castable_any base_class;
 			//using base_class::base_class;
+			typedef void_star_replacement _Myt;
 
 			void_star_replacement() = default;
 			void_star_replacement(const void_star_replacement&) = default;
@@ -2374,41 +2375,121 @@ namespace mse {
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
 				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value) || (std::is_same<void const*, T>::value))> MSE_IMPL_EIS >
 			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(!bool(ptr))
-					, m_shadow_void_const_ptr_for_unsafe_casts(make_void_const_ptr_helper1(typename std::integral_constant<bool, (std::is_same<void*, T>::value || std::is_same<void const*, T>::value)>::type(), ptr)) {}
+					, m_shadow_void_const_ptr(make_void_const_ptr_helper1(typename std::integral_constant<bool, (std::is_same<void*, T>::value || std::is_same<void const*, T>::value)>::type(), ptr)) {}
 
 			explicit operator bool() const {
 				return !m_is_nullptr;
 			}
 
-			bool operator==(std::nullptr_t) const {
-				return !bool(*this);
-			}
-			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
-				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
-			bool operator==(const T& rhs) const {
-				if (!rhs) {
-					return !bool(*this);
+
+
+#if !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
+			friend bool operator==(const _Myt& _Left_cref, const _Myt& _Right_cref) {
+				if (!bool(_Left_cref)) {
+					if (!bool(_Right_cref)) {
+						return true;
+		}
+					else {
+						return false;
+					}
 				}
-				return T(*this) == rhs;
+				else if (!bool(_Right_cref)) {
+					return false;
+				}
+				return (_Right_cref.m_shadow_void_const_ptr == _Left_cref.m_shadow_void_const_ptr);
 			}
+			MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt);
+			MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(_Myt);
+#else // !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
+			/* We use a templated equality comparison operator to avoid potential arguments being implicitly converted. */
 #ifndef MSE_HAS_CXX20
-			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
-				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
-			bool operator!=(const T& rhs) const {
-				return !((*this) == rhs);
+			template<typename TLHSPointer_ecwapt, typename TRHSPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
+				(std::is_base_of<_Myt, TLHSPointer_ecwapt>::value || std::is_base_of<_Myt, TRHSPointer_ecwapt>::value)
+				&& (MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TLHSPointer_ecwapt) || (std::is_base_of<_Myt, TLHSPointer_ecwapt>::value))
+				&& (mse::impl::IsExplicitlyCastableToBool_pb<TLHSPointer_ecwapt>::value)
+				&& (MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSPointer_ecwapt) || std::is_base_of<_Myt, TRHSPointer_ecwapt>::value)
+				&& (mse::impl::IsExplicitlyCastableToBool_pb<TRHSPointer_ecwapt>::value)
+			> MSE_IMPL_EIS >
+			friend bool operator!=(const TLHSPointer_ecwapt& _Left_cref, const TRHSPointer_ecwapt& _Right_cref) {
+				return !(_Left_cref == _Right_cref);
+			}
+
+			template<typename TLHSPointer_ecwapt, typename TRHSPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
+				(std::is_base_of<_Myt, TLHSPointer_ecwapt>::value || std::is_base_of<_Myt, TRHSPointer_ecwapt>::value)
+				&& (MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TLHSPointer_ecwapt) || (std::is_base_of<_Myt, TLHSPointer_ecwapt>::value)) 
+				&& (mse::impl::IsExplicitlyCastableToBool_pb<TLHSPointer_ecwapt>::value)
+				&& (MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSPointer_ecwapt) || std::is_base_of<_Myt, TRHSPointer_ecwapt>::value) 
+				&& (mse::impl::IsExplicitlyCastableToBool_pb<TRHSPointer_ecwapt>::value)
+			> MSE_IMPL_EIS >
+#else // !MSE_HAS_CXX20
+			template<typename TLHSPointer_ecwapt, typename TRHSPointer_ecwapt, MSE_IMPL_EIP mse::impl::enable_if_t<
+				(std::is_base_of<_Myt, TLHSPointer_ecwapt>::value)
+				&& (MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(TRHSPointer_ecwapt) || (std::is_base_of<_Myt, TRHSPointer_ecwapt>::value)) 
+				&& (mse::impl::IsExplicitlyCastableToBool_pb<TRHSPointer_ecwapt>::value)
+			> MSE_IMPL_EIS >
+#endif // !MSE_HAS_CXX20
+			friend bool operator==(const TLHSPointer_ecwapt& _Left_cref, const TRHSPointer_ecwapt& _Right_cref) {
+				if (!bool(_Left_cref)) {
+					if (!bool(_Right_cref)) {
+						return true;
+					}
+					else {
+						return false;
+					}
+				}
+				else if (!bool(_Right_cref)) {
+					return false;
+				}
+				return (_Myt(_Right_cref).m_shadow_void_const_ptr == _Myt(_Left_cref).m_shadow_void_const_ptr);
+			}
+#endif // !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
+
+
+
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+			friend bool operator!=(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !(_Left_cref == _Right_cref); }
+			friend bool operator!=(const _Myt& _Left_cref, const NULL_t& _Right_cref) { assert(0 == _Right_cref); return !(_Left_cref == _Right_cref); }
+			friend bool operator==(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !bool(_Right_cref); }
+			friend bool operator==(const _Myt& _Left_cref, const NULL_t& _Right_cref) { assert(0 == _Right_cref); return !bool(_Left_cref); }
+
+			friend bool operator!=(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			friend bool operator!=(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			friend bool operator==(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !bool(_Right_cref); }
+			friend bool operator==(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !bool(_Left_cref); }
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#ifndef MSE_HAS_CXX20
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value) && (std::is_base_of<_Myt, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Left_cref); return bool(_Right_cref);
+			}
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<_Myt, TLHS>::value) && (std::is_same<NULL_t, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Right_cref); return bool(_Left_cref);
+			}
+
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value) && (std::is_base_of<_Myt, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Left_cref); return !bool(_Right_cref);
 			}
 #endif // !MSE_HAS_CXX20
+			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<_Myt, TLHS>::value) && (std::is_same<NULL_t, TRHS>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
+				assert(0 == _Right_cref); return !bool(_Left_cref);
+			}
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+
+
 
 			friend void swap(void_star_replacement& first, void_star_replacement& second) {
 				std::swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
 				std::swap(first.m_is_nullptr, second.m_is_nullptr);
-				std::swap(first.m_shadow_void_const_ptr_for_unsafe_casts, second.m_shadow_void_const_ptr_for_unsafe_casts);
+				std::swap(first.m_shadow_void_const_ptr, second.m_shadow_void_const_ptr);
 			}
 
 			void_star_replacement& operator=(void_star_replacement _Right) {
 				std::swap(static_cast<base_class&>(*this), static_cast<base_class&>(_Right));
 				std::swap((*this).m_is_nullptr, _Right.m_is_nullptr);
-				std::swap((*this).m_shadow_void_const_ptr_for_unsafe_casts, _Right.m_shadow_void_const_ptr_for_unsafe_casts);
+				std::swap((*this).m_shadow_void_const_ptr, _Right.m_shadow_void_const_ptr);
 				return (*this);
 			}
 
@@ -2430,8 +2511,8 @@ namespace mse {
 				return mse::us::lh::make_raw_pointer_from(src_ptr);
 			}
 
-			bool m_is_nullptr = false;
-			void const* m_shadow_void_const_ptr_for_unsafe_casts = nullptr;
+			bool m_is_nullptr = true;
+			void const* m_shadow_void_const_ptr = nullptr;
 
 			template<typename _Ty>
 			friend _Ty mse::us::lh::unsafe_cast(const mse::lh::void_star_replacement& x);
@@ -2521,7 +2602,7 @@ namespace mse {
 			}
 			template<typename _Ty>
 			_Ty unsafe_cast(const mse::lh::void_star_replacement& x) {
-				return unsafe_cast<_Ty>(const_cast<void*>(x.m_shadow_void_const_ptr_for_unsafe_casts));
+				return unsafe_cast<_Ty>(const_cast<void*>(x.m_shadow_void_const_ptr));
 			}
 
 			template<typename _Ty>
