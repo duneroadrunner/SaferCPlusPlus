@@ -440,7 +440,7 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
-			/* Note that construction from a const reference to a TNativeArrayReplacement<> is not the same as construction from a 
+			/* Note that construction from a const reference to a TNativeArrayReplacement<> is not the same as construction from a
 			non-const reference. */
 			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value) || (std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
 			TLHNullableAnyPointer(TNativeArrayReplacement<_Ty, _Size>& val) : base_class(val.begin()) {}
@@ -539,7 +539,16 @@ namespace mse {
 		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 		bool operator!=(const _Ty2 lhs, const TLHNullableAnyPointer<_Ty>& rhs) { return rhs != lhs; }
 #endif // !MSE_HAS_CXX20
-
+	}
+	namespace us {
+		namespace lh {
+			template<typename _Ty>
+			mse::lh::TLHNullableAnyPointer<_Ty> unsafe_make_lh_nullable_any_pointer_to(_Ty& ref) {
+				return mse::make_any_pointer(mse::us::TSaferPtrForLegacy<_Ty>(std::addressof(ref)));
+			}
+		}
+	}
+	namespace lh {
 		template <typename _Ty>
 		class TXScopeLHNullableAnyPointer : public mse::TXScopeNullableAnyPointer<_Ty> {
 		public:
