@@ -105,6 +105,7 @@
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_FROM(ptr) (ptr)
 #define MSE_LH_UNSAFE_MAKE_TEMPORARY_ARRAY_OF_RAW_POINTERS_FROM(ptr) (ptr)
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) (ptr)
+#define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) (iter)
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
@@ -182,6 +183,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_FROM(ptr) mse::us::lh::make_raw_pointer_from(ptr)
 #define MSE_LH_UNSAFE_MAKE_TEMPORARY_ARRAY_OF_RAW_POINTERS_FROM(ptr) mse::us::lh::make_temporary_array_of_raw_pointers_from(ptr)
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(ptr)
+#define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(iter)
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
@@ -596,7 +598,7 @@ namespace mse {
 				&& (!std::is_same<_TPointer1, ZERO_LITERAL_t>::value)
 				&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
 			> MSE_IMPL_EIS >
-				TXScopeLHNullableAnyPointer(const _TPointer1 & pointer) : base_class(pointer) {}
+			TXScopeLHNullableAnyPointer(const _TPointer1& pointer) : base_class(pointer) {}
 
 			friend void swap(TXScopeLHNullableAnyPointer& first, TXScopeLHNullableAnyPointer& second) {
 				swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
@@ -811,13 +813,15 @@ namespace mse {
 									/* If both sides are null, we'll treat the values as equivalent? */
 									return true;
 								}
-							} else if (!bool(_Left_cref)) {
-								null_and_not_null_flag = true;
 							}
-						} else MSE_IF_CONSTEXPR(mse::impl::IsExplicitlyCastableToBool_pb<TRHSIterator_ecwapt>::value) {
-							if (!bool(_Right_cref)) {
-								null_and_not_null_flag = true;
+ else if (!bool(_Left_cref)) {
+	 null_and_not_null_flag = true;
 							}
+						}
+ else MSE_IF_CONSTEXPR(mse::impl::IsExplicitlyCastableToBool_pb<TRHSIterator_ecwapt>::value) {
+	 if (!bool(_Right_cref)) {
+		 null_and_not_null_flag = true;
+	 }
 						}
 						if (null_and_not_null_flag) {
 							return false;
@@ -1081,6 +1085,34 @@ namespace mse {
 			base_class& contained_iter()& { return (*this); }
 			base_class&& contained_iter()&& { return std::move(*this); }
 		};
+	}
+	namespace us {
+		namespace lh {
+			template <typename _Tx = void, typename _Ty = void>
+			auto unsafe_make_lh_nullable_any_random_access_iterator_from(_Ty* iter) {
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*iter)>, _Tx> _Tx2;
+				return mse::lh::TLHNullableAnyRandomAccessIterator<_Tx2>(mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<_Tx2>(iter));
+			}
+			template <typename _Tx = void, typename _Ty = void>
+			auto unsafe_make_lh_nullable_any_random_access_iterator_from(const _Ty& iter) {
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*iter)>, _Tx> _Tx2;
+				return mse::lh::TLHNullableAnyRandomAccessIterator<_Tx2>(iter);
+			}
+			template <typename _Tx = void, typename _Ty = void>
+			auto unsafe_make_lh_nullable_any_random_access_iterator_from(_Ty& iter) {
+				/* Note that, for example, in the case of mse::lh::TNativeArrayReplacement<>, its "operator*()" and "operator*() const"
+				return different types. (Specifically, they return types that differ by a const qualifier.) */
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*iter)>, _Tx> _Tx2;
+				return mse::lh::TLHNullableAnyRandomAccessIterator<_Tx2>(iter);
+			}
+			template <typename _Tx = void, typename _Ty = void>
+			auto unsafe_make_lh_nullable_any_random_access_iterator_from(_Ty&& iter) {
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*iter)>, _Tx> _Tx2;
+				return mse::lh::TLHNullableAnyRandomAccessIterator<_Tx2>(MSE_FWD(iter));
+			}
+		}
+	}
+	namespace lh {
 
 		/* Note: mse::lh::TXScopeLHNullableAnyRandomAccessIterator<> is intended to replace legacy raw pointers being used as 
 		array/buffer iterators, and as such is different from "conventional" iterators in that "one past the last element" end 
