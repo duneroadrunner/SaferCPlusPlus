@@ -104,6 +104,7 @@
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_TO(target) &(target)
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_FROM(ptr) (ptr)
 #define MSE_LH_UNSAFE_MAKE_TEMPORARY_ARRAY_OF_RAW_POINTERS_FROM(ptr) (ptr)
+#define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) (ptr)
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
@@ -180,6 +181,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_TO(target) std::addressof(target)
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_FROM(ptr) mse::us::lh::make_raw_pointer_from(ptr)
 #define MSE_LH_UNSAFE_MAKE_TEMPORARY_ARRAY_OF_RAW_POINTERS_FROM(ptr) mse::us::lh::make_temporary_array_of_raw_pointers_from(ptr)
+#define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(ptr)
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
@@ -542,9 +544,27 @@ namespace mse {
 	}
 	namespace us {
 		namespace lh {
-			template<typename _Ty>
-			mse::lh::TLHNullableAnyPointer<_Ty> unsafe_make_lh_nullable_any_pointer_to(_Ty& ref) {
-				return mse::make_any_pointer(mse::us::TSaferPtrForLegacy<_Ty>(std::addressof(ref)));
+			template <typename _Tx = void, typename _Ty = void>
+			auto unsafe_make_lh_nullable_any_pointer_from(_Ty* ptr) {
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*ptr)>, _Tx> _Tx2;
+				return mse::lh::TLHNullableAnyPointer<_Tx2>(mse::us::TSaferPtrForLegacy<_Tx2>(ptr));
+			}
+			template <typename _Tx = void, typename _Ty = void>
+			auto unsafe_make_lh_nullable_any_pointer_from(const _Ty& ptr) {
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*ptr)>, _Tx> _Tx2;
+				return mse::lh::TLHNullableAnyPointer<_Tx2>(ptr);
+			}
+			template <typename _Tx = void, typename _Ty = void>
+			auto unsafe_make_lh_nullable_any_pointer_from(_Ty& ptr) {
+				/* Note that, for example, in the case of mse::lh::TNativeArrayReplacement<>, its "operator*()" and "operator*() const"
+				return different types. (Specifically, they return types that differ by a const qualifier.) */
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*ptr)>, _Tx> _Tx2;
+				return mse::lh::TLHNullableAnyPointer<_Tx2>(ptr);
+			}
+			template <typename _Tx = void, typename _Ty = void>
+			auto unsafe_make_lh_nullable_any_pointer_from(_Ty&& ptr) {
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*ptr)>, _Tx> _Tx2;
+				return mse::lh::TLHNullableAnyPointer<_Tx2>(MSE_FWD(ptr));
 			}
 		}
 	}
