@@ -1854,7 +1854,9 @@ namespace mse {
 		/* Memory safe approximation of memcpy(). */
 		template<class _TIter, class _TIter2>
 		_TIter memcpy(_TIter const& destination, _TIter2 const& source, size_t num_bytes) {
-			return impl::us::memcpy_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), destination, source, num_bytes);
+			return impl::us::memcpy_helper1(typename std::integral_constant<bool
+					, impl::HasOrInheritsSubscriptOperator<_TIter>::value && impl::HasOrInheritsSubscriptOperator<_TIter2>::value >::type()
+				, destination, source, num_bytes);
 		}
 		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memcpy(). */
 		template<class _TElement, class _TIter2>
