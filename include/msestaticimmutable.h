@@ -226,9 +226,9 @@ namespace mse {
 
 					TCheckedThreadSafeObj& operator=(TCheckedThreadSafeObj&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
 					TCheckedThreadSafeObj& operator=(const TCheckedThreadSafeObj& _X) { _TROFLy::operator=(_X); return (*this); }
-					template<class _Ty2>
+					template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<_TROFLy, _Ty2&&>::value> MSE_IMPL_EIS >
 					TCheckedThreadSafeObj& operator=(_Ty2&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
-					template<class _Ty2>
+					template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<_TROFLy, const _Ty2&>::value> MSE_IMPL_EIS >
 					TCheckedThreadSafeObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
 
 					TCheckedThreadSafeFixedPointer<_TROFLy> operator&() {
@@ -529,12 +529,12 @@ namespace mse {
 				return (*this);
 			}
 			TStaticImmutableObj& operator=(const TStaticImmutableObj& _X) { base_class::operator=(_X); return (*this); }
-			template<class _Ty2>
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<base_class, _Ty2&&>::value> MSE_IMPL_EIS >
 			TStaticImmutableObj& operator=(_Ty2&& _X) {
 				base_class::operator=(MSE_FWD(_X));
 				return (*this);
 			}
-			template<class _Ty2>
+			template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<base_class, const _Ty2&>::value> MSE_IMPL_EIS >
 			TStaticImmutableObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
 			void operator&() & {

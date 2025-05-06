@@ -660,9 +660,9 @@ namespace mse {
 
 				TGNoradObj& operator=(TGNoradObj&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
 				TGNoradObj& operator=(const TGNoradObj& _X) { _TROFLy::operator=(_X); return (*this); }
-				template<class _Ty2>
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<_TROFLy, _Ty2&&>::value> MSE_IMPL_EIS >
 				TGNoradObj& operator=(_Ty2&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
-				template<class _Ty2>
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<_TROFLy, const _Ty2&>::value> MSE_IMPL_EIS >
 				TGNoradObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
 
 				TGNoradNotNullPointer<_TROFLy, _TRefCounter> operator&() {

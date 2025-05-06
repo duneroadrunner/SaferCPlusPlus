@@ -1408,6 +1408,24 @@ namespace mse {
 				void operator +=(difference_type x) { m_random_access_iterator += x; }
 				difference_type operator-(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) const {
 					const TCommonizedRandomAccessIterator* crai_ptr = dynamic_cast<const TCommonizedRandomAccessIterator*>(&_Right_cref);
+
+#if !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+					if (!crai_ptr) {
+						/* The right argument cannot be dynamically cast to match the left argument. The discrepancy might only be a `const`
+						qualification of the target object type, in which case it should be safe to just reinterpret_cast<> the right argument
+						to match the `const`ness of the left argument. */
+						MSE_IF_CONSTEXPR(std::is_const<_Ty>::value && (!std::is_const<mse::impl::target_type<_TRandomAccessIterator1> >::value)) {
+							/* We're relying on TCommonRandomAccessIteratorInterface<T> and TCommonRandomAccessIteratorInterface<const T> being "structurally identical". */
+							auto& _Right_rc_cref = reinterpret_cast<const TCommonRandomAccessIteratorInterface<mse::impl::remove_const_t<_Ty> >&>(_Right_cref);
+							auto* crai_rc_ptr = dynamic_cast<const TCommonizedRandomAccessIterator<mse::impl::remove_const_t<_Ty>, _TRandomAccessIterator1>*>(&_Right_rc_cref);
+							if (crai_rc_ptr) {
+								/* We're relying on TCommonizedRandomAccessIterator<T, _TRandomAccessIterator1> and TCommonizedRandomAccessIterator<const T, _TRandomAccessIterator1> being "structurally identical". */
+								crai_ptr = reinterpret_cast<const TCommonizedRandomAccessIterator*>(crai_rc_ptr);
+							}
+						}
+					}
+#endif // !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+
 					if (!crai_ptr) {
 						MSE_THROW(std::logic_error("attempt to subtract or compare iterators of different (underlying) types - operator-() - TCommonizedRandomAccessIterator"));
 					}
@@ -1416,11 +1434,13 @@ namespace mse {
 				}
 				bool operator==(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) const {
 					const TCommonizedRandomAccessIterator* crai_ptr = dynamic_cast<const TCommonizedRandomAccessIterator*>(&_Right_cref);
+
+#if !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 					if (!crai_ptr) {
 						/* The right argument cannot be dynamically cast to match the left argument. The discrepancy might only be a `const` 
 						qualification of the target object type, in which case it should be safe to just reinterpret_cast<> the right argument 
 						to match the `const`ness of the left argument. */
-						MSE_IF_CONSTEXPR(std::is_const<_Ty>::value) {
+						MSE_IF_CONSTEXPR(std::is_const<_Ty>::value && (!std::is_const<mse::impl::target_type<_TRandomAccessIterator1> >::value)) {
 							/* We're relying on TCommonRandomAccessIteratorInterface<T> and TCommonRandomAccessIteratorInterface<const T> being "structurally identical". */
 							auto& _Right_rc_cref = reinterpret_cast<const TCommonRandomAccessIteratorInterface<mse::impl::remove_const_t<_Ty> >&>(_Right_cref);
 							auto* crai_rc_ptr = dynamic_cast<const TCommonizedRandomAccessIterator<mse::impl::remove_const_t<_Ty>, _TRandomAccessIterator1>*>(&_Right_rc_cref);
@@ -1428,16 +1448,10 @@ namespace mse {
 								/* We're relying on TCommonizedRandomAccessIterator<T, _TRandomAccessIterator1> and TCommonizedRandomAccessIterator<const T, _TRandomAccessIterator1> being "structurally identical". */
 								crai_ptr = reinterpret_cast<const TCommonizedRandomAccessIterator*>(crai_rc_ptr);
 							}
-						} else {
-							/* We're relying on TCommonRandomAccessIteratorInterface<T> and TCommonRandomAccessIteratorInterface<const T> being "structurally identical". */
-							auto& _Right_ac_cref = reinterpret_cast<const TCommonRandomAccessIteratorInterface<const _Ty>&>(_Right_cref);
-							auto* crai_ac_ptr = dynamic_cast<const TCommonizedRandomAccessIterator<const _Ty, _TRandomAccessIterator1>*>(&_Right_ac_cref);
-							if (crai_ac_ptr) {
-								/* We're relying on TCommonizedRandomAccessIterator<T, _TRandomAccessIterator1> and TCommonizedRandomAccessIterator<const T, _TRandomAccessIterator1> being "structurally identical". */
-								crai_ptr = reinterpret_cast<const TCommonizedRandomAccessIterator*>(crai_ac_ptr);
-							}
 						}
 					}
+#endif // !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+
 					if (!crai_ptr) {
 						//MSE_THROW(std::logic_error("attempt to compare iterators of different (underlying) types - operator==() - TCommonizedRandomAccessIterator"));
 						return false;
@@ -1447,6 +1461,21 @@ namespace mse {
 				}
 
 				_TRandomAccessIterator1 m_random_access_iterator;
+
+				template<class T, class EqualTo>
+				struct IsDynamicCastable_impl
+				{
+					template<class U, class V>
+					static auto test(U*) -> decltype(dynamic_cast<const TCommonizedRandomAccessIterator<mse::impl::remove_const_t<_Ty>, U>*>(&std::declval<const TCommonRandomAccessIteratorInterface<_Ty>&>()), dynamic_cast<const TCommonizedRandomAccessIterator<mse::impl::remove_const_t<_Ty>, V>*>(&std::declval<const TCommonRandomAccessIteratorInterface<_Ty>&>()), bool(true));
+					template<typename, typename>
+					static auto test(...) -> std::false_type;
+
+					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct IsDynamicCastable : IsDynamicCastable_impl<
+					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 			};
 
 			/* Note: This class needs to be maintained as structurally identical to its non-const counterpart (above) as there may 
@@ -1508,20 +1537,14 @@ namespace mse {
 				}
 				void operator +=(difference_type x) { m_random_access_const_iterator += x; }
 				difference_type operator-(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const {
-					const TCommonizedRandomAccessConstIterator* crai_ptr = dynamic_cast<const TCommonizedRandomAccessConstIterator*>(&_Right_cref);
-					if (!crai_ptr) {
-						MSE_THROW(std::logic_error("attempt to subtract or compare iterators of different (underlying) types - operator-() - TCommonizedRandomAccessConstIterator"));
-					}
-					const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*crai_ptr).m_random_access_const_iterator;
-					return m_random_access_const_iterator - _Right_cref_m_random_access_const_iterator_cref;
-				}
-				bool operator==(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const {
 					const TCommonizedRandomAccessConstIterator* craci_ptr = dynamic_cast<const TCommonizedRandomAccessConstIterator*>(&_Right_cref);
+
+#if !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 					if (!craci_ptr) {
 						/* The right argument cannot be dynamically cast to match the left argument. The discrepancy might only be a `const`
 						qualification of the target object type, in which case it should be safe to just reinterpret_cast<> the right argument
 						to match the `const`ness of the left argument. */
-						MSE_IF_CONSTEXPR(std::is_const<_Ty>::value) {
+						MSE_IF_CONSTEXPR(std::is_const<_Ty>::value && (!std::is_const<mse::impl::target_type<_TRandomAccessConstIterator1> >::value)) {
 							/* We're relying on TCommonRandomAccessConstIteratorInterface<T> and TCommonRandomAccessConstIteratorInterface<const T> being "structurally identical". */
 							auto& _Right_rc_cref = reinterpret_cast<const TCommonRandomAccessConstIteratorInterface<mse::impl::remove_const_t<_Ty> >&>(_Right_cref);
 							auto* craci_rc_ptr = dynamic_cast<const TCommonizedRandomAccessConstIterator<mse::impl::remove_const_t<_Ty>, _TRandomAccessConstIterator1>*>(&_Right_rc_cref);
@@ -1529,7 +1552,7 @@ namespace mse {
 								/* We're relying on TCommonizedRandomAccessConstIterator<T, _TRandomAccessConstIterator1> and TCommonizedRandomAccessConstIterator<const T, _TRandomAccessConstIterator1> being "structurally identical". */
 								craci_ptr = reinterpret_cast<const TCommonizedRandomAccessConstIterator*>(craci_rc_ptr);
 							}
-						} else {
+						} else MSE_IF_CONSTEXPR(!std::is_const<_Ty>::value) {
 							/* We're relying on TCommonRandomAccessConstIteratorInterface<T> and TCommonRandomAccessConstIteratorInterface<const T> being "structurally identical". */
 							auto& _Right_ac_cref = reinterpret_cast<const TCommonRandomAccessConstIteratorInterface<const _Ty>&>(_Right_cref);
 							auto* craci_ac_ptr = dynamic_cast<const TCommonizedRandomAccessConstIterator<const _Ty, _TRandomAccessConstIterator1>*>(&_Right_ac_cref);
@@ -1539,6 +1562,42 @@ namespace mse {
 							}
 						}
 					}
+#endif // !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+
+					if (!craci_ptr) {
+						MSE_THROW(std::logic_error("attempt to subtract or compare iterators of different (underlying) types - operator-() - TCommonizedRandomAccessConstIterator"));
+					}
+					const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*craci_ptr).m_random_access_const_iterator;
+					return m_random_access_const_iterator - _Right_cref_m_random_access_const_iterator_cref;
+				}
+				bool operator==(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const {
+					const TCommonizedRandomAccessConstIterator* craci_ptr = dynamic_cast<const TCommonizedRandomAccessConstIterator*>(&_Right_cref);
+
+#if !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+					if (!craci_ptr) {
+						/* The right argument cannot be dynamically cast to match the left argument. The discrepancy might only be a `const`
+						qualification of the target object type, in which case it should be safe to just reinterpret_cast<> the right argument
+						to match the `const`ness of the left argument. */
+						MSE_IF_CONSTEXPR(std::is_const<_Ty>::value && (!std::is_const<mse::impl::target_type<_TRandomAccessConstIterator1> >::value)) {
+							/* We're relying on TCommonRandomAccessConstIteratorInterface<T> and TCommonRandomAccessConstIteratorInterface<const T> being "structurally identical". */
+							auto& _Right_rc_cref = reinterpret_cast<const TCommonRandomAccessConstIteratorInterface<mse::impl::remove_const_t<_Ty> >&>(_Right_cref);
+							auto* craci_rc_ptr = dynamic_cast<const TCommonizedRandomAccessConstIterator<mse::impl::remove_const_t<_Ty>, _TRandomAccessConstIterator1>*>(&_Right_rc_cref);
+							if (craci_rc_ptr) {
+								/* We're relying on TCommonizedRandomAccessConstIterator<T, _TRandomAccessConstIterator1> and TCommonizedRandomAccessConstIterator<const T, _TRandomAccessConstIterator1> being "structurally identical". */
+								craci_ptr = reinterpret_cast<const TCommonizedRandomAccessConstIterator*>(craci_rc_ptr);
+							}
+						} else MSE_IF_CONSTEXPR(!std::is_const<_Ty>::value) {
+							/* We're relying on TCommonRandomAccessConstIteratorInterface<T> and TCommonRandomAccessConstIteratorInterface<const T> being "structurally identical". */
+							auto& _Right_ac_cref = reinterpret_cast<const TCommonRandomAccessConstIteratorInterface<const _Ty>&>(_Right_cref);
+							auto* craci_ac_ptr = dynamic_cast<const TCommonizedRandomAccessConstIterator<const _Ty, _TRandomAccessConstIterator1>*>(&_Right_ac_cref);
+							if (craci_ac_ptr) {
+								/* We're relying on TCommonizedRandomAccessConstIterator<T, _TRandomAccessConstIterator1> and TCommonizedRandomAccessConstIterator<const T, _TRandomAccessConstIterator1> being "structurally identical". */
+								craci_ptr = reinterpret_cast<const TCommonizedRandomAccessConstIterator*>(craci_ac_ptr);
+							}
+						}
+					}
+#endif // !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+
 					if (!craci_ptr) {
 						//MSE_THROW(std::logic_error("attempt to compare iterators of different (underlying) types - operator==() - TCommonizedRandomAccessConstIterator"));
 						return false;
@@ -2905,7 +2964,7 @@ namespace mse {
 				}
 #endif // !defined(MSE_HAS_CXX17)
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 				friend bool operator!=(const std::nullptr_t& _Left_cref, const TNullableAnyRandomAccessIteratorBase& _Right_cref) {
 					return !(_Left_cref == _Right_cref);
 				}
@@ -2919,7 +2978,7 @@ namespace mse {
 				friend bool operator==(const TNullableAnyRandomAccessIteratorBase& _Left_cref, const std::nullptr_t&) {
 					return !bool(_Left_cref);
 				}
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 #ifndef MSE_HAS_CXX20
 				template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TNullableAnyRandomAccessIteratorBase, TRHS>::value)> MSE_IMPL_EIS >
 				friend bool operator!=(const std::nullptr_t& _Left_cref, const TRHS& _Right_cref) {
@@ -2939,7 +2998,7 @@ namespace mse {
 				friend bool operator==(const TLHS& _Left_cref, const std::nullptr_t&) {
 					return !bool(_Left_cref);
 				}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 
 				TNullableAnyRandomAccessIteratorBase& operator=(const std::nullptr_t& _Right_cref) {
 					return operator=(TNullableAnyRandomAccessIteratorBase());
@@ -3002,7 +3061,7 @@ namespace mse {
 			std::swap(first.contained_iter(), second.contained_iter());
 		}
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 		friend bool operator!=(const std::nullptr_t& _Left_cref, const TNullableAnyRandomAccessIterator& _Right_cref) {
 			return !(_Left_cref == _Right_cref);
 		}
@@ -3016,7 +3075,7 @@ namespace mse {
 		friend bool operator==(const TNullableAnyRandomAccessIterator& _Left_cref, const std::nullptr_t&) {
 			return !bool(_Left_cref);
 		}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 
 		TNullableAnyRandomAccessIterator& operator=(const std::nullptr_t& _Right_cref) {
 			return operator=(TNullableAnyRandomAccessIterator());
@@ -3074,7 +3133,7 @@ namespace mse {
 			std::swap(first.contained_iter(), second.contained_iter());
 		}
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 		friend bool operator!=(const std::nullptr_t& _Left_cref, const TXScopeNullableAnyRandomAccessIterator& _Right_cref) {
 			return !(_Left_cref == _Right_cref);
 		}
@@ -3088,7 +3147,7 @@ namespace mse {
 		friend bool operator==(const TXScopeNullableAnyRandomAccessIterator& _Left_cref, const std::nullptr_t&) {
 			return !bool(_Left_cref);
 		}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 
 		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeNullableAnyRandomAccessIterator);
 

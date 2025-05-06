@@ -89,6 +89,10 @@
 #define MSE_LH_STRCPY(destination, source) strcpy(destination, source)
 #define MSE_LH_STRCMP(destination, source) strcmp(destination, source)
 #define MSE_LH_STRNCMP(destination, source, count) strncmp(destination, source, count)
+#define MSE_LH_STRTOL(str, pointer_to_end_iterator, base) strtol(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOLL(str, pointer_to_end_iterator, base) strtoll(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOUL(str, pointer_to_end_iterator, base) strtoul(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOULL(str, pointer_to_end_iterator, base) strtoull(str, pointer_to_end_iterator, base)
 
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
 #define MSE_LH_POINTER_TYPE(element_type) element_type *
@@ -162,6 +166,10 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_STRCPY(destination, source) mse::lh::strcpy(destination, source)
 #define MSE_LH_STRCMP(destination, source) mse::lh::strcmp(destination, source)
 #define MSE_LH_STRNCMP(destination, source, count) mse::lh::strncmp(destination, source, count)
+#define MSE_LH_STRTOL(str, pointer_to_end_iterator, base) mse::lh::strtol(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOLL(str, pointer_to_end_iterator, base) mse::lh::strtoll(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOUL(str, pointer_to_end_iterator, base) mse::lh::strtoul(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOULL(str, pointer_to_end_iterator, base) mse::lh::strtoull(str, pointer_to_end_iterator, base)
 
 /* MSE_LH_ADDRESSABLE_TYPE() is a type annotation used to indicate that the '&' operator may/will be used to obtain the address of
 the associated declared object(s). */
@@ -830,7 +838,7 @@ namespace mse {
 					}
 #endif // !defined(MSE_HAS_CXX17)
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 					friend bool operator!=(const std::nullptr_t& _Left_cref, const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
 						return !(_Left_cref == _Right_cref);
 					}
@@ -844,7 +852,7 @@ namespace mse {
 					friend bool operator==(const TLHNullableAnyRandomAccessIteratorBase& _Left_cref, const std::nullptr_t&) {
 						return !bool(_Left_cref);
 					}
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 #ifndef MSE_HAS_CXX20
 					template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TRHS>::value)> MSE_IMPL_EIS >
 					friend bool operator!=(const std::nullptr_t& _Left_cref, const TRHS& _Right_cref) {
@@ -864,7 +872,7 @@ namespace mse {
 					friend bool operator==(const TLHS& _Left_cref, const std::nullptr_t&) {
 						return !bool(_Left_cref);
 					}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSC_HAS_CXX17))
+#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 
 #if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 					friend bool operator!=(const NULL_t& _Left_cref, const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
@@ -2040,6 +2048,97 @@ namespace mse {
 			/* todo: This is technically not safe without first verifying that the iterators target contiguous storage. */
 			return std::strncmp(std::addressof(str1[0]), std::addressof(str2[0]), count2);
 		}
+
+		namespace impl {
+			namespace ns_strtox {
+				template <typename T>
+				using iterator_smoke_test = std::integral_constant<bool, mse::impl::is_contiguous_sequence_iterator<T>::value || (mse::impl::SupportsSubtraction_poly<T>::value && mse::impl::IsDereferenceable_pb<T>::value && mse::lh::impl::HasOrInheritsSubscriptOperator<T>::value)>;
+
+				template <class _TIter, class _TPointerToIter>
+				using strtox_tparams_smoke_test = std::integral_constant<bool, 
+					((iterator_smoke_test<_TIter>::value && std::is_same<const char, const mse::impl::target_or_void_type<_TIter> >::value) && (
+						std::is_same<std::nullptr_t, _TPointerToIter>::value
+						/* The interface of strtol() and friends can be potentially used to unsafely obtain a non-const reference to a const 
+						element. We'll try to see if we can get away with not supporting that unsafe use case. */
+						/*
+						|| std::is_base_of<mse::lh::TLHNullableAnyRandomAccessIterator<char>, mse::impl::target_or_void_type<_TPointerToIter> >::value
+						|| std::is_base_of<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<char>, mse::impl::target_or_void_type<_TPointerToIter> >::value
+						*/
+						|| std::is_assignable<mse::impl::target_or_void_type<_TPointerToIter>, _TIter>::value
+					)) || (std::is_convertible<_TIter, const char*>::value && std::is_same<_TPointerToIter, char**>::value)>;
+
+				template <typename T1, typename T2, typename T3>
+				void strtox_set_out_param_helper2(std::false_type, T1 const& str_end, T2 const& str, T3 const& distance) {
+					mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<const char> const& base_str_ref = str;
+					/* The value we need to set for (*str_end) is derived from the value of the (first) str parameter. But str is a
+					pointer/iterator to a const char, while (*str_end) is a pointer/iterator to a (non-const) char. So we need to do a
+					reinterpret_cast to obtain the needed pointer/iterator to a (non-const) char from the str parameter. Which should be
+					fine assuming that TLHNullableAnyRandomAccessIteratorBase<const char> and TLHNullableAnyRandomAccessIteratorBase<char>
+					are structurally identical. */
+					auto& ncbase_str_ref = reinterpret_cast<mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<char> const&>(base_str_ref);
+					(*str_end) = ncbase_str_ref;
+					(*str_end) += distance;
+					/* Of course it's not fine in the sense that it can be potentially used to obtain an unsafe non-const reference to a 
+					const element. The interface of strtol() and friends seems to be intrisically unsafe in this sense. Preferably our 
+					implementation wouldn't allow this unsafe use. (Presumably resulting in this part of the code being unreachable.) */
+				}
+				template <typename T1, typename T2, typename T3>
+				void strtox_set_out_param_helper2(std::true_type, T1 const& str_end, T2 const& str, T3 const& distance) {
+					(*str_end) = str + distance;
+				}
+
+				template <typename T2, typename T3>
+				void strtox_set_out_param_helper1(std::nullptr_t str_end, T2 const& str, T3 const& distance) {}
+				template <typename _TPointerToIter, typename _TIter, typename T3>
+				void strtox_set_out_param_helper1(_TPointerToIter const& str_end, _TIter const& str, T3 const& distance) {
+					strtox_set_out_param_helper2(std::is_assignable<typename mse::impl::target_or_void_type<_TPointerToIter>, _TIter>::type(), str_end, str, distance);
+				}
+
+				template<typename _TStrToXFunction, class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
+				auto strtox(_TIter const& str, _TPointerToIter const& str_end, int base) {
+					const auto len = strlen(str);
+					const char* start = std::addressof(*str);
+					char* end = bool(str_end) ? (char*)start : nullptr;
+					static const _TStrToXFunction fn;
+					auto retval = fn(start, &end, base);
+					if (end) {
+						auto distance = ((const char*)end - start);
+						assert(static_cast<decltype(distance)>(len) + 1 >= distance);
+						strtox_set_out_param_helper1(str_end, str, distance);
+					}
+					return retval;
+				}
+			}
+		}
+
+		template<class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtox::strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
+		auto strtol(_TIter const& str, _TPointerToIter const& str_end, int base) {
+			static const auto lambda1 = [](const char* str, char** str_end, int base) { return std::strtol(str, str_end, base); };
+			return impl::ns_strtox::strtox<decltype(lambda1)>(str, str_end, base);
+		}
+		auto strtol(const char* str, char** str_end, int base) { return std::strtol(str, str_end, base); }
+
+		template<class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtox::strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
+		auto strtoll(_TIter const& str, _TPointerToIter const& str_end, int base) {
+			static const auto lambda1 = [](const char* str, char** str_end, int base) { return std::strtoll(str, str_end, base); };
+			return impl::ns_strtox::strtox<decltype(lambda1)>(str, str_end, base);
+		}
+		auto strtoll(const char* str, char** str_end, int base) { return std::strtoll(str, str_end, base); }
+
+		template<class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtox::strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
+		auto strtoul(_TIter const& str, _TPointerToIter const& str_end, int base) {
+			static const auto lambda1 = [](const char* str, char** str_end, int base) { return std::strtoul(str, str_end, base); };
+			return impl::ns_strtox::strtox<decltype(lambda1)>(str, str_end, base);
+		}
+		auto strtoul(const char* str, char** str_end, int base) { return std::strtoul(str, str_end, base); }
+
+		template<class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtox::strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
+		auto strtoull(_TIter const& str, _TPointerToIter const& str_end, int base) {
+			static const auto lambda1 = [](const char* str, char** str_end, int base) { return std::strtoull(str, str_end, base); };
+			return impl::ns_strtox::strtox<decltype(lambda1)>(str, str_end, base);
+		}
+		auto strtoull(const char* str, char** str_end, int base) { return std::strtoull(str, str_end, base); }
+
 
 		typedef intptr_t lh_ssize_t;
 
