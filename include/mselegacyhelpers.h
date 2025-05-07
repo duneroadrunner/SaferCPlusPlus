@@ -2057,7 +2057,7 @@ namespace mse {
 				template <class _TIter, class _TPointerToIter>
 				using strtox_tparams_smoke_test = std::integral_constant<bool, 
 					((iterator_smoke_test<_TIter>::value && std::is_same<const char, const mse::impl::target_or_void_type<_TIter> >::value) && (
-						std::is_same<std::nullptr_t, _TPointerToIter>::value
+						std::is_same<std::nullptr_t, _TPointerToIter>::value || std::is_same<NULL_t, _TPointerToIter>::value
 						/* The interface of strtol() and friends can be potentially used to unsafely obtain a non-const reference to a const 
 						element. We'll try to see if we can get away with not supporting that unsafe use case. */
 						/*
@@ -2089,6 +2089,8 @@ namespace mse {
 
 				template <typename T2, typename T3>
 				void strtox_set_out_param_helper1(std::nullptr_t str_end, T2 const& str, T3 const& distance) {}
+				template <typename T2, typename T3>
+				void strtox_set_out_param_helper1(NULL_t str_end, T2 const& str, T3 const& distance) {}
 				template <typename _TPointerToIter, typename _TIter, typename T3>
 				void strtox_set_out_param_helper1(_TPointerToIter const& str_end, _TIter const& str, T3 const& distance) {
 					strtox_set_out_param_helper2(std::is_assignable<typename mse::impl::target_or_void_type<_TPointerToIter>, _TIter>::type(), str_end, str, distance);
