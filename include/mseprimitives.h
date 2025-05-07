@@ -231,10 +231,13 @@ namespace mse {
 		bool& mse_base_type_ref() & { (*this).assert_initialized(); return (*this).m_val; }
 		bool& mse_base_type_ref() && = delete;
 
-		bool operator ==(const CNDBool &x) const { assert_initialized(); return (m_val == x.m_val); }
-		bool operator ==(bool x) const { assert_initialized(); return (m_val == x); }
-		bool operator !=(const CNDBool& x) const { assert_initialized(); return (m_val != x.m_val); }
-		bool operator !=(bool x) const { assert_initialized(); return (m_val != x); }
+		/* For comparisons, we're just going to rely on our operator bool() and the native bool comparison operators. */
+		/*
+		bool operator ==(const CNDBool &x) const { return (bool(*this) == bool(x)); }
+		bool operator ==(bool x) const { return (bool(*this) == x); }
+		bool operator !=(const CNDBool& x) const { return (bool(*this) != bool(x)); }
+		bool operator !=(bool x) const { return (bool(*this) != x); }
+		*/
 
 		CNDBool& operator |=(const CNDBool &x) { assert_initialized(); m_val |= x.m_val; return (*this); }
 		CNDBool& operator &=(const CNDBool &x) { assert_initialized(); m_val &= x.m_val; return (*this); }
@@ -629,8 +632,7 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 		//explicit TInt(const base_class &x) : base_class(x) {};
 		//explicit TInt(const TSize_t &x) : base_class(CNDInt(x)) { (*this).template assign_check_range<CNDInt>(CNDInt(x)); };
 
-		template<typename _Ty/*, class = typename std::enable_if<!std::is_same<typename std::remove_reference<
-			typename std::remove_const<_Ty>::type>::type, TSize_t>::value, void>::type*/>
+		template<typename _Ty, class = typename std::enable_if<std::is_convertible<_Ty, base_type>::value, void>::type>
 		TInt(const _Ty& x) : base_class(checked_and_adjusted_x(x)) {}
 
 		TInt& operator=(const TInt &x) { (*this).note_value_assignment(); (*this).m_val = x.m_val; return (*this); }
@@ -758,8 +760,8 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 			return (mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>((*this).m_val) - mse::impl::native_int_subtract_result_type1<base_type, base_type, TOption1>(x.m_val));
 #endif /*MSE_IMPL_HAS__builtin_sub_overflow*/
 		}
-		template<typename _Ty2>
-		auto operator -(const TInt<_Ty2> &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
+		template<typename _Ty2, typename TOption2>
+		auto operator -(const TInt<_Ty2, TOption2> &x) const ->MSE_TINT_SUBTRACT_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
 			(*this).assert_initialized();
 			return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>((*this).m_val) - TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
@@ -842,8 +844,8 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 			return (mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>((*this).m_val) * mse::impl::native_int_multiply_result_type1<base_type, base_type, TOption1>(x.m_val));
 #endif /*MSE_IMPL_HAS__builtin_mul_overflow*/
 		}
-		template<typename _Ty2>
-		auto operator *(const TInt<_Ty2> &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
+		template<typename _Ty2, typename TOption2>
+		auto operator *(const TInt<_Ty2, TOption2> &x) const ->MSE_TINT_MULTIPLY_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
 			(*this).assert_initialized();
 			return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>((*this).m_val) * TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>(x.m_val));
 		}
@@ -873,47 +875,48 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 			check_for_divide_overflow<mse::impl::native_int_divide_result_type1<base_type, base_type, TOption1> >((*this).m_val, x.m_val);
 			return (mse::impl::native_int_divide_result_type1<base_type, base_type, TOption1>((*this).m_val) / mse::impl::native_int_divide_result_type1<base_type, base_type, TOption1>(x.m_val));
 		}
-		template<typename _Ty2>
-		auto operator /(const TInt<_Ty2> &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
+		template<typename _Ty2, typename TOption2>
+		auto operator /(const TInt<_Ty2, TOption2> &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TInt, TInt<_Ty2>, TOption1) {
 			(*this).assert_initialized();
 			return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>((*this).m_val) / TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>), TOption1>(x.m_val));
 		}
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator /(_Ty2 x) const { (*this).assert_initialized(); return ((*this) / TInt<_Ty2>(x)); }
 
-		bool operator ==(const TInt& x) const { (*this).assert_initialized(); return (((*this).m_val) == (x.m_val)); }
-		template<typename _Ty2>
-		bool operator ==(const TInt<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) == MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		/* We use templated equality comparison operators only in an attempt to avoid compile errors due to ambiguity. */
+		//bool operator ==(const TInt& x) const { (*this).assert_initialized(); x.assert_initialized(); return (((*this).m_val) == (x.m_val)); }
+		template<typename _Ty2, typename TOption2>
+		bool operator ==(const TInt<_Ty2, TOption2>& x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) == MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		bool operator ==(_Ty2 x) const { (*this).assert_initialized(); return ((*this) == TInt<_Ty2>(x)); }
 
-		bool operator !=(const TInt& x) const { (*this).assert_initialized(); return (((*this).m_val) != (x.m_val)); }
-		template<typename _Ty2>
-		bool operator !=(const TInt<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) != MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		//bool operator !=(const TInt& x) const { return !((*this) == x); }
+		template<typename _Ty2, typename TOption2>
+		bool operator !=(const TInt<_Ty2, TOption2>& x) const { return !((*this) == x); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
-		bool operator !=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) != TInt<_Ty2>(x)); }
+		bool operator !=(_Ty2 x) const { return !((*this) == x); }
 
-		bool operator <(const TInt &x) const { (*this).assert_initialized(); return (((*this).m_val) < (x.m_val)); }
+		//bool operator <(const TInt &x) const { (*this).assert_initialized(); x.assert_initialized(); return (((*this).m_val) < (x.m_val)); }
 		template<typename _Ty2>
-		bool operator <(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) < MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		bool operator <(const TInt<_Ty2> &x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) < MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		bool operator <(_Ty2 x) const { (*this).assert_initialized(); return ((*this) < TInt<_Ty2>(x)); }
 
-		bool operator >(const TInt &x) const { (*this).assert_initialized(); return (((*this).m_val) > (x.m_val)); }
+		//bool operator >(const TInt &x) const { (*this).assert_initialized(); x.assert_initialized(); return (((*this).m_val) > (x.m_val)); }
 		template<typename _Ty2>
-		bool operator >(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) > MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		bool operator >(const TInt<_Ty2> &x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) > MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		bool operator >(_Ty2 x) const { (*this).assert_initialized(); return ((*this) > TInt<_Ty2>(x)); }
 
-		bool operator <=(const TInt &x) const { (*this).assert_initialized(); return (((*this).m_val) <= (x.m_val)); }
+		//bool operator <=(const TInt &x) const { (*this).assert_initialized(); x.assert_initialized(); return (((*this).m_val) <= (x.m_val)); }
 		template<typename _Ty2>
-		bool operator <=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) <= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		bool operator <=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) <= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		bool operator <=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) <= TInt<_Ty2>(x)); }
 
-		bool operator >=(const TInt &x) const { (*this).assert_initialized(); return (((*this).m_val) >= (x.m_val)); }
+		//bool operator >=(const TInt &x) const { (*this).assert_initialized(); x.assert_initialized(); return (((*this).m_val) >= (x.m_val)); }
 		template<typename _Ty2>
-		bool operator >=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) >= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
+		bool operator >=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)((*this).m_val) >= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TInt, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		bool operator >=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) >= TInt<_Ty2>(x)); }
 
@@ -1132,7 +1135,7 @@ namespace mse {
 		//TSize_t(const base_class &x) : base_class(x) {};
 		/*explicit */TSize_t(CNDInt x) : base_class(static_cast<base_type>(x)) { (*this).template assign_check_range<CNDInt>(x); }
 
-		template<typename _Ty>
+		template<typename _Ty, class = typename std::enable_if<std::is_convertible<_Ty, base_type>::value, void>::type>
 		TSize_t(const _Ty& x) : base_class(static_cast<base_type>(x)) { (*this).template assign_check_range<_Ty>(x); }
 
 		TSize_t& operator=(const TSize_t &x) { (*this).note_value_assignment(); (*this).m_val = x.m_val; return (*this); }
@@ -1171,20 +1174,20 @@ namespace mse {
 		TSize_t& operator <<=(const TSize_t &x) { (*this) = (*this) << x; return (*this); }
 
 		auto operator +(const TSize_t& x) const->MSE_TINT_ADD_RESULT_TYPE1(TSize_t, TSize_t, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(base_type, base_type), TOption1>((*this).m_val) + MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(base_type, base_type)(x.m_val)); }
-		template<typename _Ty2>
-		auto operator +(const TInt<_Ty2>& x) const->MSE_TINT_ADD_RESULT_TYPE1(TSize_t, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>((*this).m_val) + TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>(x.m_val)); }
+		template<typename _Ty2, typename TOption2>
+		auto operator +(const TInt<_Ty2, TOption2>& x) const->MSE_TINT_ADD_RESULT_TYPE1(TSize_t, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>((*this).m_val) + TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator +(_Ty2 x) const { (*this).assert_initialized(); return ((*this) + TInt<_Ty2>(x)); }
 
 		auto operator -(const TSize_t& x) const->MSE_TINT_SUBTRACT_RESULT_TYPE1(TSize_t, TSize_t, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(base_type, base_type), TOption1>((*this).m_val) - MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(base_type, base_type)(x.m_val)); }
-		template<typename _Ty2>
-		auto operator -(const TInt<_Ty2>& x) const->MSE_TINT_SUBTRACT_RESULT_TYPE1(TSize_t, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>((*this).m_val) - TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>(x.m_val)); }
+		template<typename _Ty2, typename TOption2>
+		auto operator -(const TInt<_Ty2, TOption2>& x) const->MSE_TINT_SUBTRACT_RESULT_TYPE1(TSize_t, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>((*this).m_val) - TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator -(_Ty2 x) const { (*this).assert_initialized(); return ((*this) - TInt<_Ty2>(x)); }
 
 		auto operator *(const TSize_t& x) const->MSE_TINT_MULTIPLY_RESULT_TYPE1(TSize_t, TSize_t, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(base_type, base_type), TOption1>((*this).m_val) * MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(base_type, base_type)(x.m_val)); }
-		template<typename _Ty2>
-		auto operator *(const TInt<_Ty2>& x) const->MSE_TINT_MULTIPLY_RESULT_TYPE1(TSize_t, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>((*this).m_val) * TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>(x.m_val)); }
+		template<typename _Ty2, typename TOption2>
+		auto operator *(const TInt<_Ty2, TOption2>& x) const->MSE_TINT_MULTIPLY_RESULT_TYPE1(TSize_t, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>((*this).m_val) * TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator *(_Ty2 x) const { (*this).assert_initialized(); return ((*this) * TInt<_Ty2>(x)); }
 
@@ -1194,56 +1197,63 @@ namespace mse {
 		}
 		TSignedSize_t operator /(const CNDInt &x) const { (*this).assert_initialized(); return (TSignedSize_t(m_val) / x); }
 		TSize_t operator /(size_t x) const { (*this).assert_initialized(); return ((*this) / TSize_t(x)); }
-		template<typename _Ty2>
-		auto operator /(const TInt<_Ty2> &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TSize_t, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>((*this).m_val) / TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>(x.m_val)); }
+		template<typename _Ty2, typename TOption2>
+		auto operator /(const TInt<_Ty2, TOption2> &x) const->MSE_TINT_DIVIDE_RESULT_TYPE1(TSize_t, TInt<_Ty2>, TOption1) { (*this).assert_initialized(); return (TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>((*this).m_val) / TInt<MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>), TOption1>(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		auto operator /(_Ty2 x) const { (*this).assert_initialized(); return ((*this) / TInt<_Ty2>(x)); }
 
-		bool operator ==(const TSize_t& x) const { (*this).assert_initialized(); return (m_val == x.m_val); }
-		bool operator ==(const CNDInt& x) const { (*this).assert_initialized(); return (TSignedSize_t(m_val) == x); }
-		bool operator ==(size_t x) const { (*this).assert_initialized(); return ((*this) == TSize_t(x)); }
-		template<typename _Ty2>
-		bool operator ==(const TInt<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) == MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
+		/* We use templated equality comparison operators only in an attempt to avoid compile errors due to ambiguity. */
+		template<typename TOption2>
+		bool operator ==(const TSize_t<TOption2>& x) const { (*this).assert_initialized(); x.assert_initialized(); return (m_val == x.m_val); }
+		//bool operator ==(const CNDInt& x) const { (*this).assert_initialized(); x.assert_initialized(); return (TSignedSize_t(m_val) == x); }
+		//bool operator ==(size_t x) const { (*this).assert_initialized(); return ((*this) == TSize_t(x)); }
+		template<typename _Ty2, typename TOption2>
+		bool operator ==(const TInt<_Ty2, TOption2>& x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) == MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		bool operator ==(_Ty2 x) const { (*this).assert_initialized(); return ((*this) == TInt<_Ty2>(x)); }
 
-		bool operator !=(const TSize_t& x) const { (*this).assert_initialized(); return (m_val != x.m_val); }
-		bool operator !=(const CNDInt& x) const { (*this).assert_initialized(); return (TSignedSize_t(m_val) != x); }
-		bool operator !=(size_t x) const { (*this).assert_initialized(); return ((*this) != TSize_t(x)); }
+		template<typename TOption2>
+		bool operator !=(const TSize_t<TOption2>& x) const { return !((*this) == x); }
+		//bool operator !=(const CNDInt& x) const { return !((*this) == x); }
+		//bool operator !=(size_t x) const { return !((*this) == x); }
 		template<typename _Ty2>
-		bool operator !=(const TInt<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) != MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
+		bool operator !=(const TInt<_Ty2>& x) const { return !((*this) == x); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
-		bool operator !=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) != TInt<_Ty2>(x)); }
+		bool operator !=(_Ty2 x) const { return !((*this) == x); }
 
-		bool operator <(const TSize_t &x) const { (*this).assert_initialized(); return (m_val < x.m_val); }
-		bool operator <(const CNDInt &x) const { (*this).assert_initialized(); return (TSignedSize_t(m_val) < x); }
-		bool operator <(size_t x) const { (*this).assert_initialized(); return ((*this) < TSize_t(x)); }
+		template<typename TOption2>
+		bool operator <(const TSize_t<TOption2> &x) const { (*this).assert_initialized(); x.assert_initialized(); return (m_val < x.m_val); }
+		//bool operator <(const CNDInt &x) const { (*this).assert_initialized(); x.assert_initialized(); return (TSignedSize_t(m_val) < x); }
+		//bool operator <(size_t x) const { (*this).assert_initialized(); return ((*this) < TSize_t(x)); }
 		template<typename _Ty2>
-		bool operator <(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) < MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
+		bool operator <(const TInt<_Ty2> &x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) < MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		bool operator <(_Ty2 x) const { (*this).assert_initialized(); return ((*this) < TInt<_Ty2>(x)); }
 
-		bool operator >(const TSize_t &x) const { (*this).assert_initialized(); return (m_val > x.m_val); }
-		bool operator >(const CNDInt &x) const { (*this).assert_initialized(); return (TSignedSize_t(m_val) > x); }
-		bool operator >(size_t x) const { (*this).assert_initialized(); return ((*this) > TSize_t(x)); }
+		template<typename TOption2>
+		bool operator >(const TSize_t<TOption2>&x) const { (*this).assert_initialized(); x.assert_initialized(); return (m_val > x.m_val); }
+		//bool operator >(const CNDInt &x) const { (*this).assert_initialized(); x.assert_initialized(); return (TSignedSize_t(m_val) > x); }
+		//bool operator >(size_t x) const { (*this).assert_initialized(); return ((*this) > TSize_t(x)); }
 		template<typename _Ty2>
-		bool operator >(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) > MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
+		bool operator >(const TInt<_Ty2> &x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) > MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		bool operator >(_Ty2 x) const { (*this).assert_initialized(); return ((*this) > TInt<_Ty2>(x)); }
 
-		bool operator <=(const TSize_t &x) const { (*this).assert_initialized(); return (m_val <= x.m_val); }
-		bool operator <=(const CNDInt &x) const { (*this).assert_initialized(); return (TSignedSize_t(m_val) <= x); }
-		bool operator <=(size_t x) const { (*this).assert_initialized(); return ((*this) <= TSize_t(x)); }
+		template<typename TOption2>
+		bool operator <=(const TSize_t<TOption2>&x) const { (*this).assert_initialized(); x.assert_initialized(); return (m_val <= x.m_val); }
+		//bool operator <=(const CNDInt &x) const { (*this).assert_initialized(); x.assert_initialized(); return (TSignedSize_t(m_val) <= x); }
+		//bool operator <=(size_t x) const { (*this).assert_initialized(); return ((*this) <= TSize_t(x)); }
 		template<typename _Ty2>
-		bool operator <=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) <= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
+		bool operator <=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) <= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		bool operator <=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) <= TInt<_Ty2>(x)); }
 
-		bool operator >=(const TSize_t &x) const { (*this).assert_initialized(); return (m_val >= x.m_val); }
-		bool operator >=(const CNDInt &x) const { (*this).assert_initialized(); return (TSignedSize_t(m_val) >= x); }
-		bool operator >=(size_t x) const { (*this).assert_initialized(); return ((*this) >= TSize_t(x)); }
+		template<typename TOption2>
+		bool operator >=(const TSize_t<TOption2>&x) const { (*this).assert_initialized(); x.assert_initialized(); return (m_val >= x.m_val); }
+		//bool operator >=(const CNDInt &x) const { (*this).assert_initialized(); x.assert_initialized(); return (TSignedSize_t(m_val) >= x); }
+		//bool operator >=(size_t x) const { (*this).assert_initialized(); return ((*this) >= TSize_t(x)); }
 		template<typename _Ty2>
-		bool operator >=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) >= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
+		bool operator >=(const TInt<_Ty2> &x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)((*this).m_val) >= MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(TSize_t, TInt<_Ty2>)(x.m_val)); }
 		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
 		bool operator >=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) >= TInt<_Ty2>(x)); }
 
@@ -1416,8 +1426,7 @@ namespace mse {
 		//explicit TFloatingPoint(const base_class &x) : base_class(x) {};
 		//explicit TFloatingPoint(const TSize_t &x) : base_class(CNDInt(x)) { (*this).template assign_check_range<CNDInt>(CNDInt(x)); };
 
-		template<typename _Ty/*, class = typename std::enable_if<!std::is_same<typename std::remove_reference<
-			typename std::remove_const<_Ty>::type>::type, TSize_t>::value, void>::type*/>
+		template<typename _Ty, class = typename std::enable_if<std::is_convertible<_Ty, base_type>::value, void>::type>
 			TFloatingPoint(const _Ty& x) : base_class(checked_and_adjusted_x(x)) {}
 
 		TFloatingPoint& operator=(const TFloatingPoint& x) { (*this).note_value_assignment(); (*this).m_val = x.m_val; return (*this); }
@@ -1432,73 +1441,87 @@ namespace mse {
 		base_type& mse_base_type_ref() && = delete;
 
 		auto operator -() const->MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); return -((*this).m_val); }
-		TFloatingPoint& operator +=(const TFloatingPoint& x) { (*this).assert_initialized(); (*this).m_val += x.m_val; return (*this); }
-		TFloatingPoint& operator -=(const TFloatingPoint& x) { (*this).assert_initialized(); (*this).m_val -= x.m_val; return (*this); }
-		TFloatingPoint& operator *=(const TFloatingPoint& x) { (*this).assert_initialized(); (*this).m_val *= x.m_val; return (*this); }
-		TFloatingPoint& operator /=(const TFloatingPoint& x) { (*this).assert_initialized(); (*this).m_val /= x.m_val; return (*this); }
+		TFloatingPoint& operator +=(const TFloatingPoint& x) { (*this) = (*this) + x; return (*this); }
+		TFloatingPoint& operator -=(const TFloatingPoint& x) { (*this) = (*this) - x; return (*this); }
+		TFloatingPoint& operator *=(const TFloatingPoint& x) { (*this) = (*this) * x; return (*this); }
+		TFloatingPoint& operator /=(const TFloatingPoint& x) { (*this) = (*this) / x; return (*this); }
 
-		auto operator +(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(base_type, base_type)((*this).m_val) + MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
+		//auto operator +(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); x.assert_initialized(); return (MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(base_type, base_type)((*this).m_val) + MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
-		auto operator +(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) + MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
-		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator +(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_ADD_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) {
+			(*this).assert_initialized(); x.assert_initialized();
+			typedef MSE_NATIVE_FLOATINGPOINT_ADD_RESULT_TYPE1(MSE_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint), MSE_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint<_Ty2>)) native_add_result_type;
+			return (native_add_result_type((*this).m_val) + native_add_result_type(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_floating_point<_Ty2>::value, void>::type>
 		auto operator +(_Ty2 x) const { (*this).assert_initialized(); return ((*this) + TFloatingPoint<_Ty2>(x)); }
 
-		auto operator -(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(base_type, base_type)((*this).m_val) - MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
+		//auto operator -(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); x.assert_initialized(); return (MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(base_type, base_type)((*this).m_val) - MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
-		auto operator -(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) - MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
-		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator -(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_SUBTRACT_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) {
+			(*this).assert_initialized(); x.assert_initialized();
+			typedef MSE_NATIVE_FLOATINGPOINT_SUBTRACT_RESULT_TYPE1(MSE_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint), MSE_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint<_Ty2>)) native_subtract_result_type;
+			return (native_subtract_result_type((*this).m_val) - native_subtract_result_type(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_floating_point<_Ty2>::value, void>::type>
 		auto operator -(_Ty2 x) const { (*this).assert_initialized(); return ((*this) - TFloatingPoint<_Ty2>(x)); }
 
-		auto operator *(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(base_type, base_type)((*this).m_val) * MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
+		//auto operator *(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); x.assert_initialized(); return (MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(base_type, base_type)((*this).m_val) * MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
-		auto operator *(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) * MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
-		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator *(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_MULTIPLY_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) {
+			(*this).assert_initialized(); x.assert_initialized();
+			typedef MSE_NATIVE_FLOATINGPOINT_MULTIPLY_RESULT_TYPE1(MSE_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint), MSE_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint<_Ty2>)) native_multiply_result_type;
+			return (native_multiply_result_type((*this).m_val) * native_multiply_result_type(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_floating_point<_Ty2>::value, void>::type>
 		auto operator *(_Ty2 x) const { (*this).assert_initialized(); return ((*this) * TFloatingPoint<_Ty2>(x)); }
 
-		auto operator /(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) {
-			if (x.m_val == 0) { MSE_THROW(std::domain_error("attempted division by zero - TFloatingPoint")); }
-			(*this).assert_initialized(); return (MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(base_type, base_type)((*this).m_val) / MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(base_type, base_type)(x.m_val));
-		}
+		//auto operator /(const TFloatingPoint& x) const->MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(TFloatingPoint, TFloatingPoint) { (*this).assert_initialized(); x.assert_initialized(); MSE_PRM_IF_CONSTEXPR(false) { if (x.m_val == 0) { MSE_THROW(std::domain_error("attempted division by zero - TFloatingPoint")); } } return (MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(base_type, base_type)((*this).m_val) / MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(base_type, base_type)(x.m_val)); }
 		template<typename _Ty2>
-		auto operator /(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) { (*this).assert_initialized(); return (MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) / MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
-		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		auto operator /(const TFloatingPoint<_Ty2>& x) const->MSE_TFLOATINGPOINT_DIVIDE_RESULT_TYPE1(TFloatingPoint, TFloatingPoint<_Ty2>) {
+			(*this).assert_initialized(); x.assert_initialized();
+			MSE_PRM_IF_CONSTEXPR(false) { if (x.m_val == 0) { MSE_THROW(std::domain_error("attempted division by zero - TFloatingPoint")); } }
+			typedef MSE_NATIVE_FLOATINGPOINT_DIVIDE_RESULT_TYPE1(MSE_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint), MSE_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint<_Ty2>)) native_divide_result_type;
+			return (native_divide_result_type((*this).m_val) / native_divide_result_type(x.m_val));
+		}
+		template<typename _Ty2, class = typename std::enable_if<std::is_floating_point<_Ty2>::value, void>::type>
 		auto operator /(_Ty2 x) const { (*this).assert_initialized(); return ((*this) / TFloatingPoint<_Ty2>(x)); }
 
-		bool operator ==(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) == (x.m_val)); }
+		/* For comparisons, we're just going to rely on our operator base_type() and the native floating-point comparison operators. */
+		/*
+		//bool operator ==(const TFloatingPoint& x) const { (*this).assert_initialized(); x.assert_initialized(); return (((*this).m_val) == (x.m_val)); }
 		template<typename _Ty2>
-		bool operator ==(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) == MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
-		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		bool operator ==(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); x.assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) == MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_floating_point<_Ty2>::value, void>::type>
 		bool operator ==(_Ty2 x) const { (*this).assert_initialized(); return ((*this) == TFloatingPoint<_Ty2>(x)); }
 
-		bool operator !=(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) != (x.m_val)); }
+		//bool operator !=(const TFloatingPoint& x) const { return !((*this) == x); }
 		template<typename _Ty2>
-		bool operator !=(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) != MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
-		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
-		bool operator !=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) != TFloatingPoint<_Ty2>(x)); }
+		bool operator !=(const TFloatingPoint<_Ty2>& x) const { return !((*this) == x); }
+		template<typename _Ty2, class = typename std::enable_if<std::is_floating_point<_Ty2>::value, void>::type>
+		bool operator !=(_Ty2 x) const { return !((*this) == x); }
 
 		bool operator <(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) < (x.m_val)); }
 		template<typename _Ty2>
 		bool operator <(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) < MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
-		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		template<typename _Ty2, class = typename std::enable_if<std::is_floating_point<_Ty2>::value, void>::type>
 		bool operator <(_Ty2 x) const { (*this).assert_initialized(); return ((*this) < TFloatingPoint<_Ty2>(x)); }
 
 		bool operator >(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) > (x.m_val)); }
 		template<typename _Ty2>
 		bool operator >(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) > MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
-		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		template<typename _Ty2, class = typename std::enable_if<std::is_floating_point<_Ty2>::value, void>::type>
 		bool operator >(_Ty2 x) const { (*this).assert_initialized(); return ((*this) > TFloatingPoint<_Ty2>(x)); }
 
 		bool operator <=(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) <= (x.m_val)); }
 		template<typename _Ty2>
 		bool operator <=(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) <= MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
-		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		template<typename _Ty2, class = typename std::enable_if<std::is_floating_point<_Ty2>::value, void>::type>
 		bool operator <=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) <= TFloatingPoint<_Ty2>(x)); }
 
 		bool operator >=(const TFloatingPoint& x) const { (*this).assert_initialized(); return (((*this).m_val) >= (x.m_val)); }
 		template<typename _Ty2>
 		bool operator >=(const TFloatingPoint<_Ty2>& x) const { (*this).assert_initialized(); return (MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)((*this).m_val) >= MSE_RANGE_ENCOMPASSING_NATIVE_FLOATINGPOINT_TYPE(TFloatingPoint, TFloatingPoint<_Ty2>)(x.m_val)); }
-		template<typename _Ty2, class = typename std::enable_if<std::is_integral<_Ty2>::value, void>::type>
+		template<typename _Ty2, class = typename std::enable_if<std::is_floating_point<_Ty2>::value, void>::type>
 		bool operator >=(_Ty2 x) const { (*this).assert_initialized(); return ((*this) >= TFloatingPoint<_Ty2>(x)); }
+		*/
 
 		void async_shareable_and_passable_tag() const {}
 
@@ -1630,50 +1653,57 @@ namespace mse {
 	inline auto operator/(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return TFloatingPoint<_Tz>(lhs) / rhs; }
 
 #ifndef MSE_PRM_HAS_CXX20
+	/* For comparisons, we're just going to rely on our operator bool() and the native bool comparison operators. */
+	/*
 	inline bool operator==(bool lhs, CNDBool rhs) { rhs.assert_initialized(); return CNDBool(lhs) == rhs; }
 	inline bool operator!=(bool lhs, CNDBool rhs) { rhs.assert_initialized(); return CNDBool(lhs) != rhs; }
+	*/
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator<(_Tz lhs, const TInt<_Ty>& rhs) { return rhs > lhs; }
 	template<typename _Tz, typename TOption1, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator<(_Tz lhs, const TSize_t<TOption1>& rhs) { return rhs > lhs; }
-	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
-	inline auto operator<(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs > lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator>(_Tz lhs, const TInt<_Ty>& rhs) { return rhs < lhs; }
 	template<typename _Tz, typename TOption1, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator>(_Tz lhs, const TSize_t<TOption1>& rhs) { return rhs < lhs; }
-	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
-	inline auto operator>(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs < lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator<=(_Tz lhs, const TInt<_Ty>& rhs) { return rhs >= lhs; }
 	template<typename _Tz, typename TOption1, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator<=(_Tz lhs, const TSize_t<TOption1>& rhs) { return rhs >= lhs; }
-	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
-	inline auto operator<=(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs >= lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator>=(_Tz lhs, const TInt<_Ty>& rhs) { return rhs <= lhs; }
 	template<typename _Tz, typename TOption1, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator>=(_Tz lhs, const TSize_t<TOption1>& rhs) { return rhs <= lhs; }
-	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
-	inline auto operator>=(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs <= lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator==(_Tz lhs, const TInt<_Ty>& rhs) { return rhs == lhs; }
 	template<typename _Tz, typename TOption1, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator==(_Tz lhs, const TSize_t<TOption1>& rhs) { return rhs == lhs; }
-	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
-	inline auto operator==(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs == lhs; }
 
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator!=(_Tz lhs, const TInt<_Ty>& rhs) { return rhs != lhs; }
 	template<typename _Tz, typename TOption1, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator!=(_Tz lhs, const TSize_t<TOption1>& rhs) { return rhs != lhs; }
+
+	/* For comparisons, we're just going to rely on our operator base_type() and the native floating-point comparison operators. */
+	/*
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator<(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs > lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator>(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs < lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator<=(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs >= lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator>=(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs <= lhs; }
+	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
+	inline auto operator==(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs == lhs; }
 	template<typename _Ty, typename _Tz, class = typename std::enable_if<(std::is_arithmetic<_Tz>::value), void>::type>
 	inline auto operator!=(_Tz lhs, const TFloatingPoint<_Ty>& rhs) { return rhs != lhs; }
+	*/
 #endif // !MSE_PRM_HAS_CXX20
 
 
