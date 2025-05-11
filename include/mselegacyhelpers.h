@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <stdint.h>
+#include <cinttypes> /* for strtoimax() */
 
 #ifdef _MSC_VER
 #pragma warning( push )  
@@ -30,10 +31,12 @@
 
 #ifdef __clang__
 #pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion-null"
+#pragma GCC diagnostic ignored "-Wunused-variable"
 #endif /*__GNUC__*/
 #endif /*__clang__*/
 
@@ -90,9 +93,15 @@
 #define MSE_LH_STRCMP(destination, source) strcmp(destination, source)
 #define MSE_LH_STRNCMP(destination, source, count) strncmp(destination, source, count)
 #define MSE_LH_STRTOL(str, pointer_to_end_iterator, base) strtol(str, pointer_to_end_iterator, base)
-#define MSE_LH_STRTOLL(str, pointer_to_end_iterator, base) strtoll(str, pointer_to_end_iterator, base)
 #define MSE_LH_STRTOUL(str, pointer_to_end_iterator, base) strtoul(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOLL(str, pointer_to_end_iterator, base) strtoll(str, pointer_to_end_iterator, base)
 #define MSE_LH_STRTOULL(str, pointer_to_end_iterator, base) strtoull(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOIMAX(str, pointer_to_end_iterator, base) imax(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOUMAX(str, pointer_to_end_iterator, base) umax(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOF(str, pointer_to_end_iterator) f(str, pointer_to_end_iterator)
+#define MSE_LH_STRTOD(str, pointer_to_end_iterator) d(str, pointer_to_end_iterator)
+#define MSE_LH_STRTOLD(str, pointer_to_end_iterator) ld(str, pointer_to_end_iterator)
+#define MSE_LH_CHAR_STAR_STAR_CAST_FOR_STRTOX(pointer_to_iterator_arg) (char **)(pointer_to_iterator_arg)
 
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
 #define MSE_LH_POINTER_TYPE(element_type) element_type *
@@ -110,6 +119,7 @@
 #define MSE_LH_UNSAFE_MAKE_TEMPORARY_ARRAY_OF_RAW_POINTERS_FROM(ptr) (ptr)
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) (ptr)
 #define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) (iter)
+#define MSE_LH_UNSAFE_MAKE_FN_WRAPPER(wrappee, function_pointer_with_desired_wrapper_signature) (wrappee)
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
@@ -167,9 +177,15 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_STRCMP(destination, source) mse::lh::strcmp(destination, source)
 #define MSE_LH_STRNCMP(destination, source, count) mse::lh::strncmp(destination, source, count)
 #define MSE_LH_STRTOL(str, pointer_to_end_iterator, base) mse::lh::strtol(str, pointer_to_end_iterator, base)
-#define MSE_LH_STRTOLL(str, pointer_to_end_iterator, base) mse::lh::strtoll(str, pointer_to_end_iterator, base)
 #define MSE_LH_STRTOUL(str, pointer_to_end_iterator, base) mse::lh::strtoul(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOLL(str, pointer_to_end_iterator, base) mse::lh::strtoll(str, pointer_to_end_iterator, base)
 #define MSE_LH_STRTOULL(str, pointer_to_end_iterator, base) mse::lh::strtoull(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOIMAX(str, pointer_to_end_iterator, base) mse::lh::strtoimax(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOUMAX(str, pointer_to_end_iterator, base) mse::lh::strtoumax(str, pointer_to_end_iterator, base)
+#define MSE_LH_STRTOF(str, pointer_to_end_iterator) mse::lh::strtof(str, pointer_to_end_iterator)
+#define MSE_LH_STRTOD(str, pointer_to_end_iterator) mse::lh::strtod(str, pointer_to_end_iterator)
+#define MSE_LH_STRTOLD(str, pointer_to_end_iterator) mse::lh::strtold(str, pointer_to_end_iterator)
+#define MSE_LH_CHAR_STAR_STAR_CAST_FOR_STRTOX(pointer_to_iterator_arg)
 
 /* MSE_LH_ADDRESSABLE_TYPE() is a type annotation used to indicate that the '&' operator may/will be used to obtain the address of
 the associated declared object(s). */
@@ -192,6 +208,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_UNSAFE_MAKE_TEMPORARY_ARRAY_OF_RAW_POINTERS_FROM(ptr) mse::us::lh::make_temporary_array_of_raw_pointers_from(ptr)
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(ptr)
 #define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(iter)
+#define MSE_LH_UNSAFE_MAKE_FN_WRAPPER(wrappee, function_pointer_with_desired_wrapper_signature) mse::us::lh::unsafe_make_fn_wrapper(wrappee, function_pointer_with_desired_wrapper_signature)
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
@@ -384,6 +401,24 @@ namespace mse {
 		int strncmp(_TIter const& str1, _TIter2 const& str2, size_t count) {
 			return ::strncmp(std::addressof(str1[0]), std::addressof(str2[0]), count);
 		}
+
+
+#define MSE_IMPL_LH_STRTOX_DECLARATION(strtox_function_name) \
+		auto strtox_function_name(const char* str, char** str_end, int base) { return std::strtox_function_name(str, str_end, base); }
+
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtol);
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtoul);
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtoll);
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtoull);
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtoimax);
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtoumax);
+
+#define MSE_IMPL_LH_STRTOFX_DECLARATION(strtox_function_name) \
+		auto strtox_function_name(const char* str, char** str_end) { return std::strtox_function_name(str, str_end); }
+
+		MSE_IMPL_LH_STRTOFX_DECLARATION(strtof);
+		MSE_IMPL_LH_STRTOFX_DECLARATION(strtod);
+		MSE_IMPL_LH_STRTOFX_DECLARATION(strtold);
 	}
 	namespace us {
 		namespace lh {
@@ -399,6 +434,18 @@ namespace mse {
 			template<typename _Ty>
 			auto make_raw_pointer_from(_Ty& ptr) {
 				return ptr;
+			}
+			template<typename _Ty>
+			auto make_temporary_array_of_raw_pointers_from(_Ty&& ptr) {
+				return ptr;
+			}
+			template<typename _Ty>
+			auto make_temporary_array_of_raw_pointers_from(_Ty& ptr) {
+				return ptr;
+			}
+			template< typename TWrappee, typename TWrapperRet, typename... TArgs>
+			auto unsafe_make_fn_wrapper(const TWrappee& wrappee, mse::lh::TNativeFunctionPointerReplacement<TWrapperRet(TArgs...)>) {
+				return wrappee;
 			}
 		}
 	}
@@ -1202,9 +1249,7 @@ namespace mse {
 			TStrongVectorIterator(const TStrongVectorIterator& src) = default;
 			TStrongVectorIterator(TStrongVectorIterator&& src) = default;
 			TStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_Ilist), 0) {}
-			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, base_class>::value)
-				|| (std::is_same<_Ty2, mse::TXScopeRAIterator<mse::TRefCountingPointer<TStrongTargetVector<_Ty>>> >::value)
-				> MSE_IMPL_EIS >
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_constructible<base_class, _Ty2>::value> MSE_IMPL_EIS >
 			TStrongVectorIterator(const _Ty2& src) : base_class(src) {}
 			/* turns out that size_type and NULL_t could be the same type on some platforms */
 			//explicit TStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(_N), 0) {}
@@ -2093,16 +2138,33 @@ namespace mse {
 				void strtox_set_out_param_helper1(NULL_t str_end, T2 const& str, T3 const& distance) {}
 				template <typename _TPointerToIter, typename _TIter, typename T3>
 				void strtox_set_out_param_helper1(_TPointerToIter const& str_end, _TIter const& str, T3 const& distance) {
-					strtox_set_out_param_helper2(std::is_assignable<typename mse::impl::target_or_void_type<_TPointerToIter>, _TIter>::type(), str_end, str, distance);
+					strtox_set_out_param_helper2(typename std::is_assignable<mse::impl::target_or_void_type<_TPointerToIter>, _TIter>::type(), str_end, str, distance);
 				}
 
 				template<typename _TStrToXFunction, class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
-				auto strtox(_TIter const& str, _TPointerToIter const& str_end, int base) {
+				auto strtox(_TStrToXFunction& fn, _TIter const& str, _TPointerToIter const& str_end, int base) {
 					const auto len = strlen(str);
 					const char* start = std::addressof(*str);
 					char* end = bool(str_end) ? (char*)start : nullptr;
-					static const _TStrToXFunction fn;
+					/* clang in c++14 mode (at least) for some reason doesn't support instantiating the lambda function by type, so we use 
+					a reference to the original lambda instantiation. */
+					//static const _TStrToXFunction fn;
 					auto retval = fn(start, &end, base);
+					if (end) {
+						auto distance = ((const char*)end - start);
+						assert(static_cast<decltype(distance)>(len) + 1 >= distance);
+						strtox_set_out_param_helper1(str_end, str, distance);
+					}
+					return retval;
+				}
+
+				template<typename _TStrToXFunction, class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
+				auto strtofx(_TStrToXFunction& fn, _TIter const& str, _TPointerToIter const& str_end) {
+					const auto len = strlen(str);
+					const char* start = std::addressof(*str);
+					char* end = bool(str_end) ? (char*)start : nullptr;
+					//static const _TStrToXFunction fn;
+					auto retval = fn(start, &end);
 					if (end) {
 						auto distance = ((const char*)end - start);
 						assert(static_cast<decltype(distance)>(len) + 1 >= distance);
@@ -2113,33 +2175,32 @@ namespace mse {
 			}
 		}
 
-		template<class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtox::strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
-		auto strtol(_TIter const& str, _TPointerToIter const& str_end, int base) {
-			static const auto lambda1 = [](const char* str, char** str_end, int base) { return std::strtol(str, str_end, base); };
-			return impl::ns_strtox::strtox<decltype(lambda1)>(str, str_end, base);
-		}
-		auto strtol(const char* str, char** str_end, int base) { return std::strtol(str, str_end, base); }
+#define MSE_IMPL_LH_STRTOX_DECLARATION(strtox_function_name) \
+		template<class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtox::strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS > \
+		auto strtox_function_name(_TIter const& str, _TPointerToIter const& str_end, int base) { \
+			static const auto lambda1 = [](const char* str, char** str_end, int base) { return std::strtox_function_name(str, str_end, base); }; \
+			return impl::ns_strtox::strtox(lambda1, str, str_end, base); \
+		} \
+		auto strtox_function_name(const char* str, char** str_end, int base) { return std::strtox_function_name(str, str_end, base); }
 
-		template<class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtox::strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
-		auto strtoll(_TIter const& str, _TPointerToIter const& str_end, int base) {
-			static const auto lambda1 = [](const char* str, char** str_end, int base) { return std::strtoll(str, str_end, base); };
-			return impl::ns_strtox::strtox<decltype(lambda1)>(str, str_end, base);
-		}
-		auto strtoll(const char* str, char** str_end, int base) { return std::strtoll(str, str_end, base); }
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtol);
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtoul);
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtoll);
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtoull);
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtoimax);
+		MSE_IMPL_LH_STRTOX_DECLARATION(strtoumax);
 
-		template<class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtox::strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
-		auto strtoul(_TIter const& str, _TPointerToIter const& str_end, int base) {
-			static const auto lambda1 = [](const char* str, char** str_end, int base) { return std::strtoul(str, str_end, base); };
-			return impl::ns_strtox::strtox<decltype(lambda1)>(str, str_end, base);
-		}
-		auto strtoul(const char* str, char** str_end, int base) { return std::strtoul(str, str_end, base); }
+#define MSE_IMPL_LH_STRTOFX_DECLARATION(strtox_function_name) \
+		template<class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtox::strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS > \
+		auto strtox_function_name(_TIter const& str, _TPointerToIter const& str_end) { \
+			static const auto lambda1 = [](const char* str, char** str_end) { return std::strtox_function_name(str, str_end); }; \
+			return impl::ns_strtox::strtofx(lambda1, str, str_end); \
+		} \
+		auto strtox_function_name(const char* str, char** str_end) { return std::strtox_function_name(str, str_end); }
 
-		template<class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtox::strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
-		auto strtoull(_TIter const& str, _TPointerToIter const& str_end, int base) {
-			static const auto lambda1 = [](const char* str, char** str_end, int base) { return std::strtoull(str, str_end, base); };
-			return impl::ns_strtox::strtox<decltype(lambda1)>(str, str_end, base);
-		}
-		auto strtoull(const char* str, char** str_end, int base) { return std::strtoull(str, str_end, base); }
+		MSE_IMPL_LH_STRTOFX_DECLARATION(strtof);
+		MSE_IMPL_LH_STRTOFX_DECLARATION(strtod);
+		MSE_IMPL_LH_STRTOFX_DECLARATION(strtold);
 
 
 		typedef intptr_t lh_ssize_t;
@@ -2674,7 +2735,7 @@ namespace mse {
 			}
 			template<typename _Ty>
 			auto make_raw_pointer_from(_Ty& ptr) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr))) {
-				/* Note that, for example, in the case of mse::lh::TNativeArrayReplacement<>, its "operator*()" and "operator*() const" 
+				/* Note that, for example, in the case of mse::lh::TNativeArrayReplacement<>, its "operator*()" and "operator*() const"
 				return different types. (Specifically, they return types that differ by a const qualifier.) */
 				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
 			}
@@ -2687,9 +2748,9 @@ namespace mse {
 				return unsafe_cast<void*>(vsr);
 			}
 
-			/* An iterator pointing into a container of (other) iterators can't be directly converted to a raw pointer iterator 
-			pointing into an array of (other) raw pointer iterators. In order to produce such a raw pointer iterator, we first 
-			need to construct an array of pointer iterators. Once constructed, we can then return (via conversion operator) a 
+			/* An iterator pointing into a container of (other) iterators can't be directly converted to a raw pointer iterator
+			pointing into an array of (other) raw pointer iterators. In order to produce such a raw pointer iterator, we first
+			need to construct an array of pointer iterators. Once constructed, we can then return (via conversion operator) a
 			pointer iterator that points into that array. */
 			template<typename _Ty>
 			class TXScopeConstArrayOfRawPointersStore : public mse::us::impl::XScopeTagBase {
@@ -2702,7 +2763,7 @@ namespace mse {
 					}
 					m_pointer_vec.push_back(nullptr);
 				}
-				explicit TXScopeConstArrayOfRawPointersStore(mse::lh::TLHNullableAnyRandomAccessIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) 
+				explicit TXScopeConstArrayOfRawPointersStore(mse::lh::TLHNullableAnyRandomAccessIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1)
 					: TXScopeConstArrayOfRawPointersStore(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> >(iter1)) {}
 				template<size_t N>
 				explicit TXScopeConstArrayOfRawPointersStore(mse::lh::TNativeArrayReplacement<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>, N> const& safe_array1) {
@@ -2756,6 +2817,70 @@ namespace mse {
 			template<typename _Ty>
 			auto make_temporary_array_of_raw_pointers_from(_Ty* const* iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
+			}
+
+			namespace impl {
+				namespace ns_fn_wrapper {
+					template<typename T>
+					struct type_or_raw_pointer_if_dereferenceable_impl {
+						typedef typename std::conditional<mse::impl::IsDereferenceable_pb<T>::value
+							, typename type_or_raw_pointer_if_dereferenceable_impl<mse::impl::target_or_void_type<T> >::type *, T>::type type;
+					};
+					template<typename T>
+					using type_or_raw_pointer_if_dereferenceable = typename type_or_raw_pointer_if_dereferenceable_impl<T>::type;
+
+					template<typename T>
+					auto casted_pointer_arg_helper(std::true_type, const T& arg) {
+						return mse::us::lh::make_temporary_array_of_raw_pointers_from(arg);
+					}
+					template<typename T>
+					auto casted_pointer_arg_helper(std::false_type, const T& arg) {
+						return mse::us::lh::make_raw_pointer_from(arg);
+					}
+					template<typename T>
+					auto casted_arg_helper1(std::true_type, const T& arg) {
+						return casted_pointer_arg_helper(typename mse::impl::IsDereferenceable_pb<mse::impl::target_or_void_type<T> >::type(), arg);
+					}
+					template<typename T>
+					auto casted_arg_helper1(std::false_type, const T& arg) {
+						return arg;
+					}
+					template<typename T>
+					auto casted_arg(const T& arg) {
+						return casted_arg_helper1(typename mse::impl::IsDereferenceable_pb<T>::type(), arg);
+					}
+
+					template<typename TWrapperRet, typename T>
+					auto casted_pointer_retval_helper(std::true_type, const T& retval) {
+						/* TWrapperRet seems to be an iterator */
+						return mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(retval);
+					}
+					template<typename TWrapperRet, typename T>
+					auto casted_pointer_retval_helper(std::false_type, const T& retval) {
+						return mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(retval);
+					}
+					template<typename TWrapperRet, typename T>
+					auto casted_retval_helper1(std::true_type, const T& retval) {
+						return casted_pointer_retval_helper<TWrapperRet>(typename mse::impl::SupportsSubtraction_poly<TWrapperRet>::type(), retval);
+					}
+					template<typename TWrapperRet, typename T>
+					auto casted_retval_helper1(std::false_type, const T& retval) {
+						return retval;
+					}
+					template<typename TWrapperRet, typename T>
+					auto casted_retval(const T& retval) {
+						return casted_retval_helper1<TWrapperRet>(typename mse::impl::IsDereferenceable_pb<T>::type(), retval);
+					}
+				}
+			}
+
+			/* This function is used to create a "wrapper" (lambda) function (presumably with a safe interface) that just calls the 
+			given function (with a presumably unsafe interface). The function signature of the wrapper function is deduced from the 
+			(otherwise unused) second (`mse::lh::TNativeFunctionPointerReplacement<>`) parameter. */
+			template< typename TWrappee, typename TWrapperRet, typename... TArgs>
+			auto unsafe_make_fn_wrapper(const TWrappee& wrappee, mse::lh::TNativeFunctionPointerReplacement<TWrapperRet(TArgs...)>) {
+				auto retval = [wrappee](TArgs const&... args) { return TWrapperRet(impl::ns_fn_wrapper::casted_retval<TWrapperRet>(wrappee(impl::ns_fn_wrapper::casted_arg(args)...))); };
+				return retval;
 			}
 		}
 	}
