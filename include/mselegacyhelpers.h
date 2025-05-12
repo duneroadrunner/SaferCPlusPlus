@@ -582,7 +582,7 @@ namespace mse {
 				return (*this);
 			}
 
-			operator bool() const {
+			explicit operator bool() const {
 				return base_class::operator bool();
 			}
 
@@ -711,7 +711,7 @@ namespace mse {
 			}
 #endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 
-			operator bool() const {
+			explicit operator bool() const {
 				return base_class::operator bool();
 			}
 
