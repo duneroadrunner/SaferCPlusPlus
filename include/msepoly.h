@@ -1770,6 +1770,7 @@ namespace mse {
 
 				template <typename _Ty2> friend class TAnyRandomAccessIteratorBase;
 				template <typename _Ty2> friend class TAnyRandomAccessConstIteratorBase;
+				template <typename _Ty2> friend class TNullableAnyRandomAccessIteratorBase;
 			};
 
 			template<typename ValueType, typename _Ty>
@@ -2772,6 +2773,13 @@ namespace mse {
 		}
 	}
 
+	template <typename _Ty> class TNullableAnyRandomAccessIterator;
+	template <typename _Ty> class TXScopeNullableAnyRandomAccessIterator;
+	template<typename _Ty2>
+	TAnyRandomAccessIterator<_Ty2> not_null_from_nullable(const TNullableAnyRandomAccessIterator<_Ty2>& src);
+	template<typename _Ty2>
+	TXScopeAnyRandomAccessIterator<_Ty2> not_null_from_nullable(const TXScopeNullableAnyRandomAccessIterator<_Ty2>& src);
+
 	namespace us {
 		namespace impl {
 			template <typename _Ty>
@@ -3027,11 +3035,13 @@ namespace mse {
 
 				template <typename _Ty2> friend class TNullableAnyRandomAccessIteratorBase;
 				template <typename _Ty2> friend class TXScopeNullableAnyRandomAccessIterator;
+				template<typename _Ty2>
+				friend mse::TAnyRandomAccessIterator<_Ty2> mse::not_null_from_nullable(const mse::TNullableAnyRandomAccessIterator<_Ty2>& src);
+				template<typename _Ty2>
+				friend mse::TXScopeAnyRandomAccessIterator<_Ty2> mse::not_null_from_nullable(const mse::TXScopeNullableAnyRandomAccessIterator<_Ty2>& src);
 			};
 		}
 	}
-
-	template <typename _Ty> class TXScopeNullableAnyRandomAccessIterator;
 
 	template <typename _Ty>
 	class TNullableAnyRandomAccessIterator : public mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty> {
@@ -3096,6 +3106,9 @@ namespace mse {
 		//const base_class& contained_iter() const&& { return (*this); }
 		base_class& contained_iter()& { return (*this); }
 		base_class&& contained_iter()&& { return std::move(*this); }
+
+		template<typename _Ty2>
+		friend TAnyRandomAccessIterator<_Ty2> not_null_from_nullable(const TNullableAnyRandomAccessIterator<_Ty2>& src);
 	};
 
 	template <typename _Tx = void, typename _Ty = void>
@@ -3107,6 +3120,11 @@ namespace mse {
 	auto make_nullable_any_random_access_iterator(_Ty&& x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TNullableAnyRandomAccessIterator<_Tx2>(MSE_FWD(x));
+	}
+
+	template<typename _Ty>
+	TAnyRandomAccessIterator<_Ty> not_null_from_nullable(const TNullableAnyRandomAccessIterator<_Ty>& src) {
+		return src.s_contained_iterator_cref(src);
 	}
 
 	template <typename _Ty>
@@ -3160,6 +3178,9 @@ namespace mse {
 		//const base_class& contained_iter() const&& { return (*this); }
 		base_class& contained_iter()& { return (*this); }
 		base_class&& contained_iter()&& { return std::move(*this); }
+
+		template<typename _Ty2>
+		friend TXScopeAnyRandomAccessIterator<_Ty2> not_null_from_nullable(const TXScopeNullableAnyRandomAccessIterator<_Ty2>& src);
 	};
 
 	template <typename _Tx = void, typename _Ty = void>
@@ -3171,6 +3192,11 @@ namespace mse {
 	auto make_xscope_nullable_any_random_access_iterator(_Ty&& x) {
 		typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*x)>, _Tx> _Tx2;
 		return TXScopeNullableAnyRandomAccessIterator<_Tx2>(MSE_FWD(x));
+	}
+
+	template<typename _Ty>
+	TXScopeAnyRandomAccessIterator<_Ty> not_null_from_nullable(const TXScopeNullableAnyRandomAccessIterator<_Ty>& src) {
+		return src.s_contained_iterator_cref(src);
 	}
 
 	/* The intended semantics of TNullableAnyPointer<> is that it always contains either an std::nullptr_t or a

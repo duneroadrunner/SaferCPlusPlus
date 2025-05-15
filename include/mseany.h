@@ -665,11 +665,11 @@ namespace mse
 					typedef any_base1 _MO;
 
 				private:
-					const _MO& contained_any() const& { access_guard{ m_access_mutex }; return base_class::value(); }
-					//const _MO&& contained_any() const&& { access_guard{ m_access_mutex }; return base_class::value(); }
-					_MO& contained_any()& { access_guard{ m_access_mutex }; return base_class::value(); }
+					const _MO& contained_any() const& { access_guard ag{ m_access_mutex }; return base_class::value(); }
+					//const _MO&& contained_any() const&& { access_guard ag{ m_access_mutex }; return base_class::value(); }
+					_MO& contained_any()& { access_guard ag{ m_access_mutex }; return base_class::value(); }
 					_MO&& contained_any()&& {
-						access_guard{ m_access_mutex };
+						access_guard ag{ m_access_mutex };
 						/* We're making sure that the any is not "structure locked", because in that case it might not be
 						safe to to allow the contained any to be moved from (when made movable with std::move()). */
 						structure_change_guard lock1(m_structure_change_mutex);
@@ -707,11 +707,11 @@ namespace mse
 					typedef base_class _MO;
 
 				private:
-					const _MO& contained_any() const& { access_guard{ m_access_mutex }; return (*this); }
-					const _MO& contained_any() const&& { access_guard{ m_access_mutex }; return (*this); }
-					_MO& contained_any()& { access_guard{ m_access_mutex }; return (*this); }
+					const _MO& contained_any() const& { access_guard ag{ m_access_mutex }; return (*this); }
+					const _MO& contained_any() const&& { access_guard ag{ m_access_mutex }; return (*this); }
+					_MO& contained_any()& { access_guard ag{ m_access_mutex }; return (*this); }
 					auto contained_any()&& -> decltype(mse::us::impl::as_ref<base_class>(std::move(*this))) {
-						access_guard{ m_access_mutex };
+						access_guard ag{ m_access_mutex };
 						/* We're making sure that the any is not "structure locked", because in that case it might not be
 						safe to to allow the contained any to be moved from (when made movable with std::move()). */
 						structure_change_guard lock1(m_structure_change_mutex);

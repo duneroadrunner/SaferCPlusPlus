@@ -731,6 +731,165 @@ namespace mse {
 		namespace us {
 			namespace impl {
 				template <typename _Ty>
+				class TLHNullableAnyRandomAccessIteratorBase;
+			}
+		}
+		namespace impl {
+			template<class T>
+			struct NDRegisteredWrapped {
+				typedef mse::TNDRegisteredObj<T> type;
+			};
+			template<>
+			struct NDRegisteredWrapped<std::nullptr_t> {
+				typedef std::nullptr_t type;
+			};
+			template<>
+			struct NDRegisteredWrapped<void> {
+				typedef void type;
+			};
+			template<class T>
+			struct NDNoradWrapped {
+				typedef mse::TNDNoradObj<T> type;
+			};
+			template<>
+			struct NDNoradWrapped<std::nullptr_t> {
+				typedef std::nullptr_t type;
+			};
+			template<>
+			struct NDNoradWrapped<void> {
+				typedef void type;
+			};
+
+			/* todo: make distinct xscope and non-xscope versions */
+			class explicitly_castable_any : public mse::us::impl::ns_any::any {
+			public:
+				typedef mse::us::impl::ns_any::any base_class;
+				//using base_class::base_class;
+
+				explicitly_castable_any() = default;
+				explicitly_castable_any(const explicitly_castable_any&) = default;
+				//explicitly_castable_any(explicitly_castable_any&&) = default;
+				template<class T>
+				explicitly_castable_any(const T& x) : base_class(x) {}
+
+				template<class T>
+				explicit operator T() const {
+					return conversion_operator_helper1<T>(this);
+					//return conversion_operator_helper3<T>(typename mse::impl::IsDereferenceable_pb<T>::type(), this);
+					//return mse::us::impl::ns_any::any_cast<T>(*this);
+				}
+
+			private:
+				template<class T1, class T2>
+				static mse::xscope_optional<T1> convert_helper1(std::true_type, const T2& x) {
+					return T1(x);
+				}
+				template<class T1, class T2>
+				static mse::xscope_optional<T1> convert_helper1(std::false_type, const T2& x) {
+#ifndef NDEBUG
+					std::cout << "\nconvert_helper1<>(std::false_type, ): T1: " << typeid(T1).name() << ", T2: " << typeid(T2).name() << " \n";
+#endif // !NDEBUG
+					MSE_THROW(mse::us::impl::ns_any::bad_any_cast());
+					return {};
+				}
+				template<class T1, class T2>
+				static T1 convert(const T2& x) {
+					//static const bool b1 = std::is_convertible<T2, T1>::value;
+					static const bool b1 = std::is_constructible<T1, T2>::value;
+					static const bool b2 = std::is_arithmetic<T1>::value;
+					static const bool b3 = std::is_arithmetic<T2>::value;
+					static const bool b4 = (sizeof(T1) >= sizeof(T2));
+					static const bool b5 = (((!b2) && (!b3)) || (b2 && b3 && b4)); /* This is to exclude implicit support of narrowing casts. */
+					static const bool b6 = b1 && b5;
+					return convert_helper1<T1>(typename std::integral_constant<bool, b6>::type(), x).value();
+				}
+
+				template<class T1, class T2>
+				static T1 conversion_operator_helper1(T2* ptr1) {
+					auto maybe_retval = conversion_operator_helper2<T1>(ptr1);
+					if (maybe_retval.has_value()) {
+						return std::move(maybe_retval.value());
+					}
+#ifndef NDEBUG
+					std::cout << "\nexplicitly_castable_any::conversion_operator_helper1<>(): T1: " << typeid(T1).name() << ", stored type: " << (*ptr1).type().name() << " \n";
+#endif // !NDEBUG
+					return mse::us::impl::ns_any::any_cast<T1>(*ptr1);
+				}
+
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type) \
+					{ \
+						auto ptr = mse::us::impl::ns_any::any_cast<type>(ptr1); \
+						if (ptr) { \
+							return convert<T>(mse::us::impl::ns_any::any_cast<type>(*ptr1)); \
+						} \
+					}
+
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(type) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TNDNoradObj<type>) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TNDRegisteredObj<type>)
+
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(type) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(type) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(mse::impl::remove_const_t<type>)
+
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1(type, not_used_template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(type)
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK(type, template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(template_wrapper<type>)
+
+				template<class T, class T2>
+				static mse::optional<T> conversion_operator_helper2(T2* ptr1) {
+					{
+						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
+						if (ptr) {
+							return convert<T>(mse::us::impl::ns_any::any_cast<T>(*ptr1));
+						}
+					}
+					{
+						auto ptr = mse::us::impl::ns_any::any_cast<typename NDNoradWrapped<T>::type>(ptr1);
+						if (ptr) {
+							return convert<T>(mse::us::impl::ns_any::any_cast<typename NDNoradWrapped<T>::type>(*ptr1));
+						}
+					}
+					{
+						auto ptr = mse::us::impl::ns_any::any_cast<typename NDRegisteredWrapped<T>::type>(ptr1);
+						if (ptr) {
+							return convert<T>(mse::us::impl::ns_any::any_cast<typename NDRegisteredWrapped<T>::type>(*ptr1));
+						}
+					}
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(std::nullptr_t);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(void*);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(const char*);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(char*);
+					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1);
+					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(mse::CNDSize_t);
+
+					auto maybe_retval = conversion_operator_helper3<T>(typename mse::impl::IsDereferenceable_pb<T>::type(), ptr1);
+					if (maybe_retval.has_value()) {
+						return std::move(maybe_retval.value());
+					}
+					return {};
+				}
+
+				template<class T1, class T2>
+				static mse::optional<T1> conversion_operator_helper3(std::true_type, T2* ptr1);
+				template<class T1, class T2>
+				static mse::optional<T1> conversion_operator_helper3(std::false_type, T2* ptr1) {
+					auto casted_ptr = mse::us::impl::ns_any::any_cast<T1>(&mse::us::impl::as_ref<base_class>(*ptr1));
+					if (casted_ptr) {
+						return *casted_ptr;
+					}
+					return {};
+				}
+
+				template <typename _Ty2>
+				friend class mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase;
+
+			};
+		}
+		namespace us {
+			namespace impl {
+				template <typename _Ty>
 				class TLHNullableAnyRandomAccessIteratorBase {
 				public:
 					typedef mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty> base_class;
@@ -1055,6 +1214,14 @@ namespace mse {
 						return mse::make_begin_iterator(lh_any_pointer2);
 					}
 
+					static void foo1(mse::us::impl::ns_any::any const& any1) {
+						auto maybe_casted = mse::lh::impl::explicitly_castable_any::conversion_operator_helper2<int>(&any1);
+						if (maybe_casted.has_value()) {
+							auto casted_val = maybe_casted.value();
+							int q = 5;
+						}
+					}
+
 					MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 					const base_class& contained_iter() const& { return (*this).m_iter; }
@@ -1064,9 +1231,36 @@ namespace mse {
 
 					base_class m_iter;
 
+					MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_iter, contained_any);
+
+					MSE_IMPL_ANY_CONTAINED_ANY_FRIEND_DECLARATIONS1;
+
 					template <typename _Ty2>
 					friend class TXScopeLHNullableAnyRandomAccessIterator;
+
+					template<typename ValueType2, typename _Ty2>
+					friend inline auto maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty2>& operand);
 				};
+
+				template<typename ValueType, typename _Ty>
+				inline auto maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& operand) {
+					typedef typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type retval_t;
+
+					/* We need to obtain the "any" object that actually stores the value. In this case, that object is "buried" within layers
+					of base classes and member fields, so it's going to take a few operations to get to it. */
+					auto nullable_any_ra_iter_base1 = operand.m_iter;
+					if (!nullable_any_ra_iter_base1) {
+						return retval_t{};
+					}
+					auto nullable_any_ra_iter1 = mse::TNullableAnyRandomAccessIterator<_Ty>(std::move(nullable_any_ra_iter_base1));
+					auto any_ra_iter1 = mse::not_null_from_nullable(nullable_any_ra_iter1);
+					auto any1 = mse::us::impl::ns_any::contained_any(any_ra_iter1);
+					auto cast_ptr = mse::us::impl::ns_any::any_cast<mse::us::impl::TCommonizedRandomAccessIterator<_Ty, ValueType>>(std::addressof(any1));
+					if (cast_ptr) {
+						return retval_t{ (*cast_ptr).m_random_access_iterator};
+					}
+					return retval_t{};
+				}
 			}
 		}
 
@@ -1629,46 +1823,6 @@ namespace mse {
 			void reallocate_overloaded(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TStrongVectorIterator<_Ty>>::reallocate(ptr, num_bytes); }
 
 			template<class _Ty>
-			class CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>> {
-			public:
-				static void free(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr) {
-					ptr = mse::lh::TStrongVectorIterator<_Ty>();
-				}
-				static void allocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
-					mse::lh::TStrongVectorIterator<_Ty> tmp;
-					tmp.resize(num_bytes / sizeof(_Ty));
-					ptr = tmp;
-				}
-				//static void reallocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
-			};
-			template<class _Ty>
-			void free_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::free(ptr); }
-			template<class _Ty>
-			void allocate_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::allocate(ptr, num_bytes); }
-			template<class _Ty>
-			void reallocate_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::reallocate(ptr, num_bytes); }
-
-			template<class _Ty>
-			class CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>> {
-			public:
-				static void free(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr) {
-					ptr = mse::lh::TStrongVectorIterator<_Ty>();
-				}
-				static void allocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
-					mse::lh::TStrongVectorIterator<_Ty> tmp;
-					tmp.resize(num_bytes / sizeof(_Ty));
-					ptr = tmp;
-				}
-				//static void reallocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
-			};
-			template<class _Ty>
-			void free_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::free(ptr); }
-			template<class _Ty>
-			void allocate_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::allocate(ptr, num_bytes); }
-			//template<class _Ty>
-			//void reallocate_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::reallocate(ptr, num_bytes); }
-
-			template<class _Ty>
 			class CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>> {
 			public:
 				static void free(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr) {
@@ -1688,6 +1842,100 @@ namespace mse {
 			void allocate_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::allocate(ptr, num_bytes); }
 			template<class _Ty>
 			void reallocate_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::reallocate(ptr, num_bytes); }
+
+			template<class _Ty>
+			class CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>> {
+			public:
+				static void free(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr) {
+					ptr = mse::lh::TStrongVectorIterator<_Ty>();
+				}
+				static void allocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+					mse::lh::TStrongVectorIterator<_Ty> tmp;
+					tmp.resize(num_bytes / sizeof(_Ty));
+					ptr = tmp;
+				}
+				//static void reallocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
+			};
+			template<class _Ty>
+			void free_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::free(ptr); }
+			template<class _Ty>
+			void allocate_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::allocate(ptr, num_bytes); }
+			//template<class _Ty>
+			//void reallocate_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::reallocate(ptr, num_bytes); }
+
+			template<class _Ty>
+			class CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>> {
+			public:
+				static void free(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr) {
+					ptr = mse::lh::TStrongVectorIterator<_Ty>();
+				}
+				static void allocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+					mse::lh::TStrongVectorIterator<_Ty> tmp;
+					tmp.resize(num_bytes / sizeof(_Ty));
+					ptr = tmp;
+				}
+				static void reallocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+					if (!ptr) {
+						allocate(ptr, num_bytes);
+						return;
+					}
+					auto maybe_strong_vec_iter = mse::lh::us::impl::maybe_any_cast<mse::lh::TStrongVectorIterator<_Ty>>(ptr);
+					if (maybe_strong_vec_iter.has_value()) {
+						auto& strong_vec_iter = maybe_strong_vec_iter.value();
+						strong_vec_iter.resize(num_bytes / sizeof(_Ty));
+						return;
+					}
+					MSE_THROW(std::logic_error("the provided pointer/iterator was not recognized as pointing to a target supported for reallocation - CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::reallocate()"));
+				}
+			};
+			template<class _Ty>
+			void free_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::free(ptr); }
+			template<class _Ty>
+			void allocate_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::allocate(ptr, num_bytes); }
+			template<class _Ty>
+			void reallocate_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::reallocate(ptr, num_bytes); }
+
+			template<class _Ty>
+			class CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>> {
+			public:
+				static void free(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr) {
+					ptr = mse::lh::TStrongVectorIterator<_Ty>();
+				}
+				static void allocate(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+					mse::lh::TStrongVectorIterator<_Ty> tmp;
+					tmp.resize(num_bytes / sizeof(_Ty));
+					ptr = tmp;
+				}
+				static void reallocate(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+					if (!ptr) {
+						allocate(ptr, num_bytes);
+						return;
+					}
+					{
+						auto maybe_strong_vec_iter = mse::lh::us::impl::maybe_any_cast<mse::lh::TStrongVectorIterator<_Ty>>(ptr);
+						if (maybe_strong_vec_iter.has_value()) {
+							auto& strong_vec_iter = maybe_strong_vec_iter.value();
+							strong_vec_iter.resize(num_bytes / sizeof(_Ty));
+							return;
+						}
+					}
+					{
+						auto maybe_strong_vec_iter = mse::lh::us::impl::maybe_any_cast<mse::lh::TXScopeStrongVectorIterator<_Ty>>(ptr);
+						if (maybe_strong_vec_iter.has_value()) {
+							auto& strong_vec_iter = maybe_strong_vec_iter.value();
+							strong_vec_iter.resize(num_bytes / sizeof(_Ty));
+							return;
+						}
+					}
+					MSE_THROW(std::logic_error("the provided pointer/iterator was not recognized as pointing to a target supported for reallocation - CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::reallocate()"));
+				}
+			};
+			template<class _Ty>
+			void free_overloaded(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr) { CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::free(ptr); }
+			template<class _Ty>
+			void allocate_overloaded(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::allocate(ptr, num_bytes); }
+			template<class _Ty>
+			void reallocate_overloaded(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::reallocate(ptr, num_bytes); }
 
 			template<class T, class EqualTo>
 			struct IsSupportedByAllocateOverloaded_impl
@@ -1966,7 +2214,7 @@ namespace mse {
 					long long int adjusted_value = value;
 					if (sizeof(adjusted_value) >= sizeof(element_t)) {
 						for (size_t i = 1; i < sizeof(element_t); i += 1) {
-							adjusted_value |= (value << (8 * i));
+							adjusted_value |= (long long int)(value << (8 * i));
 						}
 					}
 					else {
@@ -2320,122 +2568,8 @@ namespace mse {
 		}
 
 		namespace impl {
-			template<class T>
-			struct NDRegisteredWrapped {
-				typedef mse::TNDRegisteredObj<T> type;
-			};
-			template<>
-			struct NDRegisteredWrapped<std::nullptr_t> {
-				typedef std::nullptr_t type;
-			};
-			template<>
-			struct NDRegisteredWrapped<void> {
-				typedef void type;
-			};
-			template<class T>
-			struct NDNoradWrapped {
-				typedef mse::TNDNoradObj<T> type;
-			};
-			template<>
-			struct NDNoradWrapped<std::nullptr_t> {
-				typedef std::nullptr_t type;
-			};
-			template<>
-			struct NDNoradWrapped<void> {
-				typedef void type;
-			};
-
-			/* todo: make distinct xscope and non-xscope versions */
-			class explicitly_castable_any : public mse::us::impl::ns_any::any {
-			public:
-				typedef mse::us::impl::ns_any::any base_class;
-				//using base_class::base_class;
-
-				explicitly_castable_any() = default;
-				explicitly_castable_any(const explicitly_castable_any&) = default;
-				//explicitly_castable_any(explicitly_castable_any&&) = default;
-				template<class T>
-				explicitly_castable_any(const T& x) : base_class(x) {}
-
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type) \
-					{ \
-						auto ptr = mse::us::impl::ns_any::any_cast<type>(this); \
-						if (ptr) { \
-							return convert<T>(mse::us::impl::ns_any::any_cast<type>(*this)); \
-						} \
-					}
-
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(type) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TNDNoradObj<type>) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TNDRegisteredObj<type>)
-
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(type) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(type) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(mse::impl::remove_const_t<type>)
-
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1(type, not_used_template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(type)
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK(type, template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(template_wrapper<type>)
-
-				template<class T>
-				explicit operator T() const {
-					{
-						auto ptr = mse::us::impl::ns_any::any_cast<T>(this);
-						if (ptr) {
-							return convert<T>(mse::us::impl::ns_any::any_cast<T>(*this));
-						}
-					}
-					{
-						auto ptr = mse::us::impl::ns_any::any_cast<typename NDNoradWrapped<T>::type>(this);
-						if (ptr) {
-							return convert<T>(mse::us::impl::ns_any::any_cast<typename NDNoradWrapped<T>::type>(*this));
-						}
-					}
-					{
-						auto ptr = mse::us::impl::ns_any::any_cast<typename NDRegisteredWrapped<T>::type>(this);
-						if (ptr) {
-							return convert<T>(mse::us::impl::ns_any::any_cast<typename NDRegisteredWrapped<T>::type>(*this));
-						}
-					}
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(std::nullptr_t);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(void*);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(const char*);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(char*);
-					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1);
-					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(mse::CNDSize_t);
-
-					return conversion_operator_helper1<T>(typename mse::impl::IsDereferenceable_pb<T>::type(), this);
-					//return mse::us::impl::ns_any::any_cast<T>(*this);
-				}
-
-			private:
-				template<class T1, class T2>
-				static mse::xscope_optional<T1> convert_helper1(std::true_type, const T2& x) {
-					return T1(x);
-				}
-				template<class T1, class T2>
-				static mse::xscope_optional<T1> convert_helper1(std::false_type, const T2& x) {
-#ifndef NDEBUG
-					std::cout << "\nconvert_helper1<>(std::false_type, ): T1: " << typeid(T1).name() << ", T2: " << typeid(T2).name() << " \n";
-#endif // !NDEBUG
-					MSE_THROW(mse::us::impl::ns_any::bad_any_cast());
-					return {};
-				}
-				template<class T1, class T2>
-				static T1 convert(const T2& x) {
-					//static const bool b1 = std::is_convertible<T2, T1>::value;
-					static const bool b1 = std::is_constructible<T1, T2>::value;
-					static const bool b2 = std::is_arithmetic<T1>::value;
-					static const bool b3 = std::is_arithmetic<T2>::value;
-					static const bool b4 = (sizeof(T1) >= sizeof(T2));
-					static const bool b5 = (((!b2) && (!b3)) || (b2 && b3 && b4)); /* This is to exclude implicit support of narrowing casts. */
-					static const bool b6 = b1 && b5;
-					return convert_helper1<T1>(typename std::integral_constant<bool, b6>::type(), x).value();
-				}
-
-				template<class T1, class T2>
-				static T1 conversion_operator_helper1(std::true_type, T2* ptr1) {
+			template<class T1, class T2>
+			/*static*/ mse::optional<T1> explicitly_castable_any::conversion_operator_helper3(std::true_type, T2 * ptr1) {
 
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK4(type) \
 					{ \
@@ -2463,23 +2597,16 @@ namespace mse {
 					MACRO_FUNCTION(mse::lh::TLHNullableAnyRandomAccessIterator<pointee_type>); \
 					MACRO_FUNCTION(pointee_type*);
 
-					typedef mse::impl::remove_reference_t<decltype(*std::declval<T1>())> pointee_t;
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK4, pointee_t);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK4, mse::impl::remove_const_t<pointee_t>);
+				typedef mse::impl::remove_reference_t<decltype(*std::declval<T1>())> pointee_t;
+				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK4, pointee_t);
+				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK4, mse::impl::remove_const_t<pointee_t>);
 
-#ifndef NDEBUG
-					std::cout << "\nexplicitly_castable_any::convert_helper1<>(std::true_type, ): T1: " << typeid(T1).name() << ", stored type: " << (*ptr1).type().name() << " \n";
-#endif // !NDEBUG
-					return mse::us::impl::ns_any::any_cast<T1>(*ptr1);
+				auto casted_ptr = mse::us::impl::ns_any::any_cast<T1>(&mse::us::impl::as_ref<base_class>(*ptr1));
+				if (casted_ptr) {
+					return *casted_ptr;
 				}
-				template<class T1, class T2>
-				static T1 conversion_operator_helper1(std::false_type, T2* ptr) {
-#ifndef NDEBUG
-					std::cout << "\nexplicitly_castable_any::convert_helper1<>(std::false_type, ): T1: " << typeid(T1).name() << ", stored type: " << (*ptr).type().name() << " \n";
-#endif // !NDEBUG
-					return mse::us::impl::ns_any::any_cast<T1>(*ptr);
-				}
-			};
+				return {};
+			}
 		}
 
 		/* todo: make distinct xscope and non-xscope versions */
