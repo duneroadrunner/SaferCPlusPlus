@@ -658,12 +658,12 @@ namespace mse {
 					}
 				}
 
-				TGNoradObj& operator=(TGNoradObj&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
-				TGNoradObj& operator=(const TGNoradObj& _X) { _TROFLy::operator=(_X); return (*this); }
-				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<_TROFLy, _Ty2&&>::value> MSE_IMPL_EIS >
-				TGNoradObj& operator=(_Ty2&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
-				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<_TROFLy, const _Ty2&>::value> MSE_IMPL_EIS >
-				TGNoradObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
+				TGNoradObj& operator=(TGNoradObj&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
+				TGNoradObj& operator=(const TGNoradObj& _X) { base_class::operator=(_X); return (*this); }
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<base_class, _Ty2&&>::value> MSE_IMPL_EIS >
+				TGNoradObj& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<base_class, const _Ty2&>::value> MSE_IMPL_EIS >
+				TGNoradObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
 				TGNoradNotNullPointer<_TROFLy, _TRefCounter> operator&() {
 					return TGNoradFixedPointer<_TROFLy, _TRefCounter>(this);
@@ -1338,12 +1338,12 @@ namespace mse {
 			}
 		}
 
-		TNDNoradObj& operator=(TNDNoradObj&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
-		TNDNoradObj& operator=(const TNDNoradObj& _X) { _TROFLy::operator=(_X); return (*this); }
+		TNDNoradObj& operator=(TNDNoradObj&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
+		TNDNoradObj& operator=(const TNDNoradObj& _X) { base_class::operator=(_X); return (*this); }
 		template<class _Ty2>
-		TNDNoradObj& operator=(_Ty2&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
+		TNDNoradObj& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
 		template<class _Ty2>
-		TNDNoradObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
+		TNDNoradObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
 		TNDNoradFixedPointer<_TROFLy> operator&() {
 			return TNDNoradFixedPointer<_TROFLy>(this);

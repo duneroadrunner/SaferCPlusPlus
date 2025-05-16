@@ -592,12 +592,12 @@ namespace mse {
 			unregister_and_set_outstanding_pointers_to_null();
 		}
 
-		TNDCRegisteredObj& operator=(TNDCRegisteredObj&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
-		TNDCRegisteredObj& operator=(const TNDCRegisteredObj& _X) { _TROFLy::operator=(_X); return (*this); }
-		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<_TROFLy, _Ty2&&>::value> MSE_IMPL_EIS >
-		TNDCRegisteredObj& operator=(_Ty2&& _X) { _TROFLy::operator=(MSE_FWD(_X)); return (*this); }
-		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<_TROFLy, const _Ty2&>::value> MSE_IMPL_EIS >
-		TNDCRegisteredObj& operator=(const _Ty2& _X) { _TROFLy::operator=(_X); return (*this); }
+		TNDCRegisteredObj& operator=(TNDCRegisteredObj&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
+		TNDCRegisteredObj& operator=(const TNDCRegisteredObj& _X) { base_class::operator=(_X); return (*this); }
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<base_class, _Ty2&&>::value> MSE_IMPL_EIS >
+		TNDCRegisteredObj& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); }
+		template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_assignable<base_class, const _Ty2&>::value> MSE_IMPL_EIS >
+		TNDCRegisteredObj& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
 		TNDCRegisteredNotNullPointer<_TROFLy> operator&() {
 			return TNDCRegisteredFixedPointer<_TROFLy>(this);
