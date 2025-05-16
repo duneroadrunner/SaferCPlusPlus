@@ -779,7 +779,7 @@ namespace mse {
 					//return mse::us::impl::ns_any::any_cast<T>(*this);
 				}
 
-			private:
+			//private:
 				template<class T1, class T2>
 				static mse::xscope_optional<T1> convert_helper1(std::true_type, const T2& x) {
 					return T1(x);
@@ -816,55 +816,46 @@ namespace mse {
 					return mse::us::impl::ns_any::any_cast<T1>(*ptr1);
 				}
 
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type) \
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT1(type1) \
 					{ \
-						auto ptr = mse::us::impl::ns_any::any_cast<type>(ptr1); \
+						auto ptr = mse::us::impl::ns_any::any_cast<type1>(ptr1); \
 						if (ptr) { \
-							return convert<T>(mse::us::impl::ns_any::any_cast<type>(*ptr1)); \
+							return convert<T1>(*ptr); \
 						} \
 					}
 
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(type) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(type) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TNDNoradObj<type>) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(mse::TNDRegisteredObj<type>)
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT2(type1) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT1(type1) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT1(mse::impl::remove_const_t<type1>) \
+					/* While references to `non-const`s aren't constructible from references to `const`s, `non-const` values are constructible from `const` values. */ \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT1(typename std::add_const<type1>::type)
 
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(type) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(type) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK2(mse::impl::remove_const_t<type>)
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT3(type1) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT2(type1) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT2(typename NDNoradWrapped<type1>::type) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT2(typename NDRegisteredWrapped<type1>::type)
 
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1(type, not_used_template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(type)
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK(type, template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(template_wrapper<type>)
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(type1) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT3(type1) \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT3(mse::impl::remove_const_t<type1>) \
+					/* While references to `non-const`s aren't constructible from references to `const`s, `non-const` values are constructible from `const` values. */ \
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT3(typename std::add_const<type1>::type)
 
-				template<class T, class T2>
-				static mse::optional<T> conversion_operator_helper2(T2* ptr1) {
-					{
-						auto ptr = mse::us::impl::ns_any::any_cast<T>(ptr1);
-						if (ptr) {
-							return convert<T>(mse::us::impl::ns_any::any_cast<T>(*ptr1));
-						}
-					}
-					{
-						auto ptr = mse::us::impl::ns_any::any_cast<typename NDNoradWrapped<T>::type>(ptr1);
-						if (ptr) {
-							return convert<T>(mse::us::impl::ns_any::any_cast<typename NDNoradWrapped<T>::type>(*ptr1));
-						}
-					}
-					{
-						auto ptr = mse::us::impl::ns_any::any_cast<typename NDRegisteredWrapped<T>::type>(ptr1);
-						if (ptr) {
-							return convert<T>(mse::us::impl::ns_any::any_cast<typename NDRegisteredWrapped<T>::type>(*ptr1));
-						}
-					}
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK1(std::nullptr_t);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(void*);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(const char*);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(char*);
-					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_TYPE_CHECK_HELPER1);
-					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_TYPE_CHECK);
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK3(mse::CNDSize_t);
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_CAST_ATTEMPT_HELPER1(type1, not_used_template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(type1)
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_CAST_ATTEMPT(type1, template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(template_wrapper<type1>)
 
-					auto maybe_retval = conversion_operator_helper3<T>(typename mse::impl::IsDereferenceable_pb<T>::type(), ptr1);
+				template<class T1, class T2>
+				static mse::xscope_optional<T1> conversion_operator_helper2(T2* ptr1) {
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(T1);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT2(std::nullptr_t);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(void*);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(const char*);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(char*);
+					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_CAST_ATTEMPT_HELPER1);
+					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_CAST_ATTEMPT);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(mse::CNDSize_t);
+
+					auto maybe_retval = conversion_operator_helper3<T1>(typename mse::impl::IsDereferenceable_pb<T1>::type(), ptr1);
 					if (maybe_retval.has_value()) {
 						return std::move(maybe_retval.value());
 					}
@@ -872,9 +863,9 @@ namespace mse {
 				}
 
 				template<class T1, class T2>
-				static mse::optional<T1> conversion_operator_helper3(std::true_type, T2* ptr1);
+				static mse::xscope_optional<T1> conversion_operator_helper3(std::true_type, T2* ptr1);
 				template<class T1, class T2>
-				static mse::optional<T1> conversion_operator_helper3(std::false_type, T2* ptr1) {
+				static mse::xscope_optional<T1> conversion_operator_helper3(std::false_type, T2* ptr1) {
 					auto casted_ptr = mse::us::impl::ns_any::any_cast<T1>(&mse::us::impl::as_ref<base_class>(*ptr1));
 					if (casted_ptr) {
 						return *casted_ptr;
@@ -1238,14 +1229,12 @@ namespace mse {
 					template <typename _Ty2>
 					friend class TXScopeLHNullableAnyRandomAccessIterator;
 
-					template<typename ValueType2, typename _Ty2>
-					friend inline auto maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty2>& operand);
+					template<typename ValueType2, typename _Ty2, typename retval_t2>
+					friend inline retval_t2 maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty2>& operand);
 				};
 
-				template<typename ValueType, typename _Ty>
-				inline auto maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& operand) {
-					typedef typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type retval_t;
-
+				template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
+				inline retval_t maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& operand) {
 					/* We need to obtain the "any" object that actually stores the value. In this case, that object is "buried" within layers
 					of base classes and member fields, so it's going to take a few operations to get to it. */
 					auto nullable_any_ra_iter_base1 = operand.m_iter;
@@ -1255,10 +1244,32 @@ namespace mse {
 					auto nullable_any_ra_iter1 = mse::TNullableAnyRandomAccessIterator<_Ty>(std::move(nullable_any_ra_iter_base1));
 					auto any_ra_iter1 = mse::not_null_from_nullable(nullable_any_ra_iter1);
 					auto any1 = mse::us::impl::ns_any::contained_any(any_ra_iter1);
-					auto cast_ptr = mse::us::impl::ns_any::any_cast<mse::us::impl::TCommonizedRandomAccessIterator<_Ty, ValueType>>(std::addressof(any1));
-					if (cast_ptr) {
-						return retval_t{ (*cast_ptr).m_random_access_iterator};
+
+#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT1(type1) \
+					{ \
+						auto cast_ptr = mse::us::impl::ns_any::any_cast<mse::us::impl::TCommonizedRandomAccessIterator<_Ty, type1>>(std::addressof(any1)); \
+						if (cast_ptr) { \
+							return retval_t{ mse::lh::impl::explicitly_castable_any::convert<T1>((*cast_ptr).m_random_access_iterator) }; \
+						} \
 					}
+
+#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT1(type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT1(mse::impl::remove_const_t<type1>) \
+
+#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT3(type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(typename mse::lh::impl::NDNoradWrapped<type1>::type) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(typename mse::lh::impl::NDRegisteredWrapped<type1>::type)
+
+#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT4(type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT3(type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT3(mse::impl::remove_const_t<type1>) \
+
+					typedef ValueType T1;
+
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT4(T1);
+
 					return retval_t{};
 				}
 			}
@@ -2569,21 +2580,7 @@ namespace mse {
 
 		namespace impl {
 			template<class T1, class T2>
-			/*static*/ mse::optional<T1> explicitly_castable_any::conversion_operator_helper3(std::true_type, T2 * ptr1) {
-
-#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK4(type) \
-					{ \
-						auto ptr = mse::us::impl::ns_any::any_cast<type>(ptr1); \
-						if (ptr) { \
-							return convert<T1>(mse::us::impl::ns_any::any_cast<type>(*ptr)); \
-						} \
-					} \
-					{ \
-						auto ptr = mse::us::impl::ns_any::any_cast<const type>(ptr1); \
-						if (ptr) { \
-							return convert<T1>(mse::us::impl::ns_any::any_cast<const type>(*ptr)); \
-						} \
-					}
+			/*static*/ mse::xscope_optional<T1> explicitly_castable_any::conversion_operator_helper3(std::true_type, T2 * ptr1) {
 
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MACRO_FUNCTION, pointee_type) \
 					MACRO_FUNCTION(mse::TRefCountingPointer<pointee_type>); \
@@ -2598,8 +2595,8 @@ namespace mse {
 					MACRO_FUNCTION(pointee_type*);
 
 				typedef mse::impl::remove_reference_t<decltype(*std::declval<T1>())> pointee_t;
-				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK4, pointee_t);
-				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_TYPE_CHECK4, mse::impl::remove_const_t<pointee_t>);
+				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, pointee_t);
+				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, mse::impl::remove_const_t<pointee_t>);
 
 				auto casted_ptr = mse::us::impl::ns_any::any_cast<T1>(&mse::us::impl::as_ref<base_class>(*ptr1));
 				if (casted_ptr) {

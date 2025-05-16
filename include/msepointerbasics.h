@@ -16,6 +16,7 @@
 #include <unordered_set>
 #include <functional>
 #include <mutex>	// for std::once_flag
+#include <cstddef>
 
 #if __cplusplus >= 201703L
 #define MSE_HAS_CXX17
@@ -1529,6 +1530,37 @@ namespace mse {
 					}
 #endif /*NATIVE_PTR_DEBUG_HELPER1*/
 					return m_ptr;
+				}
+
+				/* The operators - `[]`, `+=`, and `-` - are (the minimum) necessary to be used as a "base iterator" by (some of) the 
+				library's iterators. */
+				template<typename _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t < std::is_same<_Ty, _Ty2>::value && (!std::is_same<void, mse::impl::remove_const_t<_Ty2> >::value)> MSE_IMPL_EIS >
+				_Ty2& operator[](std::ptrdiff_t _Off) const {
+					assert_initialized();
+#ifndef NDEBUG
+					if (nullptr == m_ptr) {
+						MSE_THROW(primitives_null_dereference_error("attempt to dereference null pointer - mse::TPointerForLegacy"));
+					}
+#endif // !NDEBUG
+					return m_ptr[_Off];
+				}
+				void operator +=(std::ptrdiff_t x) {
+					assert_initialized();
+#ifndef NDEBUG
+					if (nullptr == m_ptr) {
+						MSE_THROW(primitives_null_dereference_error("attempt to apply pointer arithmetic to null pointer - mse::TPointerForLegacy"));
+					}
+#endif // !NDEBUG
+					m_ptr += x;
+				}
+				std::ptrdiff_t operator-(const TPointerForLegacy& _Right_cref) const {
+					assert_initialized();
+#ifndef NDEBUG
+					if (nullptr == m_ptr) {
+						MSE_THROW(primitives_null_dereference_error("attempt to apply pointer arithmetic to null pointer - mse::TPointerForLegacy"));
+					}
+#endif // !NDEBUG
+					return (m_ptr - _Right_cref.m_ptr);
 				}
 
 				/* provisional */
