@@ -2741,9 +2741,12 @@ namespace mse {
 			}
 
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
-				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value) || (std::is_same<const void*, T>::value)
+				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value) || (std::is_same<const void*, T>::value) || (std::is_same<uintptr_t, T>::value)
 					|| (mse::impl::is_instantiation_of<mse::impl::remove_const_t<T>, mse::lh::TNativeFunctionPointerReplacement>::value))> MSE_IMPL_EIS >
 			operator T() const {
+				MSE_IF_CONSTEXPR(std::is_same<uintptr_t, T>::value) {
+					return (uintptr_t)m_shadow_void_const_ptr;
+				}
 				//return base_class::operator T();
 				const base_class& bc_cref = *this;
 				return bc_cref.operator T();
