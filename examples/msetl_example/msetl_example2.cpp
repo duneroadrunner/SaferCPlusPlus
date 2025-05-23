@@ -2413,6 +2413,8 @@ auto res12 = iptrwbv2[2];
 
 #endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 	}
+
+	mse::self_test::CLegacyHelpersTest1::s_test1();
 }
 
 

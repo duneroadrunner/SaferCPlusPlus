@@ -510,6 +510,7 @@ namespace mse {
 			TLHNullableAnyPointer(const base_class& src) : base_class(src) {}
 			TLHNullableAnyPointer() = default;
 			TLHNullableAnyPointer(std::nullptr_t) : base_class(std::nullptr_t()) {}
+			explicit TLHNullableAnyPointer(const void_star_replacement& src); /* defined later in the file after void_star_replacement is defined */
 			template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 				(!std::is_convertible<_TPointer1, TLHNullableAnyPointer>::value)
 				&& (!std::is_base_of<base_class, _TPointer1>::value)
@@ -592,6 +593,12 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
 
+		/* specializations defined later in the file */
+		template<>
+		class TLHNullableAnyPointer<void>;
+		template<>
+		class TLHNullableAnyPointer<const void>;
+
 #ifndef MSE_HAS_CXX20
 		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 		bool operator==(const _Ty2 lhs, const TLHNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }
@@ -645,6 +652,7 @@ namespace mse {
 			//MSE_USING(TXScopeLHNullableAnyPointer, base_class);
 			TXScopeLHNullableAnyPointer() = default;
 			TXScopeLHNullableAnyPointer(std::nullptr_t) : base_class(std::nullptr_t()) {}
+			explicit TXScopeLHNullableAnyPointer(const void_star_replacement& src); /* defined later in the file after void_star_replacement is defined */
 			template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 				(!std::is_convertible<_TPointer1, TXScopeLHNullableAnyPointer>::value)
 				&& (!std::is_base_of<base_class, _TPointer1>::value)
@@ -721,6 +729,12 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
 
+		/* specializations defined later in the file */
+		template<>
+		class TXScopeLHNullableAnyPointer<void>;
+		template<>
+		class TXScopeLHNullableAnyPointer<const void>;
+
 #ifndef MSE_HAS_CXX20
 		template <typename _Ty, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
 		bool operator==(const _Ty2 lhs, const TXScopeLHNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }
@@ -780,12 +794,15 @@ namespace mse {
 				}
 
 			//private:
+				template<class T1>
+				using my_optional = mse::us::impl::ns_optional::optional_base2<T1, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag>;
+
 				template<class T1, class T2>
-				static mse::xscope_optional<T1> convert_helper1(std::true_type, const T2& x) {
+				static my_optional<T1> convert_helper1(std::true_type, const T2& x) {
 					return T1(x);
 				}
 				template<class T1, class T2>
-				static mse::xscope_optional<T1> convert_helper1(std::false_type, const T2& x) {
+				static my_optional<T1> convert_helper1(std::false_type, const T2& x) {
 #ifndef NDEBUG
 					std::cout << "\nconvert_helper1<>(std::false_type, ): T1: " << typeid(T1).name() << ", T2: " << typeid(T2).name() << " \n";
 #endif // !NDEBUG
@@ -845,8 +862,9 @@ namespace mse {
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_CAST_ATTEMPT(type1, template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(template_wrapper<type1>)
 
 				template<class T1, class T2>
-				static mse::xscope_optional<T1> conversion_operator_helper2(T2* ptr1) {
+				static my_optional<T1> conversion_operator_helper2(T2* ptr1) {
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(T1);
+#if (!defined(_MSC_VER)) || defined(MSE_HAS_CXX20)
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT2(std::nullptr_t);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(void*);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(const char*);
@@ -854,6 +872,7 @@ namespace mse {
 					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_CAST_ATTEMPT_HELPER1);
 					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_CAST_ATTEMPT);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(mse::CNDSize_t);
+#endif // (!defined(_MSC_VER)) || defined(MSE_HAS_CXX20)
 
 					auto maybe_retval = conversion_operator_helper3<T1>(typename mse::impl::IsDereferenceable_pb<T1>::type(), ptr1);
 					if (maybe_retval.has_value()) {
@@ -863,9 +882,9 @@ namespace mse {
 				}
 
 				template<class T1, class T2>
-				static mse::xscope_optional<T1> conversion_operator_helper3(std::true_type, T2* ptr1);
+				static my_optional<T1> conversion_operator_helper3(std::true_type, T2* ptr1);
 				template<class T1, class T2>
-				static mse::xscope_optional<T1> conversion_operator_helper3(std::false_type, T2* ptr1) {
+				static my_optional<T1> conversion_operator_helper3(std::false_type, T2* ptr1) {
 					auto casted_ptr = mse::us::impl::ns_any::any_cast<T1>(&mse::us::impl::as_ref<base_class>(*ptr1));
 					if (casted_ptr) {
 						return *casted_ptr;
@@ -1183,7 +1202,7 @@ namespace mse {
 
 					template <typename _TRandomAccessIterator1>
 					static auto constructor_helper1(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
-						typedef mse::impl::remove_reference_t<decltype(*random_access_iterator)> _Ty2;
+						typedef mse::impl::remove_reference_t<mse::impl::target_or_given_default_type<decltype(random_access_iterator), mse::impl::TPlaceHolder<> > > _Ty2;
 						typedef mse::impl::remove_const_t<_Ty> _ncTy;
 						typedef mse::impl::remove_const_t<_Ty2> _ncTy2;
 						typedef typename mse::impl::conjunction<std::is_integral<_Ty>, std::is_integral<_Ty2>
@@ -1293,6 +1312,7 @@ namespace mse {
 			TLHNullableAnyRandomAccessIterator(const std::nullptr_t& src) : base_class() {}
 			TLHNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
 			TLHNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
+			explicit TLHNullableAnyRandomAccessIterator(const void_star_replacement& src); /* defined later in the file after void_star_replacement is defined */
 
 			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator& src) = default;
 
@@ -1388,6 +1408,7 @@ namespace mse {
 			TXScopeLHNullableAnyRandomAccessIterator(const std::nullptr_t& src) : base_class() {}
 			TXScopeLHNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
 			TXScopeLHNullableAnyRandomAccessIterator(_Ty arr[]) : base_class(arr) {}
+			explicit TXScopeLHNullableAnyRandomAccessIterator(const void_star_replacement& src); /* defined later in the file after void_star_replacement is defined */
 
 			TXScopeLHNullableAnyRandomAccessIterator(const TXScopeLHNullableAnyRandomAccessIterator& src) = default;
 
@@ -2580,7 +2601,7 @@ namespace mse {
 
 		namespace impl {
 			template<class T1, class T2>
-			/*static*/ mse::xscope_optional<T1> explicitly_castable_any::conversion_operator_helper3(std::true_type, T2 * ptr1) {
+			/*static*/ explicitly_castable_any::my_optional<T1> explicitly_castable_any::conversion_operator_helper3(std::true_type, T2 * ptr1) {
 
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MACRO_FUNCTION, pointee_type) \
 					MACRO_FUNCTION(mse::TRefCountingPointer<pointee_type>); \
@@ -2744,22 +2765,28 @@ namespace mse {
 				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void *, T>::value) || (std::is_same<const void*, T>::value) || (std::is_same<uintptr_t, T>::value)
 					|| (mse::impl::is_instantiation_of<mse::impl::remove_const_t<T>, mse::lh::TNativeFunctionPointerReplacement>::value))> MSE_IMPL_EIS >
 			operator T() const {
-				MSE_IF_CONSTEXPR(std::is_same<uintptr_t, T>::value) {
-					return (uintptr_t)m_shadow_void_const_ptr;
-				}
-				//return base_class::operator T();
-				const base_class& bc_cref = *this;
-				return bc_cref.operator T();
+				return operator_T_helper1<T>(typename std::is_same<uintptr_t, T>::type());
 			}
 
 		private:
 			template<class T>
-			void const* make_void_const_ptr_helper1(std::true_type, const T& src_ptr) {
+			static void const* make_void_const_ptr_helper1(std::true_type, const T& src_ptr) {
 				return src_ptr;
 			}
 			template<class T>
-			void const* make_void_const_ptr_helper1(std::false_type, const T& src_ptr) {
+			static void const* make_void_const_ptr_helper1(std::false_type, const T& src_ptr) {
 				return mse::us::lh::make_raw_pointer_from(src_ptr);
+			}
+
+			template<class T>
+			T operator_T_helper1(std::true_type) const {
+				return (uintptr_t)m_shadow_void_const_ptr;
+			}
+			template<class T>
+			T operator_T_helper1(std::false_type) const {
+				//return base_class::operator T();
+				const base_class& bc_cref = *this;
+				return bc_cref.operator T();
 			}
 
 			bool m_is_nullptr = true;
@@ -2767,6 +2794,26 @@ namespace mse {
 
 			template<typename _Ty>
 			friend _Ty mse::us::lh::unsafe_cast(const mse::lh::void_star_replacement& x);
+		};
+
+		template <typename _Ty>
+		TLHNullableAnyRandomAccessIterator<_Ty>::TLHNullableAnyRandomAccessIterator(const void_star_replacement& src) : base_class(src.operator TLHNullableAnyRandomAccessIterator()) {}
+		template <typename _Ty>
+		TXScopeLHNullableAnyRandomAccessIterator<_Ty>::TXScopeLHNullableAnyRandomAccessIterator(const void_star_replacement& src) : base_class(src.operator TXScopeLHNullableAnyRandomAccessIterator()) {}
+		template <typename _Ty>
+		TLHNullableAnyPointer<_Ty>::TLHNullableAnyPointer(const void_star_replacement& src) : base_class(src.operator TLHNullableAnyPointer()) {}
+		template <typename _Ty>
+		TXScopeLHNullableAnyPointer<_Ty>::TXScopeLHNullableAnyPointer(const void_star_replacement& src) : base_class(src.operator TXScopeLHNullableAnyPointer()) {}
+
+		template<>
+		class TLHNullableAnyPointer<void> : public void_star_replacement {
+			typedef void_star_replacement base_class;
+			using base_class::base_class;
+		};
+		template<>
+		class TLHNullableAnyPointer<const void> : public void_star_replacement {
+			typedef void_star_replacement base_class;
+			using base_class::base_class;
 		};
 	}
 	namespace us {
@@ -3028,6 +3075,754 @@ intentionally use this (implicit) conversion in the interface of lh::TLHNullable
 #pragma GCC diagnostic ignored "-Wconversion-null"
 #endif /*__GNUC__*/
 #endif /*__clang__*/
+
+
+namespace mse {
+
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wunused-function"
+#pragma clang diagnostic ignored "-Wunused-but-set-variable"
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
+	namespace self_test {
+		class CLegacyHelpersTest1 {
+		public:
+			static void s_test1() {
+#ifdef MSE_SELF_TESTS
+#if !defined(MSE_SAFER_SUBSTITUTES_DISABLED)
+				{
+					int i1 = 11;
+					mse::TXScopeAnyPointer<int> xsaptr1 = &i1;
+					mse::TRegisteredObj<int> i2_reg = 17;
+					mse::TAnyPointer<int> aptr2 = &i2_reg;
+#if 1
+					mse::TAnyPointer<const int> ci_aptr2 = &i2_reg;
+					mse::TAnyConstPointer<int> acptr2 = &i2_reg;
+					mse::TNullableAnyPointer<int> naptr3 = &i2_reg;
+					mse::lh::TLHNullableAnyPointer <int>  lhnaptr1;
+					auto ptr2 = lhnaptr1 ? lhnaptr1 : nullptr;
+					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaraiter1;
+					bool b1 = std::is_same<mse::impl::target_or_void_type<decltype(lhnaptr1)>, mse::impl::target_or_void_type<decltype(lhnaraiter1)> >::value;
+					bool b2 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(xsaptr1));
+					bool b3 = std::is_convertible<typename std::decay<decltype(xsaptr1)>::type, bool>::value;
+					bool b4 = mse::impl::IsExplicitlyCastableToBool_pb<decltype(xsaptr1)>::value;
+					bool b5 = mse::impl::IsExplicitlyCastableToBool_pb<int>::value;
+					if (xsaptr1 == xsaptr1) {
+						int q = 5;
+					}
+#ifdef MSE_HAS_CXX17
+					auto b6 = (aptr2 == xsaptr1);
+					auto b7 = (naptr3 == aptr2);
+					auto b8 = (aptr2 != naptr3);
+					auto b9 = (acptr2 == acptr2);
+					auto b10 = (naptr3 == acptr2);
+					auto b11 = (acptr2 != naptr3);
+					auto b12 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::remove_reference_t<decltype(acptr2)> >::value;
+					auto b13 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::remove_reference_t<decltype(aptr2)> >::value;
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+					auto ui_ptr = mse::us::impl::TPointer<int>();
+					auto b14 = (aptr2 == ui_ptr);
+					auto b14b = (ui_ptr == aptr2);
+					auto b18 = (mse::TAnyPointer<int>(&i2_reg) == mse::us::impl::TPointer<int>());
+					auto b22 = (mse::us::impl::TPointer<int>() == mse::us::impl::TPointerForLegacy<int>());
+					auto b23 = (mse::us::impl::TPointer<int>() == mse::impl::test_pointer<int>());
+#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+#else // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+					auto b24 = (aptr2 == mse::impl::test_pointer<int>());
+#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+					auto b15 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(mse::us::impl::TPointer<int>);
+					auto b15b = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(mse::us::impl::TPointerForLegacy<int>);
+					auto b16 = mse::impl::IsExplicitlyCastableToBool_pb<mse::us::impl::TPointer<int> >::value;
+					auto b17 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::us::impl::TPointer<int> >::value;
+					auto b19 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<decltype(naptr3)>::value;
+					auto b20 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::TNullableAnyPointer<int> >::value;
+					auto b25 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::TRegisteredPointer<int> >::value;
+					mse::impl::test_pointer<int> test_ptr;
+					/*if (lhnaptr1 == lhnaraiter1) */ {
+						int q = 5;
+					}
+					bool b42 = (ci_aptr2 == aptr2);
+					bool b43 = (aptr2 == ci_aptr2);
+					bool b44 = (aptr2 != ci_aptr2);
+#endif //MSE_HAS_CXX17
+					mse::lh::TXScopeLHNullableAnyPointer<int> xslhnaptr1 = NULL;
+					bool b26 = (xslhnaptr1 == NULL);
+					bool b27 = (NULL == xslhnaptr1);
+					mse::lh::TLHNullableAnyPointer<int> lhnaptr2 = NULL;
+					bool b28 = (lhnaptr2 == NULL);
+					bool b29 = (NULL == lhnaptr2);
+					bool b30 = (lhnaptr2 == nullptr);
+					bool b31 = (nullptr == lhnaptr2);
+					bool b32 = (naptr3 == nullptr);
+					bool b33 = (nullptr == naptr3);
+					bool b34 = (nullptr != naptr3);
+					bool b35 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(nullptr));
+					bool b36 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(std::nullptr_t);
+					bool b37 = std::is_same<decltype(nullptr), std::nullptr_t>::value;
+					bool b38 = (lhnaptr2 == lhnaptr2);
+					int q = 5;
+#endif // 0
+				}
+				{
+					auto arr1 = mse::nii_vector<int>{ 1, 2 };
+					mse::TXScopeAnyRandomAccessIterator<int> xsaiter1 = mse::make_xscope_begin_iterator(&arr1);
+					auto arr2_reg = mse::make_registered(mse::nii_vector<int>{ 1, 2 });
+					mse::TAnyRandomAccessIterator<int> aiter2 = mse::make_begin_iterator(&arr2_reg);
+					mse::TAnyRandomAccessIterator<const int> ci_aiter2 = mse::make_begin_iterator(&arr2_reg);
+					mse::TAnyRandomAccessConstIterator<int> aciter2 = mse::make_begin_iterator(&arr2_reg);
+					mse::TNullableAnyRandomAccessIterator<int> naiter3;
+					mse::lh::TLHNullableAnyRandomAccessIterator <int>  lhnaiter1;
+					auto iter2 = lhnaiter1 ? lhnaiter1 : nullptr;
+					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaraiter1;
+					bool b1 = std::is_same<mse::impl::target_or_void_type<decltype(lhnaiter1)>, mse::impl::target_or_void_type<decltype(lhnaraiter1)> >::value;
+					bool b2 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(xsaiter1));
+					bool b3 = std::is_convertible<typename std::decay<decltype(xsaiter1)>::type, bool>::value;
+					bool b4 = mse::impl::IsExplicitlyCastableToBool_pb<decltype(xsaiter1)>::value;
+					bool b5 = mse::impl::IsExplicitlyCastableToBool_pb<int>::value;
+					if (xsaiter1 == xsaiter1) {
+						int q = 5;
+					}
+					mse::impl::test_iterator<int> test_iter;
+					/*if (lhnaiter1 == lhnaraiter1) */ {
+						int q = 5;
+					}
+					auto b12 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::remove_reference_t<decltype(aciter2)> >::value;
+					auto b13 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<decltype(aiter2)>::value;
+					auto b15 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::remove_reference_t<decltype(naiter3)> >::value;
+					auto b15b = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<int*>::value;
+					auto b15c = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<int>::value;
+					auto b16 = mse::impl::IsExplicitlyCastableToBool_pb<mse::impl::remove_reference_t<decltype(aiter2)> >::value;
+					auto b16b = mse::impl::IsExplicitlyCastableToBool_pb<mse::impl::remove_reference_t<decltype(naiter3)> >::value;
+					auto b39 = std::is_base_of<mse::us::impl::TAnyRandomAccessIteratorBase<int>, decltype(aiter2)>::value;
+					auto b40 = mse::impl::SupportsSubtraction_poly<decltype(aiter2)>::value;
+					auto b41 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(aiter2));
+#ifdef MSE_HAS_CXX17
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+#else // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+					auto b15d = (naiter3 == test_iter);
+					auto b24 = (aiter2 == mse::impl::test_iterator<int>());
+					MSE_TRY{
+						auto b12b = (aciter2 == test_iter);
+						auto b13b = (aiter2 == test_iter);
+					}
+						MSE_CATCH_ANY{}
+#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+						MSE_TRY{
+							auto b6 = (aiter2 == xsaiter1);
+					}
+						MSE_CATCH_ANY{}
+					auto b7 = (naiter3 == aiter2);
+					auto b8 = (aiter2 != naiter3);
+					auto b9 = (aciter2 == aciter2);
+					auto b10 = (naiter3 == aciter2);
+					auto b11 = (aciter2 != naiter3);
+					bool b42 = (ci_aiter2 == aiter2);
+					bool b43 = (aiter2 == ci_aiter2);
+					bool b44 = (aiter2 != ci_aiter2);
+#endif //MSE_HAS_CXX17
+					mse::lh::TXScopeLHNullableAnyRandomAccessIterator<int> xslhnaiter1 = NULL;
+					bool b26 = (xslhnaiter1 == NULL);
+					bool b27 = (NULL == xslhnaiter1);
+					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaiter2 = NULL;
+					bool b28 = (lhnaiter2 == NULL);
+					bool b29 = (NULL == lhnaiter2);
+					bool b30 = (lhnaiter2 == nullptr);
+					bool b31 = (nullptr == lhnaiter2);
+					bool b32 = (naiter3 == nullptr);
+					bool b33 = (nullptr == naiter3);
+					bool b34 = (nullptr != naiter3);
+					bool b35 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(nullptr));
+					bool b36 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(std::nullptr_t);
+					bool b37 = std::is_same<decltype(nullptr), std::nullptr_t>::value;
+					bool b38 = (lhnaiter2 == lhnaiter2);
+					bool b46 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(char*);
+					bool b47 = mse::impl::SupportsSubtraction_poly<char*>::value;
+					bool b48 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<char*>::value;
+
+					int q = 5;
+				}
+				{
+					int i1 = 11;
+#if 1
+					mse::lh::TXScopeLHNullableAnyPointer<int> xsaptr1 = &i1;
+					mse::TRegisteredObj<int> i2_reg = 17;
+					mse::lh::TLHNullableAnyPointer<int> aptr2 = &i2_reg;
+					mse::lh::TLHNullableAnyPointer<int> acptr2 = &i2_reg;
+					mse::TNullableAnyPointer<int> naptr3 = &i2_reg;
+					mse::lh::TLHNullableAnyPointer <int>  lhnaptr1;
+					auto ptr2 = lhnaptr1 ? lhnaptr1 : nullptr;
+					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaraiter1;
+					bool b1 = std::is_same<mse::impl::target_or_void_type<decltype(lhnaptr1)>, mse::impl::target_or_void_type<decltype(lhnaraiter1)> >::value;
+					bool b2 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(xsaptr1));
+					bool b3 = std::is_convertible<typename std::decay<decltype(xsaptr1)>::type, bool>::value;
+					bool b4 = mse::impl::IsExplicitlyCastableToBool_pb<decltype(xsaptr1)>::value;
+					bool b5 = mse::impl::IsExplicitlyCastableToBool_pb<int>::value;
+					if (xsaptr1 == xsaptr1) {
+						int q = 5;
+					}
+#ifdef MSE_HAS_CXX17
+					auto b6 = (aptr2 == xsaptr1);
+					auto b7 = (naptr3 == aptr2);
+					auto b8 = (aptr2 != naptr3);
+					auto b9 = (acptr2 == acptr2);
+					auto b10 = (naptr3 == acptr2);
+					auto b11 = (acptr2 != naptr3);
+					auto b12 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::remove_reference_t<decltype(acptr2)> >::value;
+					auto b13 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::remove_reference_t<decltype(aptr2)> >::value;
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+					auto ui_ptr = mse::us::impl::TPointer<int>();
+					auto b14 = (aptr2 == ui_ptr);
+					auto b14b = (ui_ptr == aptr2);
+					auto b18 = (mse::lh::TLHNullableAnyPointer<int>(&i2_reg) == mse::us::impl::TPointer<int>());
+					auto b22 = (mse::us::impl::TPointer<int>() == mse::us::impl::TPointerForLegacy<int>());
+					auto b23 = (mse::us::impl::TPointer<int>() == mse::impl::test_pointer<int>());
+#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+#else // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+					auto b24 = (aptr2 == mse::impl::test_pointer<int>());
+#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+					auto b15 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(mse::us::impl::TPointer<int>);
+					auto b15b = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(mse::us::impl::TPointerForLegacy<int>);
+					auto b16 = mse::impl::IsExplicitlyCastableToBool_pb<mse::us::impl::TPointer<int> >::value;
+					auto b17 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::us::impl::TPointer<int> >::value;
+					auto b19 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<decltype(naptr3)>::value;
+					auto b20 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::TNullableAnyPointer<int> >::value;
+					auto b25 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::TRegisteredPointer<int> >::value;
+					mse::impl::test_pointer<int> test_ptr;
+					/*if (lhnaptr1 == lhnaraiter1) */ {
+						int q = 5;
+					}
+#endif //MSE_HAS_CXX17
+					mse::lh::TXScopeLHNullableAnyPointer<int> xslhnaptr1 = NULL;
+					bool b26 = (xslhnaptr1 == NULL);
+					bool b27 = (NULL == xslhnaptr1);
+					mse::lh::TLHNullableAnyPointer<int> lhnaptr2 = NULL;
+					bool b28 = (lhnaptr2 == NULL);
+					bool b29 = (NULL == lhnaptr2);
+					bool b30 = (lhnaptr2 == nullptr);
+					bool b31 = (nullptr == lhnaptr2);
+					bool b32 = (naptr3 == nullptr);
+					bool b33 = (nullptr == naptr3);
+					bool b34 = (nullptr != naptr3);
+					bool b35 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(nullptr));
+					bool b36 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(std::nullptr_t);
+					bool b37 = std::is_same<decltype(nullptr), std::nullptr_t>::value;
+					bool b38 = (lhnaptr2 == lhnaptr2);
+#endif // 0
+					int q = 5;
+				}
+				{
+#if 1
+					auto arr1 = mse::nii_vector<int>{ 1, 2 };
+					mse::lh::TXScopeLHNullableAnyRandomAccessIterator<int> xsaiter1 = mse::make_xscope_begin_iterator(&arr1);
+					mse::lh::TXScopeLHNullableAnyRandomAccessIterator<const int> xsaciter1 = mse::make_xscope_begin_iterator(&arr1);
+					auto arr2_reg = mse::make_registered(mse::nii_vector<int>{ 1, 2 });
+					mse::lh::TLHNullableAnyRandomAccessIterator<int> aiter2 = mse::make_begin_iterator(&arr2_reg);
+					mse::lh::TLHNullableAnyRandomAccessIterator<const int> aciter2 = mse::make_begin_iterator(&arr2_reg);
+					mse::TNullableAnyRandomAccessIterator<int> naiter3;
+					mse::lh::TLHNullableAnyRandomAccessIterator <int>  lhnaiter1;
+					auto iter2 = lhnaiter1 ? lhnaiter1 : nullptr;
+					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaraiter1;
+					bool b1 = std::is_same<mse::impl::target_or_void_type<decltype(lhnaiter1)>, mse::impl::target_or_void_type<decltype(lhnaraiter1)> >::value;
+					bool b2 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(xsaiter1));
+					bool b3 = std::is_convertible<typename std::decay<decltype(xsaiter1)>::type, bool>::value;
+					bool b4 = mse::impl::IsExplicitlyCastableToBool_pb<decltype(xsaiter1)>::value;
+					bool b5 = mse::impl::IsExplicitlyCastableToBool_pb<int>::value;
+					if (xsaiter1 == xsaiter1) {
+						int q = 5;
+					}
+					mse::impl::test_iterator<int> test_iter;
+					/*if (lhnaiter1 == lhnaraiter1) */ {
+						int q = 5;
+					}
+					auto b12 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::remove_reference_t<decltype(aciter2)> >::value;
+					auto b13 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<decltype(aiter2)>::value;
+					auto b15 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::remove_reference_t<decltype(naiter3)> >::value;
+					auto b15b = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<int*>::value;
+					auto b15c = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<int>::value;
+					auto b16 = mse::impl::IsExplicitlyCastableToBool_pb<mse::impl::remove_reference_t<decltype(aiter2)> >::value;
+					auto b16b = mse::impl::IsExplicitlyCastableToBool_pb<mse::impl::remove_reference_t<decltype(naiter3)> >::value;
+					auto b39 = std::is_base_of<mse::us::impl::TAnyRandomAccessIteratorBase<int>, decltype(aiter2)>::value;
+					auto b40 = mse::impl::SupportsSubtraction_poly<decltype(aiter2)>::value;
+					auto b41 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(aiter2));
+#ifdef MSE_HAS_CXX17
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+#else // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+					auto b15d = (naiter3 == test_iter);
+					auto b24 = (aiter2 == mse::impl::test_iterator<int>());
+					MSE_TRY{
+						auto b12b = (aciter2 == test_iter);
+						auto b13b = (aiter2 == test_iter);
+					}
+						MSE_CATCH_ANY{}
+#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+						MSE_TRY{
+							auto b6 = (aiter2 == xsaiter1);
+					}
+						MSE_CATCH_ANY{}
+					auto b7 = (naiter3 == aiter2);
+					auto b8 = (aiter2 != naiter3);
+					auto b9 = (aciter2 == aciter2);
+					auto b10 = (aiter2 == aciter2);
+					auto b11 = (aciter2 != aiter2);
+					auto b42 = (aciter2 == aiter2);
+					auto b43 = (aiter2 == aciter2);
+					auto b44 = (aiter2 != aciter2);
+					auto b45 = (xsaciter1 == xsaiter1);
+					auto b46 = (xsaiter1 == xsaciter1);
+					auto b47 = (xsaiter1 != xsaciter1);
+					auto b48 = (xsaciter1 == aiter2);
+					auto b49 = (xsaiter1 == aciter2);
+#endif //MSE_HAS_CXX17
+					mse::lh::TXScopeLHNullableAnyRandomAccessIterator<int> xslhnaiter1 = NULL;
+					bool b26 = (xslhnaiter1 == NULL);
+					bool b27 = (NULL == xslhnaiter1);
+					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaiter2 = NULL;
+					bool b28 = (lhnaiter2 == NULL);
+					bool b29 = (NULL == lhnaiter2);
+					bool b30 = (lhnaiter2 == nullptr);
+					bool b31 = (nullptr == lhnaiter2);
+					bool b32 = (naiter3 == nullptr);
+					bool b33 = (nullptr == naiter3);
+					bool b34 = (nullptr != naiter3);
+					bool b35 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(nullptr));
+					bool b36 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(std::nullptr_t);
+					bool b37 = std::is_same<decltype(nullptr), std::nullptr_t>::value;
+					bool b38 = (lhnaiter2 == lhnaiter2);
+#endif // 0
+					int q = 5;
+				}
+				{
+					mse::lh::TNativeArrayReplacement<int, 2> arr1{ 1, 2 };
+					auto iter1 = arr1.begin();
+					mse::TNullableAnyRandomAccessIterator<int> naraiter2 = iter1;
+					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaraiter1 = arr1;
+					auto b2 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<decltype(arr1)>::value;
+					auto b1 = (lhnaraiter1 == arr1);
+					typedef decltype(naraiter2) T1;
+					auto b3 = mse::impl::first_is_or_is_subclass_of_any<T1
+						, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T1, std::nullptr_t> >
+						, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::target_or_given_default_type<T1, std::nullptr_t> >
+						, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T1, std::nullptr_t> >
+						, mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T1, std::nullptr_t> >
+					>::value;
+					typedef decltype(lhnaraiter1) T2;
+					auto b4 = mse::impl::first_is_or_is_subclass_of_any<T2
+						, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T2, std::nullptr_t> >
+						, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::target_or_given_default_type<T2, std::nullptr_t> >
+						, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T2, std::nullptr_t> >
+						, mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T2, std::nullptr_t> >
+					>::value;
+					typedef decltype(arr1) T3;
+					auto b5 = mse::impl::first_is_or_is_subclass_of_any<T3
+						, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T3, std::nullptr_t> >
+						, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::target_or_given_default_type<T3, std::nullptr_t> >
+						, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T3, std::nullptr_t> >
+						, mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T3, std::nullptr_t> >
+					>::value;
+					int q = 5;
+				}
+				{
+					mse::TNullableAnyPointer<int> naptr1;
+					mse::lh::TLHNullableAnyPointer<int> lhnaptr1;
+					lhnaptr1 = naptr1;
+				}
+				{
+					enum direction {
+						EAST, NORTH, WEST, SOUTH
+					};
+					mse::TRegisteredObj<enum direction> direction_reg1 = NORTH;
+					if (NORTH == direction_reg1) {
+						int q = 5;
+					}
+					if (direction_reg1 == NORTH) {
+						int q = 5;
+					}
+					auto direction_regptr1 = &direction_reg1;
+					if (NORTH == *direction_regptr1) {
+						int q = 5;
+					}
+					auto direction2 = *direction_regptr1;
+					bool b1 = MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(decltype(direction_regptr1), enum direction);
+					bool b2 = mse::impl::target_can_be_commonized_referenced_as<decltype(direction_regptr1), enum direction>::value;
+					mse::impl::remove_reference_t<mse::us::impl::base_type_t<decltype(*direction_regptr1)> >  a1 = NORTH;
+
+					//mse::lh::TLHNullableAnyPointer<enum direction> lhnaptr1 = &direction_reg1;
+					mse::lh::TLHNullableAnyPointer<enum direction> lhnaptr1 = direction_regptr1;
+					lhnaptr1 = direction_regptr1;
+
+					enum direction dir2 = (enum direction)(int)direction_reg1;
+					enum direction dir3 = direction_reg1;
+					direction_reg1 = WEST;
+
+					mse::TRegisteredObj<int> int_reg1 = 2;
+					int i2 = int_reg1;
+					bool b3 = (i2 == dir2);
+					bool b4 = (int_reg1 == dir2);
+					auto b5 = std::numeric_limits<std::string>::is_signed;
+					auto digits1 = std::numeric_limits<std::string>::digits;
+					size_t szt1 = 7;
+					mse::CSize_t cszt2 = szt1;
+					mse::CSize_t cszt3 = szt1;
+					bool b6 = (cszt2 == cszt3);
+					bool b7 = (cszt2 > szt1);
+					mse::TFloatingPoint<float> flt1 = 3.14;
+					mse::TFloatingPoint<float> flt2 = flt1;
+					bool b8 = (flt1 == flt2);
+					auto flt3 = flt1 + flt2;
+					int q = 5;
+
+					mse::lh::TLHNullableAnyPointer<int> int_lhnaptr1 = &int_reg1;
+					int_lhnaptr1 = &int_reg1;
+				}
+				{
+					enum class direction {
+						EAST, NORTH, WEST, SOUTH
+					};
+					mse::TRegisteredObj<direction> direction_reg1 = direction::NORTH;
+
+					bool b11 = std::is_enum<direction>::value;
+					bool b12 = std::is_integral<direction>::value;
+					//struct CD : direction {};
+					direction dir4 = direction::NORTH;
+					dir4 = direction_reg1;
+					if (direction_reg1 == direction::NORTH) {
+						int q = 5;
+					}
+#if 1
+					if (direction::NORTH == direction_reg1) {
+						int q = 5;
+					}
+					auto direction_regptr1 = &direction_reg1;
+					if (direction::NORTH == *direction_regptr1) {
+						int q = 5;
+					}
+					auto direction2 = *direction_regptr1;
+					bool b1 = MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(decltype(direction_regptr1), enum direction);
+					bool b2 = mse::impl::target_can_be_commonized_referenced_as<decltype(direction_regptr1), enum direction>::value;
+					mse::impl::remove_reference_t<mse::us::impl::base_type_t<decltype(*direction_regptr1)> >  a1 = direction::NORTH;
+
+					//mse::lh::TLHNullableAnyPointer<direction> lhnaptr1 = &direction_reg1;
+					mse::lh::TLHNullableAnyPointer<direction> lhnaptr1 = direction_regptr1;
+					lhnaptr1 = direction_regptr1;
+
+					//enum direction dir2 = (direction)(int)direction_reg1;
+					enum direction dir3 = direction_reg1;
+					enum direction dir5 = (direction)(int)dir4;
+
+					mse::TRegisteredObj<int> int_reg1 = 5;
+					int i2 = int_reg1;
+					int q = 5;
+
+					mse::lh::TLHNullableAnyPointer<int> int_lhnaptr1 = &int_reg1;
+					int_lhnaptr1 = &int_reg1;
+#endif // 0
+				}
+				{
+					FILE* fhandle1 = nullptr;
+#ifdef _MSC_VER
+					auto errno1 = fopen_s(&fhandle1, "README.md", "r");
+#else // _MSC_VER
+					fhandle1 = fopen("README.md", "r");
+#endif // _MSC_VER
+					if (fhandle1) {
+						//char* char_buffer1 = malloc(buffer1_size);
+						auto iter1 = mse::make_registered<mse::lh::TStrongVectorIterator<char> >();
+						auto buffer1_size = mse::make_registered<size_t>(iter1.size());
+						mse::lh::getline(&iter1, &buffer1_size, fhandle1);
+						fclose(fhandle1);
+
+						std::string line_that_was_read;
+						auto length_of_line_that_was_read_plus_null_terminator = mse::lh::strlen(iter1) + 1;
+						for (size_t i = 0; i < length_of_line_that_was_read_plus_null_terminator; ++i) {
+							line_that_was_read += iter1[i];
+						}
+						int q = 5;
+					}
+					int q = 5;
+				}
+				{
+					mse::lh::TLHNullableAnyRandomAccessIterator<char> lhs;
+					mse::TRegisteredObj<mse::lh::TStrongVectorIterator<char> > rhs;
+					mse::lh::TStrongVectorIterator<char> rhs2;
+					auto b1 = (lhs == rhs);
+					auto b2 = (lhs == rhs2);
+					auto b3 = mse::impl::SupportsSubtraction_poly<decltype(rhs2)>::value;
+					auto b4 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<decltype(rhs2)>::value;
+					//auto b5 = (mse::impl::test_iterator<int>() == rhs2);
+					//auto b6 = (rhs2 == mse::impl::test_iterator<int>());
+					auto b7 = (rhs2 == rhs);
+					int q = 5;
+				}
+#ifdef MSE_HAS_CXX17
+				{
+					mse::TRegisteredObj<int> i1_reg = 10;
+					mse::lh::void_star_replacement vsr1 = &i1_reg;
+					mse::lh::void_star_replacement vsr2;
+					auto b1 = (vsr1 == vsr2);
+					mse::lh::TLHNullableAnyPointer<int> lhnaptr1 = &i1_reg;
+					auto b2 = (lhnaptr1 == nullptr);
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+					auto b3 = (lhnaptr1 == vsr1);
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+					auto b4 = (NULL == vsr1);
+					MSE_TRY{
+						auto tint2_regptr = (decltype(&std::declval<mse::TRegisteredObj<int> >()))(vsr1);
+						typedef decltype(&std::declval<mse::TRegisteredObj<int> >())& type1;
+						auto tint3_regptr = type1(vsr1);
+						auto tint4_regptr = (decltype(&std::declval<mse::TRegisteredObj<int> >())&)(vsr1);
+						auto ctint5_regptr = (decltype(&std::declval<mse::TRegisteredObj<const int> >()))(vsr1);
+					} MSE_CATCH_ANY{
+						int q = 5;
+					}
+
+					vsr1 = lhnaptr1;
+					MSE_TRY{
+						auto lhnaptr2 = mse::lh::TLHNullableAnyPointer<int>(vsr1);
+						typedef mse::lh::TLHNullableAnyPointer<int>& type1;
+						auto lhnaptr3 = type1(vsr1);
+						auto lhnaptr4 = (mse::lh::TLHNullableAnyPointer<int>&)(vsr1);
+						auto clhnaptr5 = mse::lh::TLHNullableAnyPointer<const int>(vsr1);
+					}
+					MSE_CATCH_ANY{
+							int q = 5;
+					}
+
+					mse::lh::TNativeFunctionPointerReplacement<void()> nfr1;
+					bool b5 = mse::impl::is_instantiation_of<mse::impl::remove_const_t<decltype(nfr1)>, mse::lh::TNativeFunctionPointerReplacement>::value;
+					vsr1 = nfr1;
+					MSE_TRY{
+						auto nfr2 = mse::lh::TNativeFunctionPointerReplacement<void()>(vsr1);
+						auto nfr3 = (mse::lh::TNativeFunctionPointerReplacement<void()>)(vsr1);
+					}
+						MSE_CATCH_ANY{
+							int q = 5;
+					}
+
+					int q = 5;
+				}
+#endif // MSE_HAS_CXX17
+				{
+					int i1 = 7;
+					auto int_anyptr1 = mse::us::unsafe_make_any_pointer_to(i1);
+					mse::lh::TLHNullableAnyPointer<int> lhnaptr1;
+					//lhnaptr1 = mse::us::lh::unsafe_make_lh_nullable_any_pointer_to(i1);
+					lhnaptr1 = mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(&i1);
+					auto i2 = *lhnaptr1;
+					mse::TRegisteredObj<int> i1_reg = 10;
+					lhnaptr1 = mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(&i1_reg);
+					auto i3 = *lhnaptr1;
+
+					mse::lh::TLHNullableAnyRandomAccessIterator<int>  tok = nullptr;
+					auto uslnaptr2 = mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(&i1);
+					tok = uslnaptr2;
+					auto uslnaiter1 = mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(&i1);
+					tok = uslnaiter1;
+
+					int q = 5;
+				}
+#endif // !defined(MSE_SAFER_SUBSTITUTES_DISABLED)
+				{
+					auto xs_array1 = mse::make_xscope(mse::nii_array<int, 3>({ 1, 2, 3 }));
+					auto xs_section1 = mse::make_xscope(mse::make_xscope_random_access_section(&xs_array1));
+					auto xs_iter1 = mse::make_xscope_begin_iterator(&xs_section1);
+					auto xs_ptr1 = mse::xscope_pointer(xs_iter1);
+					auto xs_vec1 = mse::make_xscope(mse::nii_vector<int>({ 1, 2, 3 }));
+					auto xs_section2 = mse::make_xscope(mse::make_xscope_random_access_section(&xs_vec1));
+					auto xs_section3 = mse::make_xscope_random_access_section(&xs_vec1);
+					auto vec2_reg = mse::make_registered(mse::nii_vector<int>({ 1, 2, 3 }));
+					auto array2_reg = mse::make_registered(mse::nii_array<int, 3>({ 1, 2, 3 }));
+					auto xs_section4 = mse::make_xscope(mse::make_xscope_random_access_section(&vec2_reg));
+					auto xs_iter6 = mse::make_xscope_begin_iterator(&xs_section4);
+
+					auto& i1_ref = xs_array1.at(1);
+					//auto& i2_ref = xs_vec1.at(1);
+					//auto& i3_ref = vec2_reg.at(1);
+					//auto& i4_ref = xs_section2.at(1);
+					//auto& i5_ref = xs_section1.at(1);
+					//auto& i6_ref = xs_section3.at(1);
+					auto xs_iter4 = mse::make_xscope_begin_iterator(&xs_section2);
+					auto& i7_ref = *xs_iter4;
+					auto xs_iter2 = mse::make_xscope_begin_iterator(&xs_vec1);
+					auto& i8_ref = *xs_iter2;
+					auto& i9_ref = *xs_iter1;
+					auto iter3 = mse::make_begin_iterator(&vec2_reg);
+					auto& i10_ref = *iter3;
+					auto iter5 = mse::make_begin_iterator(&array2_reg);
+					auto& i11_ref = *iter5;
+					auto& i12_ref = *xs_iter6;
+					vec2_reg.clear();
+					int q = 5;
+				}
+				{
+					std::string num_str1 = "-7.3";
+					typedef char maybe_const_char;
+					mse::lh::TLHNullableAnyRandomAccessIterator<maybe_const_char> str1 = std::addressof(num_str1.at(0));
+					mse::TRegisteredObj<mse::lh::TLHNullableAnyRandomAccessIterator<char> > end = (char*)std::addressof(*str1);
+					mse::lh::TXScopeLHNullableAnyRandomAccessIterator<char> xs_iter1 = end;
+					mse::lh::TXScopeLHNullableAnyRandomAccessIterator<maybe_const_char> xs_iter2 = xs_iter1;
+					mse::lh::TXScopeLHNullableAnyRandomAccessIterator<maybe_const_char> xs_iter3 = end;
+					bool b1 = std::is_assignable<typename mse::impl::target_or_void_type<decltype(&end)>, decltype(str1)>::value;
+					bool b2 = MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(mse::lh::TLHNullableAnyRandomAccessIterator<maybe_const_char>, char);
+					bool b3 = std::is_assignable<mse::lh::TLHNullableAnyRandomAccessIterator<char>, mse::lh::TLHNullableAnyRandomAccessIterator<maybe_const_char>>::value;
+					auto val1 = mse::lh::strtol(str1, &end, 10);
+					auto len = end ? (std::addressof(*end) - std::addressof(*str1)) : -1;
+
+					mse::TAnyRandomAccessIterator<const char> iter10 = num_str1.data();
+					mse::TAnyRandomAccessConstIterator<char> citer11 = num_str1.data();
+					citer11 = iter10;
+					iter10 = citer11;
+
+					mse::TRegisteredObj<mse::lh::TStrongVectorIterator<char> > sv_iter_reg1 = mse::lh::allocate(sv_iter_reg1, 4);
+					mse::lh::strcpy(sv_iter_reg1, "314");
+					mse::lh::TStrongVectorIterator<char> sv_iter2 = sv_iter_reg1;
+					auto val2 = mse::lh::strtoll(sv_iter_reg1, nullptr, 10);
+					auto val4 = mse::lh::strtoll(sv_iter_reg1, NULL, 10);
+
+					mse::TRegisteredObj<mse::lh::TStrongVectorIterator<char> > sv_iter_reg3 = sv_iter_reg1;
+					mse::lh::TLHNullableAnyPointer < mse::lh::TStrongVectorIterator<char> > sv_iter_lhnaptr = &sv_iter_reg3;
+					auto val3 = mse::lh::strtoll(sv_iter_reg1, sv_iter_lhnaptr, 10);
+
+					int q = 5;
+				}
+				{
+#if 0
+					/* Interestingly, this compiles and works under msvc, but not clang. */
+					auto val1 = []() { return 7; }();
+					typedef decltype([]() { return 7; }) my_type1;
+					auto val2 = decltype([]() { return 7; })()();
+					std::function<void(int)> fn1;
+#endif // 0
+
+					auto lambda1 = mse::us::lh::unsafe_make_fn_wrapper(&std::strlen, mse::lh::TNativeFunctionPointerReplacement<size_t(char const*)>());
+					auto slen1 = lambda1("abc");
+					mse::lh::TNativeFunctionPointerReplacement<size_t(char const*)> nfr1 = lambda1;
+					auto slen2 = nfr1("defg");
+
+					auto lambda2 = mse::us::lh::unsafe_make_fn_wrapper(&std::strlen, mse::lh::TNativeFunctionPointerReplacement<size_t(mse::lh::TLHNullableAnyRandomAccessIterator<char const>)>());
+					mse::lh::TLHNullableAnyRandomAccessIterator<char const> nariter1 = "hij";
+					auto slen3 = lambda2(nariter1);
+					mse::lh::TNativeFunctionPointerReplacement<size_t(mse::lh::TLHNullableAnyRandomAccessIterator<char const>)> nfr2 = lambda2;
+					mse::lh::TLHNullableAnyRandomAccessIterator<char const> nariter2 = "klmn";
+					auto slen4 = nfr2(nariter2);
+					auto lambda3 = [](mse::lh::TLHNullableAnyRandomAccessIterator<char const> x) { return size_t(0); };
+					nfr2 = lambda3;
+					nfr2 = mse::us::lh::unsafe_make_fn_wrapper(&std::strlen, mse::lh::TNativeFunctionPointerReplacement<size_t(mse::lh::TLHNullableAnyRandomAccessIterator<char const>)>());
+					//(slen2 == 4) ? lambda3 : mse::us::lh::unsafe_make_fn_wrapper(&std::strlen, mse::lh::TNativeFunctionPointerReplacement<size_t(mse::lh::TLHNullableAnyRandomAccessIterator<char const>)>());
+					//nfr2 = (slen2 == 4) ? lambda3 : mse::us::lh::unsafe_make_fn_wrapper(&std::strlen, mse::lh::TNativeFunctionPointerReplacement<size_t(mse::lh::TLHNullableAnyRandomAccessIterator<char const>)>());
+
+					mse::TRegisteredObj<mse::lh::TStrongVectorIterator<const char>  > s;
+					//auto s_ptr1 = mse::us::lh::unsafe_cast<mse::lh::TLHNullableAnyPointer<mse::lh::TStrongVectorIterator<char> >>(&s);
+					//mse::lh::TLHNullableAnyPointer<mse::lh::TStrongVectorIterator<const char> > s_ptr2 = &s;
+					auto sptr3 = (mse::lh::TLHNullableAnyPointer<mse::lh::TStrongVectorIterator<const char> > const&)(&s);
+
+					mse::lh::void_star_replacement vstar = &s;
+					auto uip = (uintptr_t)vstar;
+
+#ifndef MSE_SAFER_SUBSTITUTES_DISABLED
+					//typedef int(char) my_fn_type2;
+					typedef int my_fn_type1(char);
+					my_fn_type1* fn1 = nullptr;
+					std::function<int(char)> stdfn2 = fn1;
+					auto lambda4 = [](double x) { return (int)(x); };
+					stdfn2 = lambda4;
+					auto lambda5 = [](long long int x) { return int(x); };
+					stdfn2 = lambda5;
+					auto lambda6 = [](std::string x) { return int(7); };
+					//stdfn2 = lambda6;
+					mse::lh::TNativeFunctionPointerReplacement<int(unsigned short int)> nfr3;
+					nfr3 = lambda4;
+					nfr3 = lambda5;
+					//nfr3 = lambda6;
+					std::vector<int> int_vec1 = { 1, 2, 3 };
+					mse::TAnyRandomAccessIterator<int> int_ariter1 = int_vec1.begin();
+					auto maybe_stdvec_iter2 = mse::us::impl::maybe_any_cast<typename std::vector<int>::iterator>(int_ariter1);
+					int i1 = 0;
+					if (maybe_stdvec_iter2.has_value()) {
+						auto stdvec_iter2 = maybe_stdvec_iter2.value();
+						i1 = *stdvec_iter2;
+					}
+					//auto stdvec_iter3 = mse::us::impl::any_cast<typename std::vector<int>::iterator>(int_ariter1);
+					mse::mstd::any anything1 = i1;
+					auto i2 = mse::mstd::any_cast<int>(anything1);
+
+					mse::any anything2 = i1;
+					auto i3 = mse::any_cast<int>(anything2);
+
+					mse::us::impl::ns_any::any anything3 = i1;
+					auto i4 = mse::us::impl::ns_any::any_cast<int>(anything3);
+
+					auto anyraiter1 = mse::TAnyRandomAccessIterator<int>(int_vec1.begin());
+					auto maybe_int_vec_iter1 = mse::maybe_any_cast<decltype(int_vec1.begin())>(anyraiter1);
+					if (maybe_int_vec_iter1.has_value()) {
+						auto vec_iter = maybe_int_vec_iter1.value();
+						i1 = *(vec_iter);
+					}
+
+					auto nanyraiter1 = mse::TNullableAnyRandomAccessIterator<int>(int_vec1.begin());
+					auto anyraiter2 = mse::not_null_from_nullable(nanyraiter1);
+					int i5 = *anyraiter2;
+
+					auto lhnanyraiter1 = mse::lh::TLHNullableAnyRandomAccessIterator<int>(int_vec1.begin());
+					auto maybe_int_vec_iter2 = mse::lh::us::impl::maybe_any_cast<decltype(int_vec1.begin())>(lhnanyraiter1);
+					if (maybe_int_vec_iter2.has_value()) {
+						auto vec_iter = maybe_int_vec_iter2.value();
+						i1 = *(vec_iter);
+					}
+
+					mse::lh::TStrongVectorIterator<int> sviter1;
+					sviter1 = mse::lh::reallocate(sviter1, 2 * sizeof(int));
+					*sviter1 = 5;
+					lhnanyraiter1 = sviter1;
+					lhnanyraiter1 = mse::lh::reallocate(lhnanyraiter1, 3 * sizeof(int));
+					int i6 = *lhnanyraiter1;
+#endif // !MSE_SAFER_SUBSTITUTES_DISABLED
+
+					const char* cchar_iter = "abc";
+					auto lhnanyraiter2 = mse::lh::TLHNullableAnyRandomAccessIterator<const char>(cchar_iter);
+					lhnanyraiter2 += 2;
+					mse::TRegisteredObj<const char*> cchar_iter_reg = "def";
+					auto lhnanyraiter3 = mse::lh::TLHNullableAnyRandomAccessIterator<const char>(cchar_iter_reg);
+					lhnanyraiter3 += 2;
+
+					mse::lh::TLHNullableAnyPointer<const void> void_lhnanyptr1 = lhnanyraiter3;
+					auto lhnanyraiter4 = (mse::lh::TLHNullableAnyRandomAccessIterator<const char>)void_lhnanyptr1;
+					auto ch1 = *lhnanyraiter4;
+
+					bool b1 = std::is_constructible<mse::lh::TLHNullableAnyPointer<const int>, mse::TNDRegisteredObj<const mse::TSize_t<mse::int_options_t<>>> >::value;
+					bool b2 = std::is_constructible<mse::TNDRegisteredObj<const mse::TSize_t<mse::int_options_t<>>>, mse::lh::TLHNullableAnyPointer<const int> >::value;
+					bool b3 = std::is_constructible<mse::lh::TLHNullableAnyPointer<const int>, mse::us::impl::TGNoradObj<const mse::TSize_t<mse::int_options_t<>>, int> >::value;
+
+					int q = 5;
+				}
+#endif // MSE_SELF_TESTS
+			}
+		};
+	}
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#else /*__clang__*/
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif /*__GNUC__*/
+#endif /*__clang__*/
+
+}
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED
 #pragma pop_macro("MSE_THROW")

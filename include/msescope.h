@@ -717,15 +717,16 @@ namespace mse {
 						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
 						&& std::is_convertible<_TPointer2*, TAnyPointerBaseV1 const *>::value
 					> MSE_IMPL_EIS >
-						friend bool operator==(const _TPointer1& _Left_cref, const TAnyPointerBaseV1& _Right_cref) {
+						friend bool operator==(const _TPointer1& _Left_cref, const _TPointer2& _Right_cref) {
 						return _Right_cref.operator==(_Left_cref);
 					}
-					template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
+					template <typename _TPointer1, typename _TPointer2, MSE_IMPL_EIP mse::impl::enable_if_t<
 						(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
 						&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
 						&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
+						&& std::is_convertible<_TPointer2*, TAnyPointerBaseV1 const*>::value
 					> MSE_IMPL_EIS >
-						friend bool operator!=(const _TPointer1& _Left_cref, const TAnyPointerBaseV1& _Right_cref) {
+						friend bool operator!=(const _TPointer1& _Left_cref, const _TPointer2& _Right_cref) {
 						return !(_Right_cref.operator==(_Left_cref));
 					}
 #endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
