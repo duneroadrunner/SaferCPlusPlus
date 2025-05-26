@@ -24,6 +24,10 @@
 #include <stdint.h>
 #include <cinttypes> /* for strtoimax() */
 
+#ifdef MSE_SELF_TESTS
+#include <iomanip> /* for std::quoted */
+#endif // MSE_SELF_TESTS
+
 #ifdef _MSC_VER
 #pragma warning( push )  
 #pragma warning( disable : 4100 4456 4189 4127 4702 )
@@ -32,6 +36,7 @@
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wnull-conversion"
 #else /*__clang__*/
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -98,10 +103,14 @@
 #define MSE_LH_STRTOULL(str, pointer_to_end_iterator, base) strtoull(str, (char **)pointer_to_end_iterator, base)
 #define MSE_LH_STRTOIMAX(str, pointer_to_end_iterator, base) imax(str, (char **)pointer_to_end_iterator, base)
 #define MSE_LH_STRTOUMAX(str, pointer_to_end_iterator, base) umax(str, (char **)pointer_to_end_iterator, base)
+#define MSE_LH_STRTOUMAX(str, pointer_to_end_iterator, base) umax(str, (char **)pointer_to_end_iterator, base)
+#define MSE_LH_STRTOUMAX(str, pointer_to_end_iterator, base) umax(str, (char **)pointer_to_end_iterator, base)
 #define MSE_LH_STRTOF(str, pointer_to_end_iterator) strtof(str, (char **)pointer_to_end_iterator)
 #define MSE_LH_STRTOD(str, pointer_to_end_iterator) strtod(str, (char **)pointer_to_end_iterator)
 #define MSE_LH_STRTOLD(str, pointer_to_end_iterator) strtold(str, (char **)pointer_to_end_iterator)
 #define MSE_LH_CHAR_STAR_STAR_CAST_FOR_STRTOX(pointer_to_iterator_arg) (char **)(pointer_to_iterator_arg)
+#define MSE_LH_STRTOK(str, delim) strtok(str, delim)
+#define MSE_LH_STRTOK_R(str, delim, pointer_to_buffer_iterator) strtok_r(str, delim, pointer_to_buffer_iterator)
 
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
 #define MSE_LH_POINTER_TYPE(element_type) element_type *
@@ -186,6 +195,8 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_STRTOD(str, pointer_to_end_iterator) mse::lh::strtod(str, pointer_to_end_iterator)
 #define MSE_LH_STRTOLD(str, pointer_to_end_iterator) mse::lh::strtold(str, pointer_to_end_iterator)
 #define MSE_LH_CHAR_STAR_STAR_CAST_FOR_STRTOX(pointer_to_iterator_arg)
+#define MSE_LH_STRTOK(str, delim) mse::lh::strtok(str, delim)
+#define MSE_LH_STRTOK_R(str, delim, pointer_to_buffer_iterator) mse::lh::strtok_r(str, delim, pointer_to_buffer_iterator)
 
 /* MSE_LH_ADDRESSABLE_TYPE() is a type annotation used to indicate that the '&' operator may/will be used to obtain the address of
 the associated declared object(s). */
@@ -419,6 +430,8 @@ namespace mse {
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtof);
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtod);
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtold);
+
+		auto strtok(char* str, const char* delim) { return std::strtok(str, delim); }
 	}
 	namespace us {
 		namespace lh {
@@ -780,7 +793,7 @@ namespace mse {
 				typedef mse::us::impl::ns_any::any base_class;
 				//using base_class::base_class;
 
-				explicitly_castable_any() = default;
+				explicitly_castable_any() : base_class(nullptr) {}
 				explicitly_castable_any(const explicitly_castable_any&) = default;
 				//explicitly_castable_any(explicitly_castable_any&&) = default;
 				template<class T>
@@ -1724,12 +1737,12 @@ namespace mse {
 			}
 			template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
 				&& (!std::is_same<typename mse::mstd::array<_Ty2, _Size>::const_iterator, typename mse::mstd::array<_Ty2, _Size>::iterator>::value)> MSE_IMPL_EIS >
-			operator typename mse::mstd::array<_Ty, _Size>::const_iterator() {
+			operator typename mse::mstd::array<_Ty, _Size>::const_iterator() const {
 				return base_class::cbegin();
 			}
 			template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
 				&& (!std::is_const<_Ty2>::value)> MSE_IMPL_EIS >
-			operator mse::TNullableAnyRandomAccessIterator<const _Ty>() {
+			operator mse::TNullableAnyRandomAccessIterator<const _Ty>() const {
 				return base_class::begin();
 			}
 			typename base_class::iterator operator+(typename base_class::difference_type n) { return base_class::begin() + n; }
@@ -1755,6 +1768,25 @@ namespace mse {
 
 #define MSE_UNSAFE_LH_LARGE_FIXED_ARRAY_INITIALIZER_HELPER(element_type, size)  std::array<element_type, size>
 
+		namespace impl {
+			template <class _Ty>
+			struct lh_decay : std::decay<_Ty> {};
+
+			template<class _udTy, size_t _Size>
+			struct lh_decay<TNativeArrayReplacement<_udTy, _Size> > : std::decay<TLHNullableAnyRandomAccessIterator<const_preserving_decay_t<_udTy> > > {};
+			template<class _udTy, size_t _Size>
+			struct lh_decay<const TNativeArrayReplacement<_udTy, _Size> > : std::decay<TLHNullableAnyRandomAccessIterator<const const_preserving_decay_t<_udTy> > > {};
+
+			/* todo: decay from function to TNativeFunctionPointerReplacement<>? */
+
+			template <class _Ty>
+			auto as_lh_decayed(_Ty const& src) { return typename lh_decay<const _Ty>::type(src); }
+			template <class _Ty>
+			auto as_lh_decayed(_Ty& src) { return typename lh_decay<_Ty>::type(src); }
+			template <class _Ty>
+			auto as_lh_decayed(_Ty&& src) { return typename lh_decay<_Ty>::type(MSE_FWD(src)); }
+		}
+		
 		template<class _Fty>
 		class TNativeFunctionPointerReplacement : public mse::mstd::function<_Fty> {
 		public:
@@ -2380,16 +2412,16 @@ namespace mse {
 				using iterator_smoke_test = std::integral_constant<bool, mse::impl::is_contiguous_sequence_iterator<T>::value || (mse::impl::SupportsSubtraction_poly<T>::value && mse::impl::IsDereferenceable_pb<T>::value && mse::lh::impl::HasOrInheritsSubscriptOperator<T>::value)>;
 
 				template <class _TIter, class _TPointerToIter>
-				using strtox_tparams_smoke_test = std::integral_constant<bool, 
-					((iterator_smoke_test<_TIter>::value && std::is_same<const char, const mse::impl::target_or_void_type<_TIter> >::value) && (
+				using strtox_tparams_smoke_test = std::integral_constant<bool,
+					((iterator_smoke_test<_TIter>::value&& std::is_same<const char, const mse::impl::target_or_void_type<_TIter> >::value) && (
 						std::is_same<std::nullptr_t, _TPointerToIter>::value || std::is_same<NULL_t, _TPointerToIter>::value
-						/* The interface of strtol() and friends can be potentially used to unsafely obtain a non-const reference to a const 
+						/* The interface of strtol() and friends can be potentially used to unsafely obtain a non-const reference to a const
 						element. We'll try to see if we can get away with not supporting that unsafe use case. */
 						/*
 						|| std::is_base_of<mse::lh::TLHNullableAnyRandomAccessIterator<char>, mse::impl::target_or_void_type<_TPointerToIter> >::value
 						|| std::is_base_of<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<char>, mse::impl::target_or_void_type<_TPointerToIter> >::value
 						*/
-						|| std::is_assignable<mse::impl::target_or_void_type<_TPointerToIter>, _TIter>::value
+						|| std::is_assignable<mse::impl::decay_t<mse::impl::target_or_given_default_type<_TPointerToIter, mse::impl::TPlaceHolder<> > > &, mse::impl::decay_t<_TIter>>::value
 					)) || (std::is_convertible<_TIter, const char*>::value && std::is_same<_TPointerToIter, char**>::value)>;
 
 				template <typename T1, typename T2, typename T3>
@@ -2418,7 +2450,7 @@ namespace mse {
 				void strtox_set_out_param_helper1(NULL_t str_end, T2 const& str, T3 const& distance) {}
 				template <typename _TPointerToIter, typename _TIter, typename T3>
 				void strtox_set_out_param_helper1(_TPointerToIter const& str_end, _TIter const& str, T3 const& distance) {
-					strtox_set_out_param_helper2(typename std::is_assignable<mse::impl::target_or_void_type<_TPointerToIter>, _TIter>::type(), str_end, str, distance);
+					strtox_set_out_param_helper2(typename std::is_assignable<mse::impl::decay_t<mse::impl::target_or_void_type<_TPointerToIter> >&, mse::impl::decay_t<_TIter> >::type(), str_end, str, distance);
 				}
 
 				template<typename _TStrToXFunction, class _TIter, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<strtox_tparams_smoke_test<_TIter, _TPointerToIter>::value> MSE_IMPL_EIS >
@@ -2482,6 +2514,83 @@ namespace mse {
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtod);
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtold);
 
+		namespace impl {
+			namespace ns_strtok {
+				template <typename T>
+				using iterator_smoke_test = std::integral_constant<bool, mse::impl::is_contiguous_sequence_iterator<T>::value || (mse::impl::SupportsSubtraction_poly<T>::value && mse::impl::IsDereferenceable_pb<T>::value && mse::lh::impl::HasOrInheritsSubscriptOperator<T>::value)>;
+
+				template <class _TIter, class _TConstCharIter2, class _TPointerToIter>
+				using strtok_r_tparams_smoke_test = std::integral_constant<bool,
+					(std::is_same<const char, const mse::impl::target_or_void_type<_TConstCharIter2> >::value && (iterator_smoke_test<mse::impl::target_or_void_type<_TPointerToIter> >::value && std::is_same<char, mse::impl::target_or_void_type<mse::impl::target_or_void_type<_TPointerToIter> > >::value) && (
+						std::is_same<std::nullptr_t, _TIter>::value || std::is_same<NULL_t, _TIter>::value
+						|| std::is_assignable<mse::impl::decay_t<mse::impl::target_or_void_type<_TPointerToIter> >&, mse::impl::decay_t<_TIter> > ::value
+						)) || (std::is_convertible<_TIter, char*>::value && std::is_convertible<_TConstCharIter2, const char*>::value && std::is_same<_TPointerToIter, char**>::value)>;
+
+				/* Implementation of strtok_r() based on the "Possible implementation" of strtok() here: https://en.cppreference.com/w/cpp/string/byte/strtok */
+				template<class _TIter, class _TConstCharIter2, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<strtok_r_tparams_smoke_test<_TIter, _TConstCharIter2, _TPointerToIter>::value> MSE_IMPL_EIS >
+				auto strtok_r_impl(_TIter const& str, _TConstCharIter2 const& delim, _TPointerToIter pointer_to_buffer_iterator) -> mse::impl::target_type<_TPointerToIter> {
+					/* Using mse::lh::strlen() to verify the strings are null-terminated. */
+					mse::lh::strlen(delim);
+					const char* delim2 = mse::us::lh::make_raw_pointer_from(delim);
+
+					mse::impl::target_type<_TPointerToIter> buffer = bool(str)
+						? mse::impl::target_type<_TPointerToIter>(str)
+						: *pointer_to_buffer_iterator;
+					mse::lh::strlen(buffer);
+					char* buffer2 = mse::us::lh::make_raw_pointer_from(buffer);
+
+					buffer += std::strspn(buffer2, delim2);
+
+					if (*buffer == '\0')
+						return nullptr;
+
+					const auto tokenBegin = buffer;
+
+					buffer2 = mse::us::lh::make_raw_pointer_from(buffer);
+					buffer += std::strcspn(buffer2, delim2);
+
+					if (*buffer != '\0')
+						*buffer++ = '\0';
+
+					*pointer_to_buffer_iterator = buffer;
+					return tokenBegin;
+				}
+
+				static auto& strtok_buffer_ref() {
+					thread_local mse::lh::TLHNullableAnyRandomAccessIterator<char> buffer;
+					return buffer;
+				}
+				template<class _TIter, class _TConstCharIter2, MSE_IMPL_EIP mse::impl::enable_if_t<strtok_r_tparams_smoke_test<mse::impl::decay_t<_TIter>, _TConstCharIter2, mse::lh::TLHNullableAnyRandomAccessIterator<char>*>::value> MSE_IMPL_EIS >
+				auto strtok_impl(_TIter const& str, _TConstCharIter2 const& delim) -> mse::lh::TLHNullableAnyRandomAccessIterator<char> {
+					auto& buffer = strtok_buffer_ref();
+					if (str) {
+						buffer = str;
+					}
+					return strtok_r_impl(str, delim, std::addressof(buffer));
+				}
+			}
+		}
+		template<class _TIter, class _TConstCharIter2, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtok::strtok_r_tparams_smoke_test<_TIter, _TConstCharIter2, _TPointerToIter>::value> MSE_IMPL_EIS >
+		auto strtok_r(_TIter const& str, _TConstCharIter2 const& delim, _TPointerToIter pointer_to_buffer_iterator) -> mse::impl::target_type<_TPointerToIter> {
+			return impl::ns_strtok::strtok_r_impl(str, delim, pointer_to_buffer_iterator);
+		}
+		template<class _TConstCharIter2, class _TPointerToIter, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtok::strtok_r_tparams_smoke_test<char*, _TConstCharIter2, _TPointerToIter>::value> MSE_IMPL_EIS >
+		auto strtok_r(char* str, _TConstCharIter2 const& delim, _TPointerToIter pointer_to_buffer_iterator) -> mse::impl::target_type<_TPointerToIter> {
+			return impl::ns_strtok::strtok_r_impl(str, delim, pointer_to_buffer_iterator);
+		}
+		template<class _TIter, class _TConstCharIter2, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtok::strtok_r_tparams_smoke_test<mse::impl::decay_t<_TIter>, _TConstCharIter2, mse::lh::TLHNullableAnyRandomAccessIterator<char>*>::value> MSE_IMPL_EIS >
+		auto strtok(_TIter const& str, _TConstCharIter2 const& delim) -> mse::lh::TLHNullableAnyRandomAccessIterator<char> {
+			return impl::ns_strtok::strtok_impl(str, delim);
+		}
+		template<size_t _Size, class _TConstCharIter2, MSE_IMPL_EIP mse::impl::enable_if_t < impl::ns_strtok::strtok_r_tparams_smoke_test<typename impl::lh_decay<TNativeArrayReplacement<char, _Size> >::type , _TConstCharIter2, mse::lh::TLHNullableAnyRandomAccessIterator<char>* > ::value > MSE_IMPL_EIS >
+		auto strtok(TNativeArrayReplacement<char, _Size>& str, _TConstCharIter2 const& delim) -> mse::lh::TLHNullableAnyRandomAccessIterator<char> {
+			auto decayed_str = impl::as_lh_decayed(str);
+			return impl::ns_strtok::strtok_impl(decayed_str, delim);
+		}
+		template<class _TConstCharIter2, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtok::strtok_r_tparams_smoke_test<char*, _TConstCharIter2, mse::lh::TLHNullableAnyRandomAccessIterator<char>*>::value> MSE_IMPL_EIS >
+		auto strtok(char* str, _TConstCharIter2 const& delim) -> mse::lh::TLHNullableAnyRandomAccessIterator<char> {
+			return impl::ns_strtok::strtok_impl(str, delim);
+		}
 
 		typedef intptr_t lh_ssize_t;
 
@@ -3111,11 +3220,6 @@ namespace mse {
 					mse::lh::TLHNullableAnyPointer <int>  lhnaptr1;
 					auto ptr2 = lhnaptr1 ? lhnaptr1 : nullptr;
 					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaraiter1;
-					bool b1 = std::is_same<mse::impl::target_or_void_type<decltype(lhnaptr1)>, mse::impl::target_or_void_type<decltype(lhnaraiter1)> >::value;
-					bool b2 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(xsaptr1));
-					bool b3 = std::is_convertible<typename std::decay<decltype(xsaptr1)>::type, bool>::value;
-					bool b4 = mse::impl::IsExplicitlyCastableToBool_pb<decltype(xsaptr1)>::value;
-					bool b5 = mse::impl::IsExplicitlyCastableToBool_pb<int>::value;
 					if (xsaptr1 == xsaptr1) {
 						int q = 5;
 					}
@@ -3126,31 +3230,6 @@ namespace mse {
 					auto b9 = (acptr2 == acptr2);
 					auto b10 = (naptr3 == acptr2);
 					auto b11 = (acptr2 != naptr3);
-					auto b12 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::remove_reference_t<decltype(acptr2)> >::value;
-					auto b13 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::remove_reference_t<decltype(aptr2)> >::value;
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-					auto ui_ptr = mse::us::impl::TPointer<int>();
-					auto b14 = (aptr2 == ui_ptr);
-					auto b14b = (ui_ptr == aptr2);
-					auto b18 = (mse::TAnyPointer<int>(&i2_reg) == mse::us::impl::TPointer<int>());
-					auto b22 = (mse::us::impl::TPointer<int>() == mse::us::impl::TPointerForLegacy<int>());
-					auto b23 = (mse::us::impl::TPointer<int>() == mse::impl::test_pointer<int>());
-#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-#else // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-					auto b24 = (aptr2 == mse::impl::test_pointer<int>());
-#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-					auto b15 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(mse::us::impl::TPointer<int>);
-					auto b15b = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(mse::us::impl::TPointerForLegacy<int>);
-					auto b16 = mse::impl::IsExplicitlyCastableToBool_pb<mse::us::impl::TPointer<int> >::value;
-					auto b17 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::us::impl::TPointer<int> >::value;
-					auto b19 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<decltype(naptr3)>::value;
-					auto b20 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::TNullableAnyPointer<int> >::value;
-					auto b25 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::TRegisteredPointer<int> >::value;
-					mse::impl::test_pointer<int> test_ptr;
-					/*if (lhnaptr1 == lhnaraiter1) */ {
-						int q = 5;
-					}
 					bool b42 = (ci_aptr2 == aptr2);
 					bool b43 = (aptr2 == ci_aptr2);
 					bool b44 = (aptr2 != ci_aptr2);
@@ -3166,8 +3245,6 @@ namespace mse {
 					bool b32 = (naptr3 == nullptr);
 					bool b33 = (nullptr == naptr3);
 					bool b34 = (nullptr != naptr3);
-					bool b35 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(nullptr));
-					bool b36 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(std::nullptr_t);
 					bool b37 = std::is_same<decltype(nullptr), std::nullptr_t>::value;
 					bool b38 = (lhnaptr2 == lhnaptr2);
 					int q = 5;
@@ -3184,45 +3261,14 @@ namespace mse {
 					mse::lh::TLHNullableAnyRandomAccessIterator <int>  lhnaiter1;
 					auto iter2 = lhnaiter1 ? lhnaiter1 : nullptr;
 					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaraiter1;
-					bool b1 = std::is_same<mse::impl::target_or_void_type<decltype(lhnaiter1)>, mse::impl::target_or_void_type<decltype(lhnaraiter1)> >::value;
-					bool b2 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(xsaiter1));
-					bool b3 = std::is_convertible<typename std::decay<decltype(xsaiter1)>::type, bool>::value;
-					bool b4 = mse::impl::IsExplicitlyCastableToBool_pb<decltype(xsaiter1)>::value;
-					bool b5 = mse::impl::IsExplicitlyCastableToBool_pb<int>::value;
 					if (xsaiter1 == xsaiter1) {
 						int q = 5;
 					}
-					mse::impl::test_iterator<int> test_iter;
-					/*if (lhnaiter1 == lhnaraiter1) */ {
-						int q = 5;
-					}
-					auto b12 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::remove_reference_t<decltype(aciter2)> >::value;
-					auto b13 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<decltype(aiter2)>::value;
-					auto b15 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::remove_reference_t<decltype(naiter3)> >::value;
-					auto b15b = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<int*>::value;
-					auto b15c = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<int>::value;
-					auto b16 = mse::impl::IsExplicitlyCastableToBool_pb<mse::impl::remove_reference_t<decltype(aiter2)> >::value;
-					auto b16b = mse::impl::IsExplicitlyCastableToBool_pb<mse::impl::remove_reference_t<decltype(naiter3)> >::value;
-					auto b39 = std::is_base_of<mse::us::impl::TAnyRandomAccessIteratorBase<int>, decltype(aiter2)>::value;
-					auto b40 = mse::impl::SupportsSubtraction_poly<decltype(aiter2)>::value;
-					auto b41 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(aiter2));
 #ifdef MSE_HAS_CXX17
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-#else // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-					auto b15d = (naiter3 == test_iter);
-					auto b24 = (aiter2 == mse::impl::test_iterator<int>());
 					MSE_TRY{
-						auto b12b = (aciter2 == test_iter);
-						auto b13b = (aiter2 == test_iter);
-					}
-						MSE_CATCH_ANY{}
-#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-						MSE_TRY{
 							auto b6 = (aiter2 == xsaiter1);
 					}
-						MSE_CATCH_ANY{}
+					MSE_CATCH_ANY{}
 					auto b7 = (naiter3 == aiter2);
 					auto b8 = (aiter2 != naiter3);
 					auto b9 = (aciter2 == aciter2);
@@ -3243,13 +3289,8 @@ namespace mse {
 					bool b32 = (naiter3 == nullptr);
 					bool b33 = (nullptr == naiter3);
 					bool b34 = (nullptr != naiter3);
-					bool b35 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(nullptr));
-					bool b36 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(std::nullptr_t);
 					bool b37 = std::is_same<decltype(nullptr), std::nullptr_t>::value;
 					bool b38 = (lhnaiter2 == lhnaiter2);
-					bool b46 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(char*);
-					bool b47 = mse::impl::SupportsSubtraction_poly<char*>::value;
-					bool b48 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<char*>::value;
 
 					int q = 5;
 				}
@@ -3264,11 +3305,6 @@ namespace mse {
 					mse::lh::TLHNullableAnyPointer <int>  lhnaptr1;
 					auto ptr2 = lhnaptr1 ? lhnaptr1 : nullptr;
 					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaraiter1;
-					bool b1 = std::is_same<mse::impl::target_or_void_type<decltype(lhnaptr1)>, mse::impl::target_or_void_type<decltype(lhnaraiter1)> >::value;
-					bool b2 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(xsaptr1));
-					bool b3 = std::is_convertible<typename std::decay<decltype(xsaptr1)>::type, bool>::value;
-					bool b4 = mse::impl::IsExplicitlyCastableToBool_pb<decltype(xsaptr1)>::value;
-					bool b5 = mse::impl::IsExplicitlyCastableToBool_pb<int>::value;
 					if (xsaptr1 == xsaptr1) {
 						int q = 5;
 					}
@@ -3279,31 +3315,6 @@ namespace mse {
 					auto b9 = (acptr2 == acptr2);
 					auto b10 = (naptr3 == acptr2);
 					auto b11 = (acptr2 != naptr3);
-					auto b12 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::remove_reference_t<decltype(acptr2)> >::value;
-					auto b13 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::impl::remove_reference_t<decltype(aptr2)> >::value;
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-					auto ui_ptr = mse::us::impl::TPointer<int>();
-					auto b14 = (aptr2 == ui_ptr);
-					auto b14b = (ui_ptr == aptr2);
-					auto b18 = (mse::lh::TLHNullableAnyPointer<int>(&i2_reg) == mse::us::impl::TPointer<int>());
-					auto b22 = (mse::us::impl::TPointer<int>() == mse::us::impl::TPointerForLegacy<int>());
-					auto b23 = (mse::us::impl::TPointer<int>() == mse::impl::test_pointer<int>());
-#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-#else // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-					auto b24 = (aptr2 == mse::impl::test_pointer<int>());
-#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-					auto b15 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(mse::us::impl::TPointer<int>);
-					auto b15b = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(mse::us::impl::TPointerForLegacy<int>);
-					auto b16 = mse::impl::IsExplicitlyCastableToBool_pb<mse::us::impl::TPointer<int> >::value;
-					auto b17 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::us::impl::TPointer<int> >::value;
-					auto b19 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<decltype(naptr3)>::value;
-					auto b20 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::TNullableAnyPointer<int> >::value;
-					auto b25 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<mse::TRegisteredPointer<int> >::value;
-					mse::impl::test_pointer<int> test_ptr;
-					/*if (lhnaptr1 == lhnaraiter1) */ {
-						int q = 5;
-					}
 #endif //MSE_HAS_CXX17
 					mse::lh::TXScopeLHNullableAnyPointer<int> xslhnaptr1 = NULL;
 					bool b26 = (xslhnaptr1 == NULL);
@@ -3316,9 +3327,6 @@ namespace mse {
 					bool b32 = (naptr3 == nullptr);
 					bool b33 = (nullptr == naptr3);
 					bool b34 = (nullptr != naptr3);
-					bool b35 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(nullptr));
-					bool b36 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(std::nullptr_t);
-					bool b37 = std::is_same<decltype(nullptr), std::nullptr_t>::value;
 					bool b38 = (lhnaptr2 == lhnaptr2);
 #endif // 0
 					int q = 5;
@@ -3335,45 +3343,14 @@ namespace mse {
 					mse::lh::TLHNullableAnyRandomAccessIterator <int>  lhnaiter1;
 					auto iter2 = lhnaiter1 ? lhnaiter1 : nullptr;
 					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaraiter1;
-					bool b1 = std::is_same<mse::impl::target_or_void_type<decltype(lhnaiter1)>, mse::impl::target_or_void_type<decltype(lhnaraiter1)> >::value;
-					bool b2 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(xsaiter1));
-					bool b3 = std::is_convertible<typename std::decay<decltype(xsaiter1)>::type, bool>::value;
-					bool b4 = mse::impl::IsExplicitlyCastableToBool_pb<decltype(xsaiter1)>::value;
-					bool b5 = mse::impl::IsExplicitlyCastableToBool_pb<int>::value;
 					if (xsaiter1 == xsaiter1) {
 						int q = 5;
 					}
-					mse::impl::test_iterator<int> test_iter;
-					/*if (lhnaiter1 == lhnaraiter1) */ {
-						int q = 5;
-					}
-					auto b12 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::remove_reference_t<decltype(aciter2)> >::value;
-					auto b13 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<decltype(aiter2)>::value;
-					auto b15 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<mse::impl::remove_reference_t<decltype(naiter3)> >::value;
-					auto b15b = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<int*>::value;
-					auto b15c = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<int>::value;
-					auto b16 = mse::impl::IsExplicitlyCastableToBool_pb<mse::impl::remove_reference_t<decltype(aiter2)> >::value;
-					auto b16b = mse::impl::IsExplicitlyCastableToBool_pb<mse::impl::remove_reference_t<decltype(naiter3)> >::value;
-					auto b39 = std::is_base_of<mse::us::impl::TAnyRandomAccessIteratorBase<int>, decltype(aiter2)>::value;
-					auto b40 = mse::impl::SupportsSubtraction_poly<decltype(aiter2)>::value;
-					auto b41 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(aiter2));
 #ifdef MSE_HAS_CXX17
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-#if defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-#else // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-					auto b15d = (naiter3 == test_iter);
-					auto b24 = (aiter2 == mse::impl::test_iterator<int>());
 					MSE_TRY{
-						auto b12b = (aciter2 == test_iter);
-						auto b13b = (aiter2 == test_iter);
-					}
-						MSE_CATCH_ANY{}
-#endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20)
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-						MSE_TRY{
 							auto b6 = (aiter2 == xsaiter1);
 					}
-						MSE_CATCH_ANY{}
+					MSE_CATCH_ANY{}
 					auto b7 = (naiter3 == aiter2);
 					auto b8 = (aiter2 != naiter3);
 					auto b9 = (aciter2 == aciter2);
@@ -3399,9 +3376,6 @@ namespace mse {
 					bool b32 = (naiter3 == nullptr);
 					bool b33 = (nullptr == naiter3);
 					bool b34 = (nullptr != naiter3);
-					bool b35 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(decltype(nullptr));
-					bool b36 = MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(std::nullptr_t);
-					bool b37 = std::is_same<decltype(nullptr), std::nullptr_t>::value;
 					bool b38 = (lhnaiter2 == lhnaiter2);
 #endif // 0
 					int q = 5;
@@ -3411,29 +3385,6 @@ namespace mse {
 					auto iter1 = arr1.begin();
 					mse::TNullableAnyRandomAccessIterator<int> naraiter2 = iter1;
 					mse::lh::TLHNullableAnyRandomAccessIterator<int> lhnaraiter1 = arr1;
-					auto b2 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<decltype(arr1)>::value;
-					auto b1 = (lhnaraiter1 == arr1);
-					typedef decltype(naraiter2) T1;
-					auto b3 = mse::impl::first_is_or_is_subclass_of_any<T1
-						, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T1, std::nullptr_t> >
-						, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::target_or_given_default_type<T1, std::nullptr_t> >
-						, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T1, std::nullptr_t> >
-						, mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T1, std::nullptr_t> >
-					>::value;
-					typedef decltype(lhnaraiter1) T2;
-					auto b4 = mse::impl::first_is_or_is_subclass_of_any<T2
-						, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T2, std::nullptr_t> >
-						, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::target_or_given_default_type<T2, std::nullptr_t> >
-						, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T2, std::nullptr_t> >
-						, mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T2, std::nullptr_t> >
-					>::value;
-					typedef decltype(arr1) T3;
-					auto b5 = mse::impl::first_is_or_is_subclass_of_any<T3
-						, mse::us::impl::TAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T3, std::nullptr_t> >
-						, mse::us::impl::TAnyRandomAccessConstIteratorBase<mse::impl::target_or_given_default_type<T3, std::nullptr_t> >
-						, mse::us::impl::TNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T3, std::nullptr_t> >
-						, mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<mse::impl::target_or_given_default_type<T3, std::nullptr_t> >
-					>::value;
 					int q = 5;
 				}
 				{
@@ -3457,9 +3408,6 @@ namespace mse {
 						int q = 5;
 					}
 					auto direction2 = *direction_regptr1;
-					bool b1 = MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(decltype(direction_regptr1), enum direction);
-					bool b2 = mse::impl::target_can_be_commonized_referenced_as<decltype(direction_regptr1), enum direction>::value;
-					mse::impl::remove_reference_t<mse::us::impl::base_type_t<decltype(*direction_regptr1)> >  a1 = NORTH;
 
 					//mse::lh::TLHNullableAnyPointer<enum direction> lhnaptr1 = &direction_reg1;
 					mse::lh::TLHNullableAnyPointer<enum direction> lhnaptr1 = direction_regptr1;
@@ -3512,9 +3460,6 @@ namespace mse {
 						int q = 5;
 					}
 					auto direction2 = *direction_regptr1;
-					bool b1 = MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(decltype(direction_regptr1), enum direction);
-					bool b2 = mse::impl::target_can_be_commonized_referenced_as<decltype(direction_regptr1), enum direction>::value;
-					mse::impl::remove_reference_t<mse::us::impl::base_type_t<decltype(*direction_regptr1)> >  a1 = direction::NORTH;
 
 					//mse::lh::TLHNullableAnyPointer<direction> lhnaptr1 = &direction_reg1;
 					mse::lh::TLHNullableAnyPointer<direction> lhnaptr1 = direction_regptr1;
@@ -3561,10 +3506,6 @@ namespace mse {
 					mse::lh::TStrongVectorIterator<char> rhs2;
 					auto b1 = (lhs == rhs);
 					auto b2 = (lhs == rhs2);
-					auto b3 = mse::impl::SupportsSubtraction_poly<decltype(rhs2)>::value;
-					auto b4 = mse::impl::SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<decltype(rhs2)>::value;
-					//auto b5 = (mse::impl::test_iterator<int>() == rhs2);
-					//auto b6 = (rhs2 == mse::impl::test_iterator<int>());
 					auto b7 = (rhs2 == rhs);
 					int q = 5;
 				}
@@ -3676,9 +3617,6 @@ namespace mse {
 					mse::lh::TXScopeLHNullableAnyRandomAccessIterator<char> xs_iter1 = end;
 					mse::lh::TXScopeLHNullableAnyRandomAccessIterator<maybe_const_char> xs_iter2 = xs_iter1;
 					mse::lh::TXScopeLHNullableAnyRandomAccessIterator<maybe_const_char> xs_iter3 = end;
-					bool b1 = std::is_assignable<typename mse::impl::target_or_void_type<decltype(&end)>, decltype(str1)>::value;
-					bool b2 = MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(mse::lh::TLHNullableAnyRandomAccessIterator<maybe_const_char>, char);
-					bool b3 = std::is_assignable<mse::lh::TLHNullableAnyRandomAccessIterator<char>, mse::lh::TLHNullableAnyRandomAccessIterator<maybe_const_char>>::value;
 					auto val1 = mse::lh::strtol(str1, &end, 10);
 					auto len = end ? (std::addressof(*end) - std::addressof(*str1)) : -1;
 
@@ -3803,12 +3741,61 @@ namespace mse {
 					auto lhnanyraiter4 = (mse::lh::TLHNullableAnyRandomAccessIterator<const char>)void_lhnanyptr1;
 					auto ch1 = *lhnanyraiter4;
 
-					bool b1 = std::is_constructible<mse::lh::TLHNullableAnyPointer<const int>, mse::TNDRegisteredObj<const mse::TSize_t<mse::int_options_t<>>> >::value;
-					bool b2 = std::is_constructible<mse::TNDRegisteredObj<const mse::TSize_t<mse::int_options_t<>>>, mse::lh::TLHNullableAnyPointer<const int> >::value;
-					bool b3 = std::is_constructible<mse::lh::TLHNullableAnyPointer<const int>, mse::us::impl::TGNoradObj<const mse::TSize_t<mse::int_options_t<>>, int> >::value;
-
 					int q = 5;
 				}
+				{
+					char input1[] = "one + two * (three - four)!";
+					mse::lh::TNativeArrayReplacement<char, sizeof input1> input;
+					mse::lh::strcpy(input, input1);
+					const char* delimiters = "! +- (*)";
+
+					/*char* */auto token = mse::lh::strtok(input, delimiters);
+					while (token)
+					{
+						std::cout << std::quoted(mse::us::lh::make_raw_pointer_from(token)) << ' ';
+						token = mse::lh::strtok(nullptr, delimiters);
+					}
+
+					std::cout << "\nContents of the input string now:\n\"";
+					for (std::size_t n = 0; n < sizeof input1; ++n)
+					{
+						const char c = input[n];
+						if (c != '\0')
+							std::cout << c;
+						else
+							std::cout << "\\0";
+					}
+					std::cout << "\"\n";
+				}
+#ifndef MSE_SAFER_SUBSTITUTES_DISABLED
+				{
+					char input1[] = "one + two * (three - four)!";
+					mse::lh::TNativeArrayReplacement<char, sizeof input1> input;
+					mse::lh::strcpy(input, input1);
+					const char* delimiters = "! +- (*)";
+					mse::TRegisteredObj<mse::lh::TLHNullableAnyRandomAccessIterator<char> > iter1 = input;
+
+					/*char* */auto token = mse::lh::strtok_r(iter1, delimiters, &iter1);
+					while (token)
+					{
+						std::cout << std::quoted(mse::us::lh::make_raw_pointer_from(token)) << ' ';
+						token = mse::lh::strtok_r(nullptr, delimiters, &iter1);
+					}
+
+					std::cout << "\nContents of the input string now:\n\"";
+					for (std::size_t n = 0; n < sizeof input1; ++n)
+					{
+						const char c = input[n];
+						if (c != '\0')
+							std::cout << c;
+						else
+							std::cout << "\\0";
+					}
+					std::cout << "\"\n";
+					int q = 5;
+				}
+#endif // !MSE_SAFER_SUBSTITUTES_DISABLED
+
 #endif // MSE_SELF_TESTS
 			}
 		};

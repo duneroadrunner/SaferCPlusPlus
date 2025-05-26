@@ -3446,7 +3446,7 @@ namespace mse {
 				}
 
 				typedef mse::us::impl::ns_any::any base_class;
-				base_class m_any_pointer;
+				base_class m_any_pointer = mse::TRefCountingPointer<_Ty>();
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_pointer, contained_any)
 
@@ -3634,7 +3634,7 @@ namespace mse {
 				}
 
 				typedef mse::us::impl::ns_any::any base_class;
-				base_class m_any_const_pointer;
+				base_class m_any_const_pointer = mse::TRefCountingPointer<const _Ty>();
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_const_pointer, contained_any)
 

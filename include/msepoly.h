@@ -1762,7 +1762,7 @@ namespace mse {
 				template <typename _Ty2>
 				static auto* s_common_random_access_iterator_interface_ptr(TAnyRandomAccessIteratorBase<_Ty2> const& iter) { return iter.common_random_access_iterator_interface_ptr(); }
 
-				mse::us::impl::ns_any::any m_any_random_access_iterator;
+				mse::us::impl::ns_any::any m_any_random_access_iterator = mse::TRAIterator<mse::TRefCountingPointer<std::array<_Ty, 0> > >(mse::TRefCountingPointer<std::array<_Ty, 0> >(), 0);
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_random_access_iterator, contained_any);
 
@@ -1985,7 +1985,7 @@ namespace mse {
 				template <typename _Ty2>
 				static auto* s_common_random_access_const_iterator_interface_ptr(TAnyRandomAccessConstIteratorBase<_Ty2> const& iter) { return iter.common_random_access_const_iterator_interface_ptr(); }
 
-				mse::us::impl::ns_any::any m_any_random_access_const_iterator;
+				mse::us::impl::ns_any::any m_any_random_access_const_iterator = mse::TRAIterator<mse::TRefCountingPointer<std::array<const _Ty, 0> > >(mse::TRefCountingPointer<std::array<const _Ty, 0> >(), 0);
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_random_access_const_iterator, contained_any);
 
@@ -2788,7 +2788,7 @@ namespace mse {
 				typedef mse::us::impl::TAnyRandomAccessIteratorBase<_Ty> base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 				typedef TNullableAnyRandomAccessIteratorBase _Myt;
-				TNullableAnyRandomAccessIteratorBase() : m_iter(typename mse::mstd::vector<mse::impl::remove_const_t<_Ty> >::iterator()), m_is_null(true) {}
+				TNullableAnyRandomAccessIteratorBase() : m_iter(mse::TRAIterator<mse::TRefCountingPointer<std::array<_Ty, 0> > >(mse::TRefCountingPointer<std::array<_Ty, 0> >(), 0)), m_is_null(true) {}
 				TNullableAnyRandomAccessIteratorBase(const std::nullptr_t& src) : TNullableAnyRandomAccessIteratorBase() {}
 				TNullableAnyRandomAccessIteratorBase(const TNullableAnyRandomAccessIteratorBase& src) = default;
 				TNullableAnyRandomAccessIteratorBase(const base_class& src) : m_iter(src) {}
