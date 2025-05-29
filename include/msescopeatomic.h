@@ -249,15 +249,6 @@ namespace mse {
 			bool retval = (bool(*static_cast<const mse::us::impl::TXScopeAtomicPointerBase<_Ty>*>(this)));
 			return retval;
 		}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const {
-			_Ty* retval = std::addressof(*(*this))/*(*static_cast<const mse::us::impl::TXScopeAtomicPointerBase<_Ty>*>(this))*/;
-			return retval;
-		}
-		MSE_DEPRECATED explicit operator TXScopeAtomicObj<_Ty>*() const {
-			TXScopeAtomicObj<_Ty>* retval = (*static_cast<const mse::us::impl::TXScopeAtomicPointerBase<_Ty>*>(this));
-			return retval;
-		}
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -292,15 +283,6 @@ namespace mse {
 		}
 		explicit operator bool() const {
 			bool retval = (bool(*static_cast<const mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>*>(this)));
-			return retval;
-		}
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const {
-			const _Ty* retval = (*static_cast<const mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>*>(this));
-			return retval;
-		}
-		MSE_DEPRECATED explicit operator const TXScopeAtomicObj<_Ty>*() const {
-			const TXScopeAtomicObj<_Ty>* retval = (*static_cast<const mse::us::impl::TXScopeAtomicConstPointerBase<_Ty>*>(this));
 			return retval;
 		}
 
@@ -525,8 +507,7 @@ namespace mse {
 		~TXScopeAtomicItemFixedPointer() {}
 
 		explicit operator bool() const { return true; }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator std::atomic<_Ty>*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeAtomicItemPointerBase<_Ty>::operator _Ty*()*/; }
+
 		void xscope_tag() const {}
 		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
@@ -565,8 +546,7 @@ namespace mse {
 		~TXScopeAtomicItemFixedConstPointer() {}
 
 		explicit operator bool() const { return true; }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const std::atomic<_Ty>*() const { return std::addressof(*(*this))/*mse::us::impl::TXScopeAtomicItemConstPointerBase<_Ty>::operator const _Ty*()*/; }
+
 		void xscope_tag() const {}
 		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 

@@ -289,15 +289,6 @@ namespace mse {
 			return (*this).operator=(TNDCRegisteredPointer(_Right_cref));
 		}
 		explicit operator bool() const { return !(!((*this).m_ptr)); }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const {
-#ifdef NATIVE_PTR_DEBUG_HELPER1
-			if (nullptr == (*this).m_ptr) {
-				int q = 5; /* just a line of code for putting a debugger break point */
-			}
-#endif /*NATIVE_PTR_DEBUG_HELPER1*/
-			return (*this).m_ptr;
-		}
 
 		/* In C++, if an object is deleted via a pointer to its base class and the base class' destructor is not virtual,
 		then the (derived) object's destructor won't be called possibly resulting in resource leaks. With cregistered
@@ -383,15 +374,6 @@ namespace mse {
 		}
 
 		explicit operator bool() const { return !(!((*this).m_ptr)); }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const {
-#ifdef NATIVE_PTR_DEBUG_HELPER1
-			if (nullptr == (*this).m_ptr) {
-				int q = 5; /* just a line of code for putting a debugger break point */
-			}
-#endif /*NATIVE_PTR_DEBUG_HELPER1*/
-			return (*this).m_ptr;
-		}
 
 		/* In C++, if an object is deleted via a pointer to its base class and the base class' destructor is not virtual,
 		then the (derived) object's destructor won't be called possibly resulting in resource leaks. With cregistered
@@ -920,26 +902,6 @@ namespace mse {
 	TCRegisteredPointer<_Ty> crnew(Args&&... args) { return cregistered_new<_Ty>(std::forward<Args>(args)...); }
 	template <class _Ty>
 	void crdelete(const TCRegisteredPointer<_Ty>& regPtrRef) { cregistered_delete<_Ty>(regPtrRef); }
-
-	/* deprecated aliases */
-	template<typename _Ty> using rrp MSE_DEPRECATED = TCRegisteredPointer<_Ty>;
-	template<typename _Ty> using rrcp MSE_DEPRECATED = TCRegisteredConstPointer<_Ty>;
-	template<typename _Ty> using rrnnp MSE_DEPRECATED = TCRegisteredNotNullPointer<_Ty>;
-	template<typename _Ty> using rrnncp MSE_DEPRECATED = TCRegisteredNotNullConstPointer<_Ty>;
-	template<typename _Ty> using rrfp MSE_DEPRECATED = TCRegisteredFixedPointer<_Ty>;
-	template<typename _Ty> using rrfcp MSE_DEPRECATED = TCRegisteredFixedConstPointer<_Ty>;
-	template<typename _TROFLy> using rro MSE_DEPRECATED = TCRegisteredObj<_TROFLy>;
-	template <class _Ty, class... Args>
-	MSE_DEPRECATED TCRegisteredPointer<_Ty> rrnew(Args&&... args) { return cregistered_new<_Ty>(std::forward<Args>(args)...); }
-	template <class _Ty>
-	MSE_DEPRECATED void rrdelete(const TCRegisteredPointer<_Ty>& regPtrRef) { cregistered_delete<_Ty>(regPtrRef); }
-	template<typename _Ty> using TWCRegisteredPointer MSE_DEPRECATED = TNDCRegisteredPointer<_Ty>;
-	template<typename _Ty> using TWCRegisteredConstPointer MSE_DEPRECATED = TNDCRegisteredConstPointer<_Ty>;
-	template<typename _Ty> using TWCRegisteredNotNullPointer MSE_DEPRECATED = TNDCRegisteredNotNullPointer<_Ty>;
-	template<typename _Ty> using TWCRegisteredNotNullConstPointer MSE_DEPRECATED = TNDCRegisteredNotNullConstPointer<_Ty>;
-	template<typename _Ty> using TWCRegisteredFixedPointer MSE_DEPRECATED = TNDCRegisteredFixedPointer<_Ty>;
-	template<typename _Ty> using TWCRegisteredFixedConstPointer MSE_DEPRECATED = TNDCRegisteredFixedConstPointer<_Ty>;
-	template<typename _TROFLy> using TWCRegisteredObj MSE_DEPRECATED = TNDCRegisteredObj<_TROFLy>;
 
 #ifdef _MSC_VER
 #pragma warning( push )  

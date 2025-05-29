@@ -191,10 +191,6 @@ namespace mse {
 					}
 
 					explicit operator bool() const { return !(!((*this).m_ptr)); }
-					/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-					MSE_DEPRECATED explicit operator const _Ty* () const {
-						return std::addressof(*(*this));
-					}
 
 				private:
 					TCheckedThreadSafeConstPointer(const TCheckedThreadSafeObj<_Ty>* ptr) : base_class(ptr) {
@@ -410,15 +406,6 @@ namespace mse {
 			}
 			explicit operator bool() const {
 				bool retval = (bool(*static_cast<const base_class*>(this)));
-				return retval;
-			}
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator const _Ty*() const {
-				const _Ty* retval = std::addressof(*(*static_cast<const base_class*>(this)));
-				return retval;
-			}
-			MSE_DEPRECATED explicit operator const TStaticImmutableObj<_Ty>*() const {
-				const TStaticImmutableObj<_Ty>* retval = std::addressof(*(*static_cast<const base_class*>(this)));
 				return retval;
 			}
 

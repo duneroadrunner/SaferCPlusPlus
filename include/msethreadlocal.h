@@ -203,15 +203,6 @@ namespace mse {
 				bool retval = (bool(*static_cast<const base_class*>(this)));
 				return retval;
 			}
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator _Ty*() const {
-				_Ty* retval = std::addressof(*(*this))/*(*static_cast<const base_class*>(this))*/;
-				return retval;
-			}
-			MSE_DEPRECATED explicit operator TThreadLocalObj<_Ty>*() const {
-				TThreadLocalObj<_Ty>* retval = (*static_cast<const base_class*>(this));
-				return retval;
-			}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -257,15 +248,6 @@ namespace mse {
 			}
 			explicit operator bool() const {
 				bool retval = (bool(*static_cast<const base_class*>(this)));
-				return retval;
-			}
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator const _Ty*() const {
-				const _Ty* retval = (*static_cast<const base_class*>(this));
-				return retval;
-			}
-			MSE_DEPRECATED explicit operator const TThreadLocalObj<_Ty>*() const {
-				const TThreadLocalObj<_Ty>* retval = (*static_cast<const base_class*>(this));
 				return retval;
 			}
 

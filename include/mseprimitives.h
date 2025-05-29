@@ -498,10 +498,12 @@ namespace mse {
 			/* This template struct should deduce the smallest native integer type that can encompass the combined range
 			of both template parameters (or the one that comes closest if there isn't one). */
 			template<typename _Ty, typename _Tz> struct range_encompassing_native_int_type {
-				typedef typename std::conditional<std::is_signed<_Ty>::value || std::is_signed<_Tz>::value, typename mse::impl::make_signed<_Ty>::type, _Ty>::type candidate_type;
+				typedef typename std::remove_const<_Ty>::type ncTy;
+				typedef typename std::remove_const<_Tz>::type ncTz;
+				typedef typename std::conditional<std::is_signed<ncTy>::value || std::is_signed<ncTz>::value, typename mse::impl::make_signed<ncTy>::type, ncTy>::type candidate_type;
 
-				typedef typename std::conditional<!(is_biggest_available_type<candidate_type>::value || last_encompasses_first_two<_Ty, _Tz, candidate_type>::value)
-					, typename range_encompassing_native_int_type_helper2<typename next_bigger_candidate<candidate_type, _Tz>::type, _Tz>::type
+				typedef typename std::conditional<!(is_biggest_available_type<candidate_type>::value || last_encompasses_first_two<ncTy, ncTz, candidate_type>::value)
+					, typename range_encompassing_native_int_type_helper2<typename next_bigger_candidate<candidate_type, ncTz>::type, ncTz>::type
 					, candidate_type>::type type;
 			};
 		}
@@ -518,7 +520,7 @@ namespace mse {
 #define MSE_TINT_TYPE(_Ty) typename mse::impl::corresponding_TInt<_Ty>::type
 #define MSE_NATIVE_INT_TYPE(_Ty) MSE_TINT_TYPE(_Ty)::base_type
 
-#define MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz) typename mse::impl::range_encompassing::range_encompassing_native_int_type<MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz)>::type
+#define MSE_RANGE_ENCOMPASSING_NATIVE_INT_TYPE(_Ty, _Tz) typename std::remove_const<typename mse::impl::range_encompassing::range_encompassing_native_int_type<MSE_NATIVE_INT_TYPE(_Ty), MSE_NATIVE_INT_TYPE(_Tz)>::type>::type
 
 		template<typename _Ty, typename _Tz, typename TOption1>
 		using native_int_result_type1 = typename std::conditional<(!std::is_base_of<enable_AR_range_extension_t, TOption1>::value)
@@ -626,6 +628,7 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 	public:
 		typedef impl::TArithmeticBase1<TBase> base_class;
 		typedef TBase base_type;
+		typedef typename std::remove_const<TBase>::type nc_base_type;
 
 		TInt() : base_class() {}
 		TInt(const TInt &x) : base_class(x) {};

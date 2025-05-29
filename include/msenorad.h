@@ -283,23 +283,6 @@ namespace mse {
 				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TGNoradPointer)
 
 				explicit operator bool() const { return !(!m_ptr); }
-				/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-				MSE_DEPRECATED explicit operator _Ty*() {
-#ifdef NATIVE_PTR_DEBUG_HELPER1
-					if (nullptr == m_ptr) {
-						int q = 5; /* just a line of code for putting a debugger break point */
-					}
-#endif /*NATIVE_PTR_DEBUG_HELPER1*/
-					return std::addressof(*m_ptr);
-				}
-				MSE_DEPRECATED explicit operator const _Ty*() const {
-#ifdef NATIVE_PTR_DEBUG_HELPER1
-					if (nullptr == m_ptr) {
-						int q = 5; /* just a line of code for putting a debugger break point */
-					}
-#endif /*NATIVE_PTR_DEBUG_HELPER1*/
-					return std::addressof(*m_ptr);
-				}
 
 				/* In C++, if an object is deleted via a pointer to its base class and the base class' destructor is not virtual,
 				then the (derived) object's destructor won't be called possibly resulting in resource leaks. With registered
@@ -406,15 +389,6 @@ namespace mse {
 				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TGNoradConstPointer)
 
 				explicit operator bool() const { return !(!m_ptr); }
-				/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-				MSE_DEPRECATED explicit operator const _Ty*() const {
-#ifdef NATIVE_PTR_DEBUG_HELPER1
-					if (nullptr == m_ptr) {
-						int q = 5; /* just a line of code for putting a debugger break point */
-					}
-#endif /*NATIVE_PTR_DEBUG_HELPER1*/
-					return m_ptr;
-				}
 
 				/* In C++, if an object is deleted via a pointer to its base class and the base class' destructor is not virtual,
 				then the (derived) object's destructor won't be called possibly resulting in resource leaks. With registered
@@ -1092,15 +1066,6 @@ namespace mse {
 		}
 
 		explicit operator bool() const { return !(!((*this).m_ptr)); }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const {
-#ifdef NATIVE_PTR_DEBUG_HELPER1
-			if (nullptr == (*this).m_ptr) {
-				int q = 5; /* just a line of code for putting a debugger break point */
-			}
-#endif /*NATIVE_PTR_DEBUG_HELPER1*/
-			return (*this).m_ptr;
-		}
 
 		/* In C++, if an object is deleted via a pointer to its base class and the base class' destructor is not virtual,
 		then the (derived) object's destructor won't be called possibly resulting in resource leaks. With registered
@@ -1639,15 +1604,6 @@ namespace mse {
 	TNoradPointer<_Ty> nnew(Args&&... args) { return norad_new<_Ty>(std::forward<Args>(args)...); }
 	template <class _Ty>
 	void ndelete(const TNoradPointer<_Ty>& regPtrRef) { norad_delete<_Ty>(regPtrRef); }
-
-	/* deprecated aliases */
-	template<typename _Ty> using TWNoradPointer MSE_DEPRECATED = TNDNoradPointer<_Ty>;
-	template<typename _Ty> using TWNoradConstPointer MSE_DEPRECATED = TNDNoradConstPointer<_Ty>;
-	template<typename _Ty> using TWNoradNotNullPointer MSE_DEPRECATED = TNDNoradNotNullPointer<_Ty>;
-	template<typename _Ty> using TWNoradNotNullConstPointer MSE_DEPRECATED = TNDNoradNotNullConstPointer<_Ty>;
-	template<typename _Ty> using TWNoradFixedPointer MSE_DEPRECATED = TNDNoradFixedPointer<_Ty>;
-	template<typename _Ty> using TWNoradFixedConstPointer MSE_DEPRECATED = TNDNoradFixedConstPointer<_Ty>;
-	template<typename _TROFLy> using TWNoradObj MSE_DEPRECATED = TNDNoradObj<_TROFLy>;
 
 #ifdef _MSC_VER
 #pragma warning( push )  

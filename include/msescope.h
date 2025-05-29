@@ -1064,15 +1064,6 @@ namespace mse {
 				bool retval = (bool(*static_cast<const mse::us::impl::TXScopeObjPointerBase<_Ty, lt_info1>*>(this)));
 				return retval;
 			}
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator _Ty* () const {
-				_Ty* retval = std::addressof(*(*this))/*(*static_cast<const mse::us::impl::TXScopeObjPointerBase<_Ty, lt_info1>*>(this))*/;
-				return retval;
-			}
-			MSE_DEPRECATED explicit operator TXScopeObj<_Ty>* () const {
-				TXScopeObj<_Ty>* retval = (*static_cast<const mse::us::impl::TXScopeObjPointerBase<_Ty, lt_info1>*>(this));
-				return retval;
-			}
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
@@ -1103,15 +1094,6 @@ namespace mse {
 			}
 			explicit operator bool() const {
 				bool retval = (bool(*static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty, lt_info1>*>(this)));
-				return retval;
-			}
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator const _Ty* () const {
-				const _Ty* retval = (*static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty, lt_info1>*>(this));
-				return retval;
-			}
-			MSE_DEPRECATED explicit operator const TXScopeObj<_Ty>* () const {
-				const TXScopeObj<_Ty>* retval = (*static_cast<const mse::us::impl::TXScopeObjConstPointerBase<_Ty, lt_info1>*>(this));
 				return retval;
 			}
 
@@ -1365,8 +1347,7 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedPointer() {}
 
 			explicit operator bool() const { return true; }
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator _Ty* () const { return std::addressof(*(*this))/*base_class::operator _Ty*()*/; }
+
 			void xscope_tag() const {}
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
@@ -1415,8 +1396,7 @@ namespace mse {
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeFixedConstPointer() {}
 
 			explicit operator bool() const { return true; }
-			/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-			MSE_DEPRECATED explicit operator const _Ty* () const { return std::addressof(*(*this))/*base_class::operator const _Ty*()*/; }
+
 			void xscope_tag() const {}
 			MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
 
@@ -2109,12 +2089,6 @@ namespace mse {
 			return TXScopeStrongFixedConstPointer<_TTargetType, mse::impl::remove_reference_t<_TLeaseType> >::make(target, MSE_FWD(lease));
 		}
 	}
-	template <class _TTargetType, class _TLeaseType>
-	using TXScopeStrongFixedPointer MSE_DEPRECATED = us::TXScopeStrongFixedPointer<_TTargetType, _TLeaseType>;
-	template <class _TTargetType, class _TLeaseType>
-	MSE_DEPRECATED auto make_xscope_strong(_TTargetType& target, const _TLeaseType& lease) { return us::make_xscope_strong(target, lease); }
-	template <class _TTargetType, class _TLeaseType>
-	MSE_DEPRECATED auto make_xscope_strong(_TTargetType& target, _TLeaseType&& lease) { return us::make_xscope_strong(target, MSE_FWD(lease)); }
 
 
 	namespace impl {
@@ -2988,13 +2962,6 @@ namespace mse {
 #endif /*MSEPRIMITIVES_H*/
 
 
-
-
-	/* deprecated aliases */
-	template<typename _TROy> using TReturnable MSE_DEPRECATED = TReturnValue<_TROy>;
-	template<typename _TROy> using TXScopeReturnable MSE_DEPRECATED = TXScopeReturnValue<_TROy>;
-	template<typename _Ty> MSE_DEPRECATED const auto& returnable(const _Ty& _X) { return return_value(_X); }
-	template<typename _Ty> MSE_DEPRECATED auto&& returnable(_Ty&& _X) { return return_value(MSE_FWD(_X)); }
 
 
 	/* TMemberObj is a transparent wrapper that can be used to wrap class/struct members to ensure that they are not scope
@@ -3984,20 +3951,6 @@ namespace mse {
 	template<typename _TROy> using xs_obj = TXScopeObj<_TROy>;
 	template<typename _Ty> using xs_fptr = TXScopeFixedPointer<_Ty>;
 	template<typename _Ty> using xs_fcptr = TXScopeFixedConstPointer<_Ty>;
-
-	/* deprecated aliases */
-	template<typename _Ty> using sfp MSE_DEPRECATED = TXScopeObjFixedPointer<_Ty>;
-	template<typename _Ty> using sfcp MSE_DEPRECATED = TXScopeObjFixedConstPointer<_Ty>;
-	template<typename _Ty> using scpfp MSE_DEPRECATED = TXScopeObjFixedPointer<_Ty>;
-	template<typename _Ty> using scpfcp MSE_DEPRECATED = TXScopeObjFixedConstPointer<_Ty>;
-	template<typename _TROy> using scpo MSE_DEPRECATED = TXScopeObj<_TROy>;
-	template<class _TTargetType, class _TXScopeObjPointerType> using scpwkfp MSE_DEPRECATED = mse::us::TSyncWeakFixedPointer<_TTargetType, _TXScopeObjPointerType>;
-	template<class _TTargetType, class _TXScopeObjPointerType> using scpwkfcp MSE_DEPRECATED = mse::us::TSyncWeakFixedConstPointer<_TTargetType, _TXScopeObjPointerType>;
-
-	template<typename _Ty> using TScopeFixedPointer MSE_DEPRECATED = TXScopeObjFixedPointer<_Ty>;
-	template<typename _Ty> using TScopeFixedConstPointer MSE_DEPRECATED = TXScopeObjFixedConstPointer<_Ty>;
-	template<typename _TROy> using TScopeObj MSE_DEPRECATED = TXScopeObj<_TROy>;
-	template<typename _Ty> using TScopeOwnerPointer MSE_DEPRECATED = TXScopeOwnerPointer<_Ty>;
 
 
 	namespace self_test {

@@ -262,15 +262,6 @@ namespace mse {
 			return (*this).operator=(TNDRegisteredPointer(_Right_cref));
 		}
 		explicit operator bool() const { return !(!((*this).m_ptr)); }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator _Ty*() const {
-#ifdef NATIVE_PTR_DEBUG_HELPER1
-			if (nullptr == (*this).m_ptr) {
-				int q = 5; /* just a line of code for putting a debugger break point */
-			}
-#endif /*NATIVE_PTR_DEBUG_HELPER1*/
-			return (*this).m_ptr;
-		}
 
 		/* In C++, if an object is deleted via a pointer to its base class and the base class' destructor is not virtual,
 		then the (derived) object's destructor won't be called possibly resulting in resource leaks. With registered
@@ -356,15 +347,6 @@ namespace mse {
 		}
 
 		explicit operator bool() const { return !(!((*this).m_ptr)); }
-		/* This native pointer cast operator is just for compatibility with existing/legacy code and ideally should never be used. */
-		MSE_DEPRECATED explicit operator const _Ty*() const {
-#ifdef NATIVE_PTR_DEBUG_HELPER1
-			if (nullptr == (*this).m_ptr) {
-				int q = 5; /* just a line of code for putting a debugger break point */
-			}
-#endif /*NATIVE_PTR_DEBUG_HELPER1*/
-			return (*this).m_ptr;
-		}
 
 		/* In C++, if an object is deleted via a pointer to its base class and the base class' destructor is not virtual,
 		then the (derived) object's destructor won't be called possibly resulting in resource leaks. With registered
@@ -964,19 +946,6 @@ namespace mse {
 	TRegisteredPointer<_Ty> rnew(Args&&... args) { return registered_new<_Ty>(std::forward<Args>(args)...); }
 	template <class _Ty>
 	void rdelete(const TRegisteredPointer<_Ty>& regPtrRef) { registered_delete<_Ty>(regPtrRef); }
-
-	/* deprecated aliases */
-	template<class _TTargetType, class _TLeasePointerType> using swkfp MSE_DEPRECATED = mse::us::TSyncWeakFixedPointer<_TTargetType, _TLeasePointerType>;
-	template<class _TTargetType, class _TLeasePointerType> using swkfcp MSE_DEPRECATED = mse::us::TSyncWeakFixedConstPointer<_TTargetType, _TLeasePointerType>;
-	template<typename _Ty> using TWRegisteredPointer MSE_DEPRECATED = TNDRegisteredPointer<_Ty>;
-	template<typename _Ty> using TWRegisteredConstPointer MSE_DEPRECATED = TNDRegisteredConstPointer<_Ty>;
-	template<typename _Ty> using TWRegisteredNotNullPointer MSE_DEPRECATED = TNDRegisteredNotNullPointer<_Ty>;
-	template<typename _Ty> using TWRegisteredNotNullConstPointer MSE_DEPRECATED = TNDRegisteredNotNullConstPointer<_Ty>;
-	template<typename _Ty> using TWRegisteredFixedPointer MSE_DEPRECATED = TNDRegisteredFixedPointer<_Ty>;
-	template<typename _Ty> using TWRegisteredFixedConstPointer MSE_DEPRECATED = TNDRegisteredFixedConstPointer<_Ty>;
-	template<typename _TROy> using TWRegisteredObj MSE_DEPRECATED = TNDRegisteredObj<_TROy>;
-	template <typename _TLoneParam> MSE_DEPRECATED auto mkrolp(const _TLoneParam& lone_param) { return make_registered(lone_param); }
-	template <typename _TLoneParam> MSE_DEPRECATED auto mkrolp(_TLoneParam&& lone_param) { return make_registered(MSE_FWD(lone_param)); }
 
 
 #ifdef MSEREGISTEREDREFWRAPPER
