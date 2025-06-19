@@ -623,24 +623,24 @@ namespace mse {
 		namespace lh {
 			template <typename _Tx = void, typename _Ty = void>
 			auto unsafe_make_lh_nullable_any_pointer_from(_Ty* ptr) {
-				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*ptr)>, _Tx> _Tx2;
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, _Ty, _Tx> _Tx2;
 				return mse::lh::TLHNullableAnyPointer<_Tx2>(mse::us::TSaferPtrForLegacy<_Tx2>(ptr));
 			}
 			template <typename _Tx = void, typename _Ty = void>
 			auto unsafe_make_lh_nullable_any_pointer_from(const _Ty& ptr) {
-				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*ptr)>, _Tx> _Tx2;
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::target_type<_Ty>, _Tx> _Tx2;
 				return mse::lh::TLHNullableAnyPointer<_Tx2>(ptr);
 			}
 			template <typename _Tx = void, typename _Ty = void>
 			auto unsafe_make_lh_nullable_any_pointer_from(_Ty& ptr) {
 				/* Note that, for example, in the case of mse::lh::TNativeArrayReplacement<>, its "operator*()" and "operator*() const"
 				return different types. (Specifically, they return types that differ by a const qualifier.) */
-				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*ptr)>, _Tx> _Tx2;
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::target_type<_Ty>, _Tx> _Tx2;
 				return mse::lh::TLHNullableAnyPointer<_Tx2>(ptr);
 			}
 			template <typename _Tx = void, typename _Ty = void>
 			auto unsafe_make_lh_nullable_any_pointer_from(_Ty&& ptr) {
-				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*ptr)>, _Tx> _Tx2;
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::target_type<_Ty>, _Tx> _Tx2;
 				return mse::lh::TLHNullableAnyPointer<_Tx2>(MSE_FWD(ptr));
 			}
 		}
@@ -825,7 +825,9 @@ namespace mse {
 				template<class T1, class T2>
 				static T1 convert(const T2& x) {
 					//static const bool b1 = std::is_convertible<T2, T1>::value;
-					static const bool b1 = std::is_constructible<T1, T2 const&>::value;
+					static const bool b1a = std::is_constructible<T1, T2 const&>::value;
+					static const bool b1b = std::is_pointer<T1>::value && (std::is_same<T2, void*>::value || std::is_same<T2, void const*>::value);
+					static const bool b1 = (b1a || b1b);
 					static const bool b2 = std::is_arithmetic<T1>::value;
 					static const bool b3 = std::is_arithmetic<T2>::value;
 					static const bool b4 = (sizeof(T1) >= sizeof(T2));
@@ -880,6 +882,7 @@ namespace mse {
 #if (!defined(_MSC_VER)) || defined(MSE_HAS_CXX20)
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT2(std::nullptr_t);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(void*);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(const void*);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(const char*);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(char*);
 					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_CAST_ATTEMPT_HELPER1);
@@ -1392,24 +1395,24 @@ namespace mse {
 		namespace lh {
 			template <typename _Tx = void, typename _Ty = void>
 			auto unsafe_make_lh_nullable_any_random_access_iterator_from(_Ty* iter) {
-				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*iter)>, _Tx> _Tx2;
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, _Ty, _Tx> _Tx2;
 				return mse::lh::TLHNullableAnyRandomAccessIterator<_Tx2>(mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<_Tx2>(iter));
 			}
 			template <typename _Tx = void, typename _Ty = void>
 			auto unsafe_make_lh_nullable_any_random_access_iterator_from(const _Ty& iter) {
-				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*iter)>, _Tx> _Tx2;
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::target_type<_Ty>, _Tx> _Tx2;
 				return mse::lh::TLHNullableAnyRandomAccessIterator<_Tx2>(iter);
 			}
 			template <typename _Tx = void, typename _Ty = void>
 			auto unsafe_make_lh_nullable_any_random_access_iterator_from(_Ty& iter) {
 				/* Note that, for example, in the case of mse::lh::TNativeArrayReplacement<>, its "operator*()" and "operator*() const"
 				return different types. (Specifically, they return types that differ by a const qualifier.) */
-				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*iter)>, _Tx> _Tx2;
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::target_type<_Ty>, _Tx> _Tx2;
 				return mse::lh::TLHNullableAnyRandomAccessIterator<_Tx2>(iter);
 			}
 			template <typename _Tx = void, typename _Ty = void>
 			auto unsafe_make_lh_nullable_any_random_access_iterator_from(_Ty&& iter) {
-				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::remove_reference_t<decltype(*iter)>, _Tx> _Tx2;
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::target_type<_Ty>, _Tx> _Tx2;
 				return mse::lh::TLHNullableAnyRandomAccessIterator<_Tx2>(MSE_FWD(iter));
 			}
 		}
@@ -3216,13 +3219,92 @@ namespace mse {
 
 		template<>
 		class TLHNullableAnyPointer<void> : public void_star_replacement {
+		public:
 			typedef void_star_replacement base_class;
 			using base_class::base_class;
+			TLHNullableAnyPointer() = default;
+			TLHNullableAnyPointer(const TLHNullableAnyPointer&) = default;
+			//TLHNullableAnyPointer(TLHNullableAnyPointer&&) = default;
+			TLHNullableAnyPointer(const base_class& src) : base_class(src) {}
+			//TLHNullableAnyPointer(base_class&& src) : base_class(MSE_FWD(src)) {}
+
+			TLHNullableAnyPointer(std::nullptr_t) : base_class(nullptr) {}
+
+			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
+				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void*, T>::value) || (std::is_same<void const*, T>::value))> MSE_IMPL_EIS >
+			TLHNullableAnyPointer(const T& ptr) : base_class(ptr) {}
+
+			TLHNullableAnyPointer& operator=(TLHNullableAnyPointer _Right) {
+				base_class::operator=(_Right);
+				return (*this);
+			}
 		};
 		template<>
 		class TLHNullableAnyPointer<const void> : public void_star_replacement {
+		public:
 			typedef void_star_replacement base_class;
 			using base_class::base_class;
+			TLHNullableAnyPointer() = default;
+			TLHNullableAnyPointer(const TLHNullableAnyPointer&) = default;
+			//TLHNullableAnyPointer(TLHNullableAnyPointer&&) = default;
+			TLHNullableAnyPointer(const base_class& src) : base_class(src) {}
+			//TLHNullableAnyPointer(base_class&& src) : base_class(MSE_FWD(src)) {}
+
+			TLHNullableAnyPointer(std::nullptr_t) : base_class(nullptr) {}
+
+			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
+				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void*, T>::value) || (std::is_same<void const*, T>::value))> MSE_IMPL_EIS >
+			TLHNullableAnyPointer(const T& ptr) : base_class(ptr) {}
+
+			TLHNullableAnyPointer& operator=(TLHNullableAnyPointer _Right) {
+				base_class::operator=(_Right);
+				return (*this);
+			}
+		};
+
+		template<>
+		class TLHNullableAnyRandomAccessIterator<void> : public void_star_replacement {
+		public:
+			typedef void_star_replacement base_class;
+			using base_class::base_class;
+			TLHNullableAnyRandomAccessIterator() = default;
+			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator&) = default;
+			//TLHNullableAnyRandomAccessIterator(TLHNullableAnyRandomAccessIterator&&) = default;
+			TLHNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
+			//TLHNullableAnyRandomAccessIterator(base_class&& src) : base_class(MSE_FWD(src)) {}
+
+			TLHNullableAnyRandomAccessIterator(std::nullptr_t) : base_class(nullptr) {}
+
+			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
+				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void*, T>::value) || (std::is_same<void const*, T>::value))> MSE_IMPL_EIS >
+			TLHNullableAnyRandomAccessIterator(const T& ptr) : base_class(ptr) {}
+
+			TLHNullableAnyRandomAccessIterator& operator=(TLHNullableAnyRandomAccessIterator _Right) {
+				base_class::operator=(_Right);
+				return (*this);
+			}
+		};
+		template<>
+		class TLHNullableAnyRandomAccessIterator<const void> : public void_star_replacement {
+		public:
+			typedef void_star_replacement base_class;
+			using base_class::base_class;
+			TLHNullableAnyRandomAccessIterator() = default;
+			TLHNullableAnyRandomAccessIterator(const TLHNullableAnyRandomAccessIterator&) = default;
+			//TLHNullableAnyRandomAccessIterator(TLHNullableAnyRandomAccessIterator&&) = default;
+			TLHNullableAnyRandomAccessIterator(const base_class& src) : base_class(src) {}
+			//TLHNullableAnyRandomAccessIterator(base_class&& src) : base_class(MSE_FWD(src)) {}
+
+			TLHNullableAnyRandomAccessIterator(std::nullptr_t) : base_class(nullptr) {}
+
+			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
+				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void*, T>::value) || (std::is_same<void const*, T>::value))> MSE_IMPL_EIS >
+			TLHNullableAnyRandomAccessIterator(const T& ptr) : base_class(ptr) {}
+
+			TLHNullableAnyRandomAccessIterator& operator=(TLHNullableAnyRandomAccessIterator _Right) {
+				base_class::operator=(_Right);
+				return (*this);
+			}
 		};
 	}
 	namespace us {
@@ -4108,7 +4190,8 @@ namespace mse {
 					std::cout << mse::us::lh::make_raw_pointer_from(iter1) << " \n";
 
 					*(iter2 + 1) = '2';
-					mse::lh::memcpy(iter1, mse::lh::void_star_replacement(iter2), sizeof input1);
+					/* commented out to speed up compile */
+					//mse::lh::memcpy(iter1, mse::lh::void_star_replacement(iter2), sizeof input1);
 					std::cout << mse::us::lh::make_raw_pointer_from(iter1) << " \n";
 
 					int q = 5;
@@ -4125,12 +4208,33 @@ namespace mse {
 					auto diff1 = mse::lh::memcmp(iter1, iter2, sizeof input1);
 
 					*(iter2 + 1) = '2';
-					auto diff2 = mse::lh::memcmp(iter1, mse::lh::void_star_replacement(iter2), sizeof input1);
-					auto diff3 = mse::lh::memcmp(mse::lh::void_star_replacement(iter2), iter1, sizeof input1);
+					/* commented out to speed up compile */
+					//auto diff2 = mse::lh::memcmp(iter1, mse::lh::void_star_replacement(iter2), sizeof input1);
+					//auto diff3 = mse::lh::memcmp(mse::lh::void_star_replacement(iter2), iter1, sizeof input1);
 					auto diff4 = mse::lh::memcmp(iter2, iter1, sizeof input1);
-					//auto diff5 = mse::lh::memcmp(mse::lh::void_star_replacement(iter1), mse::lh::void_star_replacement(iter2), sizeof input1);
+
+#ifdef MSE_IMPL_ATTEMPT_TO_GUESS_VOID_STAR_TYPE_WITHOUT_CONTEXT
+					auto diff5 = mse::lh::memcmp(mse::lh::void_star_replacement(iter1), mse::lh::void_star_replacement(iter2), sizeof input1);
+#endif // MSE_IMPL_ATTEMPT_TO_GUESS_VOID_STAR_TYPE_WITHOUT_CONTEXT
 
 					auto vsr1 = mse::lh::void_star_replacement(arr1);
+
+					void* iter3 = nullptr;
+					vsr1 = iter3;
+					auto iter4 = (char*)vsr1;
+					bool b1 = std::is_constructible<char *, void* const&>::value;
+					typedef char * iter5_t;
+					iter5_t iter5 = iter5_t(iter3);
+					iter3 = iter5;
+					//auto lhnaraiter3 = mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(iter3);
+					vsr1 = mse::lh::TLHNullableAnyPointer<void>(nullptr);
+					vsr1 = mse::lh::TLHNullableAnyRandomAccessIterator<void>(nullptr);
+					auto lhnaptr1 = mse::lh::TLHNullableAnyPointer<void>(vsr1);
+					lhnaptr1 = nullptr;
+					std::swap(lhnaptr1, lhnaptr1);
+					bool b2 = (lhnaptr1 == lhnaptr1);
+					int i1 = 7;
+					//lhnaptr1 = mse::us::lh::unsafe_make_lh_nullable_any_pointer_from((void*)&i1);
 
 					int q = 5;
 				}
