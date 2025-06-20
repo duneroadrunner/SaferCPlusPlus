@@ -802,8 +802,6 @@ namespace mse {
 				template<class T>
 				explicit operator T() const {
 					return conversion_operator_helper1<T>(this);
-					//return conversion_operator_helper3<T>(typename mse::impl::IsDereferenceable_pb<T>::type(), this);
-					//return mse::us::impl::ns_any::any_cast<T>(*this);
 				}
 
 			//private:
@@ -868,7 +866,6 @@ namespace mse {
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT2(typename NDRegisteredWrapped<type1>::type)
 
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(type1) \
-					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT3(type1) \
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT3(mse::impl::remove_const_t<type1>) \
 					/* While references to `non-const`s aren't constructible from references to `const`s, `non-const` values are constructible from `const` values. */ \
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT3(typename std::add_const<type1>::type)
@@ -908,9 +905,13 @@ namespace mse {
 					return {};
 				}
 
+				template<class T1, class T2>
+				static my_optional<T1> conversion_operator_helper4(std::true_type, T2* ptr1);
+				template<class T1, class T2>
+				static my_optional<T1> conversion_operator_helper4(std::false_type, T2* ptr1) { return {}; }
+
 				template <typename _Ty2>
 				friend class mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase;
-
 			};
 
 			template<typename ValueType, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
@@ -3005,23 +3006,41 @@ namespace mse {
 
 		namespace impl {
 			template<class T1, class T2>
+			explicitly_castable_any::my_optional<T1> explicitly_castable_any::conversion_operator_helper4(std::true_type, T2* ptr1) {
+#define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES2(MACRO_FUNCTION, pointee_type) \
+				MACRO_FUNCTION(mse::TNoradPointer<pointee_type>); \
+				MACRO_FUNCTION(mse::TNoradNotNullPointer<pointee_type>); \
+				MACRO_FUNCTION(mse::TRegisteredPointer<pointee_type>); \
+				MACRO_FUNCTION(mse::TRegisteredNotNullPointer<pointee_type>); \
+				MACRO_FUNCTION(mse::lh::TStrongVectorIterator<pointee_type>); \
+
+				typedef mse::impl::target_type<T1> pointee_t;
+				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES2(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, pointee_t);
+				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES2(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, mse::impl::remove_const_t<pointee_t>);
+
+				return {};
+			}
+
+			template<class T1, class T2>
 			/*static*/ explicitly_castable_any::my_optional<T1> explicitly_castable_any::conversion_operator_helper3(std::true_type, T2 * ptr1) {
 
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MACRO_FUNCTION, pointee_type) \
 					MACRO_FUNCTION(mse::TRefCountingPointer<pointee_type>); \
 					MACRO_FUNCTION(mse::TRefCountingNotNullPointer<pointee_type>); \
-					MACRO_FUNCTION(mse::TNoradPointer<pointee_type>); \
-					MACRO_FUNCTION(mse::TNoradNotNullPointer<pointee_type>); \
-					MACRO_FUNCTION(mse::TRegisteredPointer<pointee_type>); \
-					MACRO_FUNCTION(mse::TRegisteredNotNullPointer<pointee_type>); \
 					MACRO_FUNCTION(mse::lh::TLHNullableAnyPointer<pointee_type>); \
-					MACRO_FUNCTION(mse::lh::TStrongVectorIterator<pointee_type>); \
 					MACRO_FUNCTION(mse::lh::TLHNullableAnyRandomAccessIterator<pointee_type>); \
 					MACRO_FUNCTION(pointee_type*);
 
-				typedef mse::impl::remove_reference_t<decltype(*std::declval<T1>())> pointee_t;
+				typedef mse::impl::target_type<T1> pointee_t;
 				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, pointee_t);
-				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, mse::impl::remove_const_t<pointee_t>); \
+				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, mse::impl::remove_const_t<pointee_t>);
+
+				{
+					auto maybe_retval = conversion_operator_helper4<T1>(typename mse::impl::is_complete_type<pointee_t>::type(), ptr1);
+					if (maybe_retval.has_value()) {
+						return maybe_retval;
+					}
+				}
 
 				auto casted_ptr = mse::us::impl::ns_any::any_cast<T1>(&mse::us::impl::as_ref<base_class>(*ptr1));
 				if (casted_ptr) {
@@ -4235,6 +4254,12 @@ namespace mse {
 					bool b2 = (lhnaptr1 == lhnaptr1);
 					int i1 = 7;
 					//lhnaptr1 = mse::us::lh::unsafe_make_lh_nullable_any_pointer_from((void*)&i1);
+
+					struct CIncompleteType;
+					CIncompleteType* a_ptr1 = nullptr;
+					mse::lh::TLHNullableAnyPointer<CIncompleteType> a_lhnaptr3 = nullptr;
+					vsr1 = a_lhnaptr3;
+					a_lhnaptr3 = mse::lh::TLHNullableAnyPointer<CIncompleteType>(vsr1);
 
 					int q = 5;
 				}
