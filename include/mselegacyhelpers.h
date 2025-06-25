@@ -1478,14 +1478,62 @@ namespace mse {
 			base_class&& contained_iter()&& { return std::move(*this); }
 		};
 
-		template <typename _Ty>
-		using TStrongTargetVector = 
+		namespace impl {
+			template <typename _Ty>
+			using TStrongTargetVectorBase =
 #ifndef MSE_LEGACYHELPERS_DISABLED
-			mse::stnii_vector<mse::impl::remove_const_t<_Ty> >
+				mse::stnii_vector<mse::impl::remove_const_t<_Ty> >
 #else //MSE_LEGACYHELPERS_DISABLED
-			std::vector<mse::impl::remove_const_t<_Ty> >
+				std::vector<mse::impl::remove_const_t<_Ty> >
 #endif //MSE_LEGACYHELPERS_DISABLED
-			;
+				;
+		}
+		template <typename _Ty>
+		class TStrongTargetVector : public impl::TStrongTargetVectorBase<_Ty> {
+		public:
+			typedef impl::TStrongTargetVectorBase<_Ty> base_class;
+			typedef TStrongTargetVector _Myt;
+
+			typedef typename base_class::allocator_type allocator_type;
+			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			typedef typename base_class::iterator iterator;
+			typedef typename base_class::const_iterator const_iterator;
+			typedef typename base_class::reverse_iterator reverse_iterator;
+			typedef typename base_class::const_reverse_iterator const_reverse_iterator;
+
+			//typedef mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type<_Myt> xscope_const_iterator;
+			typedef typename base_class::xscope_const_iterator xscope_const_iterator;
+			typedef typename base_class::xscope_iterator xscope_iterator;
+
+			MSE_USING(TStrongTargetVector, base_class);
+
+			TStrongTargetVector(_XSTD initializer_list<value_type> _Ilist) : base_class(_Ilist) {}
+
+			TStrongTargetVector(const TStrongTargetVector&) = default;
+			TStrongTargetVector(TStrongTargetVector&&) = default;
+
+			TStrongTargetVector& operator=(TStrongTargetVector&& _X) = default;
+			TStrongTargetVector& operator=(const TStrongTargetVector& _X) = default;
+
+			friend bool operator==(const _Myt& _Left_cref, const _Myt& _Right_cref) {
+				const base_class& lhs = _Left_cref;
+				const base_class& rhs = _Right_cref;
+				return (lhs == rhs);
+			}
+			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TStrongTargetVector)
+#ifndef MSE_HAS_CXX20
+				friend bool operator<(const _Myt& _Left_cref, const _Myt& _Right_cref) {
+				const base_class& lhs = _Left_cref; const base_class& rhs = _Right_cref;
+				return (lhs < rhs);
+			}
+#else // !MSE_HAS_CXX20
+				friend std::strong_ordering operator<=>(const _Myt& _Left_cref, const _Myt& _Right_cref) {
+				return spaceship_operator_equivalent<base_class>(_Left_cref, _Right_cref);
+			}
+#endif // !MSE_HAS_CXX20
+		} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
+
 
 		/* This data type was motivated by the need for a direct substitute for native pointers targeting dynamically
 		allocated (native) arrays, which can kind of play a dual role as a reference to the array object and/or as an
@@ -1511,6 +1559,10 @@ namespace mse {
 				/* This constructor is just to support zero being used as a null pointer value. */
 				assert(0 == val);
 			}
+			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<((std::is_same<_Ty2, mse::impl::remove_const_t<_Ty> >::value) && (!std::is_same<_Ty2, _Ty>::value))> MSE_IMPL_EIS >
+			TStrongVectorIterator(const TStrongVectorIterator<_Ty2>& src) 
+				/* TStrongVectorIterator<const T> should be structurally identical to TStrongVectorIterator<T>, right? So the following reinterpret_cast<>() should be fine, right? */
+				: base_class(reinterpret_cast<const TStrongVectorIterator&>(src)) {}
 			/*
 			template <class... Args>
 			TStrongVectorIterator(Args&&... args) : base_class(mse::make_refcounting<TStrongTargetVector<_Ty>>(std::forward<Args>(args)...), 0) {}
@@ -1547,8 +1599,22 @@ namespace mse {
 				}
 				return (mse::us::impl::as_ref<base_class>(_Left_cref) == mse::us::impl::as_ref<base_class>(_Right_cref));
 			}
+			template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, mse::impl::remove_const_t<_Ty> >::value) && (!std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const TStrongVectorIterator& _Left_cref, const TStrongVectorIterator<_Ty2>& _Right_cref) {
+				/* TStrongVectorIterator<const T> should be structurally identical to TStrongVectorIterator<T>, right? So the following reinterpret_cast<>() should be fine, right? */
+				return (_Left_cref == reinterpret_cast<const TStrongVectorIterator&>(_Right_cref));
+			}
+			template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, mse::impl::remove_const_t<_Ty> >::value) && (!std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
+			friend bool operator==(const TStrongVectorIterator<_Ty2>& _Left_cref, const TStrongVectorIterator& _Right_cref) {
+				/* TStrongVectorIterator<const T> should be structurally identical to TStrongVectorIterator<T>, right? So the following reinterpret_cast<>() should be fine, right? */
+				return (reinterpret_cast<const TStrongVectorIterator&>(_Left_cref) == _Right_cref);
+			}
 #ifndef MSE_HAS_CXX20
 			friend bool operator!=(const TStrongVectorIterator& _Left_cref, const TStrongVectorIterator& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, mse::impl::remove_const_t<_Ty> >::value) && (!std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const TStrongVectorIterator& _Left_cref, const TStrongVectorIterator<_Ty2>& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, mse::impl::remove_const_t<_Ty> >::value) && (!std::is_same<_Ty2, _Ty>::value)> MSE_IMPL_EIS >
+			friend bool operator!=(const TStrongVectorIterator<_Ty2>& _Left_cref, const TStrongVectorIterator& _Right_cref) { return !(_Left_cref == _Right_cref); }
 #endif // !MSE_HAS_CXX20
 
 			TStrongVectorIterator& operator=(const TStrongVectorIterator& _Right_cref) {
