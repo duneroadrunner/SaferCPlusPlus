@@ -85,6 +85,7 @@
 #define MSE_LH_FREAD(ptr, size, count, stream) fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) fwrite(ptr, size, count, stream)
 #define MSE_LH_GETLINE(lineptr, nptr, stream) getline(lineptr, nptr, stream)
+#define MSE_LH_ICONV_WRAPPER(cd, inbufptr, inbytesleftptr, outbufptr, outbytesleftptr) iconv(cd, inbufptr, inbytesleftptr, outbufptr, outbytesleftptr)
 
 #define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) memcpy(destination, source, num_bytes)
 #define MSE_LH_TYPED_MEMCMP(element_type, destination, source, num_bytes) memcmp(destination, source, num_bytes)
@@ -173,6 +174,7 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_FREAD(ptr, size, count, stream) mse::lh::fread(ptr, size, count, stream)
 #define MSE_LH_FWRITE(ptr, size, count, stream) mse::lh::fwrite(ptr, size, count, stream)
 #define MSE_LH_GETLINE(lineptr, nptr, stream) mse::lh::getline(lineptr, nptr, stream)
+#define MSE_LH_ICONV_WRAPPER(cd, inbufptr, inbytesleftptr, outbufptr, outbytesleftptr) mse::lh::iconv_wrapper(cd, inbufptr, inbytesleftptr, outbufptr, outbytesleftptr)
 
 #define MSE_LH_TYPED_MEMCPY(element_type, destination, source, num_bytes) mse::lh::memcpy<mse::lh::TLHNullableAnyRandomAccessIterator<element_type>, mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >(destination, source, num_bytes)
 #define MSE_LH_TYPED_MEMCMP(element_type, destination, source, num_bytes) mse::lh::memcmp< mse::lh::TLHNullableAnyRandomAccessIterator<element_type>, mse::lh::TLHNullableAnyRandomAccessIterator<element_type> >(destination, source, num_bytes)
@@ -3038,8 +3040,8 @@ namespace mse {
 			}
 		}
 
-		template<typename TPointerToCharBufferPointer, typename TPointerToSize_t, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointerToCharBufferPointer>::value) || (mse::impl::IsDereferenceable_pb<TPointerToSize_t>::value)> MSE_IMPL_EIS >
-		lh_ssize_t getline(TPointerToCharBufferPointer lineptr, TPointerToSize_t nptr, FILE* stream) {
+		template<typename TPointerToCharBuffer, typename TPointerToSize_t, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointerToCharBuffer>::value) || (mse::impl::IsDereferenceable_pb<TPointerToSize_t>::value)> MSE_IMPL_EIS >
+		lh_ssize_t getline(TPointerToCharBuffer lineptr, TPointerToSize_t nptr, FILE* stream) {
 			struct CBufPtr {
 				~CBufPtr() {
 					free(m_char_buf_ptr);
@@ -3068,6 +3070,113 @@ namespace mse {
 				char_buffer_iter_ref[i] = (temp_char_buf_ptr_obj.m_char_buf_ptr)[i];
 			}
 			return res;
+		}
+
+		namespace us {
+			namespace impl {
+				template<typename TDescriptor>
+				size_t iconv(TDescriptor const& cd, char** inbufptr, size_t* inbytesleftptr, char** outbufptr, size_t* outbytesleftptr) {
+					static_assert(false, "You seem to be trying to use mse::lh::iconv_wrapper(), but the iconv() function that it is meant to wrap doesn't "
+						"seem to be available. ");
+					return 0;
+				}
+
+				template<typename TDescriptor, typename TPointerToInCharBuffer, typename TPointerToInSize_t, typename TPointerToOutCharBuffer, typename TPointerToOutSize_t>
+				size_t iconv_wrapper_helper2(TDescriptor const& cd, TPointerToInCharBuffer const& inbufptr, TPointerToInSize_t const& inbytesleftptr, TPointerToOutCharBuffer const& outbufptr, TPointerToOutSize_t const& outbytesleftptr) {
+					std::vector<char> in_vec;
+					char** inbuf_raw_ptr = nullptr;
+					char* inbuf_raw_iter = nullptr;
+					size_t l_inbytesleft = 0;
+					if (inbufptr && (*inbufptr) && inbytesleftptr) {
+						l_inbytesleft = *inbytesleftptr;
+						auto iter1 = *inbufptr;
+						for (size_t i = 0; l_inbytesleft > i; ++i) {
+							in_vec.push_back(*iter1);
+							++iter1;
+						}
+						inbuf_raw_iter = std::addressof(in_vec.at(0));
+						inbuf_raw_ptr = &inbuf_raw_iter;
+					}
+
+					std::vector<char> out_vec;
+					char** outbuf_raw_ptr = nullptr;
+					char* outbuf_raw_iter = nullptr;
+					size_t l_outbytesleft = 0;
+					if (outbufptr && (*outbufptr) && outbytesleftptr) {
+						l_outbytesleft = *outbytesleftptr;
+						out_vec.resize(l_outbytesleft);
+						outbuf_raw_iter = std::addressof(out_vec.at(0));
+						outbuf_raw_ptr = &outbuf_raw_iter;
+					}
+
+					auto retval = iconv(cd, inbuf_raw_ptr, &l_inbytesleft, outbuf_raw_ptr, &l_outbytesleft);
+
+					if (inbufptr && (*inbufptr) && inbytesleftptr) {
+						auto amount_advanced = (*inbuf_raw_ptr) - std::addressof(in_vec.at(0));
+						*inbufptr += amount_advanced;
+						*inbytesleftptr = l_inbytesleft;
+					}
+					if (outbufptr && (*outbufptr) && outbytesleftptr) {
+						auto amount_advanced = (*outbuf_raw_ptr) - std::addressof(out_vec.at(0));
+
+						auto iter1 = *outbufptr;
+						for (size_t i = 0; amount_advanced > int(i); ++i) {
+							*iter1 = out_vec.at(i);
+							++iter1;
+						}
+
+						*outbufptr += amount_advanced;
+						*outbytesleftptr = l_outbytesleft;
+					}
+					return retval;
+				}
+
+				template<typename TDescriptor, typename TPointerToInCharBuffer, typename TPointerToInSize_t, typename TPointerToOutCharBuffer, typename TPointerToOutSize_t>
+				size_t iconv_wrapper_helper1(std::true_type, std::true_type, TDescriptor const& cd, TPointerToInCharBuffer const& inbufptr, TPointerToInSize_t const& inbytesleftptr, TPointerToOutCharBuffer const& outbufptr, TPointerToOutSize_t const& outbytesleftptr) {
+					char** l_inbufptr = nullptr;
+					size_t l_inbytesleft = 0;
+					char** l_outbufptr = nullptr;
+					size_t l_outbytesleft = 0;
+					return us::impl::iconv_wrapper_helper2(cd, l_inbufptr, &l_inbytesleft, l_outbufptr, &l_outbytesleft);
+				}
+				template<typename TDescriptor, typename TPointerToInCharBuffer, typename TPointerToInSize_t, typename TPointerToOutCharBuffer, typename TPointerToOutSize_t>
+				size_t iconv_wrapper_helper1(std::true_type, std::false_type, TDescriptor const& cd, TPointerToInCharBuffer const& inbufptr, TPointerToInSize_t const& inbytesleftptr, TPointerToOutCharBuffer const& outbufptr, TPointerToOutSize_t const& outbytesleftptr) {
+					char** l_inbufptr = nullptr;
+					size_t l_inbytesleft = 0;
+					return us::impl::iconv_wrapper_helper2(cd, l_inbufptr, &l_inbytesleft, outbufptr, outbytesleftptr);
+				}
+				template<typename TDescriptor, typename TPointerToInCharBuffer, typename TPointerToInSize_t, typename TPointerToOutCharBuffer, typename TPointerToOutSize_t>
+				size_t iconv_wrapper_helper1(std::false_type, std::true_type, TDescriptor const& cd, TPointerToInCharBuffer const& inbufptr, TPointerToInSize_t const& inbytesleftptr, TPointerToOutCharBuffer const& outbufptr, TPointerToOutSize_t const& outbytesleftptr) {
+					char** l_outbufptr = nullptr;
+					size_t l_outbytesleft = 0;
+					return us::impl::iconv_wrapper_helper2(cd, inbufptr, inbytesleftptr, l_outbufptr, &l_outbytesleft);
+				}
+				template<typename TDescriptor, typename TPointerToInCharBuffer, typename TPointerToInSize_t, typename TPointerToOutCharBuffer, typename TPointerToOutSize_t>
+				size_t iconv_wrapper_helper1(std::false_type, std::false_type, TDescriptor const& cd, TPointerToInCharBuffer const& inbufptr, TPointerToInSize_t const& inbytesleftptr, TPointerToOutCharBuffer const& outbufptr, TPointerToOutSize_t const& outbytesleftptr) {
+					return us::impl::iconv_wrapper_helper2(cd, inbufptr, inbytesleftptr, outbufptr, outbytesleftptr);
+				}
+			}
+		}
+
+		template<typename TDescriptor, typename TPointerToInCharBuffer, typename TPointerToInSize_t, typename TPointerToOutCharBuffer, typename TPointerToOutSize_t>
+		size_t iconv_wrapper(TDescriptor const& cd, TPointerToInCharBuffer const& inbufptr, TPointerToInSize_t const& inbytesleftptr, TPointerToOutCharBuffer const& outbufptr, TPointerToOutSize_t const& outbytesleftptr) {
+			/* Some of the parameters could be non-dereferenceable types such as std::nullptr_t or decltype(NULL). We will call specific 
+			overloads of the helper function based on which parameters are non-dereferenceable. */
+			typedef mse::impl::TPlaceHolder<> placeholder_t;
+			typedef mse::impl::target_or_given_default_type<TPointerToInCharBuffer, placeholder_t> in_T1;
+			typedef mse::impl::target_or_given_default_type<in_T1, placeholder_t> in_T2;
+			static const bool in_b1 = std::is_same<placeholder_t, in_T2>::value;
+			typedef mse::impl::target_or_given_default_type<TPointerToInSize_t, placeholder_t> in_T3;
+			static const bool in_b2 = std::is_same<placeholder_t, in_T3>::value;
+
+			typedef mse::impl::target_or_given_default_type<TPointerToOutCharBuffer, placeholder_t> out_T1;
+			typedef mse::impl::target_or_given_default_type<out_T1, placeholder_t> out_T2;
+			static const bool out_b1 = std::is_same<placeholder_t, out_T2>::value;
+			typedef mse::impl::target_or_given_default_type<TPointerToOutSize_t, placeholder_t> out_T3;
+			static const bool out_b2 = std::is_same<placeholder_t, out_T3>::value;
+
+			return us::impl::iconv_wrapper_helper1(typename std::integral_constant<bool, in_b1 || in_b2>::type(), typename std::integral_constant<bool, out_b1 || out_b2>::type()
+				, cd, inbufptr, inbytesleftptr, outbufptr, outbytesleftptr);
 		}
 
 		namespace impl {
@@ -4328,6 +4437,15 @@ namespace mse {
 					a_lhnaptr3 = mse::lh::TLHNullableAnyPointer<CIncompleteType>(vsr1);
 
 					int q = 5;
+				}
+				{
+					mse::lh::TNativeArrayReplacement<char, 3> buf1;
+					mse::TRegisteredObj<mse::lh::TLHNullableAnyRandomAccessIterator<char> > buf_iter1 = buf1;
+					mse::TRegisteredObj<size_t> buflen = 3;
+					FILE* fhandle = nullptr;
+					if (fhandle) {
+						auto res = mse::lh::getline(&buf_iter1, &buflen, fhandle);
+					}
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
 
