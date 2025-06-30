@@ -3746,6 +3746,24 @@ namespace mse {
 				namespace ns_unsafe_cast {
 
 					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper7(std::false_type, const _Ty2& x) {
+						return mse::us::lh::unsafe_cast<_Ty>(mse::us::impl::as_ref<const mse::lh::const_void_star_replacement>(x));
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper7(std::true_type, const _Ty2& x) {
+						return mse::us::lh::unsafe_cast<_Ty>(mse::us::impl::as_ref<const mse::lh::void_star_replacement>(x));
+					}
+
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper6(std::false_type, const _Ty2& x) {
+						return (_Ty)(std::addressof(*x));
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper6(std::true_type, const _Ty2& x) {
+						return unsafe_cast_helper7<_Ty>(typename std::is_base_of<mse::lh::void_star_replacement, _Ty2>::type(), x);
+					}
+
+					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper5(std::false_type, const _Ty2& x) {
 						if (x == nullptr) {
 							return nullptr;
@@ -3760,7 +3778,7 @@ namespace mse {
 
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper4(std::false_type, const _Ty2& x) {
-						return (_Ty)(std::addressof(*x));
+						return unsafe_cast_helper6<_Ty>(typename std::integral_constant<bool, (std::is_base_of<mse::lh::void_star_replacement, _Ty2>::value || std::is_base_of<mse::lh::const_void_star_replacement, _Ty2>::value)>::type(), x);
 					}
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper4(std::true_type, const _Ty2& x) {
@@ -4700,16 +4718,6 @@ namespace mse {
 					if (fhandle) {
 						auto res = mse::lh::getline(&buf_iter1, &buflen, fhandle);
 					}
-				}
-				{
-					mse::TRegisteredObj<mse::lh::TLHNullableAnyRandomAccessIterator<char> > iter1;
-					mse::lh::TLHNullableAnyRandomAccessIterator<const char> iter2;
-					mse::lh::TLHNullableAnyRandomAccessIterator<char> iter3;
-					//iter1 = iter2;
-					//iter3 = iter2;
-					int const* i_cptr1 = nullptr;
-					//void* vs1 = i_cptr1;
-					int q = 5;
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
 
