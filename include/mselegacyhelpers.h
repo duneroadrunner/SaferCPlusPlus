@@ -112,6 +112,8 @@
 #define MSE_LH_CHAR_STAR_STAR_CAST_FOR_STRTOX(pointer_to_iterator_arg) (char **)(pointer_to_iterator_arg)
 #define MSE_LH_STRTOK(str, delim) strtok(str, delim)
 #define MSE_LH_STRTOK_R(str, delim, pointer_to_buffer_iterator) strtok_r(str, delim, pointer_to_buffer_iterator)
+#define MSE_LH_STRNDUP(str, size) strndup(str, size)
+#define MSE_LH_STRDUP(str) strdup(str)
 
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
 #define MSE_LH_POINTER_TYPE(element_type) element_type *
@@ -200,6 +202,8 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_CHAR_STAR_STAR_CAST_FOR_STRTOX(pointer_to_iterator_arg)
 #define MSE_LH_STRTOK(str, delim) mse::lh::strtok(str, delim)
 #define MSE_LH_STRTOK_R(str, delim, pointer_to_buffer_iterator) mse::lh::strtok_r(str, delim, pointer_to_buffer_iterator)
+#define MSE_LH_STRNDUP(str, size) mse::lh::strndup(str, size)
+#define MSE_LH_STRDUP(str) mse::lh::strdup(str)
 
 /* MSE_LH_ADDRESSABLE_TYPE() is a type annotation used to indicate that the '&' operator may/will be used to obtain the address of
 the associated declared object(s). */
@@ -3107,6 +3111,29 @@ namespace mse {
 			return res;
 		}
 
+		template<typename TCharBufferIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TCharBufferIterator>::value)> MSE_IMPL_EIS >
+		auto strndup(TCharBufferIterator str_iter, size_t size) -> TStrongVectorIterator<mse::impl::target_type<TCharBufferIterator> > {
+			TStrongVectorIterator<mse::impl::target_type<TCharBufferIterator> > retval;
+			auto slen = strlen(str_iter);
+			if (size < slen) {
+				slen = size;
+			}
+			retval.resize(1 + slen);
+			auto dest_iter = retval;
+			for (size_t i = 0; slen > i; i += 1) {
+				*dest_iter = *str_iter;
+				++dest_iter;
+				++str_iter;
+			}
+			*dest_iter = 0;
+			return retval;
+		}
+		template<typename TCharBufferIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TCharBufferIterator>::value)> MSE_IMPL_EIS >
+		auto strdup(TCharBufferIterator str_iter) -> TStrongVectorIterator<mse::impl::target_type<TCharBufferIterator> > {
+			auto slen = strlen(str_iter);
+			return strndup(str_iter, slen);
+		}
+
 		namespace us {
 			namespace impl {
 				template<typename TDescriptor>
@@ -4718,6 +4745,19 @@ namespace mse {
 					if (fhandle) {
 						auto res = mse::lh::getline(&buf_iter1, &buflen, fhandle);
 					}
+				}
+				{
+					const char* s1 = "String";
+					mse::lh::TLHNullableAnyRandomAccessIterator<char> s2 = mse::lh::strndup(s1, 2);
+					//printf("strndup(\"String\", 2) == %s\n", s2);
+					assert(0 == mse::lh::strcmp("St", s2));
+					mse::lh::free(s2);
+				}
+				{
+					const char* s1 = "String";
+					mse::lh::TLHNullableAnyRandomAccessIterator<char> s2 = mse::lh::strdup(s1);
+					assert(mse::lh::strcmp(s1, s2) == 0);
+					mse::lh::free(s2);
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
 
