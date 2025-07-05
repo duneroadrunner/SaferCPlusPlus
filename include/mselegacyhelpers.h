@@ -26,6 +26,7 @@
 
 #ifdef MSE_SELF_TESTS
 #include <iomanip> /* for std::quoted */
+#include <iostream>
 #endif // MSE_SELF_TESTS
 
 #ifdef _MSC_VER
@@ -93,11 +94,13 @@
 #define MSE_LH_MEMCPY(destination, source, num_bytes) memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMCMP(destination, source, num_bytes) memcmp(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) memset(ptr, value, num_bytes)
+#define MSE_LH_MEMCHR(iter, ch, count) memchr(iter, ch, count)
 #define MSE_LH_STRLEN(str) strlen(str)
 #define MSE_LH_STRNLEN_S(str, strsz) strlnen_s(str, strsz)
 #define MSE_LH_STRCPY(destination, source) strcpy(destination, source)
 #define MSE_LH_STRCMP(destination, source) strcmp(destination, source)
 #define MSE_LH_STRNCMP(destination, source, count) strncmp(destination, source, count)
+#define MSE_LH_STRCHR(iter, ch) strchr(iter, ch)
 #define MSE_LH_STRTOL(str, pointer_to_end_iterator, base) strtol(str, (char **)pointer_to_end_iterator, base)
 #define MSE_LH_STRTOUL(str, pointer_to_end_iterator, base) strtoul(str, (char **)pointer_to_end_iterator, base)
 #define MSE_LH_STRTOLL(str, pointer_to_end_iterator, base) strtoll(str, (char **)pointer_to_end_iterator, base)
@@ -186,11 +189,13 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_MEMCPY(destination, source, num_bytes) mse::lh::memcpy(destination, source, num_bytes)
 #define MSE_LH_MEMCMP(destination, source, num_bytes) mse::lh::memcmp(destination, source, num_bytes)
 #define MSE_LH_MEMSET(ptr, value, num_bytes) mse::lh::memset(ptr, value, num_bytes)
+#define MSE_LH_MEMCHR(iter, ch, count) mse::lh::memchr(iter, ch, count)
 #define MSE_LH_STRLEN(str) mse::lh::strlen(str)
 #define MSE_LH_STRNLEN_S(str, strsz) mse::lh::strlnen_s(str, strsz)
 #define MSE_LH_STRCPY(destination, source) mse::lh::strcpy(destination, source)
 #define MSE_LH_STRCMP(destination, source) mse::lh::strcmp(destination, source)
 #define MSE_LH_STRNCMP(destination, source, count) mse::lh::strncmp(destination, source, count)
+#define MSE_LH_STRCHR(iter, ch) mse::lh::strchr(iter, ch)
 #define MSE_LH_STRTOL(str, pointer_to_end_iterator, base) mse::lh::strtol(str, pointer_to_end_iterator, base)
 #define MSE_LH_STRTOUL(str, pointer_to_end_iterator, base) mse::lh::strtoul(str, pointer_to_end_iterator, base)
 #define MSE_LH_STRTOLL(str, pointer_to_end_iterator, base) mse::lh::strtoll(str, pointer_to_end_iterator, base)
@@ -2330,7 +2335,7 @@ namespace mse {
 			namespace us {
 				template<class _TIter, class _TIter2>
 				_TIter memcpy_helper2(std::true_type, _TIter const& destination, _TIter2 const& source, size_t num_bytes) {
-					//static_assert(std::is_same<mse::lh::void_star_replacement, _TIter2>::value, "");
+					//static_assert(std::is_same<mse::lh::void_star_replacement, _TIter2>::value || std::is_same<const mse::lh::const_void_star_replacement, const _TIter2>::value, "");
 
 					/* Here the source parameter is presumed to be an lh::void_star_replacement. In order to complete the operation safely we 
 					need to guess the type stored in the lh::void_star_replacement and recover it. We're going to use some macros to help 
@@ -2347,26 +2352,26 @@ namespace mse {
 						} \
 					}
 
-#define MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(type1) \
+#define MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(type1, MACRO_FUNCTION) \
 					{ \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TLHNullableAnyRandomAccessIterator<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TStrongVectorIterator<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TXScopeStrongVectorIterator<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TLHNullableAnyPointer<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TXScopeLHNullableAnyPointer<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::TRefCountingPointer<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::TRefCountingNotNullPointer<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::TRegisteredPointer<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::TRegisteredNotNullPointer<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::TNoradPointer<type1>); \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(mse::TNoradNotNullPointer<type1>); \
+						MACRO_FUNCTION(mse::lh::TLHNullableAnyRandomAccessIterator<type1>); \
+						MACRO_FUNCTION(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<type1>); \
+						MACRO_FUNCTION(mse::lh::TStrongVectorIterator<type1>); \
+						MACRO_FUNCTION(mse::lh::TXScopeStrongVectorIterator<type1>); \
+						MACRO_FUNCTION(mse::lh::TLHNullableAnyPointer<type1>); \
+						MACRO_FUNCTION(mse::lh::TXScopeLHNullableAnyPointer<type1>); \
+						MACRO_FUNCTION(mse::TRefCountingPointer<type1>); \
+						MACRO_FUNCTION(mse::TRefCountingNotNullPointer<type1>); \
+						MACRO_FUNCTION(mse::TRegisteredPointer<type1>); \
+						MACRO_FUNCTION(mse::TRegisteredNotNullPointer<type1>); \
+						MACRO_FUNCTION(mse::TNoradPointer<type1>); \
+						MACRO_FUNCTION(mse::TNoradNotNullPointer<type1>); \
 						typedef type1* type1_ptr_t; \
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(type1_ptr_t); \
+						MACRO_FUNCTION(type1_ptr_t); \
 					}
 
-					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(element_t);
-					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type);
+					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(element_t, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
+					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
 
 					MSE_THROW(std::logic_error("could not determine the type represented by the (presumably lh::void_star_replacement) argument - lh::impl::us::memcpy_helper2()"));
 					return destination;
@@ -2432,7 +2437,7 @@ namespace mse {
 			namespace us {
 				template<class _TPointer, class _TPointer2>
 				int memcmp_helper4(std::false_type, _TPointer const& source1, _TPointer2 const& source2, size_t num_bytes) {
-					//static_assert(std::is_same<mse::lh::void_star_replacement, _TPointer2>::value, "");
+					//static_assert(std::is_same<mse::lh::void_star_replacement, _TPointer2>::value || std::is_same<const mse::lh::const_void_star_replacement, const _TPointer2>::value, "");
 
 					/* Here the source2 parameter is presumed to be an lh::void_star_replacement. In order to complete the operation safely we
 					need to guess the type stored in the lh::void_star_replacement and recover it. We're going to use some macros to help 
@@ -2449,26 +2454,8 @@ namespace mse {
 						} \
 					}
 
-#define MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT2(type1) \
-					{ \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TLHNullableAnyRandomAccessIterator<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TStrongVectorIterator<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TXScopeStrongVectorIterator<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TLHNullableAnyPointer<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::lh::TXScopeLHNullableAnyPointer<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::TRefCountingPointer<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::TRefCountingNotNullPointer<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::TRegisteredPointer<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::TRegisteredNotNullPointer<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::TNoradPointer<type1>); \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(mse::TNoradNotNullPointer<type1>); \
-						typedef type1* type1_ptr_t; \
-						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(type1_ptr_t); \
-					}
-
-					MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT2(element_t);
-					MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type);
+					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(element_t, MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1);
+					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1);
 
 					MSE_THROW(std::logic_error("could not determine the type represented by the (presumably lh::void_star_replacement) argument - lh::impl::us::memcmp_helper4()"));
 					return 0;
@@ -2657,7 +2644,8 @@ namespace mse {
 
 				template<class _TPointer, class _TPointer2>
 				int memcmp_helper1(std::false_type, _TPointer source1, _TPointer2 source2, size_t num_bytes) {
-					return memcmp_helper2(typename std::is_same <const mse::lh::void_star_replacement, const _TPointer2>::type(), source1, source2, num_bytes);
+					return memcmp_helper2(typename std::integral_constant<bool, std::is_same<const mse::lh::void_star_replacement, const _TPointer2>::value || std::is_same<const mse::lh::const_void_star_replacement, const _TPointer2>::value>::type()
+						, source1, source2, num_bytes);
 				}
 			}
 		}
@@ -2994,6 +2982,62 @@ namespace mse {
 		template<class _TConstCharIter2, MSE_IMPL_EIP mse::impl::enable_if_t<impl::ns_strtok::strtok_r_tparams_smoke_test<char*, _TConstCharIter2, mse::lh::TLHNullableAnyRandomAccessIterator<char>*>::value> MSE_IMPL_EIS >
 		auto strtok(char* str, _TConstCharIter2 const& delim) -> mse::lh::TLHNullableAnyRandomAccessIterator<char> {
 			return impl::ns_strtok::strtok_impl(str, delim);
+		}
+
+		namespace impl {
+			namespace ns_memchr {
+				template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(mse::impl::target_or_given_default_type<_TCharIter, long int>))> MSE_IMPL_EIS >
+				mse::lh::TLHNullableAnyRandomAccessIterator<mse::impl::target_or_void_type<_TCharIter> > memchr_helper3(const _TCharIter& iter, int ch, size_t count) {
+					if (!iter) {
+						return nullptr;
+					}
+					const auto in_rawptr = (const char *)std::addressof(*iter);
+					auto res_rawptr = (const char*)(::memchr(in_rawptr, ch, count));
+					if (!res_rawptr) {
+						return nullptr;
+					}
+					return iter + (res_rawptr - in_rawptr);
+				}
+
+				template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(mse::impl::target_or_given_default_type<_TCharIter, long int>))> MSE_IMPL_EIS >
+				auto memchr_helper2(std::false_type, const _TCharIter& iter, int ch, size_t count) {
+					return memchr_helper3(iter, ch, count);
+				}
+				template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value || std::is_base_of<mse::lh::const_void_star_replacement, _TCharIter>::value> MSE_IMPL_EIS >
+				auto memchr_helper2(std::true_type, const _TCharIter& iter, int ch, size_t count) {
+					typedef mse::impl::conditional_t<std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value, char, const char> target_type1;
+					return memchr_helper3((mse::lh::TLHNullableAnyRandomAccessIterator<target_type1>)iter, ch, count);
+				}
+			}
+		}
+		/* Memory safe approximation of memchr(). */
+		template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(mse::impl::target_or_given_default_type<_TCharIter, long int>))
+			|| std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value || std::is_base_of<mse::lh::const_void_star_replacement, _TCharIter>::value> MSE_IMPL_EIS >
+		auto memchr(const _TCharIter& iter, int ch, size_t count) {
+			return impl::ns_memchr::memchr_helper2(typename std::integral_constant<bool, std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value || std::is_base_of<mse::lh::const_void_star_replacement, _TCharIter>::value>::type(), iter, ch, count);
+		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memchr(). */
+		template <class _TElement, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(_TElement))> MSE_IMPL_EIS >
+		auto memchr(_TElement* iter, int ch, size_t count) {
+			return impl::ns_memchr::memchr_helper2(std::false_type(), iter, ch, count);
+		}
+		/* And similarly, his overload is to allow native array replacements to decay to a (safe) iterator. */
+		template<class _udTy, size_t _Size, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(_udTy))> MSE_IMPL_EIS >
+		auto memchr(TNativeArrayReplacement<_udTy, _Size>& nar, int ch, size_t count) {
+			typedef impl::const_preserving_decay_t<_udTy> _Ty;
+			mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> iter = nar;
+			return memchr(iter, ch, count);
+		}
+		/* Memory safe approximation of strchr(). */
+		template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(mse::impl::target_or_given_default_type<_TCharIter, long int>))
+			|| std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value || std::is_base_of<mse::lh::const_void_star_replacement, _TCharIter>::value> MSE_IMPL_EIS >
+		auto strchr(const _TCharIter& iter, int ch) {
+			return memchr(iter, ch, strlen(iter));
+		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::strchr(). */
+		template <class _TElement, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(_TElement))> MSE_IMPL_EIS >
+		auto strchr(_TElement* iter, int ch) {
+			return memchr(iter, ch, strlen(iter));
 		}
 
 		typedef intptr_t lh_ssize_t;
@@ -4690,6 +4734,10 @@ namespace mse {
 					//mse::lh::memcpy(iter1, mse::lh::void_star_replacement(iter2), sizeof input1);
 					std::cout << mse::us::lh::make_raw_pointer_from(iter1) << " \n";
 
+					*(iter2 + 1) = '3';
+					mse::lh::memcpy(input1, iter2, sizeof input1);
+					std::cout << input1 << " \n";
+
 					int q = 5;
 				}
 				{
@@ -4761,6 +4809,39 @@ namespace mse {
 					mse::lh::TLHNullableAnyRandomAccessIterator<char> s2 = mse::lh::strdup(s1);
 					assert(mse::lh::strcmp(s1, s2) == 0);
 					mse::lh::free(s2);
+				}
+				{
+					const char str[] = "ABCDEFG";
+					mse::lh::TNativeArrayReplacement<char, sizeof str> str2;
+					mse::lh::strcpy(str2, str);
+					const int chars[] = { 'D', 'd' };
+					mse::lh::TNativeArrayReplacement<int, sizeof chars> chars2;
+					mse::lh::memcpy(chars2, chars, sizeof chars);
+					auto iter1 = mse::lh::TLHNullableAnyRandomAccessIterator<char>(str2);
+					auto iter2 = mse::lh::TLHNullableAnyRandomAccessIterator<const int>(chars2);
+
+					auto sz1 = sizeof chars;
+					auto sz2 = sizeof chars2;
+
+					for (size_t i = 0; i < sizeof chars / (sizeof chars[0]); ++i)
+					{
+						const int c = chars2[i];
+						mse::lh::TLHNullableAnyRandomAccessIterator<const char> ps = mse::lh::memchr(str2, c, mse::lh::strlen(str2));
+						ps ? printf("character '%c'(%i) found: %s\n", c, c, mse::us::lh::make_raw_pointer_from(ps))
+							: printf("character '%c'(%i) not found\n", c, c);
+					}
+				}
+				{
+					const char* str = "Try not. Do, or do not. There is no try.";
+					mse::lh::TLHNullableAnyRandomAccessIterator<const char> str2 = mse::lh::strdup(str);
+					char target = 'T';
+					auto result2 = mse::lh::TLHNullableAnyRandomAccessIterator<const char>(str2);
+
+					while ((result2 = mse::lh::strchr(result2, target)) != NULL)
+					{
+						printf("Found '%c' starting at '%s'\n", target, mse::us::lh::make_raw_pointer_from(result2));
+						++result2; // Increment result, otherwise we'll find target at the same location
+					}
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
 
