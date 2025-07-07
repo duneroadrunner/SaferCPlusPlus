@@ -136,6 +136,8 @@
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) (ptr)
 #define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) (iter)
 #define MSE_LH_UNSAFE_MAKE_FN_WRAPPER(wrappee, function_pointer_with_desired_wrapper_signature) (wrappee)
+#define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER(distinguishing_id_type, wrappee_fnptr, function_pointer_with_desired_wrapper_signature) (wrappee_fnptr)
+#define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER_SHORT1(wrappee_fnptr, function_pointer_with_desired_wrapper_signature) (wrappee_fnptr)
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
@@ -234,6 +236,8 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(ptr)
 #define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(iter)
 #define MSE_LH_UNSAFE_MAKE_FN_WRAPPER(wrappee, function_pointer_with_desired_wrapper_signature) mse::us::lh::unsafe_make_fn_wrapper(wrappee, function_pointer_with_desired_wrapper_signature)
+#define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER(distinguishing_id_type, wrappee_fnptr, function_pointer_with_desired_wrapper_signature) mse::us::lh::make_raw_fn_wrapper<distinguishing_id_type>(wrappee_fnptr, function_pointer_with_desired_wrapper_signature)
+#define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER_SHORT1(wrappee_fnptr, function_pointer_with_desired_wrapper_signature) mse::us::lh::make_raw_fn_wrapper(wrappee_fnptr, function_pointer_with_desired_wrapper_signature)
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
@@ -4080,7 +4084,99 @@ namespace mse {
 			(otherwise unused) second (`mse::lh::TNativeFunctionPointerReplacement<>`) parameter. */
 			template< typename TWrappee, typename TWrapperRet, typename... TArgs>
 			auto unsafe_make_fn_wrapper(const TWrappee& wrappee, mse::lh::TNativeFunctionPointerReplacement<TWrapperRet(TArgs...)>) {
-				auto retval = [wrappee](TArgs const&... args) { return TWrapperRet(impl::ns_fn_wrapper::casted_retval<TWrapperRet>(wrappee(impl::ns_fn_wrapper::casted_arg(args)...))); };
+				auto retval = [wrappee](TArgs... args) { return TWrapperRet(impl::ns_fn_wrapper::casted_retval<TWrapperRet>(wrappee(impl::ns_fn_wrapper::casted_arg(args)...))); };
+				return retval;
+			}
+
+			/* Overload for functions that return void. */
+			template< typename TWrappee, typename TWrapperRet, typename... TArgs>
+			auto unsafe_make_fn_wrapper(const TWrappee& wrappee, mse::lh::TNativeFunctionPointerReplacement<void(TArgs...)>) {
+				auto retval = [wrappee](TArgs... args) { wrappee(impl::ns_fn_wrapper::casted_arg(args)...); };
+				return retval;
+			}
+
+			namespace impl {
+				namespace ns_raw_fn_wrapper {
+					template<typename T>
+					auto casted_arg_helper2(std::true_type, const T& arg) {
+						return (typename std::conditional<std::is_base_of<mse::lh::void_star_replacement, T>::value, void*, const void*>::type)(arg);
+					}
+					template<typename T>
+					auto casted_arg_helper2(std::false_type, const T& arg) {
+						return arg;
+					}
+
+					template<typename T>
+					auto casted_arg_helper1(std::true_type, const T& arg) {
+						return mse::us::lh::make_raw_pointer_from(arg);
+					}
+					template<typename T>
+					auto casted_arg_helper1(std::false_type, const T& arg) {
+						return casted_arg_helper2(typename std::integral_constant<bool, std::is_base_of<mse::lh::void_star_replacement, T>::value || std::is_base_of<mse::lh::const_void_star_replacement, T>::value>::type(), arg);
+					}
+					template<typename T>
+					auto casted_arg(const T& arg) {
+						return casted_arg_helper1(typename mse::impl::IsDereferenceable_pb<T>::type(), arg);
+					}
+
+					template<typename TWrapperRet, typename T>
+					auto casted_retval_helper1(std::true_type, const T& retval) {
+						return TWrapperRet(mse::us::lh::make_raw_pointer_from(retval));
+					}
+					template<typename TWrapperRet, typename T>
+					auto casted_retval_helper1(std::false_type, const T& retval) {
+						return TWrapperRet(retval);
+					}
+					template<typename TWrapperRet, typename T>
+					auto casted_retval(const T& retval) {
+						return casted_retval_helper1<TWrapperRet>(typename mse::impl::IsDereferenceable_pb<T>::type(), retval);
+					}
+				}
+			}
+
+			/* This function is used to create a "wrapper" (lambda) function (with a potentially unsafe interface) that just calls the
+			given function (with a presumably safe interface). The function signature of the wrapper function is deduced from the
+			(otherwise unused) second (function pointer) parameter. Each specialization of this function template may only be used to 
+			wrap one distinct function. If you want to wrap a number of different functions that have the same function signature, you 
+			should (explicitly) specify a unique TDistinguishingID template argument for each distinct function that you want to wrap. */
+			template<typename TDistinguishingID = void, typename TWrappeeFnPtr, typename TWrapperRet, typename... TArgs>
+			auto make_raw_fn_wrapper(TWrappeeFnPtr const& wrappee_fnptr, TWrapperRet(*)(TArgs...)) {
+				thread_local TWrappeeFnPtr tl_wrappee_fnptr1;
+				thread_local bool tl_first_run = true;
+				if (!tl_first_run) {
+					if (wrappee_fnptr != tl_wrappee_fnptr1) {
+						MSE_THROW(std::logic_error("Apparent attempt to use mse::us::lh::make_raw_fn_wrapper<>() specialization to wrap multiple different functions. Specify a unique TDistinguishingID template argument for each different function to be wrapped."));
+						int q = 3;
+					}
+				}
+				tl_first_run = false;
+				tl_wrappee_fnptr1 = wrappee_fnptr;
+
+				auto retval = [](TArgs... args) noexcept {
+					thread_local TWrappeeFnPtr tl_wrappee_fnptr2 = tl_wrappee_fnptr1;
+					return TWrapperRet(impl::ns_raw_fn_wrapper::casted_retval<TWrapperRet>(tl_wrappee_fnptr2(impl::ns_raw_fn_wrapper::casted_arg(args)...)));
+					};
+				return retval;
+			}
+
+			/* Overload for functions that return void. */
+			template<typename TDistinguishingID = void, typename TWrappeeFnPtr, typename... TArgs>
+			auto make_raw_fn_wrapper(TWrappeeFnPtr const& wrappee_fnptr, void(*)(TArgs...)) {
+				thread_local TWrappeeFnPtr tl_wrappee_fnptr1;
+				thread_local bool tl_first_run = true;
+				if (!tl_first_run) {
+					if (wrappee_fnptr != tl_wrappee_fnptr1) {
+						MSE_THROW(std::logic_error("Apparent attempt to use mse::us::lh::make_raw_fn_wrapper<>() specialization to wrap multiple different functions. Specify a unique TDistinguishingID template argument for each different function to be wrapped."));
+						int q = 3;
+					}
+				}
+				tl_first_run = false;
+				tl_wrappee_fnptr1 = wrappee_fnptr;
+
+				auto retval = [](TArgs... args) noexcept {
+					thread_local TWrappeeFnPtr tl_wrappee_fnptr2 = tl_wrappee_fnptr1;
+					tl_wrappee_fnptr2(impl::ns_raw_fn_wrapper::casted_arg(args)...);
+					};
 				return retval;
 			}
 		}
@@ -4842,6 +4938,40 @@ namespace mse {
 						printf("Found '%c' starting at '%s'\n", target, mse::us::lh::make_raw_pointer_from(result2));
 						++result2; // Increment result, otherwise we'll find target at the same location
 					}
+				}
+				{
+					auto* fnptr1 = &(std::strlen);
+
+					auto raw_fn2 = mse::us::lh::make_raw_fn_wrapper(&(std::strlen), fnptr1);
+
+					fnptr1 = &(std::strlen);
+					fnptr1 = raw_fn2;
+					auto slen1 = raw_fn2("abc");
+					auto slen2 = fnptr1("abcd");
+
+					struct CB {
+						static size_t strlen2(const char* str) /*noexcept*/ {
+							return std::strlen(str);
+						}
+						static void foo1() {};
+					};
+
+					MSE_TRY {
+						auto raw_fn3 = mse::us::lh::make_raw_fn_wrapper(&(CB::strlen2), fnptr1);
+						auto slen3 = raw_fn3("abc");
+						auto slen4 = raw_fn2("abc");
+					}
+					MSE_CATCH_ANY {
+						int q = 5;
+					}
+
+					auto raw_fn4 = mse::us::lh::make_raw_fn_wrapper<int/*arbitrary, but unique*/>(&(CB::strlen2), fnptr1);
+					auto slen5 = raw_fn4("abc");
+					auto slen6 = raw_fn2("abc");
+
+					auto* fnptr2 = &(CB::foo1);
+					auto raw_fn5 = mse::us::lh::make_raw_fn_wrapper(&(CB::foo1), fnptr2);
+					fnptr2 = raw_fn5;
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
 
