@@ -995,7 +995,7 @@ namespace mse {
 						&& (!std::is_same<_TRandomAccessIterator1, NULL_t>::value)
 						&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
 						&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
-						&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
+						//&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value)
 					> MSE_IMPL_EIS >
 					TLHNullableAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_iter(constructor_helper1(
 						typename mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::type(), random_access_iterator)) {
@@ -1390,7 +1390,7 @@ namespace mse {
 					&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
 					&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
 					&& (mse::impl::is_potentially_not_xscope<_TRandomAccessIterator1>::value)
-					&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
+					//&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value)
 				) || (std::is_base_of<const_void_star_replacement, _TRandomAccessIterator1>::value && std::is_const<_Ty>::value)
 			> MSE_IMPL_EIS >
 			TLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator)  MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)")
@@ -1492,7 +1492,7 @@ namespace mse {
 					&& (!std::is_same<_TRandomAccessIterator1, NULL_t>::value)
 					&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
 					&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
-					&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
+					//&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value)
 				) || (std::is_base_of<const_void_star_replacement, _TRandomAccessIterator1>::value && std::is_const<_Ty>::value)
 			> MSE_IMPL_EIS >
 			TXScopeLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) 

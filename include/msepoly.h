@@ -1626,7 +1626,7 @@ namespace mse {
 					(!std::is_convertible<_TRandomAccessIterator1 const *, TAnyRandomAccessIteratorBase<_Ty> const *>::value)
 					&& (!std::is_convertible<_TRandomAccessIterator1 const*, TAnyRandomAccessConstIteratorBase<_Ty> const*>::value)
 					&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
-					&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
+					&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value)
 				> MSE_IMPL_EIS >
 				TAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_any_random_access_iterator(constructor_helper1(typename std::is_base_of< TAnyRandomAccessIteratorBase<_Ty>, _TRandomAccessIterator1>::type(), random_access_iterator)) {}
 
@@ -1823,7 +1823,7 @@ namespace mse {
 					(!std::is_convertible<_TRandomAccessConstIterator1 const*, TAnyRandomAccessIteratorBase<_Ty> const*>::value)
 					&& (!std::is_convertible<_TRandomAccessConstIterator1 const*, TAnyRandomAccessConstIteratorBase<_Ty> const*>::value)
 					&& (MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessConstIterator1, const _Ty) || MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessConstIterator1, _Ty))
-					&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessConstIterator1>::value || (std::is_pointer<_TRandomAccessConstIterator1>::value/* For temporary compatibility. Will be removed. */))
+					&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessConstIterator1>::value)
 				> MSE_IMPL_EIS >
 				TAnyRandomAccessConstIteratorBase(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_any_random_access_const_iterator(constructor_helper1(typename std::is_base_of< TAnyRandomAccessConstIteratorBase<_Ty>, _TRandomAccessConstIterator1>::type(), random_access_const_iterator)) {}
 
@@ -2160,7 +2160,7 @@ namespace mse {
 			(!std::is_convertible<_TRandomAccessIterator1, TAnyRandomAccessIterator>::value)
 			&& (!std::is_base_of<TAnyRandomAccessConstIterator<_Ty>, _TRandomAccessIterator1>::value)
 			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
-			&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
+			&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value)
 			&& (mse::impl::is_potentially_not_xscope<_TRandomAccessIterator1>::value)
 			> MSE_IMPL_EIS >
 		TAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)") : base_class(random_access_iterator) {
@@ -2202,7 +2202,7 @@ namespace mse {
 			(!std::is_convertible<_TRandomAccessConstIterator1, TAnyRandomAccessConstIterator<_Ty>>::value)
 			&& (!std::is_base_of<TAnyRandomAccessIterator<_Ty>, _TRandomAccessConstIterator1>::value)
 			&& (MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessConstIterator1, const _Ty) || MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessConstIterator1, _Ty))
-			&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessConstIterator1>::value || (std::is_pointer<_TRandomAccessConstIterator1>::value/* For temporary compatibility. Will be removed. */))
+			&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessConstIterator1>::value)
 			&& (mse::impl::is_potentially_not_xscope<_TRandomAccessConstIterator1>::value)
 			> MSE_IMPL_EIS >
 		TAnyRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessConstIterator1)") : base_class(random_access_const_iterator) {
@@ -2803,7 +2803,7 @@ namespace mse {
 					&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 					&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 					&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
-					&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
+					&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value)
 				> MSE_IMPL_EIS >
 				TNullableAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator)
 					: m_iter(random_access_iterator), m_is_null(mse::impl::evaluates_to_false(random_access_iterator)) {}
@@ -3065,7 +3065,7 @@ namespace mse {
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
 			&& (mse::impl::is_potentially_not_xscope<_TRandomAccessIterator1>::value)
-			&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
+			&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value)
 		> MSE_IMPL_EIS >
 		TNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)") 
 			: base_class(random_access_iterator)
@@ -3149,7 +3149,7 @@ namespace mse {
 			&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
 			&& (!std::is_convertible<_TRandomAccessIterator1, std::nullptr_t>::value)
 			&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
-			&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
+			&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value)
 		> MSE_IMPL_EIS >
 		TXScopeNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) 
 			: base_class(random_access_iterator) {}
