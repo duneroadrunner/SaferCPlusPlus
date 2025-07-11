@@ -995,9 +995,10 @@ namespace mse {
 						&& (!std::is_same<_TRandomAccessIterator1, NULL_t>::value)
 						&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
 						&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
+						&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
 					> MSE_IMPL_EIS >
 					TLHNullableAnyRandomAccessIteratorBase(const _TRandomAccessIterator1& random_access_iterator) : m_iter(constructor_helper1(
-						typename HasOrInheritsPlusEqualsOperator<_TRandomAccessIterator1>::type(), random_access_iterator)) {
+						typename mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::type(), random_access_iterator)) {
 					}
 
 					friend void swap(TLHNullableAnyRandomAccessIteratorBase& first, TLHNullableAnyRandomAccessIteratorBase& second) {
@@ -1229,20 +1230,6 @@ namespace mse {
 
 					void async_not_shareable_and_not_passable_tag() const {}
 
-					template<class T, class EqualTo>
-					struct HasOrInheritsPlusEqualsOperator_impl
-					{
-						template<class U, class V>
-						static auto test(U*) -> decltype(std::declval<U>() += 1, std::declval<V>() += 1, bool(true));
-						template<typename, typename>
-						static auto test(...) -> std::false_type;
-
-						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-					};
-					template<class T, class EqualTo = T>
-					struct HasOrInheritsPlusEqualsOperator : HasOrInheritsPlusEqualsOperator_impl<
-						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
 				private:
 
 					template <typename _TRandomAccessIterator1>
@@ -1403,6 +1390,7 @@ namespace mse {
 					&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
 					&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
 					&& (mse::impl::is_potentially_not_xscope<_TRandomAccessIterator1>::value)
+					&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
 				) || (std::is_base_of<const_void_star_replacement, _TRandomAccessIterator1>::value && std::is_const<_Ty>::value)
 			> MSE_IMPL_EIS >
 			TLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator)  MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRandomAccessIterator1)")
@@ -1504,6 +1492,7 @@ namespace mse {
 					&& (!std::is_same<_TRandomAccessIterator1, NULL_t>::value)
 					&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
 					&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TRandomAccessIterator1, _Ty)
+					&& (mse::impl::HasOrInheritsPlusEqualsOperator_msemsearray<_TRandomAccessIterator1>::value || (std::is_pointer<_TRandomAccessIterator1>::value/* For temporary compatibility. Will be removed. */))
 				) || (std::is_base_of<const_void_star_replacement, _TRandomAccessIterator1>::value && std::is_const<_Ty>::value)
 			> MSE_IMPL_EIS >
 			TXScopeLHNullableAnyRandomAccessIterator(const _TRandomAccessIterator1& random_access_iterator) 
@@ -3357,7 +3346,7 @@ namespace mse {
 
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
 				&& ((mse::impl::IsDereferenceable_pb<T>::value && (!std::is_const<mse::impl::target_or_void_type<T> >::value)) || (std::is_same<void *, T>::value))> MSE_IMPL_EIS >
-			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(!bool(ptr))
+			void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(mse::impl::evaluates_to_false(ptr))
 					, m_shadow_void_const_ptr(make_void_const_ptr_helper1(typename std::integral_constant<bool, (std::is_same<void*, T>::value || std::is_same<void const*, T>::value)>::type(), ptr)) {}
 
 			explicit operator bool() const {
@@ -3531,7 +3520,7 @@ namespace mse {
 
 			template<class T, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, mse::impl::remove_reference_t<T> >::value)
 				&& ((mse::impl::IsDereferenceable_pb<T>::value) || (std::is_same<void*, T>::value) || (std::is_same<void const*, T>::value))> MSE_IMPL_EIS >
-			const_void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(!bool(ptr))
+			const_void_star_replacement(const T& ptr) : base_class(ptr), m_is_nullptr(mse::impl::evaluates_to_false(ptr))
 				, m_shadow_void_const_ptr(make_void_const_ptr_helper1(typename std::integral_constant<bool, (std::is_same<void*, T>::value || std::is_same<void const*, T>::value)>::type(), ptr)) {}
 
 			explicit operator bool() const {
@@ -3843,7 +3832,12 @@ namespace mse {
 
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper5(std::false_type, const _Ty2& x) {
-						if (x == nullptr) {
+#ifdef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+						if (!bool(x))
+#else // MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+						if (x == nullptr)
+#endif // MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+						{
 							return nullptr;
 						}
 						return (_Ty)(std::addressof(*x));
@@ -4587,8 +4581,6 @@ namespace mse {
 					auto i3 = *lhnaptr1;
 
 					mse::lh::TLHNullableAnyRandomAccessIterator<int>  tok = nullptr;
-					auto uslnaptr2 = mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(&i1);
-					tok = uslnaptr2;
 					auto uslnaiter1 = mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(&i1);
 					tok = uslnaiter1;
 

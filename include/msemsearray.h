@@ -348,6 +348,21 @@ namespace mse {
 		template<class T, class EqualTo = T>
 		struct HasOrInheritsSizeMethod_msemsearray : HasOrInheritsSizeMethod_msemsearray_impl<
 			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+		template<class T, class EqualTo>
+		struct HasOrInheritsPlusEqualsOperator_msemsearray_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<U>() += 1, std::declval<V>() += 1, bool(true));
+			template<typename, typename>
+			static auto test(...) -> std::false_type;
+
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasOrInheritsPlusEqualsOperator_msemsearray : HasOrInheritsPlusEqualsOperator_msemsearray_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 	}
 
 
