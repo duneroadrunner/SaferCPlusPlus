@@ -1421,6 +1421,12 @@ namespace mse {
 			base_class& contained_iter()& { return (*this); }
 			base_class&& contained_iter()&& { return std::move(*this); }
 		};
+
+		template <typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_constructible<_Ty, TLHNullableAnyRandomAccessIterator<_Tz> >::value) 
+			&& (std::is_constructible<TLHNullableAnyRandomAccessIterator<_Tz>, _Ty>::value)> MSE_IMPL_EIS >
+		auto operator-(_Ty const& lhs_cref, TLHNullableAnyRandomAccessIterator<_Tz> const& rhs_cref) -> typename TLHNullableAnyRandomAccessIterator<_Tz>::difference_type {
+			return -(rhs_cref - lhs_cref);
+		}
 	}
 	namespace us {
 		namespace lh {
@@ -4964,6 +4970,26 @@ namespace mse {
 					auto* fnptr2 = &(CB::foo1);
 					auto raw_fn5 = mse::us::lh::make_raw_fn_wrapper(&(CB::foo1), fnptr2);
 					fnptr2 = raw_fn5;
+				}
+				{
+					mse::lh::TLHNullableAnyRandomAccessIterator < char> lhnara_iter1;
+					mse::TRegisteredObj<char> ch1 = 'a';
+					mse::lh::TLHNullableAnyPointer<char> lhna_ptr1 = &ch1;
+					lhna_ptr1 = lhnara_iter1;
+					lhnara_iter1 = &ch1; /* (Non-iterator) pointers are interpreted as arrays of length 1.  */
+					lhnara_iter1 += 1; /* So the iterator is now pointing out-of-bounds and would throw if a dereference were attempted. */
+					lhnara_iter1 = lhna_ptr1;
+					mse::TRefCountingPointer<char> refcptr1 = mse::make_refcounting<char>('a');
+					auto chptr1 = mse::us::lh::unsafe_cast<char*>(refcptr1);
+					mse::lh::TLHNullableAnyRandomAccessIterator <const char> lhnara_citer2;
+					lhnara_citer2 = lhnara_iter1;
+
+					mse::lh::TStrongVectorIterator<char> sviter1 = mse::lh::allocate_dyn_array1<mse::lh::TStrongVectorIterator<char> >(3);
+					lhnara_iter1 = sviter1 + 1;
+					auto diff1 = sviter1 - lhnara_iter1;
+					auto diff2 = lhnara_iter1 - sviter1;
+					bool b1 = (sviter1 == lhnara_iter1);
+					bool b2 = (lhnara_iter1 == sviter1);
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
 
