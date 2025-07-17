@@ -395,10 +395,39 @@ namespace mse {
 		template <typename TBase> struct is_arithmetic<TFloatingPoint<TBase> > : std::integral_constant<bool, true> {};
 		template <typename TBase> struct is_arithmetic<const TFloatingPoint<TBase> > : std::integral_constant<bool, true> {};
 
+		template<class T, class EqualTo>
+		struct IsSupportedByMakeSigned_impl
+		{
+			template<class U, class V>
+			static auto test(U*) -> decltype(std::declval<typename std::make_signed<U>::type>(), std::declval<typename std::make_signed<V>::type>(), bool(true));
+			template<typename, typename>
+			static auto test(...) -> std::false_type;
+
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct IsSupportedByMakeSigned : IsSupportedByMakeSigned_impl<
+			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+
+		template <class _Ty>
+		struct identity_pr {
+			using type = typename std::remove_reference<_Ty>::type;
+		};
+
 		template <class _Ty>
 		struct make_signed : public std::make_signed<_Ty> {};
 		template <class _Ty>
 		struct make_unsigned : public std::make_unsigned<_Ty> {};
+
+		template <> struct make_signed<wchar_t> { using type = wchar_t; };
+		template <> struct make_signed<char16_t> { using type = char16_t; };
+		template <> struct make_signed<char32_t> { using type = char32_t; };
+
+		template <> struct make_unsigned<wchar_t> { using type = wchar_t; };
+		template <> struct make_unsigned<char16_t> { using type = char16_t; };
+		template <> struct make_unsigned<char32_t> { using type = char32_t; };
+
 #ifdef MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
 		template <> struct make_signed<MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT> { using type = MSE_IMPL_LONG_LONG_LONG_INT; };
 		template <> struct make_signed<MSE_IMPL_LONG_LONG_LONG_INT> { using type = MSE_IMPL_LONG_LONG_LONG_INT; };
@@ -1083,6 +1112,9 @@ namespace std {
 	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(long long int);
 	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(int);
 	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(signed char);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(wchar_t);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(char16_t);
+	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(char32_t);
 
 #define MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(x) \
 	template <> \
@@ -1112,6 +1144,9 @@ namespace std {
 	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(long long int);
 	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(int);
 	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(signed char);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(wchar_t);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(char16_t);
+	MSE_IMPL_MAKE_UNSIGNED_TINT_SPECIALIZATION(char32_t);
 
 #ifdef MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT
 	MSE_IMPL_MAKE_SIGNED_TINT_SPECIALIZATION(MSE_IMPL_UNSIGNED_LONG_LONG_LONG_INT);
@@ -1835,17 +1870,20 @@ namespace mse {
 	MACRO_FUNCTION(short int, mse::TInt) \
 	MACRO_FUNCTION(unsigned short int, mse::TInt)
 
-#define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_CHAR_TYPES(MACRO_FUNCTION) \
+#define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_CHAR_INTEGER_TYPES(MACRO_FUNCTION) \
 	MACRO_FUNCTION(char, mse::TInt) \
 	MACRO_FUNCTION(unsigned char, mse::TInt) \
-	MACRO_FUNCTION(signed char, mse::TInt)
+	MACRO_FUNCTION(signed char, mse::TInt) \
+	MACRO_FUNCTION(wchar_t, mse::TInt) \
+	MACRO_FUNCTION(char16_t, mse::TInt) \
+	MACRO_FUNCTION(char32_t, mse::TInt)
 
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_INTEGER_TYPES(MACRO_FUNCTION) \
 	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_LONG_LONG_INTEGER_TYPES(MACRO_FUNCTION) \
 	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_LONG_INTEGER_TYPES(MACRO_FUNCTION) \
 	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_INTEGER_TYPES(MACRO_FUNCTION) \
 	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_SHORT_INTEGER_TYPES(MACRO_FUNCTION) \
-	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_CHAR_TYPES(MACRO_FUNCTION)
+	MSE_IMPL_APPLY_MACRO_FUNCTION_TO_CHAR_INTEGER_TYPES(MACRO_FUNCTION)
 
 #define MSE_IMPL_APPLY_MACRO_FUNCTION_TO_FLOATINGPOINT_TYPES(MACRO_FUNCTION) \
 	MACRO_FUNCTION(float, mse::TFloatingPoint) \
