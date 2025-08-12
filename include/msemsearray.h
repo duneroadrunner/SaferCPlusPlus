@@ -596,6 +596,7 @@ namespace mse {
 			static auto test(...)->std::false_type;
 
 			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+			static const bool value = type();
 		};
 		template<class T, class EqualTo = T>
 		struct IsNullable_msemsearray : IsNullable_msemsearray_impl<

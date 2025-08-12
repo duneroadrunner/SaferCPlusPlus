@@ -4209,6 +4209,16 @@ namespace mse {
 				operator _Ty** () {
 					return raw_pointer_to_stored_pointers();
 				}
+				_Ty* const * raw_pointer_to_stored_pointers() const {
+					if (1 <= m_pointer_vec.size()) {
+						return std::addressof(m_pointer_vec.front());
+					}
+					return nullptr;
+				}
+				operator _Ty* const * () const {
+					return raw_pointer_to_stored_pointers();
+				}
+
 			private:
 				std::vector<_Ty*> m_pointer_vec;
 				_Ty** m_returned_converted_ptr = nullptr;
