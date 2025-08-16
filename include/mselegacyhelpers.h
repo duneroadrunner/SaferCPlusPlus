@@ -544,6 +544,12 @@ namespace mse {
 			TLHNullableAnyPointer(const base_class& src) : base_class(src) {}
 			TLHNullableAnyPointer() = default;
 			TLHNullableAnyPointer(std::nullptr_t) : base_class(std::nullptr_t()) {}
+			/* We hesitate to support construction from raw pointers, as raw pointers are considered scope pointers in the scpptool-enforced 
+			safe subset, and TLHNullableAnyPointer<> is not supposed to hold a scope pointer. But this type is intended for facilitating (the 
+			migration of, and) interfacing with legacy code, which may be using raw pointers as non-scope pointers. So we leave it to the 
+			scpptool static analyzer to flag the likely safety violation committed when invoking this constructor, rather than sacrifice 
+			the interoperability with legacy that would by lost by not providing this constructor. */
+			TLHNullableAnyPointer(_Ty* ptr) : base_class(mse::us::TSaferPtrForLegacy<_Ty>(ptr)) {}
 			explicit TLHNullableAnyPointer(const void_star_replacement& src); /* defined later in the file after void_star_replacement is defined */
 
 			/* Btw things like this akward use of a "construction_helper" is only to support compatibility with older versions of the microsoft compiler whose support for sfinae was limited. */
