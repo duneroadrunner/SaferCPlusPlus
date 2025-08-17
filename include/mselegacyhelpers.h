@@ -132,7 +132,7 @@
 #define MSE_LH_UNSAFE_MAKE_POINTER_TO(target) &(target)
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_TO(target) &(target)
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_FROM(ptr) (ptr)
-#define MSE_LH_UNSAFE_MAKE_TEMPORARY_ARRAY_OF_RAW_POINTERS_FROM(ptr) (ptr)
+#define MSE_LH_UNSAFE_MAKE_TEMPORARY_RAW_POINTER_TO_POINTER_PROXY_FROM(ptr) (ptr)
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) (ptr)
 #define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) (iter)
 #define MSE_LH_UNSAFE_MAKE_FN_WRAPPER(wrappee, function_pointer_with_desired_wrapper_signature) (wrappee)
@@ -232,7 +232,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_UNSAFE_MAKE_POINTER_TO(target) MSE_LH_POINTER_TYPE(mse::us::unsafe_make_any_pointer_to(target))
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_TO(target) std::addressof(target)
 #define MSE_LH_UNSAFE_MAKE_RAW_POINTER_FROM(ptr) mse::us::lh::make_raw_pointer_from(ptr)
-#define MSE_LH_UNSAFE_MAKE_TEMPORARY_ARRAY_OF_RAW_POINTERS_FROM(ptr) mse::us::lh::make_temporary_array_of_raw_pointers_from(ptr)
+#define MSE_LH_UNSAFE_MAKE_TEMPORARY_RAW_POINTER_TO_POINTER_PROXY_FROM(ptr) mse::us::lh::make_temporary_raw_pointer_to_pointer_proxy_from(ptr)
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(ptr)
 #define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(iter)
 #define MSE_LH_UNSAFE_MAKE_FN_WRAPPER(wrappee, function_pointer_with_desired_wrapper_signature) mse::us::lh::unsafe_make_fn_wrapper(wrappee, function_pointer_with_desired_wrapper_signature)
@@ -467,11 +467,11 @@ namespace mse {
 				return ptr;
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(_Ty&& ptr) {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(_Ty&& ptr) {
 				return ptr;
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(_Ty& ptr) {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(_Ty& ptr) {
 				return ptr;
 			}
 			template< typename TWrappee, typename TWrapperRet, typename... TArgs>
@@ -4168,6 +4168,17 @@ namespace mse {
 						m_pointer_vec.push_back(nullptr);
 					}
 				}
+				TXScopePointerToRawPointersStore(mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TLHNullableAnyPointer<_Ty> >  ptr1)
+					: m_maybe_aptr_aptr(ptr1) {
+
+					if (ptr1) {
+						if (*ptr1) {
+							auto& pointee_ref = *ptr1;
+							m_pointer_vec.push_back(make_raw_pointer_from(pointee_ref));
+			}
+						m_pointer_vec.push_back(nullptr);
+					}
+				}
 #if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
 				/* A couple of (otherwise redundant) constructors to help resolve ambiguity due to having to loosen the constructability 
 				criteria for pointers for older msvc compilers. */
@@ -4196,11 +4207,33 @@ namespace mse {
 						}
 					}
 				}
+				template<typename TPtr>
+				void destructor_helper2(TPtr ptr_ptr) {
+					if (ptr_ptr) {
+						auto ptr1 = *ptr_ptr;
+
+						if (1 > m_pointer_vec.size()) {
+							assert(false);
+							return;
+						}
+						auto* pointee_raw_pointer = m_pointer_vec.front();
+
+						if (m_returned_converted_ptr) {
+							if (*m_returned_converted_ptr) {
+								if ((*m_returned_converted_ptr) != m_returned_converted_pointee_ptr) {
+									(*ptr_ptr) = *m_returned_converted_ptr;
+								}
+							}
+						}
+					}
+				}
 				~TXScopePointerToRawPointersStore() {
 					if (m_maybe_sviter_aptr.has_value()) {
 						destructor_helper1(m_maybe_sviter_aptr.value());
 					} else if (m_maybe_aiter_aptr.has_value()) {
 						destructor_helper1(m_maybe_aiter_aptr.value());
+					} else if (m_maybe_aptr_aptr.has_value()) {
+						destructor_helper2(m_maybe_aptr_aptr.value());
 					}
 				}
 
@@ -4234,6 +4267,7 @@ namespace mse {
 				using my_optional = mse::us::impl::ns_optional::optional_base2<T2, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag>;
 				my_optional<mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TStrongVectorIterator<_Ty> > > m_maybe_sviter_aptr;
 				my_optional<mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > > m_maybe_aiter_aptr;
+				my_optional<mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TLHNullableAnyPointer<_Ty> > > m_maybe_aptr_aptr;
 			};
 
 			/* An iterator pointing into a container of (other) iterators can't be directly converted to a raw pointer iterator
@@ -4244,52 +4278,52 @@ namespace mse {
 			into that array. We make the returned pointer iterator const, as any changes to the constructed array that it 
 			targets would not be reflected in the original source array. */
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TLHNullableAnyRandomAccessIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TLHNullableAnyRandomAccessIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
 			}
 			template<typename _Ty, size_t N>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TNativeArrayReplacement<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>, N> const& safe_array1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TNativeArrayReplacement<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>, N> const& safe_array1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(safe_array1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TXScopeStrongVectorIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TXScopeStrongVectorIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TStrongVectorIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TStrongVectorIterator<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(_Ty* const* iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(_Ty* const* iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
 			}
 
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TLHNullableAnyRandomAccessIterator<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TLHNullableAnyRandomAccessIterator<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
 			}
 			template<typename _Ty, size_t N>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TNativeArrayReplacement<mse::lh::TStrongVectorIterator<_Ty>, N> const& safe_array1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TNativeArrayReplacement<mse::lh::TStrongVectorIterator<_Ty>, N> const& safe_array1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(safe_array1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TXScopeStrongVectorIterator<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TXScopeStrongVectorIterator<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TStrongVectorIterator<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TStrongVectorIterator<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
 				return TXScopeConstArrayOfRawPointersStore<_Ty>(iter1);
 			}
 
-			/* Even though the (overloaded) function is called "make_temporary_array_of_raw_pointers_from()", it's possible that the given 
+			/* Even though the (overloaded) function is called "make_temporary_raw_pointer_to_pointer_proxy_from()", it's possible that the given 
 			argument ends up being not an iterator, but instead just a pointer. In this case it still makes sense to construct an array of 
 			raw pointer iterators, it's just that the array will contain just one element. But the difference is, a pointer to an iterator 
 			argument is likely to be used to modify the value of the target iterator, whereas if the argument were an array of iterators 
@@ -4297,28 +4331,40 @@ namespace mse {
 			we need to additionally try to reflect any changes made to the target raw pointer iterator back to the original source 
 			target iterator. So we return (two) different class (templates) for the (two) different behaviors. */
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
-				return TXScopePointerToRawPointersStore<_Ty>(iter1);
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& ptr1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TLHNullableAnyPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
-				return TXScopePointerToRawPointersStore<_Ty>(iter1);
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TLHNullableAnyPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& ptr1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::TRegisteredNotNullPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& iter1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
-				return TXScopePointerToRawPointersStore<_Ty>(iter1);
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::TRegisteredNotNullPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& ptr1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopePointerToRawPointersStore<_Ty> {
-				return TXScopePointerToRawPointersStore<_Ty>(iter1);
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TStrongVectorIterator<_Ty> > const& ptr1) -> TXScopePointerToRawPointersStore<_Ty> {
+				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::lh::TLHNullableAnyPointer<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopePointerToRawPointersStore<_Ty> {
-				return TXScopePointerToRawPointersStore<_Ty>(iter1);
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TLHNullableAnyPointer<mse::lh::TStrongVectorIterator<_Ty> > const& ptr1) -> TXScopePointerToRawPointersStore<_Ty> {
+				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
 			}
 			template<typename _Ty>
-			auto make_temporary_array_of_raw_pointers_from(mse::TRegisteredNotNullPointer<mse::lh::TStrongVectorIterator<_Ty> > const& iter1) -> TXScopePointerToRawPointersStore<_Ty> {
-				return TXScopePointerToRawPointersStore<_Ty>(iter1);
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::TRegisteredNotNullPointer<mse::lh::TStrongVectorIterator<_Ty> > const& ptr1) -> TXScopePointerToRawPointersStore<_Ty> {
+				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
+			}
+			template<typename _Ty>
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TLHNullableAnyPointer<_Ty> > const& ptr1) -> TXScopePointerToRawPointersStore<_Ty> {
+				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
+			}
+			template<typename _Ty>
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TLHNullableAnyPointer<mse::lh::TLHNullableAnyPointer<_Ty> > const& ptr1) -> TXScopePointerToRawPointersStore<_Ty> {
+				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
+			}
+			template<typename _Ty>
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::TRegisteredNotNullPointer<mse::lh::TLHNullableAnyPointer<_Ty> > const& ptr1) -> TXScopePointerToRawPointersStore<_Ty> {
+				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
 			}
 
 			namespace impl {
@@ -4333,7 +4379,7 @@ namespace mse {
 
 					template<typename T>
 					auto casted_pointer_arg_helper(std::true_type, const T& arg) {
-						return mse::us::lh::make_temporary_array_of_raw_pointers_from(arg);
+						return mse::us::lh::make_temporary_raw_pointer_to_pointer_proxy_from(arg);
 					}
 					template<typename T>
 					auto casted_pointer_arg_helper(std::false_type, const T& arg) {
@@ -5299,9 +5345,21 @@ namespace mse {
 					*(sviter1 + 1) = 'c';
 					*(sviter1 + 2) = '\0';
 					mse::TRegisteredObj<mse::lh::TStrongVectorIterator<char> > temp = sviter1;
-					testfn1(mse::us::lh::make_temporary_array_of_raw_pointers_from(&temp));
+					testfn1(mse::us::lh::make_temporary_raw_pointer_to_pointer_proxy_from(&temp));
 					std::cout << mse::us::lh::make_raw_pointer_from(sviter1) << " \n";
 					int q = 5;
+				}
+				{
+#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
+					auto testfn1 = [](char** chpp) {
+						static char s_ch1 = 'b';
+						(*chpp) = &s_ch1;
+						};
+					mse::TRegisteredObj<mse::lh::TLHNullableAnyPointer<char> > naptr1;
+					testfn1(mse::us::lh::make_temporary_raw_pointer_to_pointer_proxy_from(&naptr1));
+					std::cout << *naptr1 << " \n";
+					int q = 5;
+#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
 
