@@ -3588,7 +3588,8 @@ namespace mse {
 			}
 			template<class T>
 			static void const* make_void_const_ptr_helper1(std::false_type, const T& src_ptr) {
-				return mse::us::lh::make_raw_pointer_from(src_ptr);
+				/* The hard cast is required for function pointers (in clang 18, but not msvc it seems). */
+				return (void const*)mse::us::lh::make_raw_pointer_from(src_ptr);
 			}
 
 			template<class T>
@@ -3762,7 +3763,8 @@ namespace mse {
 			}
 			template<class T>
 			static void const* make_void_const_ptr_helper1(std::false_type, const T& src_ptr) {
-				return mse::us::lh::make_raw_pointer_from(src_ptr);
+				/* The hard cast is required for function pointers (in clang 18, but not msvc it seems). */
+				return (void const*)mse::us::lh::make_raw_pointer_from(src_ptr);
 			}
 
 			template<class T>
