@@ -1980,10 +1980,10 @@ namespace mse {
 					::free(ptr);
 				}
 				static void allocate(_Ty*& ptr, size_t num_bytes) {
-					ptr = ::malloc(num_bytes);
+					ptr = (_Ty*)(::malloc(num_bytes));
 				}
 				static void reallocate(_Ty*& ptr, size_t num_bytes) {
-					ptr = ::realloc(ptr, num_bytes);
+					ptr = (_Ty*)(::realloc(ptr, num_bytes));
 				}
 			};
 			template<class _Ty>
