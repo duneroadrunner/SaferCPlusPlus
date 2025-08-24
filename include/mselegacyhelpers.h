@@ -806,7 +806,9 @@ namespace mse {
 		namespace impl {
 			template<class T>
 			struct NDRegisteredWrapped {
-				typedef mse::TNDRegisteredObj<T> type;
+				/* apparently unions can't be base classes */
+				typedef mse::impl::conditional_t<std::is_union<T>::value, T, mse::TNDRegisteredObj<T> > type;
+				//typedef mse::TNDRegisteredObj<T> type;
 			};
 			template<>
 			struct NDRegisteredWrapped<std::nullptr_t> {
@@ -818,7 +820,9 @@ namespace mse {
 			};
 			template<class T>
 			struct NDNoradWrapped {
-				typedef mse::TNDNoradObj<T> type;
+				/* apparently unions can't be base classes */
+				typedef mse::impl::conditional_t<std::is_union<T>::value, T, mse::TNDNoradObj<T> > type;
+				//typedef mse::TNDNoradObj<T> type;
 			};
 			template<>
 			struct NDNoradWrapped<std::nullptr_t> {
@@ -3386,13 +3390,71 @@ namespace mse {
 		}
 
 		namespace impl {
+			template<class T>
+			struct NDRegisteredPointerWrapped {
+				/* apparently unions can't be base classes */
+				typedef mse::impl::conditional_t<std::is_union<T>::value, T*, mse::TNDRegisteredPointer<T> > type;
+				//typedef mse::TNDRegisteredPointer<T> type;
+			};
+			template<>
+			struct NDRegisteredPointerWrapped<void> {
+				typedef void* type;
+			};
+			template<>
+			struct NDRegisteredPointerWrapped<const void> {
+				typedef const void* type;
+			};
+			template<class T>
+			struct NDRegisteredNotNullPointerWrapped {
+				/* apparently unions can't be base classes */
+				typedef mse::impl::conditional_t<std::is_union<T>::value, T*, mse::TNDRegisteredNotNullPointer<T> > type;
+				//typedef mse::TNDRegisteredNotNullPointer<T> type;
+			};
+			template<>
+			struct NDRegisteredNotNullPointerWrapped<void> {
+				typedef void* type;
+			};
+			template<>
+			struct NDRegisteredNotNullPointerWrapped<const void> {
+				typedef const void* type;
+			};
+
+			template<class T>
+			struct NDNoradPointerWrapped {
+				/* apparently unions can't be base classes */
+				typedef mse::impl::conditional_t<std::is_union<T>::value, T*, mse::TNDNoradPointer<T> > type;
+				//typedef mse::TNDNoradPointer<T> type;
+			};
+			template<>
+			struct NDNoradPointerWrapped<void> {
+				typedef void* type;
+			};
+			template<>
+			struct NDNoradPointerWrapped<const void> {
+				typedef const void* type;
+			};
+			template<class T>
+			struct NDNoradNotNullPointerWrapped {
+				/* apparently unions can't be base classes */
+				typedef mse::impl::conditional_t<std::is_union<T>::value, T*, mse::TNDNoradNotNullPointer<T> > type;
+				//typedef mse::TNDNoradNotNullPointer<T> type;
+			};
+			template<>
+			struct NDNoradNotNullPointerWrapped<void> {
+				typedef void* type;
+			};
+			template<>
+			struct NDNoradNotNullPointerWrapped<const void> {
+				typedef const void* type;
+			};
+
 			template<class T1, class T2>
 			explicitly_castable_any::my_optional<T1> explicitly_castable_any::conversion_operator_helper4(std::true_type, T2* ptr1) {
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES2(MACRO_FUNCTION, pointee_type) \
-				MACRO_FUNCTION(mse::TNoradPointer<pointee_type>); \
-				MACRO_FUNCTION(mse::TNoradNotNullPointer<pointee_type>); \
-				MACRO_FUNCTION(mse::TRegisteredPointer<pointee_type>); \
-				MACRO_FUNCTION(mse::TRegisteredNotNullPointer<pointee_type>); \
+				MACRO_FUNCTION(typename NDNoradPointerWrapped<pointee_type>::type); \
+				MACRO_FUNCTION(typename NDNoradNotNullPointerWrapped<pointee_type>::type); \
+				MACRO_FUNCTION(typename NDRegisteredPointerWrapped<pointee_type>::type); \
+				MACRO_FUNCTION(typename NDRegisteredNotNullPointerWrapped<pointee_type>::type); \
 				MACRO_FUNCTION(mse::lh::TStrongVectorIterator<pointee_type>); \
 
 				typedef mse::impl::target_type<T1> pointee_t;
