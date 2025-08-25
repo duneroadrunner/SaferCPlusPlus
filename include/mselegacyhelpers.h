@@ -433,7 +433,7 @@ namespace mse {
 
 
 #define MSE_IMPL_LH_STRTOX_DECLARATION(strtox_function_name) \
-		auto strtox_function_name(const char* str, char** str_end, int base) { return std::strtox_function_name(str, str_end, base); }
+		inline auto strtox_function_name(const char* str, char** str_end, int base) { return std::strtox_function_name(str, str_end, base); }
 
 		MSE_IMPL_LH_STRTOX_DECLARATION(strtol);
 		MSE_IMPL_LH_STRTOX_DECLARATION(strtoul);
@@ -443,13 +443,13 @@ namespace mse {
 		MSE_IMPL_LH_STRTOX_DECLARATION(strtoumax);
 
 #define MSE_IMPL_LH_STRTOFX_DECLARATION(strtox_function_name) \
-		auto strtox_function_name(const char* str, char** str_end) { return std::strtox_function_name(str, str_end); }
+		inline auto strtox_function_name(const char* str, char** str_end) { return std::strtox_function_name(str, str_end); }
 
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtof);
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtod);
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtold);
 
-		auto strtok(char* str, const char* delim) { return std::strtok(str, delim); }
+		inline auto strtok(char* str, const char* delim) { return std::strtok(str, delim); }
 	}
 	namespace us {
 		namespace lh {
@@ -482,9 +482,9 @@ namespace mse {
 	}
 
 	namespace lh {
-
 		/* todo: make distinct xscope and non-xscope versions */
 		typedef void* void_star_replacement;
+		typedef const void* const_void_star_replacement;
 	}
 }
 
@@ -2894,7 +2894,7 @@ namespace mse {
 			static const auto lambda1 = [](const char* str, char** str_end, int base) { return std::strtox_function_name(str, str_end, base); }; \
 			return impl::ns_strtox::strtox(lambda1, str, str_end, base); \
 		} \
-		auto strtox_function_name(const char* str, char** str_end, int base) { return std::strtox_function_name(str, str_end, base); }
+		inline auto strtox_function_name(const char* str, char** str_end, int base) { return std::strtox_function_name(str, str_end, base); }
 
 		MSE_IMPL_LH_STRTOX_DECLARATION(strtol);
 		MSE_IMPL_LH_STRTOX_DECLARATION(strtoul);
@@ -2909,7 +2909,7 @@ namespace mse {
 			static const auto lambda1 = [](const char* str, char** str_end) { return std::strtox_function_name(str, str_end); }; \
 			return impl::ns_strtox::strtofx(lambda1, str, str_end); \
 		} \
-		auto strtox_function_name(const char* str, char** str_end) { return std::strtox_function_name(str, str_end); }
+		inline auto strtox_function_name(const char* str, char** str_end) { return std::strtox_function_name(str, str_end); }
 
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtof);
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtod);
@@ -3063,7 +3063,7 @@ namespace mse {
 
 				static const size_t MINIMUM_BUFFER_SIZE = 128;
 
-				lh_ssize_t lh_getline(char** lineptr, size_t* n, FILE* stream) {
+				inline lh_ssize_t lh_getline(char** lineptr, size_t* n, FILE* stream) {
 					size_t pos;
 					int c;
 
@@ -4091,10 +4091,10 @@ namespace mse {
 				return unsafe_cast<_Ty>(const_cast<void const*>(x.m_shadow_void_const_ptr));
 			}
 			namespace impl {
-				auto make_raw_pointer_from_helper2(std::true_type, mse::lh::void_star_replacement const& vsr) -> void* {
+				inline auto make_raw_pointer_from_helper2(std::true_type, mse::lh::void_star_replacement const& vsr) -> void* {
 					return unsafe_cast<void*>(vsr);
 				}
-				auto make_raw_pointer_from_helper2(std::false_type, mse::lh::const_void_star_replacement const& vsr) -> void const* {
+				inline auto make_raw_pointer_from_helper2(std::false_type, mse::lh::const_void_star_replacement const& vsr) -> void const* {
 					return unsafe_cast<void const*>(vsr);
 				}
 

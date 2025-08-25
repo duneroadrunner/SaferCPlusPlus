@@ -18,6 +18,8 @@
 #include "msestaticimmutable.h"
 #include "msescopeatomic.h"
 
+#include "mselegacyhelpers.h" /* not used here, but we include it in multiple files to catch any "multiple definition" linker errors. */
+
 #include <list>
 #include <iostream>
 #include <ctime>
