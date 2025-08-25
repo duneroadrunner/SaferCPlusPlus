@@ -153,16 +153,20 @@ namespace mse {
 			calls caused by a misbehaving (user-defined) destructor of the target object. */
 			auto_release keep(m_ref_with_target_obj_ptr);
 			m_ref_with_target_obj_ptr = nullptr;
+			IF_DEBUG(m_debug_target_obj_cptr = nullptr;)
 
 			/* This is just a no-op function that will cause a compile error when X is not an eligible type. */
 			valid_if_X_is_not_an_xscope_type();
 		}
 		TRefCountingPointer(const TRefCountingPointer& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 		}
 		TRefCountingPointer(TRefCountingPointer&& r) {
 			m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 			r.m_ref_with_target_obj_ptr = nullptr;
+			IF_DEBUG(r.m_debug_target_obj_cptr = nullptr;)
 		}
 		TRefCountingPointer(const TRefCountingNotNullPointer<X>& r);
 		TRefCountingPointer(TRefCountingNotNullPointer<X>&& r);
@@ -172,6 +176,7 @@ namespace mse {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
+				IF_DEBUG(m_debug_target_obj_cptr = get();)
 			}
 			return *this;
 		}
@@ -195,12 +200,14 @@ namespace mse {
 		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 		TRefCountingPointer(const TRefCountingPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 		}
 		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 		TRefCountingPointer& operator=(const TRefCountingPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
+				IF_DEBUG(m_debug_target_obj_cptr = get();)
 			}
 			return *this;
 		}
@@ -238,15 +245,18 @@ namespace mse {
 	private:
 		explicit TRefCountingPointer(TRefWithTargetObj<X>* p/* = nullptr*/) {
 			m_ref_with_target_obj_ptr = p;
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 		}
 
 		void acquire(CRefCounter* c) {
 			m_ref_with_target_obj_ptr = c;
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 			if (c) { c->increment(); }
 		}
 
 		void release() {
 			dorelease(m_ref_with_target_obj_ptr);
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 		}
 
 		struct auto_release {
@@ -291,6 +301,8 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		CRefCounter* m_ref_with_target_obj_ptr;
+
+		IF_DEBUG(X const* m_debug_target_obj_cptr = nullptr;)
 
 		template <class Y> friend class TRefCountingPointer;
 		template <class Y> friend class TRefCountingConstPointer;
@@ -430,15 +442,18 @@ namespace mse {
 			calls caused by a misbehaving (user-defined) destructor of the target object. */
 			auto_release keep(m_ref_with_target_obj_ptr);
 			m_ref_with_target_obj_ptr = nullptr;
+			IF_DEBUG(m_debug_target_obj_cptr = nullptr;)
 
 			/* This is just a no-op function that will cause a compile error when X is not an eligible type. */
 			valid_if_X_is_not_an_xscope_type();
 		}
 		TRefCountingConstPointer(const TRefCountingConstPointer& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 		}
 		TRefCountingConstPointer(const TRefCountingPointer<X>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 		}
 		TRefCountingConstPointer(TRefCountingConstPointer&& r) {
 			m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
@@ -446,7 +461,9 @@ namespace mse {
 		}
 		TRefCountingConstPointer(TRefCountingPointer<X>&& r) {
 			m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 			r.m_ref_with_target_obj_ptr = nullptr;
+			IF_DEBUG(r.m_debug_target_obj_cptr = nullptr;)
 		}
 		TRefCountingConstPointer(const TRefCountingNotNullConstPointer<X>& r);
 		TRefCountingConstPointer(TRefCountingNotNullConstPointer<X>&& r);
@@ -456,6 +473,7 @@ namespace mse {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
+				IF_DEBUG(m_debug_target_obj_cptr = get();)
 			}
 			return *this;
 		}
@@ -479,12 +497,14 @@ namespace mse {
 		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 		TRefCountingConstPointer(const TRefCountingConstPointer<Y>& r) {
 			acquire(r.m_ref_with_target_obj_ptr);
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 		}
 		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 		TRefCountingConstPointer& operator=(const TRefCountingConstPointer<Y>& r) {
 			if (this != &r) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
+				IF_DEBUG(m_debug_target_obj_cptr = get();)
 			}
 			return *this;
 		}
@@ -519,15 +539,18 @@ namespace mse {
 	private:
 		explicit TRefCountingConstPointer(TRefWithTargetObj<X>* p/* = nullptr*/) {
 			m_ref_with_target_obj_ptr = p;
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 		}
 
 		void acquire(CRefCounter* c) {
 			m_ref_with_target_obj_ptr = c;
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 			if (c) { c->increment(); }
 		}
 
 		void release() {
 			dorelease(m_ref_with_target_obj_ptr);
+			IF_DEBUG(m_debug_target_obj_cptr = get();)
 		}
 
 		struct auto_release {
@@ -573,6 +596,8 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 		CRefCounter* m_ref_with_target_obj_ptr;
+
+		IF_DEBUG(X const* m_debug_target_obj_cptr = nullptr;)
 
 		template <class Y> friend class TRefCountingPointer;
 		template <class Y> friend class TRefCountingConstPointer;

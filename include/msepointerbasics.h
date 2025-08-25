@@ -301,6 +301,12 @@ namespace mse {
 #define MSE_IMPL_MACRO_TEXT_EXPAND_THREE_ARGS_PB2(a,b,c)  a b c
 #define MSE_IMPL_MACRO_TEXT_EXPAND_THREE_ARGS_PB(a,b,c)  MSE_IMPL_MACRO_TEXT_EXPAND_THREE_ARGS_PB2(a,b,c)
 
+#ifndef NDEBUG
+#define IF_DEBUG(x) x
+#else /*!NDEBUG*/
+#define IF_DEBUG(x)
+#endif /*!NDEBUG*/
+
 #ifdef MSE_HAS_CXX17
 #define MSE_IF_CONSTEXPR if constexpr
 #else // MSE_HAS_CXX17
