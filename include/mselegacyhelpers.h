@@ -2228,13 +2228,17 @@ namespace mse {
 			template<class _TIter>
 			size_t fread(_TIter const& ptr, size_t size, size_t count, FILE* stream) {
 				typedef mse::impl::remove_reference_t<decltype((ptr)[0])> element_t;
+				/* element_t is presumably either some kind of char (or int8_t) that is one byte in size, or it is some object type whose 
+				size is matches the given size parameter. But technically it doesn't have to be either.  */
+				static_assert(!std::is_pointer<element_t>::value, "lh::fread()ing pointers is not supported. (Not that anyone would do such a thing.)) ");
 				thread_local std::vector<unsigned char> v;
 				v.resize(size * count);
-				auto num_bytes_read = ::fread(v.data(), size, count, stream);
-				auto num_items_read = num_bytes_read / sizeof(element_t);
+				auto num_items_read = ::fread(v.data(), size, count, stream);
+				auto num_bytes_read = num_items_read * size;
+				auto num_elements_read = num_bytes_read / sizeof(element_t);
 				size_t uc_index = 0;
 				size_t element_index = 0;
-				for (; element_index < num_items_read; uc_index += sizeof(element_t), element_index += 1) {
+				for (; element_index < num_elements_read; uc_index += sizeof(element_t), element_index += 1) {
 					unsigned char* uc_ptr = &(v[uc_index]);
 					if (false) {
 						element_t* element_ptr = reinterpret_cast<element_t*>(uc_ptr);
@@ -2252,7 +2256,7 @@ namespace mse {
 				}
 				v.resize(0);
 				v.shrink_to_fit();
-				return num_bytes_read;
+				return num_items_read;
 			}
 		}
 		/* Memory safe approximation of fread(). */
@@ -2277,13 +2281,14 @@ namespace mse {
 		template<class _TIter>
 		size_t fwrite(_TIter const& ptr, size_t size, size_t count, FILE* stream) {
 			typedef mse::impl::remove_reference_t<decltype((ptr)[0])> element_t;
-			auto num_items_to_write = size * count / sizeof(element_t);
+			/* element_t is presumably either some kind of char (or int8_t) that is one byte in size, or it is some object type whose
+			size is matches the given size parameter. But technically it doesn't have to be either.  */
+			auto num_elements_to_write = size * count / sizeof(element_t);
 			thread_local std::vector<unsigned char> v;
 			v.resize(size * count);
-			//assert(num_items_to_write * sizeof(element_t) == size * count);
 			size_t uc_index = 0;
 			size_t element_index = 0;
-			for (; element_index < num_items_to_write; uc_index += sizeof(element_t), element_index += 1) {
+			for (; element_index < num_elements_to_write; uc_index += sizeof(element_t), element_index += 1) {
 				unsigned char* uc_ptr = &(v[uc_index]);
 				if (false) {
 					typedef mse::impl::remove_const_t<element_t> non_const_element_t;
