@@ -922,7 +922,6 @@ namespace mse {
 				template<class T1, class T2>
 				static my_optional<T1> conversion_operator_helper2(T2* ptr1) {
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(T1);
-#if (!defined(_MSC_VER)) || defined(MSE_HAS_CXX20)
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT2(std::nullptr_t);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(void*);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(const void*);
@@ -931,7 +930,6 @@ namespace mse {
 					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_CAST_ATTEMPT_HELPER1);
 					MSE_IMPL_APPLY_MACRO_FUNCTION_TO_EACH_OF_THE_ARITHMETIC_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_CAST_ATTEMPT);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(mse::CNDSize_t);
-#endif // (!defined(_MSC_VER)) || defined(MSE_HAS_CXX20)
 
 					auto maybe_retval = conversion_operator_helper3<T1>(typename mse::impl::IsDereferenceable_pb<T1>::type(), ptr1);
 					if (maybe_retval.has_value()) {
@@ -5384,7 +5382,7 @@ namespace mse {
 					fnptr2 = raw_fn5;
 				}
 				{
-					mse::lh::TLHNullableAnyRandomAccessIterator < char> lhnara_iter1;
+					mse::lh::TLHNullableAnyRandomAccessIterator<char> lhnara_iter1;
 					mse::TRegisteredObj<char> ch1 = 'a';
 					mse::lh::TLHNullableAnyPointer<char> lhna_ptr1 = &ch1;
 					lhna_ptr1 = lhnara_iter1;
@@ -5393,7 +5391,7 @@ namespace mse {
 					lhnara_iter1 = lhna_ptr1;
 					mse::TRefCountingPointer<char> refcptr1 = mse::make_refcounting<char>('a');
 					auto chptr1 = mse::us::lh::unsafe_cast<char*>(refcptr1);
-					mse::lh::TLHNullableAnyRandomAccessIterator <const char> lhnara_citer2;
+					mse::lh::TLHNullableAnyRandomAccessIterator<const char> lhnara_citer2;
 					lhnara_citer2 = lhnara_iter1;
 
 					mse::lh::TStrongVectorIterator<char> sviter1 = mse::lh::allocate_dyn_array1<mse::lh::TStrongVectorIterator<char> >(3);

@@ -6099,6 +6099,17 @@ namespace mse {
 			auto begin_iter_from_xsptr_helper(std::false_type, const _TXSRAPointer& xsptr) {
 				return mse::TXScopeRAIterator<_TXSRAPointer>(xsptr, 0);
 			}
+			template <typename _TXSRAPointer>
+			auto begin_iter_from_xscope_ptr_helper(std::true_type, const _TXSRAPointer& xsptr) {
+				/* is a non-owning scope pointer */
+				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*xsptr)> > container_t;
+				return begin_iter_from_xsptr_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<container_t>::type(), xsptr);
+			}
+			template <typename _TXSRAPointer>
+			auto begin_iter_from_xscope_ptr_helper(std::false_type, const _TXSRAPointer& xsptr) {
+				/* is some kind of owning? scope pointer */
+				return mse::TXScopeRAIterator<_TXSRAPointer>(xsptr, 0);
+			}
 
 			template <typename _TRAPointer>
 			auto begin_iter_from_ptr_helper4(std::true_type, const _TRAPointer& ptr) {
@@ -6124,8 +6135,7 @@ namespace mse {
 			template <typename _TXSRAPointer>
 			auto begin_iter_from_ptr_helper2(std::true_type, const _TXSRAPointer& xsptr) {
 				/* xsptr seems to be an xscope pointer.*/
-				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*xsptr)> > container_t;
-				return begin_iter_from_xsptr_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<container_t>::type(), xsptr);
+				return begin_iter_from_xscope_ptr_helper(typename mse::impl::is_nonowning_scope_pointer<_TXSRAPointer>::type(), xsptr);
 			}
 			template <typename _TRAPointer>
 			auto begin_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
@@ -6149,7 +6159,7 @@ namespace mse {
 			}
 			template <typename _TRAPointer>
 			auto begin_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
-				return begin_iter_from_ptr_helper2(typename mse::impl::is_nonowning_scope_pointer<_TRAPointer>::type(), ptr);
+				return begin_iter_from_ptr_helper2(typename mse::impl::is_xscope<_TRAPointer>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
 			auto begin_iter_from_lone_param1(std::false_type, const _TRALoneParam&param) {
@@ -6261,6 +6271,17 @@ namespace mse {
 			auto begin_const_iter_from_xsptr_helper(std::false_type, const _TXSRAPointer& xsptr) {
 				return mse::TXScopeRAConstIterator<_TXSRAPointer>(xsptr, 0);
 			}
+			template <typename _TXSRAPointer>
+			auto begin_const_iter_from_xscope_ptr_helper(std::true_type, const _TXSRAPointer& xsptr) {
+				/* is a non-owning scope pointer */
+				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*xsptr)> > container_t;
+				return begin_const_iter_from_xsptr_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<container_t>::type(), xsptr);
+			}
+			template <typename _TXSRAPointer>
+			auto begin_const_iter_from_xscope_ptr_helper(std::false_type, const _TXSRAPointer& xsptr) {
+				/* is some kind of owning? scope pointer */
+				return mse::TXScopeRAConstIterator<_TXSRAPointer>(xsptr, 0);
+			}
 
 			template <typename _TRAPointer>
 			auto begin_const_iter_from_ptr_helper5(std::true_type, const _TRAPointer& ptr) {
@@ -6297,8 +6318,7 @@ namespace mse {
 			template <typename _TXSRAPointer>
 			auto begin_const_iter_from_ptr_helper2(std::true_type, const _TXSRAPointer& xsptr) {
 				/* xsptr seems to be an xscope pointer.*/
-				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*xsptr)> > container_t;
-				return begin_const_iter_from_xsptr_helper(typename mse::impl::HasOrInheritsXScopeIteratorMemberType_msemsearray<container_t>::type(), xsptr);
+				return begin_const_iter_from_xscope_ptr_helper(typename mse::impl::is_nonowning_scope_pointer<_TXSRAPointer>::type(), xsptr);
 			}
 			template <typename _TRAPointer>
 			auto begin_const_iter_from_ptr_helper2(std::false_type, const _TRAPointer& ptr) {
@@ -6322,7 +6342,7 @@ namespace mse {
 			}
 			template <typename _TRAPointer>
 			auto begin_const_iter_from_lone_param2(std::true_type, const _TRAPointer& ptr) {
-				return begin_const_iter_from_ptr_helper2(typename mse::impl::is_nonowning_scope_pointer<_TRAPointer>::type(), ptr);
+				return begin_const_iter_from_ptr_helper2(typename mse::impl::is_xscope<_TRAPointer>::type(), ptr);
 			}
 			template<class _TRALoneParam>
 			auto begin_const_iter_from_lone_param(const _TRALoneParam& param) {

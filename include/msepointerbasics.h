@@ -335,6 +335,7 @@ namespace mse {
 		template <class _Ty> using remove_const_t = typename std::remove_const<_Ty>::type;
 		template <class _Ty> using remove_reference_t = typename std::remove_reference<_Ty>::type;
 		template <class _Ty> using decay_t = typename std::decay<_Ty>::type;
+		template <typename...> using void_t = void;
 	}
 
 #if defined(_MSC_VER) && !defined(MSE_HAS_CXX17)
@@ -560,18 +561,9 @@ namespace mse {
 #define MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 #endif // defined(_MSC_VER) && !defined(MSE_HAS_CXX20) && !defined(MSE_MSC_CONFORMANCE_MODE)
 
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 #define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) mse::impl::IsDereferenceable_pb<x>::value
 #define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) mse::impl::target_can_be_referenced_as<pointer_t, target_t>::value
 #define MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(pointer_t, target_t) mse::impl::target_can_be_commonized_referenced_as<pointer_t, target_t>::value
-#else // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-	/* Jan 2022: The microsoft compiler in "permissive" mode (/permissive+) seems to have some strange behavior (that
-	results in "ambiguous overload" compile errors when we attempt to filter for "dereferenceability" (i.e. require
-	the type to be some sort of pointer). So we substitute it with a simpler (and looser) criteria. */
-#define MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(x) ((!std::is_same<decltype(NULL), x>::value) && (!std::is_same<decltype(0), x>::value) && (!std::is_same<decltype(nullptr), x>::value))
-#define MSE_IMPL_TARGET_CAN_BE_REFERENCED_AS_CRITERIA1(pointer_t, target_t) MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(pointer_t)
-#define MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(pointer_t, target_t) MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(pointer_t)
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 
 
 #define MSE_IMPL_MEMBER_GETTER_DECLARATIONS(member, getter_name) \
@@ -702,22 +694,10 @@ namespace mse {
 		template<typename _TPointer>
 		using target_type = mse::impl::remove_reference_t<typename target_type_impl<_TPointer>::type>;
 
-		template<class T, class EqualTo>
-		struct IsDereferenceable_pb_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype((*std::declval<U>()), (*std::declval<V>()), bool(true));
-			template<typename, typename>
-			static auto test(...) -> std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-		};
-		template<>
-		struct IsDereferenceable_pb_impl<void*, void*> : std::false_type {};
-		template<class T, class EqualTo = T>
-		struct IsDereferenceable_pb : IsDereferenceable_pb_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct IsDereferenceable_pb : std::false_type {};
+		template <typename T>
+		struct IsDereferenceable_pb<T, mse::impl::void_t<decltype(*std::declval<T>())> > : std::true_type {};
 
 		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(IsDereferenceable_pb<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_dereferenceable() {}
