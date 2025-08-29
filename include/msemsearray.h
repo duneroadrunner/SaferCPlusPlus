@@ -3228,7 +3228,7 @@ namespace mse {
 					typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
 						, Tss_const_iterator_type<_TArrayPointer>, Tss_iterator_type<_TArrayPointer> > return_type;
 					return_type retval(owner_ptr, 0);
-					retval.set_to_beginning();
+					//retval.set_to_beginning();
 					return retval;
 				}
 
@@ -5720,12 +5720,16 @@ namespace mse {
 
 			//template <class X> using ss_begin = typename base_class::template ss_begin<X>;
 			template<typename _TMseArrayPointer>
-			static Tss_iterator_type<_TMseArrayPointer> ss_begin(const _TMseArrayPointer& owner_ptr) {	// return iterator for beginning of mutable sequence
-				return base_class::template ss_begin<_TMseArrayPointer>(owner_ptr);
+			static auto ss_begin(const _TMseArrayPointer& owner_ptr) {	// return iterator for beginning of mutable sequence
+				typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
+					, Tss_const_iterator_type<_TMseArrayPointer>, Tss_iterator_type<_TMseArrayPointer> > return_type;
+				return return_type{ base_class::template ss_begin<_TMseArrayPointer>(owner_ptr) };
 			}
 			template<typename _TMseArrayPointer>
-			static Tss_iterator_type<_TMseArrayPointer> ss_end(_TMseArrayPointer owner_ptr) {	// return iterator for end of mutable sequence
-				return base_class::template ss_end<_TMseArrayPointer>(owner_ptr);
+			static auto ss_end(_TMseArrayPointer owner_ptr) {	// return iterator for end of mutable sequence
+				typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
+					, Tss_const_iterator_type<_TMseArrayPointer>, Tss_iterator_type<_TMseArrayPointer> > return_type;
+				return return_type{ base_class::template ss_end<_TMseArrayPointer>(owner_ptr) };
 			}
 			template<typename _TMseArrayPointer>
 			static Tss_const_iterator_type<_TMseArrayPointer> ss_cbegin(_TMseArrayPointer owner_ptr) {	// return iterator for beginning of nonmutable sequence
@@ -5736,12 +5740,16 @@ namespace mse {
 				return base_class::template ss_cend<_TMseArrayPointer>(owner_ptr);
 			}
 			template<typename _TMseArrayPointer>
-			static Tss_reverse_iterator_type<_TMseArrayPointer> ss_rbegin(_TMseArrayPointer owner_ptr) {	// return iterator for beginning of reversed mutable sequence
-				return (Tss_reverse_iterator_type<_TMseArrayPointer>(ss_end<_TMseArrayPointer>(owner_ptr)));
+			static auto ss_rbegin(_TMseArrayPointer owner_ptr) {	// return iterator for beginning of reversed mutable sequence
+				typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
+					, Tss_const_reverse_iterator_type<_TMseArrayPointer>, Tss_reverse_iterator_type<_TMseArrayPointer> > return_type;
+				return return_type{ ss_end<_TMseArrayPointer>(owner_ptr) };
 			}
 			template<typename _TMseArrayPointer>
-			static Tss_reverse_iterator_type<_TMseArrayPointer> ss_rend(_TMseArrayPointer owner_ptr) {	// return iterator for end of reversed mutable sequence
-				return (Tss_reverse_iterator_type<_TMseArrayPointer>(ss_cbegin<_TMseArrayPointer>(owner_ptr)));
+			static auto ss_rend(_TMseArrayPointer owner_ptr) {	// return iterator for end of reversed mutable sequence
+				typedef mse::impl::conditional_t<std::is_const<mse::impl::remove_reference_t<decltype(*owner_ptr)> >::value
+					, Tss_const_reverse_iterator_type<_TMseArrayPointer>, Tss_reverse_iterator_type<_TMseArrayPointer> > return_type;
+				return return_type{ ss_cbegin<_TMseArrayPointer>(owner_ptr) };
 			}
 			template<typename _TMseArrayPointer>
 			static Tss_const_reverse_iterator_type<_TMseArrayPointer> ss_crbegin(_TMseArrayPointer owner_ptr) {	// return iterator for beginning of reversed nonmutable sequence
@@ -6091,9 +6099,18 @@ namespace mse {
 		namespace iterator {
 
 			template <typename _TXSRAPointer>
-			auto begin_iter_from_xsptr_helper(std::true_type, const _TXSRAPointer& xsptr) {
+			auto begin_iter_from_xsptr_helper2(std::true_type, const _TXSRAPointer& xsptr) {
 				typedef mse::impl::remove_reference_t<decltype(*xsptr)> container_t;
 				return typename container_t::xscope_iterator(xsptr, 0);
+			}
+			template <typename _TXSRAPointer>
+			auto begin_iter_from_xsptr_helper2(std::false_type, const _TXSRAPointer& xsptr) {
+				return mse::TXScopeRAIterator<_TXSRAPointer>(xsptr, 0);
+			}
+			template <typename _TXSRAPointer>
+			auto begin_iter_from_xsptr_helper(std::true_type, const _TXSRAPointer& xsptr) {
+				typedef mse::impl::remove_reference_t<decltype(*xsptr)> container_t;
+				return begin_iter_from_xsptr_helper2(typename std::is_constructible<typename container_t::xscope_iterator, _TXSRAPointer, size_t>::type(), xsptr);
 			}
 			template <typename _TXSRAPointer>
 			auto begin_iter_from_xsptr_helper(std::false_type, const _TXSRAPointer& xsptr) {

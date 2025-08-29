@@ -1362,9 +1362,6 @@ namespace mse {
 			template <typename _Ty> using TRandomAccessIteratorStdBase = mse::impl::random_access_iterator_base<_Ty>;
 			template <typename _Ty> using TRandomAccessConstIteratorStdBase = mse::impl::random_access_const_iterator_base<_Ty>;
 
-			template<class T1>
-			using optional1 = mse::us::impl::ns_optional::optional_base2<T1, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag>;
-
 			/* Note: This class needs to be maintained as structurally identical to its const counterpart (below) as there may
 			be some `reinterpret_cast<>`s between the two. */
 			template <typename _Ty>
@@ -1507,7 +1504,7 @@ namespace mse {
 					return debug_begin_iter_if_available_helper1(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRandomAccessIterator1>::type());
 				}
 
-				virtual optional1<_Ty const*> debug_start_of_sequence_cptr_if_available() const override {
+				optional1<_Ty const*> debug_start_of_sequence_cptr_if_available() const override {
 					auto maybe_begin_iter = debug_begin_iter_if_available();
 					if (maybe_begin_iter.has_value()) {
 						auto& begin_iter_ref = maybe_begin_iter.value();
@@ -1526,7 +1523,7 @@ namespace mse {
 				}
 				optional1<size_t> debug_iterator_index_if_available_helper1(std::false_type) const { return {}; }
 
-				virtual optional1<size_t> debug_iterator_index_if_available() const override {
+				optional1<size_t> debug_iterator_index_if_available() const override {
 					typedef mse::impl::remove_reference_t<decltype(debug_begin_iter_if_available().value())> iter_t;
 					return debug_iterator_index_if_available_helper1(typename mse::impl::SupportsSubtractionFrom_poly<iter_t, _TRandomAccessIterator1>::type());
 				}
@@ -1547,7 +1544,7 @@ namespace mse {
 				}
 				optional1<_Ty const*> debug_item_cptr_if_available_helper1(std::false_type) const { return {}; }
 
-				virtual optional1<_Ty const*> debug_item_cptr_if_available() const override {
+				optional1<_Ty const*> debug_item_cptr_if_available() const override {
 					return debug_item_cptr_if_available_helper1(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRandomAccessIterator1>::type());
 				}
 
@@ -1573,7 +1570,7 @@ namespace mse {
 					return debug_start_of_sequence_cptr_if_available();
 				}
 
-				virtual optional1<span1_t> debug_sequence_span_if_available() const override {
+				optional1<span1_t> debug_sequence_span_if_available() const override {
 					return debug_sequence_span_if_available_helper1(typename mse::impl::is_complete_type<_Ty>::type());
 				}
 #endif // MSE_HAS_CXX20
@@ -1628,6 +1625,14 @@ namespace mse {
 					return (diff <=> 0); /* that's the right order, right? */
 				}
 #endif // !MSE_HAS_CXX20
+
+				virtual optional1<_Ty const*> debug_start_of_sequence_cptr_if_available() const { return {}; }
+				virtual optional1<size_t> debug_iterator_index_if_available() const { return {}; }
+				virtual optional1<_Ty const*> debug_item_cptr_if_available() const { return {}; }
+#ifdef MSE_HAS_CXX20
+				typedef mse::impl::conditional_t<mse::impl::is_complete_type<_Ty>::value, std::span<_Ty const>, _Ty const*> span1_t;
+				virtual optional1<span1_t> debug_sequence_span_if_available() const { return {}; }
+#endif // MSE_HAS_CXX20
 			};
 
 			/* Note: This class needs to be maintained as structurally identical to its non-const counterpart (above) as there may
@@ -1641,20 +1646,20 @@ namespace mse {
 				TCommonizedRandomAccessConstIterator(const _TRandomAccessConstIterator1& random_access_const_iterator) : m_random_access_const_iterator(random_access_const_iterator) {}
 				virtual ~TCommonizedRandomAccessConstIterator() {}
 
-				const _Ty& operator*() const {
+				const _Ty& operator*() const override {
 					/* Using the mse::us::impl::raw_reference_to<>() function allows us to, for example, obtain a 'const int&' to
 					an mse::Tint<int>. This allows an iterator to an mse::TInt<int> to be used as an iterator to a const int. */
 					return mse::us::impl::raw_reference_to<const _Ty>(*m_random_access_const_iterator);
 				}
-				const _Ty* operator->() const {
+				const _Ty* operator->() const override {
 					return std::addressof(mse::us::impl::raw_reference_to<const _Ty>(*m_random_access_const_iterator));
 					//return m_random_access_const_iterator.operator->();
 				}
-				const_reference operator[](difference_type _Off) const {
+				const_reference operator[](difference_type _Off) const override {
 					return mse::us::impl::raw_reference_to<const _Ty>(m_random_access_const_iterator[_Off]);
 				}
-				void operator +=(difference_type x) { m_random_access_const_iterator += x; }
-				difference_type operator-(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const {
+				void operator +=(difference_type x) override { m_random_access_const_iterator += x; }
+				difference_type operator-(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const override {
 					const TCommonizedRandomAccessConstIterator* craci_ptr = dynamic_cast<const TCommonizedRandomAccessConstIterator*>(&_Right_cref);
 
 #if !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
@@ -1688,7 +1693,7 @@ namespace mse {
 					const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*craci_ptr).m_random_access_const_iterator;
 					return m_random_access_const_iterator - _Right_cref_m_random_access_const_iterator_cref;
 				}
-				bool operator==(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const {
+				bool operator==(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const override {
 					const TCommonizedRandomAccessConstIterator* craci_ptr = dynamic_cast<const TCommonizedRandomAccessConstIterator*>(&_Right_cref);
 
 #if !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
@@ -1723,6 +1728,99 @@ namespace mse {
 					const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*craci_ptr).m_random_access_const_iterator;
 					return (m_random_access_const_iterator == _Right_cref_m_random_access_const_iterator_cref);
 				}
+
+				auto debug_begin_iter_if_available_helper2(std::true_type) const {
+					typedef decltype(mse::make_begin_iterator(m_random_access_const_iterator.target_container_ptr())) iter_t;
+					optional1<iter_t> retval;
+					auto ptr1 = m_random_access_const_iterator.target_container_ptr();
+					if (ptr1) {
+						auto size1 = mse::container_size(*ptr1);
+						if (1 <= size1) {
+							auto iter1 = mse::make_begin_iterator(ptr1);
+							retval = iter1;
+						}
+					}
+					return retval;
+				}
+				optional1<_Ty const*> debug_begin_iter_if_available_helper2(std::false_type) const { return {}; }
+				auto debug_begin_iter_if_available_helper1(std::true_type) const {
+					return debug_begin_iter_if_available_helper2(typename mse::impl::IsDereferenceable_pb<decltype(mse::make_begin_iterator(m_random_access_const_iterator.target_container_ptr()))>::type());
+				}
+				optional1<_Ty const*> debug_begin_iter_if_available_helper1(std::false_type) const { return {}; }
+				auto debug_begin_iter_if_available() const {
+					return debug_begin_iter_if_available_helper1(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRandomAccessConstIterator1>::type());
+				}
+
+				optional1<_Ty const*> debug_start_of_sequence_cptr_if_available() const override {
+					auto maybe_begin_iter = debug_begin_iter_if_available();
+					if (maybe_begin_iter.has_value()) {
+						auto& begin_iter_ref = maybe_begin_iter.value();
+						return std::addressof(*begin_iter_ref);
+					}
+					return {};
+				}
+
+				optional1<size_t> debug_iterator_index_if_available_helper1(std::true_type) const {
+					auto maybe_begin_iter = debug_begin_iter_if_available();
+					if (maybe_begin_iter.has_value()) {
+						auto& begin_iter_ref = maybe_begin_iter.value();
+						return m_random_access_const_iterator - begin_iter_ref;
+					}
+					return {};
+				}
+				optional1<size_t> debug_iterator_index_if_available_helper1(std::false_type) const { return {}; }
+
+				optional1<size_t> debug_iterator_index_if_available() const override {
+					typedef mse::impl::remove_reference_t<decltype(debug_begin_iter_if_available().value())> iter_t;
+					return debug_iterator_index_if_available_helper1(typename mse::impl::SupportsSubtractionFrom_poly<iter_t, _TRandomAccessConstIterator1>::type());
+				}
+
+				optional1<_Ty const*> debug_item_cptr_if_available_helper1(std::true_type) const {
+					const auto ptr1 = m_random_access_const_iterator.target_container_ptr();
+					if (ptr1) {
+						const auto size1 = mse::container_size(*ptr1);
+						const auto maybe_index = debug_iterator_index_if_available();
+						if (maybe_index.has_value()) {
+							const auto& index_ref = maybe_index.value();
+							if (size1 > index_ref) {
+								return std::addressof(*m_random_access_const_iterator);
+							}
+						}
+					}
+					return {};
+				}
+				optional1<_Ty const*> debug_item_cptr_if_available_helper1(std::false_type) const { return {}; }
+
+				optional1<_Ty const*> debug_item_cptr_if_available() const override {
+					return debug_item_cptr_if_available_helper1(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRandomAccessConstIterator1>::type());
+				}
+
+#ifdef MSE_HAS_CXX20
+				typedef mse::impl::conditional_t<mse::impl::is_complete_type<_Ty>::value, std::span<_Ty const>, _Ty const*> span1_t;
+				optional1<span1_t> debug_sequence_span_if_available_helper2(std::true_type) const {
+					const auto ptr1 = m_random_access_const_iterator.target_container_ptr();
+					if (ptr1) {
+						auto maybe_start_of_sequence_cptr = debug_start_of_sequence_cptr_if_available();
+						if (maybe_start_of_sequence_cptr.has_value()) {
+							auto start_of_sequence_cptr = maybe_start_of_sequence_cptr.value();
+							const auto size1 = mse::container_size(*ptr1);
+							return std::span<_Ty const>(start_of_sequence_cptr, size1);
+						}
+					}
+					return {};
+				}
+				optional1<span1_t> debug_sequence_span_if_available_helper2(std::false_type) const { return {}; }
+				optional1<span1_t> debug_sequence_span_if_available_helper1(std::true_type) const {
+					return debug_sequence_span_if_available_helper2(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRandomAccessConstIterator1>::type());
+				}
+				optional1<span1_t> debug_sequence_span_if_available_helper1(std::false_type) const {
+					return debug_start_of_sequence_cptr_if_available();
+				}
+
+				optional1<span1_t> debug_sequence_span_if_available() const override {
+					return debug_sequence_span_if_available_helper1(typename mse::impl::is_complete_type<_Ty>::type());
+				}
+#endif // MSE_HAS_CXX20
 
 				_TRandomAccessConstIterator1 m_random_access_const_iterator;
 			};
@@ -1907,10 +2005,10 @@ namespace mse {
 
 				mse::us::impl::ns_any::any m_any_random_access_iterator = mse::TRAIterator<mse::TRefCountingPointer<std::array<_Ty, 0> > >(mse::TRefCountingPointer<std::array<_Ty, 0> >(), 0);
 
-				IF_DEBUG(mutable CDebugValues m_debug_values;)
+				IF_DEBUG(mutable CDebugValues m_stale_debug_values;)
 
 				void update_debug_values() const {
-					IF_DEBUG(m_debug_values = updated_debug_values();)
+					IF_DEBUG(m_stale_debug_values = updated_debug_values();)
 				}
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_random_access_iterator, contained_any);
@@ -2134,6 +2232,36 @@ namespace mse {
 				static auto* s_common_random_access_iterator_interface_ptr(TAnyRandomAccessIteratorBase<_Ty2> const& iter) { return iter.common_random_access_iterator_interface_ptr(); }
 				template <typename _Ty2>
 				static auto* s_common_random_access_const_iterator_interface_ptr(TAnyRandomAccessConstIteratorBase<_Ty2> const& iter) { return iter.common_random_access_const_iterator_interface_ptr(); }
+
+				struct CDebugValues {
+					optional1<_Ty const*> maybe_debug_item_cptr;
+					optional1<size_t> maybe_debug_iterator_index;
+#ifdef MSE_HAS_CXX20
+					typedef mse::impl::conditional_t<mse::impl::is_complete_type<_Ty>::value, std::span<_Ty const>, _Ty const*> span1_t;
+					optional1<span1_t> maybe_debug_sequence_span;
+#else // MSE_HAS_CXX20
+					optional1<_Ty const*> maybe_debug_start_of_sequence_cptr;
+#endif // MSE_HAS_CXX20
+				};
+				CDebugValues updated_debug_values() const {
+					return CDebugValues{
+						common_random_access_const_iterator_interface_ptr()->debug_item_cptr_if_available()
+						, common_random_access_const_iterator_interface_ptr()->debug_iterator_index_if_available()
+#ifdef MSE_HAS_CXX20
+						, common_random_access_const_iterator_interface_ptr()->debug_sequence_span_if_available()
+#else // MSE_HAS_CXX20
+						, common_random_access_const_iterator_interface_ptr()->debug_start_of_sequence_cptr_if_available()
+#endif // MSE_HAS_CXX20
+					};
+				}
+
+				mse::us::impl::ns_any::any m_any_random_access_iterator = mse::TRAIterator<mse::TRefCountingPointer<std::array<_Ty, 0> > >(mse::TRefCountingPointer<std::array<_Ty, 0> >(), 0);
+
+				IF_DEBUG(mutable CDebugValues m_stale_debug_values;)
+
+					void update_debug_values() const {
+					IF_DEBUG(m_stale_debug_values = updated_debug_values();)
+				}
 
 				mse::us::impl::ns_any::any m_any_random_access_const_iterator = mse::TRAIterator<mse::TRefCountingPointer<std::array<const _Ty, 0> > >(mse::TRefCountingPointer<std::array<const _Ty, 0> >(), 0);
 

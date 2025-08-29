@@ -7990,6 +7990,13 @@ namespace mse {
 	}
 
 
+	namespace us {
+		namespace impl {
+			template<class T1>
+			using optional1 = mse::us::impl::ns_optional::optional_base2<T1, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag>;
+		}
+	}
+
 	namespace impl {
 		template<typename _Tz, typename _TPointer, typename _TTarget>
 		struct target_can_be_referenced_as_helper1 : std::false_type {};

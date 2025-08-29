@@ -3221,7 +3221,11 @@ namespace mse {
 	}
 
 
-
+	namespace us {
+		namespace impl {
+			;
+		}
+	}
 	namespace impl {
 		template <class _TPointer>
 		bool operator_bool_helper1(std::true_type, const _TPointer& ptr_cref) {
@@ -3234,6 +3238,17 @@ namespace mse {
 			determine if an iterator points to a valid item. */
 			assert(false);
 			return false;
+		}
+		template <class _TPointer>
+		mse::fixed_optional<bool> validity_status_if_available_helper1(std::true_type, const _TPointer& ptr_cref) {
+			return !(!ptr_cref);
+		}
+		template <class _TPointer>
+		mse::fixed_optional<bool> validity_status_if_available_helper1(std::false_type, const _TPointer&) {
+			/* We basically want to return the result of operator bool, but in this case the "pointer" type, _TPointer, is not convertible
+			to bool. Presumably because _TPointer is actually an iterator type. Unfortunately there isn't a good way, in general, to
+			determine if an iterator points to a valid item. */
+			return {};
 		}
 
 		template<class T, class TPotentialBaseClass>
@@ -3336,6 +3351,7 @@ namespace mse {
 				virtual _Ty& operator*() const = 0;
 				virtual _Ty* operator->() const = 0;
 				virtual explicit operator bool() const = 0;
+				virtual mse::fixed_optional<bool> validity_status_if_available() const = 0;
 			};
 
 			template <typename _Ty, typename _TPointer1>
@@ -3344,17 +3360,20 @@ namespace mse {
 				TCommonizedPointer(const _TPointer1& pointer) : m_pointer(pointer) {}
 				virtual ~TCommonizedPointer() {}
 
-				_Ty& operator*() const {
+				_Ty& operator*() const override {
 					/* Using the mse::us::impl::raw_reference_to<>() function allows us to, for example, obtain an 'int&' to
 					an mse::Tint<int>. This allows a pointer to an mse::TInt<int> to be used as a pointer to an int. */
 					return mse::us::impl::raw_reference_to<_Ty>(*m_pointer);
 				}
-				_Ty* operator->() const {
+				_Ty* operator->() const override {
 					return std::addressof(mse::us::impl::raw_reference_to<_Ty>(*m_pointer));
 				}
-				explicit operator bool() const {
+				explicit operator bool() const override {
 					//return bool(m_pointer);
 					return mse::impl::operator_bool_helper1<_TPointer1>(typename mse::impl::IsExplicitlyCastableToBool_pb<_TPointer1>::type(), m_pointer);
+				}
+				mse::fixed_optional<bool> validity_status_if_available() const override {
+					return mse::impl::validity_status_if_available_helper1<_TPointer1>(typename mse::impl::IsExplicitlyCastableToBool_pb<_TPointer1>::type(), m_pointer);
 				}
 
 				_TPointer1 m_pointer;
@@ -3365,14 +3384,14 @@ namespace mse {
 			public:
 				typedef TAnyPointerBaseV1 _Myt;
 
-				TAnyPointerBaseV1(const TAnyPointerBaseV1& src) : m_any_pointer(src.m_any_pointer) {}
+				TAnyPointerBaseV1(const TAnyPointerBaseV1& src) : m_any_pointer(src.m_any_pointer) { update_debug_value(); }
 
 				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(!std::is_convertible<_TPointer1, TAnyPointerBaseV1>::value)
 					&& (!std::is_base_of<TAnyConstPointerBaseV1<_Ty>, _TPointer1>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
 					> MSE_IMPL_EIS >
-				TAnyPointerBaseV1(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) {}
+				TAnyPointerBaseV1(const _TPointer1& pointer) : m_any_pointer(TCommonizedPointer<_Ty, _TPointer1>(pointer)) { update_debug_value(); }
 
 				_Ty& operator*() const {
 					return (*(*common_pointer_interface_ptr()));
@@ -3445,8 +3464,19 @@ namespace mse {
 					return retval;
 				}
 
+				_Ty const* updated_debug_value() const {
+					bool is_known_to_be_valid = common_pointer_interface_ptr()->validity_status_if_available().has_value() && common_pointer_interface_ptr()->validity_status_if_available().value();
+					return is_known_to_be_valid ? this->operator->() : nullptr;
+				}
+
 				typedef mse::us::impl::ns_any::any base_class;
 				base_class m_any_pointer = mse::TRefCountingPointer<_Ty>();
+
+				IF_DEBUG(mutable _Ty const* m_stale_debug_cptr = nullptr;)
+
+				void update_debug_value() const {
+					IF_DEBUG(m_stale_debug_cptr = updated_debug_value();)
+				}
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_pointer, contained_any)
 
@@ -3519,6 +3549,7 @@ namespace mse {
 				virtual const _Ty& operator*() const = 0;
 				virtual const _Ty* operator->() const = 0;
 				virtual explicit operator bool() const = 0;
+				virtual mse::fixed_optional<bool> validity_status_if_available() const = 0;
 			};
 
 			template <typename _Ty, typename _TConstPointer1>
@@ -3527,17 +3558,20 @@ namespace mse {
 				TCommonizedConstPointer(const _TConstPointer1& const_pointer) : m_const_pointer(const_pointer) {}
 				virtual ~TCommonizedConstPointer() {}
 
-				const _Ty& operator*() const {
+				const _Ty& operator*() const override {
 					/* Using the mse::us::impl::raw_reference_to<>() function allows us to, for example, obtain a 'const int&' to
 					an mse::Tint<int>. This allows a pointer to an mse::TInt<int> to be used as a pointer to a const int. */
 					return mse::us::impl::raw_reference_to<const _Ty>(*m_const_pointer);
 				}
-				const _Ty* operator->() const {
+				const _Ty* operator->() const override {
 					return std::addressof(mse::us::impl::raw_reference_to<const _Ty>(*m_const_pointer));
 				}
-				explicit operator bool() const {
+				explicit operator bool() const override {
 					//return bool(m_const_pointer);
 					return mse::impl::operator_bool_helper1<_TConstPointer1>(typename mse::impl::IsExplicitlyCastableToBool_pb<_TConstPointer1>::type(), m_const_pointer);
+				}
+				mse::fixed_optional<bool> validity_status_if_available() const override {
+					return mse::impl::validity_status_if_available_helper1<_TConstPointer1>(typename mse::impl::IsExplicitlyCastableToBool_pb<_TConstPointer1>::type(), m_const_pointer);
 				}
 
 				_TConstPointer1 m_const_pointer;
@@ -3548,15 +3582,15 @@ namespace mse {
 			public:
 				typedef TAnyConstPointerBaseV1 _Myt;
 
-				TAnyConstPointerBaseV1(const TAnyConstPointerBaseV1& src) : m_any_const_pointer(src.m_any_const_pointer) {}
-				TAnyConstPointerBaseV1(const TAnyPointerBaseV1<_Ty>& src) : m_any_const_pointer(src.m_any_pointer) {}
+				TAnyConstPointerBaseV1(const TAnyConstPointerBaseV1& src) : m_any_const_pointer(src.m_any_const_pointer) { update_debug_value(); }
+				TAnyConstPointerBaseV1(const TAnyPointerBaseV1<_Ty>& src) : m_any_const_pointer(src.m_any_pointer) { update_debug_value(); }
 
 				template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(!std::is_convertible<_TPointer1, TAnyConstPointerBaseV1>::value)
 					&& (!std::is_convertible<TAnyPointerBaseV1<_Ty>, _TPointer1>::value)
 					&& MSE_IMPL_IS_DEREFERENCEABLE_CRITERIA1(_TPointer1)
 					> MSE_IMPL_EIS >
-				TAnyConstPointerBaseV1(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) {}
+				TAnyConstPointerBaseV1(const _TPointer1& pointer) : m_any_const_pointer(TCommonizedConstPointer<_Ty, _TPointer1>(pointer)) { update_debug_value(); }
 
 				const _Ty& operator*() const {
 					return (*(*common_pointer_interface_const_ptr()));
@@ -3633,8 +3667,19 @@ namespace mse {
 					return retval;
 				}
 
+				_Ty const* updated_debug_value() const {
+					bool is_known_to_be_valid = common_pointer_interface_const_ptr()->validity_status_if_available().has_value() && common_pointer_interface_const_ptr()->validity_status_if_available().value();
+					return is_known_to_be_valid ? this->operator->() : nullptr;
+				}
+
 				typedef mse::us::impl::ns_any::any base_class;
 				base_class m_any_const_pointer = mse::TRefCountingPointer<const _Ty>();
+
+				IF_DEBUG(mutable _Ty const* m_stale_debug_cptr = nullptr;)
+
+				void update_debug_value() const {
+					IF_DEBUG(m_stale_debug_cptr = updated_debug_value();)
+				}
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_const_pointer, contained_any)
 
