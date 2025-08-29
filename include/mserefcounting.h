@@ -321,6 +321,7 @@ namespace mse {
 			if (!(r.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullPointer")); }
 		}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingNotNullPointer() {}
+		explicit operator bool() const { return true; }
 		TRefCountingNotNullPointer<_Ty>& operator=(const TRefCountingNotNullPointer<_Ty>& _Right_cref) {
 			if (!(_Right_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullPointer")); }
 			m_rcptr  = (_Right_cref.m_rcptr);
@@ -621,6 +622,7 @@ namespace mse {
 			if (!(src_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullConstPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullConstPointer")); }
 		}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TRefCountingNotNullConstPointer() {}
+		explicit operator bool() const { return true; }
 		TRefCountingNotNullConstPointer<_Ty>& operator=(const TRefCountingNotNullConstPointer<_Ty>& _Right_cref) {
 			if (!(_Right_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullConstPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullConstPointer")); }
 			m_rcptr = (_Right_cref.m_rcptr);
@@ -1307,6 +1309,9 @@ namespace mse {
 				}
 				if (sfptr1) {
 					int q = 7;
+				}
+				if (A_refcfp) {
+					int q = 5;
 				}
 			}
 #endif // MSE_SELF_TESTS
