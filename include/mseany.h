@@ -3472,10 +3472,10 @@ namespace mse {
 				typedef mse::us::impl::ns_any::any base_class;
 				base_class m_any_pointer = mse::TRefCountingPointer<_Ty>();
 
-				IF_DEBUG(mutable _Ty const* m_stale_debug_cptr = nullptr;)
+				MSE_IF_DEBUG(mutable _Ty const* m_stale_debug_cptr = nullptr;)
 
 				void update_debug_value() const {
-					IF_DEBUG(m_stale_debug_cptr = updated_debug_value();)
+					MSE_IF_DEBUG(m_stale_debug_cptr = updated_debug_value();)
 				}
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_pointer, contained_any)
@@ -3675,10 +3675,10 @@ namespace mse {
 				typedef mse::us::impl::ns_any::any base_class;
 				base_class m_any_const_pointer = mse::TRefCountingPointer<const _Ty>();
 
-				IF_DEBUG(mutable _Ty const* m_stale_debug_cptr = nullptr;)
+				MSE_IF_DEBUG(mutable _Ty const* m_stale_debug_cptr = nullptr;)
 
 				void update_debug_value() const {
-					IF_DEBUG(m_stale_debug_cptr = updated_debug_value();)
+					MSE_IF_DEBUG(m_stale_debug_cptr = updated_debug_value();)
 				}
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_const_pointer, contained_any)

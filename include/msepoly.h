@@ -1848,7 +1848,7 @@ namespace mse {
 
 				friend void swap(TAnyRandomAccessIteratorBase& first, TAnyRandomAccessIteratorBase& second) {
 					std::swap(first.m_any_random_access_iterator, second.m_any_random_access_iterator);
-					IF_DEBUG(first.update_debug_values(); second.update_debug_values();)
+					MSE_IF_DEBUG(first.update_debug_values(); second.update_debug_values();)
 				}
 
 				_Ty& operator*() const {
@@ -2005,10 +2005,10 @@ namespace mse {
 
 				mse::us::impl::ns_any::any m_any_random_access_iterator = mse::TRAIterator<mse::TRefCountingPointer<std::array<_Ty, 0> > >(mse::TRefCountingPointer<std::array<_Ty, 0> >(), 0);
 
-				IF_DEBUG(mutable CDebugValues m_stale_debug_values;)
+				MSE_IF_DEBUG(mutable CDebugValues m_stale_debug_values;)
 
 				void update_debug_values() const {
-					IF_DEBUG(m_stale_debug_values = updated_debug_values();)
+					MSE_IF_DEBUG(m_stale_debug_values = updated_debug_values();)
 				}
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_random_access_iterator, contained_any);
@@ -2257,10 +2257,10 @@ namespace mse {
 
 				mse::us::impl::ns_any::any m_any_random_access_iterator = mse::TRAIterator<mse::TRefCountingPointer<std::array<_Ty, 0> > >(mse::TRefCountingPointer<std::array<_Ty, 0> >(), 0);
 
-				IF_DEBUG(mutable CDebugValues m_stale_debug_values;)
+				MSE_IF_DEBUG(mutable CDebugValues m_stale_debug_values;)
 
 					void update_debug_values() const {
-					IF_DEBUG(m_stale_debug_values = updated_debug_values();)
+					MSE_IF_DEBUG(m_stale_debug_values = updated_debug_values();)
 				}
 
 				mse::us::impl::ns_any::any m_any_random_access_const_iterator = mse::TRAIterator<mse::TRefCountingPointer<std::array<const _Ty, 0> > >(mse::TRefCountingPointer<std::array<const _Ty, 0> >(), 0);
