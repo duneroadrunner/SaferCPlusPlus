@@ -4008,8 +4008,27 @@ namespace mse {
 				namespace ns_unsafe_cast {
 
 					template<typename _Ty, typename _Ty2>
-					_Ty unsafe_cast_helper10(std::false_type, const _Ty2& x) {
+					_Ty unsafe_cast_helper11(std::false_type, const _Ty2& x) {
 						return (_Ty const&)(x);
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper11(std::true_type, const _Ty2& x) {
+						/* So both _Ty and _Ty2 are dereferenceable, and _Ty is constructible from a raw pointer. So rather than hard/reinterpret cast 
+						from the parameter, of type _Ty2, to (presumably incompatible type) _Ty, it might be less dangerous to construct a raw pointer 
+						to the parameter's target object, hard cast that raw pointer to a raw pointer that targets the same type as _Ty does, then 
+						construct a _Ty object from that raw pointer. */
+						if (x) {
+							return _Ty((mse::impl::target_type<_Ty>*)std::addressof(*x));
+						}
+						return _Ty((mse::impl::target_type<_Ty>*)nullptr);
+					}
+
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper10(std::false_type, const _Ty2& x) {
+						return unsafe_cast_helper11<_Ty>(typename mse::impl::conjunction<
+							mse::impl::IsNullable_msemsearray<_Ty2>, mse::impl::IsDereferenceable_pb<_Ty2>, mse::impl::IsDereferenceable_pb<_Ty>
+							, std::is_constructible<_Ty, mse::impl::target_or_void_type<_Ty>*> 
+						>::type(), x);
 					}
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper10(std::true_type, const _Ty2& x) {
@@ -5466,6 +5485,8 @@ namespace mse {
 					//mse::lh::TLHNullableAnyPointer<char> z7 = (mse::lh::TLHNullableAnyPointer<char>)((mse::lh::void_star_replacement)lhnara_iter1);
 					//auto z8 = (int*)lhnara_iter1;
 					//auto z9 = (int*)vsr1;
+					auto z10 = mse::us::lh::unsafe_cast<mse::lh::TLHNullableAnyPointer<int> >(lhna_ptr1);
+					auto z11 = mse::us::lh::unsafe_cast<mse::lh::TLHNullableAnyPointer<int>>(lhnara_iter1);
 
 #if (!defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)) && (defined(MSE_HAS_CXX17) || (!defined(MSC_VER)))
 					bool b3 = (vsr1 == (void*)0);
