@@ -365,20 +365,10 @@ namespace mse {
 						}
 					};
 
-					template<class T, class EqualTo>
-					struct SupportsStdSwap_impl
-					{
-						template<class U, class V>
-						static auto test(U* u) -> decltype(std::swap(*u, *u), std::declval<V>(), bool(true));
-						template<typename, typename>
-						static auto test(...)->std::false_type;
-
-						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-						static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-					};
-					template<class T, class EqualTo = T>
-					struct SupportsStdSwap : SupportsStdSwap_impl<
-						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+					template <typename T, typename = void>
+					struct SupportsStdSwap : std::false_type {};
+					template <typename T>
+					struct SupportsStdSwap<T, mse::impl::void_t<decltype(std::swap(std::declval<T>(), std::declval<T>()))> > : std::true_type {};
 
 					/// Whether the type T must be dynamically allocated or can be stored on the stack.
 					template<typename T>
@@ -1022,37 +1012,15 @@ namespace mse
 				return mse::us::impl::ns_any::any_cast_make_maybe_pointer_helper01(cast_res, operand);
 			}
 
-			template<class T, class EqualTo>
-			struct IsSupportedByContainedAny_any_impl
-			{
-				template<class U, class V>
-				static auto test(U*) -> decltype((mse::us::impl::ns_any::contained_any(std::declval<U>())), mse::us::impl::ns_any::contained_any(std::declval<V>()), bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
+			template <typename T, typename = void>
+			struct IsSupportedByContainedAny_any : std::false_type {};
+			template <typename T>
+			struct IsSupportedByContainedAny_any<T, mse::impl::void_t<decltype(mse::us::impl::ns_any::contained_any(std::declval<T>()))> > : std::true_type {};
 
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			};
-			template<class T, class EqualTo = T>
-			struct IsSupportedByContainedAny_any : IsSupportedByContainedAny_any_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-			template<class T, class EqualTo>
-			struct IsSupportedByMaybeAnyCastPtrHelper1_any_impl
-			{
-				template<class U, class V>
-				static auto test(U*) -> decltype((maybe_any_cast_ptr_test1<int>(std::declval<U>())), (*std::declval<V>()), bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			};
-			template<>
-			struct IsSupportedByMaybeAnyCastPtrHelper1_any_impl<void*, void*> : std::false_type {};
-			template<class T, class EqualTo = T>
-			struct IsSupportedByMaybeAnyCastPtrHelper1_any : IsSupportedByMaybeAnyCastPtrHelper1_any_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+			template <typename T, typename = void>
+			struct IsSupportedByMaybeAnyCastPtrHelper1_any : std::false_type {};
+			template <typename T>
+			struct IsSupportedByMaybeAnyCastPtrHelper1_any<T, mse::impl::void_t<decltype(maybe_any_cast_ptr_test1<int>(std::declval<T>()))> > : std::true_type {};
 
 			template<class T, class U>
 			struct IsSupportedByMaybeAnyCastPtrHelper2_any : std::false_type {};
@@ -3296,6 +3264,7 @@ namespace mse {
 			_Ty* m_ptr = nullptr;
 		};
 
+#if 1
 		template<class T, class TID, class EqualTo>
 		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any_impl
 		{
@@ -3330,6 +3299,16 @@ namespace mse {
 		template<class T, class TID = void, class EqualTo = T>
 		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any : SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any_impl<
 			mse::impl::remove_reference_t<T>, TID, mse::impl::remove_reference_t<EqualTo> >::type {};
+
+#else // 1
+		template <typename T, class TID = void, typename = void>
+		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any : std::false_type {};
+		template <typename T, class TID>
+		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<T, TID, mse::impl::void_t<decltype((std::declval<T>() == std::declval<test_pointer<mse::impl::remove_reference_t<decltype(*std::declval<T>())>, TID> >()))> > : std::true_type {};
+		template <typename T>
+		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<T, void, mse::impl::void_t<decltype((std::declval<T>() == std::declval<test_pointer<mse::impl::remove_reference_t<decltype(*std::declval<T>())>, void> >()))> > : std::true_type {};
+#endif // 1
+
 	}
 
 	namespace us {

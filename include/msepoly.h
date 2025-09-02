@@ -1255,26 +1255,13 @@ namespace mse {
 
 	namespace impl {
 
-		template<class T, class EqualTo>
-		struct SupportsSubtraction_poly_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype((std::declval<U>() - std::declval<U>()), (std::declval<V>() - std::declval<V>()), bool(true));
-			template<typename, typename>
-			static auto test(...) -> std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-		};
-		template<>
-		struct SupportsSubtraction_poly_impl<void*, void*> : std::false_type {};
-		template<class T, class EqualTo = T>
-		struct SupportsSubtraction_poly : SupportsSubtraction_poly_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct SupportsSubtraction_poly : std::false_type {};
+		template <typename T>
+		struct SupportsSubtraction_poly<T, mse::impl::void_t<decltype(std::declval<T>() - std::declval<T>())> > : std::true_type {};
 
 		template <typename TToBeSubtracted, typename TToBeSubtractedFrom, typename = void>
 		struct SupportsSubtractionFrom_poly : std::false_type {};
-
 		template <typename TToBeSubtracted, typename TToBeSubtractedFrom>
 		struct SupportsSubtractionFrom_poly<TToBeSubtracted, TToBeSubtractedFrom,
 			mse::impl::void_t<decltype(std::declval<TToBeSubtractedFrom>() - std::declval<TToBeSubtracted>())>>
@@ -1323,6 +1310,7 @@ namespace mse {
 	namespace impl {
 #endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 
+#if 1
 		template<class T, class TID, class EqualTo>
 		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly_impl
 		{
@@ -1355,6 +1343,15 @@ namespace mse {
 		template<class T, class TID = void, class EqualTo = T>
 		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly : SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly_impl<
 			mse::impl::remove_reference_t<T>, TID, mse::impl::remove_reference_t<EqualTo> >::type {};
+#else // 1
+
+		template <typename T, class TID = void, typename = void>
+		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly : std::false_type {};
+		template <typename T, class TID>
+		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<T, TID, mse::impl::void_t<decltype((std::declval<T>() == std::declval<test_iterator<mse::impl::remove_reference_t<decltype(*std::declval<T>())>, TID> >()))> > : std::true_type {};
+		template <typename T>
+		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<T, void, mse::impl::void_t<decltype((std::declval<T>() == std::declval<test_iterator<mse::impl::remove_reference_t<decltype(*std::declval<T>())>, void> >()))> > : std::true_type {};
+#endif // 1
 	}
 
 	namespace us {
@@ -1577,20 +1574,10 @@ namespace mse {
 
 				_TRandomAccessIterator1 m_random_access_iterator;
 
-				template<class T, class EqualTo>
-				struct IsDynamicCastable_impl
-				{
-					template<class U, class V>
-					static auto test(U*) -> decltype(dynamic_cast<const TCommonizedRandomAccessIterator<mse::impl::remove_const_t<_Ty>, U>*>(&std::declval<const TCommonRandomAccessIteratorInterface<_Ty>&>()), dynamic_cast<const TCommonizedRandomAccessIterator<mse::impl::remove_const_t<_Ty>, V>*>(&std::declval<const TCommonRandomAccessIteratorInterface<_Ty>&>()), bool(true));
-					template<typename, typename>
-					static auto test(...) -> std::false_type;
-
-					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				};
-				template<class T, class EqualTo = T>
-				struct IsDynamicCastable : IsDynamicCastable_impl<
-					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+				template <typename T, typename = void>
+				struct IsDynamicCastable : std::false_type {};
+				template <typename T>
+				struct IsDynamicCastable<T, mse::impl::void_t<decltype(dynamic_cast<const TCommonizedRandomAccessIterator<mse::impl::remove_const_t<_Ty>, T>*>(&std::declval<const TCommonRandomAccessIteratorInterface<_Ty>&>()))> > : std::true_type {};
 			};
 
 			/* Note: This class needs to be maintained as structurally identical to its non-const counterpart (above) as there may 
@@ -3253,7 +3240,7 @@ namespace mse {
 				}
 #endif // !defined(MSE_HAS_CXX17)
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#if (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 				friend bool operator!=(const std::nullptr_t& _Left_cref, const TNullableAnyRandomAccessIteratorBase& _Right_cref) {
 					return !(_Left_cref == _Right_cref);
 				}
@@ -3267,7 +3254,7 @@ namespace mse {
 				friend bool operator==(const TNullableAnyRandomAccessIteratorBase& _Left_cref, const std::nullptr_t&) {
 					return !bool(_Left_cref);
 				}
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#else // (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 #ifndef MSE_HAS_CXX20
 				template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TNullableAnyRandomAccessIteratorBase, TRHS>::value)> MSE_IMPL_EIS >
 				friend bool operator!=(const std::nullptr_t& _Left_cref, const TRHS& _Right_cref) {
@@ -3287,7 +3274,7 @@ namespace mse {
 				friend bool operator==(const TLHS& _Left_cref, const std::nullptr_t&) {
 					return !bool(_Left_cref);
 				}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#endif // (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 
 				TNullableAnyRandomAccessIteratorBase& operator=(const std::nullptr_t& _Right_cref) {
 					return operator=(TNullableAnyRandomAccessIteratorBase());
@@ -3353,7 +3340,7 @@ namespace mse {
 			std::swap(first.contained_iter(), second.contained_iter());
 		}
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#if (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 		friend bool operator!=(const std::nullptr_t& _Left_cref, const TNullableAnyRandomAccessIterator& _Right_cref) {
 			return !(_Left_cref == _Right_cref);
 		}
@@ -3367,7 +3354,7 @@ namespace mse {
 		friend bool operator==(const TNullableAnyRandomAccessIterator& _Left_cref, const std::nullptr_t&) {
 			return !bool(_Left_cref);
 		}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#endif // (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 
 		TNullableAnyRandomAccessIterator& operator=(const std::nullptr_t& _Right_cref) {
 			return operator=(TNullableAnyRandomAccessIterator());
@@ -3434,7 +3421,7 @@ namespace mse {
 			std::swap(first.contained_iter(), second.contained_iter());
 		}
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#if (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 		friend bool operator!=(const std::nullptr_t& _Left_cref, const TXScopeNullableAnyRandomAccessIterator& _Right_cref) {
 			return !(_Left_cref == _Right_cref);
 		}
@@ -3448,7 +3435,7 @@ namespace mse {
 		friend bool operator==(const TXScopeNullableAnyRandomAccessIterator& _Left_cref, const std::nullptr_t&) {
 			return !bool(_Left_cref);
 		}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#endif // (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 
 		MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeNullableAnyRandomAccessIterator);
 
@@ -3518,7 +3505,7 @@ namespace mse {
 
 		/* There is already a generic equality operator for all classes descended from TAnyPointerBaseV1<> . */
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#if (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 		friend bool operator!=(const std::nullptr_t& _Left_cref, const TNullableAnyPointer& _Right_cref) {
 			return !(_Left_cref == _Right_cref);
 		}
@@ -3532,7 +3519,7 @@ namespace mse {
 		friend bool operator==(const TNullableAnyPointer& _Left_cref, const std::nullptr_t&) {
 			return !bool(_Left_cref);
 		}
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+#else // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 		/* We use a templated equality comparison operator to avoid potential arguments being implicitly converted. */
 #ifndef MSE_HAS_CXX20
 		template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TNullableAnyPointer, TRHS>::value)> MSE_IMPL_EIS >
@@ -3554,7 +3541,7 @@ namespace mse {
 			return !bool(_Left_cref);
 		}
 
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+#endif // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 
 		explicit operator bool() const {
 			return (!m_is_null);
@@ -3604,7 +3591,7 @@ namespace mse {
 
 		/* There is already a generic equality operator for all classes descended from TAnyPointerBaseV1<> . */
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#if (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 		friend bool operator!=(const std::nullptr_t& _Left_cref, const TXScopeNullableAnyPointer& _Right_cref) {
 			return !(_Left_cref == _Right_cref);
 		}
@@ -3618,7 +3605,7 @@ namespace mse {
 		friend bool operator==(const TXScopeNullableAnyPointer& _Left_cref, const std::nullptr_t&) {
 			return !bool(_Left_cref);
 		}
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+#else // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 		/* We use a templated equality comparison operator to avoid potential arguments being implicitly converted. */
 #ifndef MSE_HAS_CXX20
 		template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TXScopeNullableAnyPointer, TRHS>::value)> MSE_IMPL_EIS >
@@ -3640,7 +3627,7 @@ namespace mse {
 			return !bool(_Left_cref);
 		}
 
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+#endif // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 
 		explicit operator bool() const {
 			return (!m_is_null);

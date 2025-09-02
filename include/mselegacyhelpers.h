@@ -578,7 +578,7 @@ namespace mse {
 
 			/* Some of the comparision operators are currently inherited from base class. */
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#if (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 #if !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
 			friend bool operator==(const _Myt& _Left_cref, const _Myt& _Right_cref) {
 				if (!bool(_Left_cref)) {
@@ -606,7 +606,7 @@ namespace mse {
 			friend bool operator!=(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !(_Left_cref == _Right_cref); }
 			friend bool operator==(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !bool(_Right_cref); }
 			friend bool operator==(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !bool(_Left_cref); }
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#else // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 #ifndef MSE_HAS_CXX20
 			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value) && (std::is_base_of<_Myt, TRHS>::value)> MSE_IMPL_EIS >
 			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
@@ -626,7 +626,7 @@ namespace mse {
 			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
 				assert(0 == _Right_cref); return !bool(_Left_cref);
 			}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#endif // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 
 			TLHNullableAnyPointer& operator=(const TLHNullableAnyPointer& _Right_cref) {
 				base_class::operator=(_Right_cref);
@@ -734,7 +734,7 @@ namespace mse {
 
 			/* Some of the comparision operators are currently inherited from base class. */
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#if (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 #if !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
 			friend bool operator==(const _Myt& _Left_cref, const _Myt& _Right_cref) {
 				if (!bool(_Left_cref)) {
@@ -762,7 +762,7 @@ namespace mse {
 			friend bool operator!=(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !(_Left_cref == _Right_cref); }
 			friend bool operator==(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !bool(_Right_cref); }
 			friend bool operator==(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !bool(_Left_cref); }
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#else // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 #ifndef MSE_HAS_CXX20
 			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value) && (std::is_base_of<_Myt, TRHS>::value)> MSE_IMPL_EIS >
 			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
@@ -782,7 +782,7 @@ namespace mse {
 			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
 				assert(0 == _Right_cref); return !bool(_Left_cref);
 			}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#endif // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 
 			explicit operator bool() const {
 				return base_class::operator bool();
@@ -1140,7 +1140,7 @@ namespace mse {
 					}
 #endif // !defined(MSE_HAS_CXX17)
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#if (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 					friend bool operator!=(const std::nullptr_t& _Left_cref, const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
 						return !(_Left_cref == _Right_cref);
 					}
@@ -1154,7 +1154,7 @@ namespace mse {
 					friend bool operator==(const TLHNullableAnyRandomAccessIteratorBase& _Left_cref, const std::nullptr_t&) {
 						return !bool(_Left_cref);
 					}
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#else // (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 #ifndef MSE_HAS_CXX20
 					template<typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TRHS>::value)> MSE_IMPL_EIS >
 					friend bool operator!=(const std::nullptr_t& _Left_cref, const TRHS& _Right_cref) {
@@ -1174,9 +1174,9 @@ namespace mse {
 					friend bool operator==(const TLHS& _Left_cref, const std::nullptr_t&) {
 						return !bool(_Left_cref);
 					}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#endif // (defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#if (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 					friend bool operator!=(const NULL_t& _Left_cref, const TLHNullableAnyRandomAccessIteratorBase& _Right_cref) {
 						return !(_Left_cref == _Right_cref);
 					}
@@ -1190,7 +1190,7 @@ namespace mse {
 					friend bool operator==(const TLHNullableAnyRandomAccessIteratorBase& _Left_cref, const NULL_t&) {
 						return !bool(_Left_cref);
 					}
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+#else // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 					/* We use a templated equality comparison operator to avoid potentially competing with the base class equality comparison with nullptr operator. */
 #ifndef MSE_HAS_CXX20
 					template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value || std::is_same<ZERO_LITERAL_t, TLHS>::value) && std::is_base_of<TLHNullableAnyRandomAccessIteratorBase, TRHS>::value> MSE_IMPL_EIS >
@@ -1215,7 +1215,7 @@ namespace mse {
 						assert(0 == _Right_cref);
 						return !bool(_Left_cref);
 					}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
+#endif // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 
 #if 0
 #ifndef MSE_HAS_CXX20
@@ -3611,7 +3611,7 @@ namespace mse {
 			}
 #endif // !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#if (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 			friend bool operator!=(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !(_Left_cref == _Right_cref); }
 			friend bool operator!=(const _Myt& _Left_cref, const NULL_t& _Right_cref) { assert(0 == _Right_cref); return !(_Left_cref == _Right_cref); }
 			friend bool operator==(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !bool(_Right_cref); }
@@ -3621,7 +3621,7 @@ namespace mse {
 			friend bool operator!=(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !(_Left_cref == _Right_cref); }
 			friend bool operator==(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !bool(_Right_cref); }
 			friend bool operator==(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !bool(_Left_cref); }
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#else // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 #ifndef MSE_HAS_CXX20
 			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value) && (std::is_base_of<_Myt, TRHS>::value)> MSE_IMPL_EIS >
 			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
@@ -3657,7 +3657,7 @@ namespace mse {
 			friend bool operator==(const void_star_replacement& _Left_cref, const void* _Right_cref) {
 				return (_Left_cref.m_shadow_void_const_ptr == _Right_cref);
 			}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#endif // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 
 			friend void swap(void_star_replacement& first, void_star_replacement& second) {
 				std::swap(static_cast<base_class&>(first), static_cast<base_class&>(second));
@@ -3800,7 +3800,7 @@ namespace mse {
 			}
 #endif // !defined(MSE_HAS_CXX17) && defined(_MSC_VER)
 
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#if (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 			friend bool operator!=(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !(_Left_cref == _Right_cref); }
 			friend bool operator!=(const _Myt& _Left_cref, const NULL_t& _Right_cref) { assert(0 == _Right_cref); return !(_Left_cref == _Right_cref); }
 			friend bool operator==(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !bool(_Right_cref); }
@@ -3810,7 +3810,7 @@ namespace mse {
 			friend bool operator!=(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !(_Left_cref == _Right_cref); }
 			friend bool operator==(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !bool(_Right_cref); }
 			friend bool operator==(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !bool(_Left_cref); }
-#else // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#else // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 #ifndef MSE_HAS_CXX20
 			template<typename TLHS, typename TRHS, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<NULL_t, TLHS>::value) && (std::is_base_of<_Myt, TRHS>::value)> MSE_IMPL_EIS >
 			friend bool operator!=(const TLHS& _Left_cref, const TRHS& _Right_cref) {
@@ -3830,7 +3830,7 @@ namespace mse {
 			friend bool operator==(const TLHS& _Left_cref, const TRHS& _Right_cref) {
 				assert(0 == _Right_cref); return !bool(_Left_cref);
 			}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY) || (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
+#endif // (!defined(MSE_HAS_CXX17) && defined(_MSC_VER))
 
 
 
@@ -4074,11 +4074,7 @@ namespace mse {
 
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper5(std::false_type, const _Ty2& x) {
-#ifdef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
-						if (!bool(x))
-#else // MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 						if (x == nullptr)
-#endif // MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 						{
 							return nullptr;
 						}
@@ -4312,14 +4308,6 @@ namespace mse {
 						m_pointer_vec.push_back(nullptr);
 					}
 				}
-#if defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
-				/* A couple of (otherwise redundant) constructors to help resolve ambiguity due to having to loosen the constructability 
-				criteria for pointers for older msvc compilers. */
-				TXScopePointerToRawPointersStore(mse::TRegisteredNotNullPointer<mse::lh::TStrongVectorIterator<_Ty> >  ptr1) 
-					: TXScopePointerToRawPointersStore(mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TStrongVectorIterator<_Ty> >(ptr1)) {}
-				TXScopePointerToRawPointersStore(mse::TRegisteredNotNullPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> >  ptr1)
-					: TXScopePointerToRawPointersStore(mse::lh::TXScopeLHNullableAnyPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> >(ptr1)) {}
-#endif // defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)
 
 				template<typename TIter>
 				void destructor_helper1(TIter iter_ptr) {
@@ -5016,9 +5004,7 @@ namespace mse {
 					auto b1 = (vsr1 == vsr2);
 					mse::lh::TLHNullableAnyPointer<int> lhnaptr1 = &i1_reg;
 					auto b2 = (lhnaptr1 == nullptr);
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 					auto b3 = (lhnaptr1 == vsr1);
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 					auto b4 = (NULL == vsr1);
 					MSE_TRY{
 						auto tint2_regptr = (decltype(&std::declval<mse::TRegisteredObj<int> >()))(vsr1);
@@ -5488,10 +5474,10 @@ namespace mse {
 					auto z10 = mse::us::lh::unsafe_cast<mse::lh::TLHNullableAnyPointer<int> >(lhna_ptr1);
 					auto z11 = mse::us::lh::unsafe_cast<mse::lh::TLHNullableAnyPointer<int>>(lhnara_iter1);
 
-#if (!defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)) && (defined(MSE_HAS_CXX17) || (!defined(MSC_VER)))
+#if (defined(MSE_HAS_CXX17) || (!defined(MSC_VER)))
 					bool b3 = (vsr1 == (void*)0);
 					bool b4 = (((void*)0) != vsr1);
-#endif // (!defined(MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY)) && (defined(MSE_HAS_CXX17) || (!defined(MSC_VER)))
+#endif // (defined(MSE_HAS_CXX17) || (!defined(MSC_VER)))
 
 					int q = 5;
 				}
@@ -5513,7 +5499,6 @@ namespace mse {
 					int q = 5;
 				}
 				{
-#ifndef MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 					auto testfn1 = [](char** chpp) {
 						static char s_ch1 = 'b';
 						(*chpp) = &s_ch1;
@@ -5522,7 +5507,6 @@ namespace mse {
 					testfn1(mse::us::lh::make_temporary_raw_pointer_to_pointer_proxy_from(&naptr1));
 					std::cout << *naptr1 << " \n";
 					int q = 5;
-#endif // !MSE_IMPL_MSC_CXX17_PERMISSIVE_MODE_COMPATIBILITY
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
 
