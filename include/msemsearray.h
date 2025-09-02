@@ -304,65 +304,25 @@ namespace mse {
 	namespace impl {
 		/* Some data structures to determine, at compile time, if a given type has certain features. */
 
-		template<class T, class EqualTo>
-		struct HasOrInheritsEqualityOperator_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>() == std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
+		template <typename T, typename = void>
+		struct HasOrInheritsEqualityOperator_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsEqualityOperator_msemsearray<T, mse::impl::void_t<decltype(std::declval<T>() == std::declval<T>())> > : std::true_type {};
 
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsEqualityOperator_msemsearray : HasOrInheritsEqualityOperator_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct HasOrInheritsTargetContainerPtrMethod_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsTargetContainerPtrMethod_msemsearray<T, mse::impl::void_t<decltype((std::declval<T>()).target_container_ptr())> > : std::true_type {};
 
-		template<class T, class EqualTo>
-		struct HasOrInheritsTargetContainerPtrMethod_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>().target_container_ptr(), std::declval<V>().target_container_ptr(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
+		template <typename T, typename = void>
+		struct HasOrInheritsSizeMethod_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsSizeMethod_msemsearray<T, mse::impl::void_t<decltype((std::declval<T>()).size())> > : std::true_type {};
 
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsTargetContainerPtrMethod_msemsearray : HasOrInheritsTargetContainerPtrMethod_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-		template<class T, class EqualTo>
-		struct HasOrInheritsSizeMethod_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>().size(), std::declval<V>().size(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsSizeMethod_msemsearray : HasOrInheritsSizeMethod_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-		template<class T, class EqualTo>
-		struct HasOrInheritsPlusEqualsOperator_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>() += 1, std::declval<V>() += 1, bool(true));
-			template<typename, typename>
-			static auto test(...) -> std::false_type;
-
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsPlusEqualsOperator_msemsearray : HasOrInheritsPlusEqualsOperator_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct HasOrInheritsPlusEqualsOperator_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsPlusEqualsOperator_msemsearray<T, mse::impl::void_t<decltype((std::declval<T>()) += 1)> > : std::true_type {};
 	}
 
 
@@ -587,39 +547,20 @@ namespace mse {
 
 	namespace impl {
 
-		template<class T, class EqualTo>
-		struct IsNullable_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype((std::declval<U>() == nullptr), (std::declval<V>() == nullptr), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			static const bool value = type();
-		};
-		template<class T, class EqualTo = T>
-		struct IsNullable_msemsearray : IsNullable_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct IsNullable_msemsearray : std::false_type {};
+		template <typename T>
+		struct IsNullable_msemsearray<T, mse::impl::void_t<decltype(std::declval<T>() == nullptr)> > : std::true_type {};
 
 		template<typename T, size_t n>
 		size_t native_array_size_msemsearray(const T(&)[n]) {
 			return n;
 		}
-		template<class T, class EqualTo>
-		struct IsNativeArray_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(native_array_size_msemsearray(std::declval<U>()), native_array_size_msemsearray(std::declval<V>()), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
 
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			static const bool value = type();
-		};
-		template<class T, class EqualTo = T>
-		struct IsNativeArray_msemsearray : IsNativeArray_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct IsNativeArray_msemsearray : std::false_type {};
+		template <typename T>
+		struct IsNativeArray_msemsearray<T, mse::impl::void_t<decltype(native_array_size_msemsearray(std::declval<T>()))> > : std::true_type {};
 
 		template<typename T>
 		struct is_std_array_strict : std::integral_constant<bool, false> {};
@@ -647,38 +588,20 @@ namespace mse {
 		template <typename _Ty> struct is_pointer_to_lockable_structure_container_helper1<std::false_type, _Ty> : std::false_type {};
 		template <typename _Ty> struct is_pointer_to_lockable_structure_container : is_pointer_to_lockable_structure_container_helper1<typename mse::impl::IsDereferenceable_pb<_Ty>::type, _Ty> {};
 
-		template<class T, class EqualTo>
-		struct IsSupportedByStdBegin_impl
-		{
-			template<class U, class V>
-			static auto test(U* u) -> decltype(std::begin(*u), std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct IsSupportedByStdBegin : IsSupportedByStdBegin_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct IsSupportedByStdBegin : std::false_type {};
+		template <typename T>
+		struct IsSupportedByStdBegin<T, mse::impl::void_t<decltype(std::begin(std::declval<T>()))> > : std::true_type {};
 
 		template <typename _Tx, typename _Ty> struct has_random_access_implicit_iterators_helper2 : std::false_type {};
 		template <typename _Ty> struct has_random_access_implicit_iterators_helper2<std::true_type, _Ty> : std::integral_constant<bool,
 			(std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<decltype(std::begin(std::declval<_Ty>()))>::iterator_category>::value)> {};
 		template <typename _Ty> struct has_random_access_implicit_iterators : has_random_access_implicit_iterators_helper2<typename IsSupportedByStdBegin<_Ty>::type, _Ty> {};
 
-		template<class T, class EqualTo>
-		struct HasOrInheritsDataMemberFunction_impl
-		{
-			template<class U, class V>
-			static auto test(U* u) -> decltype((*u).data(), std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsDataMemberFunction : HasOrInheritsDataMemberFunction_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct HasOrInheritsDataMemberFunction : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsDataMemberFunction<T, mse::impl::void_t<decltype((std::declval<T>()).data())> > : std::true_type {};
 
 		template <typename _Tx, typename _Ty> struct is_contiguous_sequence_container_helper1 : std::integral_constant<bool,
 			(has_random_access_implicit_iterators<_Ty>::value && HasOrInheritsDataMemberFunction<_Ty>::value)> {};
@@ -1820,20 +1743,10 @@ namespace mse {
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(value_at)
 
 	namespace impl {
-		template<class T, class EqualTo>
-		struct HasDifferenceTypeMember_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<typename U::difference_type>() == std::declval<typename V::difference_type>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasDifferenceTypeMember_msemsearray : HasDifferenceTypeMember_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct HasDifferenceTypeMember_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasDifferenceTypeMember_msemsearray<T, mse::impl::void_t<decltype((std::declval<typename T::difference_type>()))> > : std::true_type {};
 
 		template<bool, class TIter>
 		struct difference_type_of_iterator_helper;
@@ -5972,75 +5885,30 @@ namespace std {
 namespace mse {
 
 	namespace impl {
-		template<class T, class EqualTo>
-		struct SupportsStdBegin_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U* u) -> decltype(std::begin(*u), std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
+		template <typename T, typename = void>
+		struct SupportsStdBegin_msemsearray : std::false_type {};
+		template <typename T>
+		struct SupportsStdBegin_msemsearray<T, mse::impl::void_t<decltype(std::begin(std::declval<T>()))> > : std::true_type {};
 
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct SupportsStdBegin_msemsearray : SupportsStdBegin_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct HasOrInheritsStaticSSBeginMethod_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsStaticSSBeginMethod_msemsearray<T, mse::impl::void_t<decltype(T::ss_begin(std::declval<mse::us::impl::TPointer<T> >()))> > : std::true_type {};
 
-		template<class T, class EqualTo>
-		struct HasOrInheritsStaticSSBeginMethod_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U* u) -> decltype(U::ss_begin(std::declval<mse::us::impl::TPointer<U> >()), std::declval<V*>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
+		template <typename T, typename = void>
+		struct HasOrInheritsStaticXScopeSSBeginMethod_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsStaticXScopeSSBeginMethod_msemsearray<T, mse::impl::void_t<decltype(T::xscope_ss_begin(std::declval<mse::TXScopeFixedPointer<T> >()))> > : std::true_type {};
 
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsStaticSSBeginMethod_msemsearray : HasOrInheritsStaticSSBeginMethod_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct HasOrInheritsXScopeIteratorMemberType_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsXScopeIteratorMemberType_msemsearray<T, mse::impl::void_t<decltype(std::declval<typename T::xscope_const_iterator>())> > : std::true_type {};
 
-		template<class T, class EqualTo>
-		struct HasOrInheritsStaticXScopeSSBeginMethod_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U* u) -> decltype(U::xscope_ss_begin(std::declval<mse::TXScopeFixedPointer<U> >()), std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsStaticXScopeSSBeginMethod_msemsearray : HasOrInheritsStaticXScopeSSBeginMethod_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-		template<class T, class EqualTo>
-		struct HasOrInheritsXScopeIteratorMemberType_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<typename U::xscope_const_iterator>(), std::declval<typename V::xscope_const_iterator>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsXScopeIteratorMemberType_msemsearray : HasOrInheritsXScopeIteratorMemberType_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-		template<class T, class EqualTo>
-		struct HasOrInheritsBeginMethod_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U* u) -> decltype((*u).begin(), std::declval<V*>(), bool(true));
-			template<typename, typename>
-			static auto test(...) -> std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsBeginMethod_msemsearray : HasOrInheritsBeginMethod_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct HasOrInheritsBeginMethod_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsBeginMethod_msemsearray<T, mse::impl::void_t<decltype((std::declval<T>()).begin())> > : std::true_type {};
 
 		namespace iterator {
 			template <typename _TRALoneParam>
@@ -6721,33 +6589,15 @@ namespace mse {
 
 	namespace rsv {
 		namespace impl {
-			template<class T, class EqualTo>
-			struct HasOrInheritsStaticXSLTASSBeginMethod_msemsearray_impl
-			{
-				template<class U, class V>
-				static auto test(U* u) -> decltype(U::xslta_ss_begin(std::declval<mse::rsv::TXSLTAPointer<U> >()), std::declval<V>(), bool(true));
-				template<typename, typename>
-				static auto test(...) -> std::false_type;
+			template <typename T, typename = void>
+			struct HasOrInheritsStaticXSLTASSBeginMethod_msemsearray : std::false_type {};
+			template <typename T>
+			struct HasOrInheritsStaticXSLTASSBeginMethod_msemsearray<T, mse::impl::void_t<decltype(T::xslta_ss_begin(std::declval<mse::rsv::TXSLTAPointer<T> >()))> > : std::true_type {};
 
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct HasOrInheritsStaticXSLTASSBeginMethod_msemsearray : HasOrInheritsStaticXSLTASSBeginMethod_msemsearray_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-			template<class T, class EqualTo>
-			struct HasOrInheritsXSLTAIteratorMemberType_msemsearray_impl
-			{
-				template<class U, class V>
-				static auto test(U*) -> decltype(std::declval<typename U::xslta_const_iterator>(), std::declval<typename V::xslta_const_iterator>(), bool(true));
-				template<typename, typename>
-				static auto test(...) -> std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct HasOrInheritsXSLTAIteratorMemberType_msemsearray : HasOrInheritsXSLTAIteratorMemberType_msemsearray_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+			template <typename T, typename = void>
+			struct HasOrInheritsXSLTAIteratorMemberType_msemsearray : std::false_type {};
+			template <typename T>
+			struct HasOrInheritsXSLTAIteratorMemberType_msemsearray<T, mse::impl::void_t<decltype(std::declval<typename T::xslta_const_iterator>())> > : std::true_type {};
 		}
 
 		namespace impl {

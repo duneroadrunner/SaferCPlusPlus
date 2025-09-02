@@ -443,37 +443,15 @@ namespace mse {
 
 
 	namespace impl {
-		template<class T, class EqualTo>
-		struct HasOrInheritsAssignmentOperator_pb_impl
-		{
-			template<class U, class V>
-			static auto test(U* u) -> decltype(*u = *u, std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
+		template <typename T, typename = void>
+		struct HasOrInheritsAssignmentOperator_pb : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsAssignmentOperator_pb<T, mse::impl::void_t<decltype(std::declval<T>() = std::declval<T>())> > : std::true_type {};
 
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsAssignmentOperator_pb : HasOrInheritsAssignmentOperator_pb_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-		template<class T, class EqualTo>
-		struct IsExplicitlyCastableToBool_pb_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(bool(std::declval<U>()), bool(std::declval<V>()), bool(true));
-			template<typename, typename>
-			static auto test(...) -> std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-		};
-		template<>
-		struct IsExplicitlyCastableToBool_pb_impl<void*, void*> : std::false_type {};
-		template<class T, class EqualTo = T>
-		struct IsExplicitlyCastableToBool_pb : IsExplicitlyCastableToBool_pb_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct IsExplicitlyCastableToBool_pb : std::false_type {};
+		template <typename T>
+		struct IsExplicitlyCastableToBool_pb<T, mse::impl::void_t<decltype(bool(std::declval<T>()))> > : std::true_type {};
 	}
 
 #define MSE_USING_ASSIGNMENT_OPERATOR(Base) \
@@ -1045,19 +1023,10 @@ namespace mse {
 	namespace impl {
 		namespace lambda {
 
-			template<class T, class EqualTo>
-			struct HasOrInheritsFunctionCallOperator_impl
-			{
-				template<class U, class V>
-				static auto test(U*) -> decltype(std::declval<U>().operator(), std::declval<V>(), bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct HasOrInheritsFunctionCallOperator : HasOrInheritsFunctionCallOperator_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+			template <typename T, typename = void>
+			struct HasOrInheritsFunctionCallOperator : std::false_type {};
+			template <typename T>
+			struct HasOrInheritsFunctionCallOperator<T, mse::impl::void_t<decltype((std::declval<T>()).operator())> > : std::true_type {};
 
 			template<typename T> struct remove_class { };
 			template<typename C, typename R, typename... A>
