@@ -117,6 +117,7 @@
 #define MSE_LH_STRTOK_R(str, delim, pointer_to_buffer_iterator) strtok_r(str, delim, pointer_to_buffer_iterator)
 #define MSE_LH_STRNDUP(str, size) strndup(str, size)
 #define MSE_LH_STRDUP(str) strdup(str)
+#define MSE_LH_MEMDUP(iter, size) mse::lh::memdup(iter, size)
 
 #define MSE_LH_ADDRESSABLE_TYPE(object_type) object_type
 #define MSE_LH_POINTER_TYPE(element_type) element_type *
@@ -212,6 +213,7 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_STRTOK_R(str, delim, pointer_to_buffer_iterator) mse::lh::strtok_r(str, delim, pointer_to_buffer_iterator)
 #define MSE_LH_STRNDUP(str, size) mse::lh::strndup(str, size)
 #define MSE_LH_STRDUP(str) mse::lh::strdup(str)
+#define MSE_LH_MEMDUP(iter, size) mse::lh::memdup(iter, size)
 
 /* MSE_LH_ADDRESSABLE_TYPE() is a type annotation used to indicate that the '&' operator may/will be used to obtain the address of
 the associated declared object(s). */
@@ -249,6 +251,8 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_IF_DISABLED(x)
 
 namespace mse {
+	typedef intptr_t lh_ssize_t;
+
 	namespace lh {
 		namespace impl {
 			template<class _TIter>
@@ -268,6 +272,88 @@ namespace mse {
 		template<class _TIter>
 		size_t strnlen_s(_TIter const& str, size_t strsz) {
 			return impl::strnlen_s_helper1(typename mse::impl::IsNullable_msemsearray<_TIter>::type(), str, strsz);
+		}
+
+		namespace us {
+			namespace impl {
+				/* Apr 2025: C getline() implementation from stackoverflow comment: https://stackoverflow.com/a/47229318 */
+
+				/* Modifications, public domain as well, by Antti Haapala, 11/10/2017
+				   - Switched to getc on 5/23/2019
+				   - Proper error handling on IO error and wraparound
+					 check on buffer extension 3/31/2025 - 4/2/2025
+				*/
+
+				static const size_t MINIMUM_BUFFER_SIZE = 128;
+
+				inline lh_ssize_t lh_getline(char** lineptr, size_t* n, FILE* stream) {
+					size_t pos;
+					int c;
+
+					if (lineptr == NULL || stream == NULL || n == NULL) {
+						errno = EINVAL;
+						return -1;
+					}
+
+					c = getc(stream);
+					if (c == EOF) {
+						return -1;
+					}
+
+					if (*lineptr == NULL) {
+						*lineptr = (char*)malloc(MINIMUM_BUFFER_SIZE);
+						if (*lineptr == NULL) {
+							return -1;
+						}
+						*n = MINIMUM_BUFFER_SIZE;
+					}
+
+					pos = 0;
+					while (c != EOF) {
+						if (pos + 1 >= *n) {
+							size_t new_size = *n + (*n >> 2);
+
+							// have some reasonable minimum
+							if (new_size < MINIMUM_BUFFER_SIZE) {
+								new_size = MINIMUM_BUFFER_SIZE;
+							}
+
+							// size_t wraparound
+							if (new_size <= *n) {
+								errno = ENOMEM;
+								return -1;
+							}
+
+							// Note you might also want to check that PTRDIFF_MAX
+							// is not exceeded!
+
+							char* new_ptr = (char*)realloc(*lineptr, new_size);
+							if (new_ptr == NULL) {
+								return -1;
+							}
+							*n = new_size;
+							*lineptr = new_ptr;
+						}
+
+						((unsigned char*)(*lineptr))[pos++] = (unsigned char)c;
+						if (c == '\n') {
+							break;
+						}
+						c = getc(stream);
+					}
+
+					(*lineptr)[pos] = '\0';
+
+					// if an IO error occurred, return -1
+					if (c == EOF && !feof(stream)) {
+						return -1;
+					}
+
+					// otherwise we successfully read until the end-of-file
+					// or the delimiter
+					return pos;
+				}
+			}
 		}
 	}
 }
@@ -297,18 +383,22 @@ namespace mse {
 		template <typename _Ty>
 		using TStrongVectorIterator = _Ty*;
 
+		/*
 		template <class X, class... Args>
 		TStrongVectorIterator<X> make_strong_vector_iterator(Args&&... args) {
 			return TStrongVectorIterator<X>(std::forward<Args>(args)...);
 		}
+		*/
 
 		template <typename _Ty>
 		using TXScopeStrongVectorIterator = _Ty*;
 
+		/*
 		template <class X, class... Args>
 		TXScopeStrongVectorIterator<X> make_xscope_strong_vector_iterator(Args&&... args) {
 			return TXScopeStrongVectorIterator<X>(std::forward<Args>(args)...);
 		}
+		*/
 
 		/* TXScopeStrongVectorIterator<> does not directly convert to mse::rsv::TFParam<mse::TXScopeCSSSXSTERandomAccessIterator<> >.
 		But the following function can be used to obtain a "locking" scope iterator that does. */
@@ -431,7 +521,6 @@ namespace mse {
 			return ::strncmp(std::addressof(str1[0]), std::addressof(str2[0]), count);
 		}
 
-
 #define MSE_IMPL_LH_STRTOX_DECLARATION(strtox_function_name) \
 		inline auto strtox_function_name(const char* str, char** str_end, int base) { return std::strtox_function_name(str, str_end, base); }
 
@@ -450,7 +539,50 @@ namespace mse {
 		MSE_IMPL_LH_STRTOFX_DECLARATION(strtold);
 
 		inline auto strtok(char* str, const char* delim) { return std::strtok(str, delim); }
+		inline auto strchr(const char* str, int ch) { return std::strchr(str, ch); }
+		template<class _TIter>
+		inline auto memchr(_TIter str, int ch, size_t count) { return std::memchr(std::addressof(str[0]), ch, count); }
+
+		template<typename TPointerToCharBuffer, typename TPointerToSize_t, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointerToCharBuffer>::value) || (mse::impl::IsDereferenceable_pb<TPointerToSize_t>::value)> MSE_IMPL_EIS >
+		lh_ssize_t getline(TPointerToCharBuffer lineptr, TPointerToSize_t nptr, FILE* stream) {
+			return us::impl::lh_getline(lineptr, nptr, stream);
+		}
+
+		inline auto strndup(const char* str_iter, size_t size) {
+			char* retval = nullptr;
+			auto slen = strlen(str_iter);
+			if (size < slen) {
+				slen = size;
+			}
+			retval = allocate_dyn_array1<char*>(1 + slen);
+			auto dest_iter = retval;
+			for (size_t i = 0; slen > i; i += 1) {
+				*dest_iter = str_iter[i];
+				++dest_iter;
+			}
+			*dest_iter = 0;
+			return retval;
+		}
+		inline auto strdup(const char* str_iter) {
+			auto slen = strlen(str_iter);
+			return strndup(str_iter, slen);
+		}
+
+		template<typename TIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TIterator>::value)> MSE_IMPL_EIS >
+		inline auto memdup(TIterator const& src_iter, size_t num_bytes) {
+			typedef mse::impl::remove_const_t<mse::impl::target_type<TIterator> > new_element_t;
+			new_element_t* retval = nullptr;
+			retval = allocate_dyn_array1<new_element_t*>(num_bytes);
+			auto dest_iter = retval;
+			auto num_items = num_bytes / sizeof(new_element_t);
+			for (size_t i = 0; num_items > i; i += 1) {
+				*dest_iter = src_iter[i];
+				++dest_iter;
+			}
+			return retval;
+		}
 	}
+
 	namespace us {
 		namespace lh {
 			template<typename _Ty, typename _Ty2>
@@ -3071,90 +3203,6 @@ namespace mse {
 			return memchr(iter, ch, strlen(iter));
 		}
 
-		typedef intptr_t lh_ssize_t;
-
-		namespace us {
-			namespace impl {
-				/* Apr 2025: C getline() implementation from stackoverflow comment: https://stackoverflow.com/a/47229318 */
-
-				/* Modifications, public domain as well, by Antti Haapala, 11/10/2017
-				   - Switched to getc on 5/23/2019
-				   - Proper error handling on IO error and wraparound
-					 check on buffer extension 3/31/2025 - 4/2/2025
-				*/
-
-				static const size_t MINIMUM_BUFFER_SIZE = 128;
-
-				inline lh_ssize_t lh_getline(char** lineptr, size_t* n, FILE* stream) {
-					size_t pos;
-					int c;
-
-					if (lineptr == NULL || stream == NULL || n == NULL) {
-						errno = EINVAL;
-						return -1;
-					}
-
-					c = getc(stream);
-					if (c == EOF) {
-						return -1;
-					}
-
-					if (*lineptr == NULL) {
-						*lineptr = (char*)malloc(MINIMUM_BUFFER_SIZE);
-						if (*lineptr == NULL) {
-							return -1;
-						}
-						*n = MINIMUM_BUFFER_SIZE;
-					}
-
-					pos = 0;
-					while (c != EOF) {
-						if (pos + 1 >= *n) {
-							size_t new_size = *n + (*n >> 2);
-
-							// have some reasonable minimum
-							if (new_size < MINIMUM_BUFFER_SIZE) {
-								new_size = MINIMUM_BUFFER_SIZE;
-							}
-
-							// size_t wraparound
-							if (new_size <= *n) {
-								errno = ENOMEM;
-								return -1;
-							}
-
-							// Note you might also want to check that PTRDIFF_MAX
-							// is not exceeded!
-
-							char* new_ptr = (char*)realloc(*lineptr, new_size);
-							if (new_ptr == NULL) {
-								return -1;
-							}
-							*n = new_size;
-							*lineptr = new_ptr;
-						}
-
-						((unsigned char*)(*lineptr))[pos++] = (unsigned char)c;
-						if (c == '\n') {
-							break;
-						}
-						c = getc(stream);
-					}
-
-					(*lineptr)[pos] = '\0';
-
-					// if an IO error occurred, return -1
-					if (c == EOF && !feof(stream)) {
-						return -1;
-					}
-
-					// otherwise we successfully read until the end-of-file
-					// or the delimiter
-					return pos;
-				}
-			}
-		}
-
 		template<typename TPointerToCharBuffer, typename TPointerToSize_t, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointerToCharBuffer>::value) || (mse::impl::IsDereferenceable_pb<TPointerToSize_t>::value)> MSE_IMPL_EIS >
 		lh_ssize_t getline(TPointerToCharBuffer lineptr, TPointerToSize_t nptr, FILE* stream) {
 			struct CBufPtr {
@@ -3188,7 +3236,7 @@ namespace mse {
 		}
 
 		template<typename TCharBufferIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TCharBufferIterator>::value)> MSE_IMPL_EIS >
-		auto strndup(TCharBufferIterator str_iter, size_t size) -> TStrongVectorIterator<mse::impl::target_type<TCharBufferIterator> > {
+		auto strndup(TCharBufferIterator const& str_iter, size_t size) -> TStrongVectorIterator<mse::impl::target_type<TCharBufferIterator> > {
 			TStrongVectorIterator<mse::impl::target_type<TCharBufferIterator> > retval;
 			auto slen = strlen(str_iter);
 			if (size < slen) {
@@ -3197,17 +3245,29 @@ namespace mse {
 			retval.resize(1 + slen);
 			auto dest_iter = retval;
 			for (size_t i = 0; slen > i; i += 1) {
-				*dest_iter = *str_iter;
+				*dest_iter = str_iter[i];
 				++dest_iter;
-				++str_iter;
 			}
 			*dest_iter = 0;
 			return retval;
 		}
 		template<typename TCharBufferIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TCharBufferIterator>::value)> MSE_IMPL_EIS >
-		auto strdup(TCharBufferIterator str_iter) -> TStrongVectorIterator<mse::impl::target_type<TCharBufferIterator> > {
+		auto strdup(TCharBufferIterator const& str_iter) -> TStrongVectorIterator<mse::impl::target_type<TCharBufferIterator> > {
 			auto slen = strlen(str_iter);
 			return strndup(str_iter, slen);
+		}
+
+		template<typename TIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TIterator>::value)> MSE_IMPL_EIS >
+		auto memdup(TIterator const& src_iter, size_t num_bytes) -> TStrongVectorIterator<mse::impl::target_type<TIterator> > {
+			TStrongVectorIterator<mse::impl::target_type<TIterator> > retval;
+			retval.resize(num_bytes);
+			auto dest_iter = retval;
+			auto num_items = num_bytes / sizeof(mse::impl::target_type<TIterator>);
+			for (size_t i = 0; num_items > i; i += 1) {
+				*dest_iter = src_iter[i];
+				++dest_iter;
+			}
+			return retval;
 		}
 
 		namespace us {
