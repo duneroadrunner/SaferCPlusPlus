@@ -686,11 +686,6 @@ namespace mse {
 			template <typename _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (std::is_const<_Ty2>::value)> MSE_IMPL_EIS >
 			TLHNullableAnyPointer(const void* src) : base_class(mse::us::TSaferPtrForLegacy<_Ty>((_Ty2*)src)) {}
 
-			/* Btw things like this akward use of a "construction_helper" is only to support compatibility with older versions of the microsoft compiler whose support for sfinae was limited. */
-			static auto construction_helper1(std::true_type, const const_void_star_replacement& src) -> TLHNullableAnyPointer<const _Ty>;
-			template<typename _Ty2>
-			static auto construction_helper1(std::false_type, const _Ty2& src) { return src; }
-
 			template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<(
 					(!std::is_convertible<_TPointer1, TLHNullableAnyPointer>::value)
 					&& (!std::is_base_of<base_class, _TPointer1>::value)
@@ -772,6 +767,11 @@ namespace mse {
 			void async_not_shareable_and_not_passable_tag() const {}
 
 		private:
+			/* Btw things like this akward use of a "construction_helper" is only to support compatibility with older versions of the microsoft compiler whose support for sfinae was limited. */
+			static auto construction_helper1(std::true_type, const const_void_star_replacement& src) -> TLHNullableAnyPointer<const _Ty>;
+			template<typename _Ty2>
+			static auto construction_helper1(std::false_type, const _Ty2& src) { return src; }
+
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
 
@@ -5079,9 +5079,6 @@ namespace mse {
 					vsr1 = lhnaptr1;
 					MSE_TRY{
 						auto lhnaptr2 = mse::lh::TLHNullableAnyPointer<int>(vsr1);
-						typedef mse::lh::TLHNullableAnyPointer<int>& type1;
-						auto lhnaptr3 = type1(vsr1);
-						auto lhnaptr4 = (mse::lh::TLHNullableAnyPointer<int>&)(vsr1);
 						auto clhnaptr5 = mse::lh::TLHNullableAnyPointer<const int>(vsr1);
 					}
 					MSE_CATCH_ANY{

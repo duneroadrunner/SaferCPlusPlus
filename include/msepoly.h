@@ -3059,7 +3059,7 @@ namespace mse {
 				TNullableAnyRandomAccessIteratorBase(const std::nullptr_t& src) : TNullableAnyRandomAccessIteratorBase() {}
 				TNullableAnyRandomAccessIteratorBase(const TNullableAnyRandomAccessIteratorBase& src) = default;
 				TNullableAnyRandomAccessIteratorBase(const base_class& src) : m_iter(src) {}
-				explicit TNullableAnyRandomAccessIteratorBase(_Ty arr[]) : m_iter(arr) {}
+				explicit TNullableAnyRandomAccessIteratorBase(_Ty arr[]) : m_iter(arr), m_is_null(!bool(arr)) {}
 
 				template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 					(!std::is_convertible<_TRandomAccessIterator1, TNullableAnyRandomAccessIteratorBase>::value)
