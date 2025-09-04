@@ -2480,20 +2480,10 @@ namespace mse {
 		}
 
 		namespace impl {
-			template<class T, class EqualTo>
-			struct HasOrInheritsSubscriptOperator_impl
-			{
-				template<class U, class V>
-				static auto test(U* u) -> decltype((*u)[0], std::declval<V>(), bool(true));
-				template<typename, typename>
-				static auto test(...)->std::false_type;
-
-				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct HasOrInheritsSubscriptOperator : HasOrInheritsSubscriptOperator_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+			template <typename T, typename = void>
+			struct HasOrInheritsSubscriptOperator : std::false_type {};
+			template <typename T>
+			struct HasOrInheritsSubscriptOperator<T, mse::impl::void_t<decltype(std::declval<T>()[0])> > : std::true_type {};
 
 			namespace us {
 				template<class _TIter, class _TIter2>
@@ -2534,7 +2524,9 @@ namespace mse {
 					}
 
 					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(element_t, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
-					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
+					MSE_IF_CONSTEXPR(!std::is_const<element_t>::value) {
+						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
+					}
 
 					MSE_THROW(std::logic_error("could not determine the type represented by the (presumably lh::void_star_replacement) argument - lh::impl::us::memcpy_helper2()"));
 					return destination;
@@ -2618,7 +2610,9 @@ namespace mse {
 					}
 
 					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(element_t, MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1);
-					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1);
+					MSE_IF_CONSTEXPR(!std::is_const<element_t>::value) {
+						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1);
+					}
 
 					MSE_THROW(std::logic_error("could not determine the type represented by the (presumably lh::void_star_replacement) argument - lh::impl::us::memcmp_helper4()"));
 					return 0;
@@ -2677,7 +2671,9 @@ namespace mse {
 
 #define MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT23(type1, MACRO_FUNCTION) \
 					MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT22(type1, MACRO_FUNCTION); \
-					MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT22(typename std::add_const<type1>::type, MACRO_FUNCTION);
+					MSE_IF_CONSTEXPR(!std::is_const<type1>::value) { \
+						MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT22(typename std::add_const<type1>::type, MACRO_FUNCTION); \
+					}
 
 #define MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT11(type1) \
 					{ \
@@ -2721,7 +2717,9 @@ namespace mse {
 
 #define MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT13(type1, MACRO_FUNCTION) \
 					MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT12(type1, MACRO_FUNCTION); \
-					MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT12(typename std::add_const<type1>::type, MACRO_FUNCTION);
+					MSE_IF_CONSTEXPR(!std::is_const<type1>::value) { \
+						MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT12(typename std::add_const<type1>::type, MACRO_FUNCTION);
+					}
 
 #define MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT14(type1, not_used_template_wrapper) \
 					MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT13(type1, MSE_IMPL_LH_MEMCMP_HELPER4_ANY_CAST_ATTEMPT11);
@@ -3541,7 +3539,9 @@ namespace mse {
 
 				typedef mse::impl::target_type<T1> pointee_t;
 				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES2(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, pointee_t);
-				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES2(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, mse::impl::remove_const_t<pointee_t>);
+				MSE_IF_CONSTEXPR(std::is_const<pointee_t>::value) {
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES2(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, mse::impl::remove_const_t<pointee_t>);
+				}
 
 				return {};
 			}
@@ -3558,7 +3558,11 @@ namespace mse {
 
 				typedef mse::impl::target_type<T1> pointee_t;
 				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, pointee_t);
-				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, mse::impl::remove_const_t<pointee_t>);
+				MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, char);
+				MSE_IF_CONSTEXPR(std::is_const<pointee_t>::value) {
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, mse::impl::remove_const_t<pointee_t>);
+					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4, const char);
+				}
 
 				{
 					auto maybe_retval = conversion_operator_helper4<T1>(typename mse::impl::is_complete_type<pointee_t>::type(), ptr1);
@@ -5524,7 +5528,7 @@ namespace mse {
 					//mse::lh::TLHNullableAnyPointer<char> z3 = vsr1;
 					mse::lh::TLHNullableAnyPointer<char> z6 = (mse::lh::TLHNullableAnyPointer<char>)vsr1;
 					auto z4 = (mse::lh::void_star_replacement)lhnara_iter1;
-					auto z5 = (mse::lh::TLHNullableAnyPointer<int> const&)lhnara_iter1;
+					//auto z5 = (mse::lh::TLHNullableAnyRandomAccessIterator<int> const&)lhnara_iter1;
 					//mse::lh::TLHNullableAnyPointer<char> z7 = (mse::lh::TLHNullableAnyPointer<char>)((mse::lh::void_star_replacement)lhnara_iter1);
 					//auto z8 = (int*)lhnara_iter1;
 					//auto z9 = (int*)vsr1;
