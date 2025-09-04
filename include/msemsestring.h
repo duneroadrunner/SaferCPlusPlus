@@ -3849,22 +3849,15 @@ namespace mse {
 			private:
 				/* We support conversion from both stringviews and string sections. For now we're just using a rough approximation
 				for what should qualify as a "string section". */
-				template<class T, class EqualTo>
-				struct IsStringViewOrSectionish1_impl
-				{
-					static void foo1(const _Ty*) {}
-					template<class U, class V>
-					//static auto test(U*) -> decltype(_Ty(*mse::make_begin_const_iterator(std::declval<U>())), _Ty(*mse::make_begin_const_iterator(std::declval<V>())), bool(true));
-					static auto test(U*) -> decltype(foo1(std::addressof(*std::begin(std::declval<U>()))), foo1(std::addressof(*std::end(std::declval<V>()))), foo1(std::addressof(std::declval<V>()[0])), bool(true));
-					template<typename, typename>
-					static auto test(...)->std::false_type;
-
-					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				};
-				template<class T, class EqualTo = T>
-				struct IsStringViewOrSectionish1 : IsStringViewOrSectionish1_impl<
-					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+				static void IsStringViewOrSectionish1_foo1(const _Ty*) {}
+				template <typename T, typename = void>
+				struct IsStringViewOrSectionish1 : std::false_type {};
+				template <typename T>
+				struct IsStringViewOrSectionish1<T, mse::impl::void_t<decltype(
+					IsStringViewOrSectionish1_foo1(std::addressof(*std::begin(std::declval<T>())))
+					, IsStringViewOrSectionish1_foo1(std::addressof(*std::end(std::declval<T>())))
+					, IsStringViewOrSectionish1_foo1(std::addressof(std::declval<T>()[0]))
+					)> > : std::true_type {};
 
 			public:
 				template<class _StringViewIsh>

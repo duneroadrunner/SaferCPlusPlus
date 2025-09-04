@@ -139,19 +139,10 @@ namespace mse {
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_InIt, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
-		template<class T, class EqualTo>
-		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded_impl
-		{
-			template<class U, class V>
-			static auto test(U* u) -> decltype(make_xscope_specialized_first_and_last_overloaded(*u, *u), std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded : IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded : std::false_type {};
+		template <typename T>
+		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded<T, mse::impl::void_t<decltype(make_xscope_specialized_first_and_last_overloaded(std::declval<T>(), std::declval<T>()))> > : std::true_type {};
 
 		template<class _InIt>
 		auto make_xscope_specialized_first_and_last_helper1(std::true_type, const _InIt& _First, const _InIt& _Last) {
@@ -206,19 +197,10 @@ namespace mse {
 				decltype(make_xscope_range_iter_provider(std::declval<_ContainerPointer>()).begin())
 			> > >;
 
-		template<class T, class EqualTo>
-		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded_impl
-		{
-			template<class U, class V>
-			static auto test(U* u) -> decltype(make_xscope_specialized_range_iter_provider_overloaded(*u, *u), std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded : IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded : std::false_type {};
+		template <typename T>
+		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<T, mse::impl::void_t<decltype(make_xscope_specialized_range_iter_provider_overloaded(std::declval<T>()))> > : std::true_type {};
 
 		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider_helper1(std::true_type, const _ContainerPointer& ptr) {

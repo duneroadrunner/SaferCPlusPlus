@@ -390,33 +390,15 @@ namespace mse {
 	}
 
 	namespace impl {
-		template<class T, class EqualTo>
-		struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>().nonrecursive_unlock(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
+		template <typename T, typename = void>
+		struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray<T, mse::impl::void_t<decltype(std::declval<T>().nonrecursive_unlock())> > : std::true_type {};
 
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray : HasOrInheritsNonrecursiveUnlockMethod_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
-
-		template<class T, class EqualTo>
-		struct HasOrInheritsUnlockSharedMethod_msemsearray_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>().unlock_shared(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsUnlockSharedMethod_msemsearray : HasOrInheritsUnlockSharedMethod_msemsearray_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct HasOrInheritsUnlockSharedMethod_msemsearray : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsUnlockSharedMethod_msemsearray<T, mse::impl::void_t<decltype(std::declval<T>().unlock_shared())> > : std::true_type {};
 	}
 
 	template<class _Mutex>
@@ -4696,19 +4678,10 @@ namespace mse {
 
 				auto& contained_optional() const { return (*m_src_ptr); }
 
-				template<class T, class EqualTo>
-				struct HasUncheckedContainedOptional_impl
-				{
-					template<class U, class V>
-					static auto test(U*) -> decltype(std::declval<U>().unchecked_contained_optional(), std::declval<V>(), bool(true));
-					template<typename, typename>
-					static auto test(...) -> std::false_type;
-
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				};
-				template<class T, class EqualTo = T>
-				struct HasUncheckedContainedOptional : HasUncheckedContainedOptional_impl<
-					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+				template <typename T, typename = void>
+				struct HasUncheckedContainedOptional : std::false_type {};
+				template <typename T>
+				struct HasUncheckedContainedOptional<T, mse::impl::void_t<decltype(std::declval<T>().unchecked_contained_optional())> > : std::true_type {};
 
 				/*
 				template<class HasUncheckedContainedOptional_t>
@@ -4806,19 +4779,10 @@ namespace mse {
 			private:
 				xscope_accessing_fixed_optional_base2(const xscope_accessing_fixed_optional_base2&) = delete;
 
-				template<class T, class EqualTo>
-				struct IsSupportedLenderType_impl
-				{
-					template<class U, class V>
-					static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
-					template<typename, typename>
-					static auto test(...) -> std::false_type;
-
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				};
-				template<class T, class EqualTo = T>
-				struct IsSupportedLenderType : IsSupportedLenderType_impl<
-					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+				template <typename T, typename = void>
+				struct IsSupportedLenderType : std::false_type {};
+				template <typename T>
+				struct IsSupportedLenderType<T, mse::impl::void_t<decltype(T::s_make_xscope_shared_structure_lock_guard(std::declval<T&>()))> > : std::true_type {};
 
 				template<class _TLender2 = _TLender, MSE_IMPL_EIP mse::impl::enable_if_t<IsSupportedLenderType<_TLender2>::value> MSE_IMPL_EIS >
 				void valid_if_IsSupportedLenderType() const {}
@@ -4840,20 +4804,10 @@ namespace mse {
 			template<class T>
 			void takes_aco_const_pointer(mse::TXScopeAccessControlledConstPointer<T, mse::non_thread_safe_shared_mutex> const&) {}
 
-			template<class T, class EqualTo>
-			struct IsTXScopeAccessControlledConstPointer_impl
-			{
-				template<class U, class V>
-				static auto test(U* u) -> decltype(takes_aco_const_pointer(std::declval<U>()), std::declval<V>(), bool(true));
-				template<typename, typename>
-				static auto test(...) -> std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			};
-			template<class T, class EqualTo = T>
-			struct IsTXScopeAccessControlledConstPointer : IsTXScopeAccessControlledConstPointer_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+			template <typename T, typename = void>
+			struct IsTXScopeAccessControlledConstPointer : std::false_type {};
+			template <typename T>
+			struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(std::declval<T>()))> > : std::true_type {};
 
 			/* xscope_accessing_fixed_optional_base2<> requires that the lending optional support a specific API
 			for locking the structure of its contents, while mse::us::impl::xscope_accessing_fixed_optional_base
@@ -4941,21 +4895,10 @@ namespace mse {
 	};
 
 	namespace impl {
-		template<class T, class EqualTo>
-		struct SupportsXScopeAccessingFixedOptional_impl
-		{
-			template<class U, class V>
-			//static auto test(U*) -> decltype(&U::s_make_xscope_shared_structure_lock_guard, &V::s_make_xscope_shared_structure_lock_guard, bool(true));
-			static auto test(U*) -> decltype(mse::make_xscope_accessing_fixed_optional(std::addressof(std::declval<U>())), mse::make_xscope_accessing_fixed_optional(std::addressof(std::declval<V>())), bool(true));
-			template<typename, typename>
-			static auto test(...) -> std::false_type;
-
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct SupportsXScopeAccessingFixedOptional : SupportsXScopeAccessingFixedOptional_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct SupportsXScopeAccessingFixedOptional : std::false_type {};
+		template <typename T>
+		struct SupportsXScopeAccessingFixedOptional<T, mse::impl::void_t<decltype(mse::make_xscope_accessing_fixed_optional(std::addressof(std::declval<T>())))> > : std::true_type {};
 	}
 
 	/* If the "lending" type is large and supports it, then xscope_borrowing_fixed_optional<> will "lock" the lending object for exclusive 
@@ -5219,19 +5162,10 @@ namespace mse {
 
 					auto& contained_optional() const { return (*m_src_ptr); }
 
-					template<class T, class EqualTo>
-					struct HasUncheckedContainedOptional_impl
-					{
-						template<class U, class V>
-						static auto test(U*) -> decltype(std::declval<U>().unchecked_contained_optional(), std::declval<V>(), bool(true));
-						template<typename, typename>
-						static auto test(...) -> std::false_type;
-
-						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-					};
-					template<class T, class EqualTo = T>
-					struct HasUncheckedContainedOptional : HasUncheckedContainedOptional_impl<
-						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+					template <typename T, typename = void>
+					struct HasUncheckedContainedOptional : std::false_type {};
+					template <typename T>
+					struct HasUncheckedContainedOptional<T, mse::impl::void_t<decltype(std::declval<T>().unchecked_contained_optional())> > : std::true_type {};
 
 					/*
 					template<class HasUncheckedContainedOptional_t>
@@ -5328,19 +5262,10 @@ namespace mse {
 				private:
 					xslta_accessing_fixed_optional_base2(const xslta_accessing_fixed_optional_base2&) = delete;
 
-					template<class T, class EqualTo>
-					struct IsSupportedLenderType_impl
-					{
-						template<class U, class V>
-						static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
-						template<typename, typename>
-						static auto test(...) -> std::false_type;
-
-						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-					};
-					template<class T, class EqualTo = T>
-					struct IsSupportedLenderType : IsSupportedLenderType_impl<
-						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+					template <typename T, typename = void>
+					struct IsSupportedLenderType : std::false_type {};
+					template <typename T>
+					struct IsSupportedLenderType<T, mse::impl::void_t<decltype(T::s_make_xscope_shared_structure_lock_guard(std::declval<T&>()))> > : std::true_type {};
 
 					template<class _TLender2 = _TLender, MSE_IMPL_EIP mse::impl::enable_if_t<IsSupportedLenderType<_TLender2>::value> MSE_IMPL_EIS >
 					void valid_if_IsSupportedLenderType() const {}
@@ -5362,20 +5287,10 @@ namespace mse {
 				template<class T>
 				void takes_aco_const_pointer(mse::TXScopeAccessControlledConstPointer<T, mse::non_thread_safe_shared_mutex> const&) {}
 
-				template<class T, class EqualTo>
-				struct IsTXScopeAccessControlledConstPointer_impl
-				{
-					template<class U, class V>
-					static auto test(U* u) -> decltype(takes_aco_const_pointer(std::declval<U>()), std::declval<V>(), bool(true));
-					template<typename, typename>
-					static auto test(...) -> std::false_type;
-
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-				};
-				template<class T, class EqualTo = T>
-				struct IsTXScopeAccessControlledConstPointer : IsTXScopeAccessControlledConstPointer_impl<
-					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+				template <typename T, typename = void>
+				struct IsTXScopeAccessControlledConstPointer : std::false_type {};
+				template <typename T>
+				struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(std::declval<T>()))> > : std::true_type {};
 
 				/* xslta_accessing_fixed_optional_base2<> requires that the lending optional support a specific API
 				for locking the structure of its contents, while mse::rsv::us::impl::xslta_accessing_fixed_optional_base
@@ -5463,21 +5378,10 @@ namespace mse {
 
 
 		namespace impl {
-			template<class T, class EqualTo>
-			struct SupportsXSLTAAccessingFixedOptional_impl
-			{
-				template<class U, class V>
-				//static auto test(U*) -> decltype(&U::s_make_xscope_shared_structure_lock_guard, &V::s_make_xscope_shared_structure_lock_guard, bool(true));
-				static auto test(U*) -> decltype(mse::rsv::make_xslta_accessing_fixed_optional(std::addressof(std::declval<U>())), mse::rsv::make_xslta_accessing_fixed_optional(std::addressof(std::declval<V>())), bool(true));
-				template<typename, typename>
-				static auto test(...) -> std::false_type;
-
-				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			};
-			template<class T, class EqualTo = T>
-			struct SupportsXSLTAAccessingFixedOptional : SupportsXSLTAAccessingFixedOptional_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+			template <typename T, typename = void>
+			struct SupportsXSLTAAccessingFixedOptional : std::false_type {};
+			template <typename T>
+			struct SupportsXSLTAAccessingFixedOptional<T, mse::impl::void_t<decltype(mse::rsv::make_xslta_accessing_fixed_optional(std::addressof(std::declval<T>())))> > : std::true_type {};
 		}
 
 		/* If the "lending" type is large and supports it, then xslta_borrowing_fixed_optional<> will "lock" the lending object for exclusive

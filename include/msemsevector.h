@@ -166,24 +166,10 @@ namespace mse {
 #endif /*_XSTD*/
 
 	namespace impl {
-		template<class... _Types> using void_t = void;
-
-		template<class T, class EqualTo>
-		struct SupportsPreIncrement_msemsevector_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype((++std::declval<U>()), (++std::declval<V>()), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-		};
-		template<>
-		struct SupportsPreIncrement_msemsevector_impl<void*, void*> : std::false_type {};
-		template<class T, class EqualTo = T>
-		struct SupportsPreIncrement_msemsevector : SupportsPreIncrement_msemsevector_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct SupportsPreIncrement_msemsevector : std::false_type {};
+		template <typename T>
+		struct SupportsPreIncrement_msemsevector<T, mse::impl::void_t<decltype(++std::declval<T>())> > : std::true_type {};
 
 		template<class _Iter>
 		using _mse_Iter_cat_t = typename std::iterator_traits<_Iter>::iterator_category;
@@ -220,19 +206,10 @@ namespace mse {
 		//template <typename _Ty> struct is_contiguous_sequence_container<std::vector<_Ty> > : std::true_type {};
 		template <typename _Ty, typename _A> struct is_contiguous_sequence_container<std::vector<_Ty, _A> > : std::true_type {};
 
-		template<class T, class EqualTo>
-		struct HasOrInheritsLessThanOperator_msemsevector_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>() < std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsLessThanOperator_msemsevector : HasOrInheritsLessThanOperator_msemsevector_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct HasOrInheritsLessThanOperator_msemsevector : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsLessThanOperator_msemsevector<T, mse::impl::void_t<decltype(std::declval<T>() < std::declval<T>())> > : std::true_type {};
 	}
 
 
@@ -2503,20 +2480,10 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	namespace impl {
-		template<class T, class EqualTo>
-		struct HasAllocatorMemberType_vc_impl
-		{
-			template<class U, class V>
-			static auto test(U* u) -> decltype(std::declval<typename U::allocator_type>(), std::declval<V>(), bool(true));
-			template<typename, typename>
-			static auto test(...) -> std::false_type;
-
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasAllocatorMemberType_vc : HasAllocatorMemberType_vc_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+		template <typename T, typename = void>
+		struct HasAllocatorMemberType_vc : std::false_type {};
+		template <typename T>
+		struct HasAllocatorMemberType_vc<T, mse::impl::void_t<decltype(std::declval<typename T::allocator_type>())> > : std::true_type {};
 
 		template<class TF, class _TContainer>
 		struct container_allocator_type_helper {
@@ -3483,19 +3450,10 @@ namespace mse {
 
 				auto& contained_vector() const { return (*m_src_ptr); }
 
-				template<class T, class EqualTo>
-				struct HasUncheckedContainedVector_impl
-				{
-					template<class U, class V>
-					static auto test(U*) -> decltype(std::declval<U>().unchecked_contained_vector(), std::declval<V>(), bool(true));
-					template<typename, typename>
-					static auto test(...) -> std::false_type;
-
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				};
-				template<class T, class EqualTo = T>
-				struct HasUncheckedContainedVector : HasUncheckedContainedVector_impl<
-					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+				template <typename T, typename = void>
+				struct HasUncheckedContainedVector : std::false_type {};
+				template <typename T>
+				struct HasUncheckedContainedVector<T, mse::impl::void_t<decltype(std::declval<T>().unchecked_contained_vector())> > : std::true_type {};
 
 				/*
 				template<class HasUncheckedContainedVector_t>
@@ -3565,19 +3523,10 @@ namespace mse {
 			private:
 				xscope_accessing_fixed_nii_vector_base2(const xscope_accessing_fixed_nii_vector_base2&) = delete;
 
-				template<class T, class EqualTo>
-				struct IsSupportedLenderType_impl
-				{
-					template<class U, class V>
-					static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
-					template<typename, typename>
-					static auto test(...) -> std::false_type;
-
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				};
-				template<class T, class EqualTo = T>
-				struct IsSupportedLenderType : IsSupportedLenderType_impl<
-					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+				template <typename T, typename = void>
+				struct IsSupportedLenderType : std::false_type {};
+				template <typename T>
+				struct IsSupportedLenderType<T, mse::impl::void_t<decltype(T::s_make_xscope_shared_structure_lock_guard(std::declval<T&>()))> > : std::true_type {};
 
 				static_assert(IsSupportedLenderType<_TLender>::value, "xscope_accessing_fixed_nii_vector_base2<> does not support the given "
 					"pointer to vector argument. This may be due to the underlying vector type not being supported "
@@ -3599,20 +3548,10 @@ namespace mse {
 			template<class T>
 			void takes_aco_const_pointer(mse::TXScopeAccessControlledConstPointer<T, mse::non_thread_safe_shared_mutex> const&) {}
 
-			template<class T, class EqualTo>
-			struct IsTXScopeAccessControlledConstPointer_impl
-			{
-				template<class U, class V>
-				static auto test(U* u) -> decltype(takes_aco_const_pointer(std::declval<U>()), std::declval<V>(), bool(true));
-				template<typename, typename>
-				static auto test(...) -> std::false_type;
-
-				using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			};
-			template<class T, class EqualTo = T>
-			struct IsTXScopeAccessControlledConstPointer : IsTXScopeAccessControlledConstPointer_impl<
-				mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+			template <typename T, typename = void>
+			struct IsTXScopeAccessControlledConstPointer : std::false_type {};
+			template <typename T>
+			struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(std::declval<T>()))> > : std::true_type {};
 
 			/* xscope_accessing_fixed_nii_vector_base2<> requires that the lending vector support a specific API
 			for locking the structure of its contents, while mse::us::impl::xscope_accessing_fixed_nii_vector_base
@@ -4522,19 +4461,10 @@ namespace mse {
 
 					auto& contained_vector() const { return (*m_src_ptr); }
 
-					template<class T, class EqualTo>
-					struct HasUncheckedContainedVector_impl
-					{
-						template<class U, class V>
-						static auto test(U*) -> decltype(std::declval<U>().unchecked_contained_vector(), std::declval<V>(), bool(true));
-						template<typename, typename>
-						static auto test(...) -> std::false_type;
-
-						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-					};
-					template<class T, class EqualTo = T>
-					struct HasUncheckedContainedVector : HasUncheckedContainedVector_impl<
-						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+					template <typename T, typename = void>
+					struct HasUncheckedContainedVector : std::false_type {};
+					template <typename T>
+					struct HasUncheckedContainedVector<T, mse::impl::void_t<decltype(std::declval<T>().unchecked_contained_vector())> > : std::true_type {};
 
 					/*
 					template<class HasUncheckedContainedVector_t>
@@ -4633,19 +4563,10 @@ namespace mse {
 				private:
 					xslta_accessing_fixed_vector_base2(const xslta_accessing_fixed_vector_base2&) = delete;
 
-					template<class T, class EqualTo>
-					struct IsSupportedLenderType_impl
-					{
-						template<class U, class V>
-						static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
-						template<typename, typename>
-						static auto test(...) -> std::false_type;
-
-						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-					};
-					template<class T, class EqualTo = T>
-					struct IsSupportedLenderType : IsSupportedLenderType_impl<
-						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+					template <typename T, typename = void>
+					struct IsSupportedLenderType : std::false_type {};
+					template <typename T>
+					struct IsSupportedLenderType<T, mse::impl::void_t<decltype(T::s_make_xscope_shared_structure_lock_guard(std::declval<T&>()))> > : std::true_type {};
 
 					static_assert(IsSupportedLenderType<_TLender>::value, "xslta_accessing_fixed_vector_base2<> does not support the given "
 						"pointer to vector argument. This may be due to the underlying vector type not being supported "
@@ -4667,20 +4588,10 @@ namespace mse {
 				template<class T>
 				void takes_aco_const_pointer(mse::TXScopeAccessControlledConstPointer<T, mse::non_thread_safe_shared_mutex> const &) {}
 
-				template<class T, class EqualTo>
-				struct IsTXScopeAccessControlledConstPointer_impl
-				{
-					template<class U, class V>
-					static auto test(U* u) -> decltype(takes_aco_const_pointer(std::declval<U>()), std::declval<V>(), bool(true));
-					template<typename, typename>
-					static auto test(...) -> std::false_type;
-
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-				};
-				template<class T, class EqualTo = T>
-				struct IsTXScopeAccessControlledConstPointer : IsTXScopeAccessControlledConstPointer_impl<
-					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+				template <typename T, typename = void>
+				struct IsTXScopeAccessControlledConstPointer : std::false_type {};
+				template <typename T>
+				struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(std::declval<T>()))> > : std::true_type {};
 
 				/* xslta_accessing_fixed_vector_base2<> requires that the lending vector support a specific API 
 				for locking the structure of its contents, while mse::rsv::us::impl::xslta_accessing_fixed_vector_base 

@@ -498,20 +498,10 @@ namespace mse {
 						}
 					};
 
-					template<class T, class EqualTo>
-					struct SupportsStdSwap_impl
-					{
-						template<class U, class V>
-						static auto test(U* u) -> decltype(std::swap(*u, *u), std::declval<V>(), bool(true));
-						template<typename, typename>
-						static auto test(...)->std::false_type;
-
-						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-						static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-					};
-					template<class T, class EqualTo = T>
-					struct SupportsStdSwap : SupportsStdSwap_impl<
-						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
+					template <typename T, typename = void>
+					struct SupportsStdSwap : std::false_type {};
+					template <typename T>
+					struct SupportsStdSwap<T, mse::impl::void_t<decltype(std::swap(std::declval<T>(), std::declval<T>()))> > : std::true_type {};
 
 					/// Whether the type T must be dynamically allocated or can be stored on the stack.
 					template<typename T>
@@ -1816,23 +1806,13 @@ namespace mse {
 	(heuristically) disambiguated) by the same overload implementation. */
 
 	namespace impl {
+		template <typename T, typename = void>
+		struct HasOrInheritsIteratorCategoryMemberType : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsIteratorCategoryMemberType<T, mse::impl::void_t<decltype(std::declval<typename T::iterator_category>())> > : std::true_type {};
 
-		template<class T, class EqualTo>
-		struct HasOrInheritsIteratorCategoryMemberType_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<typename U::iterator_category>(), std::declval<typename V::iterator_category>(), bool(true));
-			template<typename, typename>
-			static auto test(...)->std::false_type;
-
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct HasOrInheritsIteratorCategoryMemberType : HasOrInheritsIteratorCategoryMemberType_impl<
-			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {};
 		template<class _Ty>
 		struct is_non_pointer_iterator : std::integral_constant<bool, HasOrInheritsIteratorCategoryMemberType<_Ty>::value> {};
-
 	}
 	template<class _Ty>
 	auto xscope_const_pointer(const _Ty& param) {

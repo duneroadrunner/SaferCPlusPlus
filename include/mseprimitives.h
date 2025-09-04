@@ -383,6 +383,7 @@ namespace mse {
 //define MSE_TINT_TYPE_WITH_THE_LOWER_FLOOR(_Ty, _Tz) typename std::conditional<impl::sg_can_exceed_lower_bound<_Tz, _Ty>(), _Ty, _Tz>::type
 
 	namespace impl {
+		template <typename...> using void_t_pr = void;
 
 		template <class _Ty>
 		struct is_arithmetic : public std::is_arithmetic<_Ty> {};
@@ -395,20 +396,10 @@ namespace mse {
 		template <typename TBase> struct is_arithmetic<TFloatingPoint<TBase> > : std::integral_constant<bool, true> {};
 		template <typename TBase> struct is_arithmetic<const TFloatingPoint<TBase> > : std::integral_constant<bool, true> {};
 
-		template<class T, class EqualTo>
-		struct IsSupportedByMakeSigned_impl
-		{
-			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<typename std::make_signed<U>::type>(), std::declval<typename std::make_signed<V>::type>(), bool(true));
-			template<typename, typename>
-			static auto test(...) -> std::false_type;
-
-			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-		};
-		template<class T, class EqualTo = T>
-		struct IsSupportedByMakeSigned : IsSupportedByMakeSigned_impl<
-			typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+		template <typename T, typename = void>
+		struct IsSupportedByMakeSigned : std::false_type {};
+		template <typename T>
+		struct IsSupportedByMakeSigned<T, mse::impl::void_t_pr<decltype(std::declval<typename std::make_signed<T>::type>())> > : std::true_type {};
 
 		template <class _Ty>
 		struct identity_pr {
@@ -1774,20 +1765,10 @@ namespace mse {
 				template<typename _Ty>
 				_Ty& force_lvalue_ref(_Ty&& x) { return force_lvalue_ref(x); }
 
-				template<class T, class EqualTo>
-				struct HasOrInheritsMseBaseTypeRefMethod_impl
-				{
-					template<class U, class V>
-					static auto test(U*) -> decltype(force_lvalue_ref(std::declval<U>()).mse_base_type_ref(), force_lvalue_ref(std::declval<V>()).mse_base_type_ref(), bool(true));
-					template<typename, typename>
-					static auto test(...)->std::false_type;
-
-					static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
-					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
-				};
-				template<class T, class EqualTo = T>
-				struct HasOrInheritsMseBaseTypeRefMethod : HasOrInheritsMseBaseTypeRefMethod_impl<
-					typename std::remove_reference<T>::type, typename std::remove_reference<EqualTo>::type>::type {};
+				template <typename T, typename = void>
+				struct HasOrInheritsMseBaseTypeRefMethod : std::false_type {};
+				template <typename T>
+				struct HasOrInheritsMseBaseTypeRefMethod<T, mse::impl::void_t_pr<decltype(force_lvalue_ref(std::declval<T>()).mse_base_type_ref())> > : std::true_type {};
 
 				template <class _Ty, class _Tz>
 				struct base_type_helper1 {
