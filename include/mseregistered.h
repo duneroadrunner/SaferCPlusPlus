@@ -297,6 +297,7 @@ namespace mse {
 		template <class Y> friend class TNDRegisteredPointer;
 		template <class Y> friend class TNDRegisteredConstPointer;
 		friend class TNDRegisteredNotNullPointer<_Ty>;
+		template <class _Ty2> friend void mse::ndregistered_delete(const TNDRegisteredPointer<_Ty2>& regPtrRef);
 	};
 
 	template<typename _Ty>
@@ -381,6 +382,7 @@ namespace mse {
 
 		template <class Y> friend class TNDRegisteredConstPointer;
 		friend class TNDRegisteredNotNullConstPointer<_Ty>;
+		template <class _Ty2> friend void mse::ndregistered_delete(const TNDRegisteredConstPointer<_Ty2>& regPtrRef);
 	};
 
 	template<typename _Ty>
@@ -626,14 +628,14 @@ namespace mse {
 	}
 	template <class _Ty>
 	void ndregistered_delete(const TNDRegisteredPointer<_Ty>& regPtrRef) {
-		auto a = static_cast<TNDRegisteredObj<_Ty>*>(regPtrRef);
+		auto a = regPtrRef.asANativePointerToTNDRegisteredObj();
 		auto res = mse::us::impl::tlSAllocRegistry_ref<TNDRegisteredObj<_Ty> >().unregisterPointer(a);
 		if (!res) { assert(false); MSE_THROW(std::invalid_argument("invalid argument, no corresponding allocation found - mse::registered_delete() \n- tip: If deleting via base class pointer, use mse::us::registered_delete() instead. ")); }
 		regPtrRef.registered_delete();
 	}
 	template <class _Ty>
 	void ndregistered_delete(const TNDRegisteredConstPointer<_Ty>& regPtrRef) {
-		auto a = static_cast<const TNDRegisteredObj<_Ty>*>(regPtrRef);
+		auto a = regPtrRef.asANativePointerToTNDRegisteredObj();
 		auto res = mse::us::impl::tlSAllocRegistry_ref<TNDRegisteredObj<_Ty> >().unregisterPointer(a);
 		if (!res) { assert(false); MSE_THROW(std::invalid_argument("invalid argument, no corresponding allocation found - mse::registered_delete() \n- tip: If deleting via base class pointer, use mse::us::registered_delete() instead. ")); }
 		regPtrRef.registered_delete();
