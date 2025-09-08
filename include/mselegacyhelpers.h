@@ -1145,7 +1145,7 @@ namespace mse {
 
 					template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
 						(!std::is_convertible<_TRandomAccessIterator1, TLHNullableAnyRandomAccessIteratorBase>::value)
-						&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
+						&& (!std::is_base_of<_Myt, _TRandomAccessIterator1>::value)
 						&& (!std::is_same<_TRandomAccessIterator1, std::nullptr_t>::value)
 						&& (!std::is_same<_TRandomAccessIterator1, NULL_t>::value)
 						&& (!std::is_same<_TRandomAccessIterator1, ZERO_LITERAL_t>::value)
@@ -1387,6 +1387,17 @@ namespace mse {
 
 				private:
 
+					template <typename _Ty2>
+					static auto construction_helper3(std::false_type, const _Ty2& src) {
+						return src;
+					}
+					template <typename _Ty2>
+					static auto construction_helper3(std::true_type, const _Ty2& src) {
+						/* argument seems to be a TLHNullableAnyRandomAccessIteratorBase<std::remove_const_t<_Ty> > */
+						//return reinterpret_cast<const TLHNullableAnyRandomAccessIteratorBase&>(src).m_iter;
+						return src.m_iter;
+					}
+
 					template <typename _TRandomAccessIterator1>
 					static auto constructor_helper2(std::true_type, const _TRandomAccessIterator1& random_access_iterator) {
 						/* The element type of this iterator and the element type of the random_access_iterator parameter are both
@@ -1401,7 +1412,7 @@ namespace mse {
 					}
 					template <typename _TRandomAccessIterator1>
 					static auto constructor_helper2(std::false_type, const _TRandomAccessIterator1& random_access_iterator) {
-						return random_access_iterator;
+						return construction_helper3(typename std::integral_constant<bool, std::is_const<_Ty>::value && std::is_base_of<TLHNullableAnyRandomAccessIteratorBase<mse::impl::remove_const_t<_Ty> >, _TRandomAccessIterator1>::value>::type(), random_access_iterator);
 					}
 
 					template <typename _TRandomAccessIterator1>
@@ -1449,8 +1460,8 @@ namespace mse {
 
 					MSE_IMPL_ANY_CONTAINED_ANY_FRIEND_DECLARATIONS1;
 
-					template <typename _Ty2>
-					friend class TXScopeLHNullableAnyRandomAccessIterator;
+					template <typename _Ty2> friend class TXScopeLHNullableAnyRandomAccessIterator;
+					template <typename _Ty2> friend class TLHNullableAnyRandomAccessIteratorBase;
 
 					template<typename ValueType2, typename _Ty2, typename retval_t2>
 					friend inline retval_t2 maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty2>& operand);
@@ -1645,11 +1656,6 @@ namespace mse {
 			template <size_t _Size, typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<const _Ty2, _Ty>::value)/* || (std::is_same<_Ty2, _Ty>::value)*/> MSE_IMPL_EIS >
 			TXScopeLHNullableAnyRandomAccessIterator(const TNativeArrayReplacement<_Ty2, _Size>& val) : base_class(val.cbegin()) {}
 
-			/* Btw things like this akward use of a "construction_helper" is only to support compatibility with older versions of the microsoft compiler whose support for sfinae was limited. */
-			static auto construction_helper1(std::true_type, const const_void_star_replacement& src) -> TXScopeLHNullableAnyRandomAccessIterator<const _Ty>;
-			template<typename _Ty2>
-			static auto construction_helper1(std::false_type, const _Ty2& src) { return src; }
-
 			template <typename _TRandomAccessIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<(
 					(!std::is_convertible<_TRandomAccessIterator1, TXScopeLHNullableAnyRandomAccessIterator>::value)
 					&& (!std::is_base_of<base_class, _TRandomAccessIterator1>::value)
@@ -1672,6 +1678,11 @@ namespace mse {
 			void async_not_shareable_and_not_passable_tag() const {}
 
 		private:
+
+			/* Btw things like this akward use of a "construction_helper" is only to support compatibility with older versions of the microsoft compiler whose support for sfinae was limited. */
+			static auto construction_helper1(std::true_type, const const_void_star_replacement& src) -> TXScopeLHNullableAnyRandomAccessIterator<const _Ty>;
+			template<typename _Ty2>
+			static auto construction_helper1(std::false_type, const _Ty2& src) { return src; }
 
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
@@ -2129,8 +2140,54 @@ namespace mse {
 			template<class _Ty>
 			class CAllocF<_Ty*> {
 			public:
-				static void free(_Ty* ptr) {
+				static void free(_Ty*& ptr) {
+					if (!ptr) {
+						return;
+					}
+					/* This raw pointer could be one that was (unsafely) converted from one of the libraries safe (smart) pointers. In such case, 
+					it could be pointing to an allocated object that is being tracked in one of the library's registries. So we'll try to 
+					"unregister" the pointer (target object) in each of the registries. If any of the unregistration attempts is reported as 
+					successful (indicating that the target object was indeed in the registry) then we'll `delete()` the object (which will invoke 
+					its destructor). 
+					Note that attempting to "free()" a "registered" object via a raw pointer *may* (or may not) work, but in any case is very 
+					much not condoned. */
+					if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDRegisteredObj<_Ty> >().unregisterPointer(ptr)) {
+						/* reinterpret_cast<>() should/might work here because the object targeted by the raw pointer would (always) be placed at 
+						the very front of the object layout. */
+						auto ptr2 = reinterpret_cast<const mse::TNDRegisteredObj<_Ty> *>(ptr);
+						delete ptr2;
+						ptr = nullptr;
+						return;
+					}
+					if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDCRegisteredObj<_Ty> >().unregisterPointer(ptr)) {
+						auto ptr2 = reinterpret_cast<const mse::TNDCRegisteredObj<_Ty> *>(ptr);
+						delete ptr2;
+						ptr = nullptr;
+						return;
+					}
+					if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDNoradObj<_Ty> >().unregisterPointer(ptr)) {
+						auto ptr2 = reinterpret_cast<const mse::TNDNoradObj<_Ty> *>(ptr);
+						delete ptr2;
+						ptr = nullptr;
+						return;
+					}
 					::free(ptr);
+					ptr = nullptr;
+				}
+				static void free(_Ty* const& ptr) {
+					if (!ptr) {
+						return;
+					}
+					if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDRegisteredObj<_Ty> >().unregisterPointer(ptr)
+						|| mse::us::impl::tlSAllocRegistry_ref<mse::TNDCRegisteredObj<_Ty> >().unregisterPointer(ptr)
+						|| mse::us::impl::tlSAllocRegistry_ref<mse::TNDNoradObj<_Ty> >().unregisterPointer(ptr)
+						) {
+						delete ptr;
+						//ptr = nullptr;
+						return;
+					}
+					::free(ptr);
+					//ptr = nullptr;
 				}
 				static void allocate(_Ty*& ptr, size_t num_bytes) {
 					ptr = (_Ty*)(::malloc(num_bytes));
@@ -2140,7 +2197,9 @@ namespace mse {
 				}
 			};
 			template<class _Ty>
-			void free(_Ty* ptr) { CAllocF<_Ty*>::free(ptr); }
+			void free(_Ty*& ptr) { CAllocF<_Ty*>::free(ptr); }
+			template<class _Ty>
+			void free(_Ty* const& ptr) { CAllocF<_Ty*>::free(ptr); }
 			template<class _Ty>
 			void allocate(_Ty*& ptr, size_t num_bytes) { CAllocF<_Ty*>::allocate(ptr, num_bytes); }
 			template<class _Ty>
@@ -3236,9 +3295,12 @@ namespace mse {
 		template<typename TCharBufferIterator, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TCharBufferIterator>::value)> MSE_IMPL_EIS >
 		auto strndup(TCharBufferIterator const& str_iter, size_t size) -> TStrongVectorIterator<mse::impl::target_type<TCharBufferIterator> > {
 			TStrongVectorIterator<mse::impl::target_type<TCharBufferIterator> > retval;
-			auto slen = strlen(str_iter);
-			if (size < slen) {
-				slen = size;
+			size_t slen = 0;
+			while (size > slen) {
+				if ('\0' == str_iter[slen]) {
+					break;
+				}
+				slen += 1;
 			}
 			retval.resize(1 + slen);
 			auto dest_iter = retval;
@@ -5539,6 +5601,11 @@ namespace mse {
 					bool b3 = (vsr1 == (void*)0);
 					bool b4 = (((void*)0) != vsr1);
 #endif // (defined(MSE_HAS_CXX17) || (!defined(MSC_VER)))
+
+					int i1 = 7;
+					auto lhnara_iter3 = mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(&i1);
+					auto lhnara_iter4 = mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(&((const int&)i1));
+					auto diff3 = lhnara_iter3 - lhnara_iter4;
 
 					int q = 5;
 				}

@@ -693,6 +693,78 @@ namespace mse {
 
 		template<typename _TPointer, typename _TDefault = void>
 		using target_or_given_default_type = mse::impl::conditional_t<std::is_same<void, target_or_void_type<_TPointer> >::value, _TDefault, target_or_void_type<_TPointer> >;
+
+		/* Should be a specialization for each dereferenceable type (for which the version with a const target is structurally identical 
+		to the version with a non-const target). There is code out there that relies on the two versions being structurally identical. */
+		template<typename _TPointer>
+		struct corresponding_type_with_const_target {
+			using type = _TPointer;
+		};
+		template<typename _TPointer>
+		struct corresponding_type_with_nonconst_target {
+			using type = _TPointer;
+		};
+
+		template<typename T>
+		struct corresponding_type_with_const_target<T*> {
+			using type = const T*;
+		};
+		template<typename T>
+		struct corresponding_type_with_nonconst_target<const T*> {
+			using type = T*;
+		};
+		template<typename T>
+		struct corresponding_type_with_const_target<T* const> {
+			using type = const T* const;
+		};
+		template<typename T>
+		struct corresponding_type_with_nonconst_target<const T* const> {
+			using type = T* const;
+		};
+
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION(pointer_t) \
+		template<typename _Ty> \
+		struct corresponding_type_with_const_target<pointer_t<_Ty> > { \
+			using type = pointer_t<const _Ty>; \
+		}; \
+		template<typename _Ty> \
+		struct corresponding_type_with_nonconst_target<pointer_t<const _Ty> > { \
+			using type = pointer_t<_Ty>; \
+		}; \
+		template<typename _Ty> \
+		struct corresponding_type_with_const_target<const pointer_t<_Ty> > { \
+			using type = pointer_t<const _Ty>; \
+		}; \
+		template<typename _Ty> \
+		struct corresponding_type_with_nonconst_target<const pointer_t<const _Ty> > { \
+			using type = pointer_t<_Ty>; \
+		};
+
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION(pointer_t) \
+		template<typename _Ty, typename _TID> \
+		struct corresponding_type_with_const_target<pointer_t<_Ty, _TID> > { \
+			using type = pointer_t<const _Ty, _TID>; \
+		}; \
+		template<typename _Ty, typename _TID> \
+		struct corresponding_type_with_nonconst_target<pointer_t<const _Ty, _TID> > { \
+			using type = pointer_t<_Ty, _TID>; \
+		}; \
+		template<typename _Ty, typename _TID> \
+		struct corresponding_type_with_const_target<const pointer_t<_Ty, _TID> > { \
+			using type = pointer_t<const _Ty, _TID>; \
+		}; \
+		template<typename _Ty, typename _TID> \
+		struct corresponding_type_with_nonconst_target<const pointer_t<const _Ty, _TID> > { \
+			using type = pointer_t<_Ty, _TID>; \
+		};
+	}
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(pointer_t) \
+	namespace impl { \
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION(pointer_t); \
+	}
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(pointer_t) \
+	namespace impl { \
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION(pointer_t); \
 	}
 
 	namespace impl {
@@ -1343,7 +1415,7 @@ namespace mse {
 				TPointer() : m_ptr(nullptr) {}
 				TPointer(_Ty* ptr) : m_ptr(ptr) { note_value_assignment(); }
 				TPointer(const TPointer<_Ty, _TID>& src) : m_ptr(src.m_ptr) { note_value_assignment(); }
-				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
 				TPointer(const TPointer<_Ty2, _TID >& src_cref) : m_ptr(src_cref.m_ptr) { note_value_assignment(); }
 				MSE_IMPL_DESTRUCTOR_PREFIX1 ~TPointer() {}
 
@@ -1378,7 +1450,7 @@ namespace mse {
 					m_ptr = _Right_cref.m_ptr;
 					return (*this);
 				}
-				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value || std::is_same<const _Ty2, _Ty>::value> MSE_IMPL_EIS >
 				TPointer<_Ty, _TID>& operator=(const TPointer<_Ty2, _TID >& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					note_value_assignment();
 					m_ptr = _Right_cref.m_ptr;
@@ -1396,7 +1468,7 @@ namespace mse {
 					return (m_ptr != nullptr);
 				}
 
-				explicit operator _Ty*() const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
+				explicit operator _Ty* () const MSE_ATTR_FUNC_STR("mse::lifetime_no_elided") {
 					assert_initialized();
 #ifdef NATIVE_PTR_DEBUG_HELPER1
 					if (nullptr == m_ptr) {
@@ -1417,7 +1489,11 @@ namespace mse {
 				void assert_initialized() const {}
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 			};
-
+		}
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::us::impl::TPointer);
+	namespace us {
+		namespace impl {
 			template<typename _Ty, typename _TID = TPointerID>
 			class TPointerForLegacy : public mse::us::impl::AsyncNotShareableAndNotPassableTagBase {
 			public:
@@ -1533,6 +1609,11 @@ namespace mse {
 				void assert_initialized() const {}
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 			};
+		}
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::us::impl::TPointerForLegacy);
+	namespace us {
+		namespace impl {
 
 			template<typename _Ty>
 			class TOpaqueImplicitlyConvertingWrapper1 {
@@ -1664,6 +1745,9 @@ namespace mse {
 			void assert_initialized() const {}
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 		};
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::us::TSaferPtr);
+	namespace us {
 
 		/* TSaferPtrForLegacy is similar to TSaferPtr, but more readily converts to a native pointer implicitly. So when replacing
 		native pointers with safer pointers in legacy code, fewer code changes (explicit casts) may be required when using this
@@ -1731,10 +1815,7 @@ namespace mse {
 #endif // MSE_TSAFERPTR_CHECK_USE_BEFORE_SET
 		};
 	}
-	/* Deprecated in this namespace. Use mse::us::TSaferPtr<> instead. */
-	template<typename _Ty> using TSaferPtr = mse::us::TSaferPtr<_Ty>;
-	/* Deprecated in this namespace. Use mse::us::TSaferPtrForLegacy<> instead. */
-	template<typename _Ty> using TSaferPtrForLegacy = mse::us::TSaferPtrForLegacy<_Ty>;
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::us::TSaferPtrForLegacy);
 
 #if defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 	template<typename _Ty> auto pointer_to(_Ty& _X) { return &_X; }
