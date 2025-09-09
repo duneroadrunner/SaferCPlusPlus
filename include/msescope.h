@@ -1354,6 +1354,9 @@ namespace mse {
 
 			template<class _Ty2> friend TXScopeFixedPointer<_Ty2> mse::us::unsafe_make_xscope_pointer_to(_Ty2& ref);
 		};
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXScopeFixedPointer);
+	namespace rsv {
 
 		template<typename _Ty, lifetime_info1_t lt_info1/* = no_lifetime_info1*/>
 		class TXScopeFixedConstPointer : public mse::us::impl::TXScopeItemConstPointerBase<_Ty>, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::NeverNullTagBase {
@@ -3054,6 +3057,7 @@ namespace mse {
 			return TXScopeOwnerPointer<X, lt_info1>::make(std::forward<Args>(args)...);
 		}
 	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXScopeOwnerPointer);
 }
 
 namespace std {

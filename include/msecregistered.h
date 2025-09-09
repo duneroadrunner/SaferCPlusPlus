@@ -326,6 +326,7 @@ namespace mse {
 		friend class TNDCRegisteredNotNullPointer<_Ty>;
 		template <class _Ty2> friend void mse::ndcregistered_delete(const TNDCRegisteredPointer<_Ty2>& regPtrRef);
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNDCRegisteredPointer);
 
 	template<typename _Ty>
 	class TNDCRegisteredConstPointer : public mse::us::TSaferPtr<const TNDCRegisteredObj<_Ty>>, public mse::us::impl::CCRegisteredNode {
@@ -450,6 +451,7 @@ namespace mse {
 		template<typename _Ty2>
 		friend TNDCRegisteredNotNullPointer<_Ty2> not_null_from_nullable(const TNDCRegisteredPointer<_Ty2>& src);
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNDCRegisteredNotNullPointer);
 
 	template<typename _Ty>
 	class TNDCRegisteredNotNullConstPointer : public TNDCRegisteredConstPointer<_Ty> {
@@ -526,6 +528,7 @@ namespace mse {
 
 		friend class TNDCRegisteredObj<_Ty>;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNDCRegisteredFixedPointer);
 
 	template<typename _Ty>
 	class TNDCRegisteredFixedConstPointer : public TNDCRegisteredNotNullConstPointer<_Ty> {

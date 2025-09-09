@@ -310,6 +310,9 @@ namespace mse {
 		template <class Y> friend class TRefCountingNotNullConstPointer;
 	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)");
 
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TRefCountingPointer);
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(std::shared_ptr);
+
 	template<typename _Ty>
 	class TRefCountingNotNullPointer : public mse::us::impl::RefCStrongPointerTagBase, public mse::us::impl::NeverNullTagBase {
 	public:
@@ -386,6 +389,7 @@ namespace mse {
 		template<typename _Ty2>
 		friend TRefCountingNotNullPointer<_Ty2> not_null_from_nullable(const TRefCountingPointer<_Ty2>& src);
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TRefCountingNotNullPointer);
 
 	template <class X> TRefCountingPointer<X>::TRefCountingPointer(const TRefCountingNotNullPointer<X>& r) : TRefCountingPointer(r.m_rcptr){}
 	template <class X> TRefCountingPointer<X>::TRefCountingPointer(TRefCountingNotNullPointer<X>&& r) : TRefCountingPointer(MSE_FWD(r.m_rcptr)) {}
@@ -420,6 +424,7 @@ namespace mse {
 
 		friend class TRefCountingConstPointer<_Ty>;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TRefCountingFixedPointer);
 
 	template <class X, class... Args>
 	TRefCountingNotNullPointer<X> make_refcounting(Args&&... args) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(X)") {
@@ -1043,6 +1048,8 @@ namespace mse {
 
 		std::unique_ptr<_Ty> m_uq_ptr;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TSingleOwnerPointer);
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(std::unique_ptr);
 
 	template <class _Ty, class... _Types>
 	_CONSTEXPR23 TSingleOwnerPointer<_Ty> make_single_owner(_Types&&... _Args) { // make a TSingleOwnerPointer

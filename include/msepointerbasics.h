@@ -705,6 +705,7 @@ namespace mse {
 			using type = _TPointer;
 		};
 
+		/* specialization for raw pointers */
 		template<typename T>
 		struct corresponding_type_with_const_target<T*> {
 			using type = const T*;
@@ -722,49 +723,49 @@ namespace mse {
 			using type = T* const;
 		};
 
-#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION(pointer_t) \
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION(pointer_template) \
 		template<typename _Ty> \
-		struct corresponding_type_with_const_target<pointer_t<_Ty> > { \
-			using type = pointer_t<const _Ty>; \
+		struct corresponding_type_with_const_target<pointer_template<_Ty> > { \
+			using type = pointer_template<const _Ty>; \
 		}; \
 		template<typename _Ty> \
-		struct corresponding_type_with_nonconst_target<pointer_t<const _Ty> > { \
-			using type = pointer_t<_Ty>; \
+		struct corresponding_type_with_nonconst_target<pointer_template<const _Ty> > { \
+			using type = pointer_template<_Ty>; \
 		}; \
 		template<typename _Ty> \
-		struct corresponding_type_with_const_target<const pointer_t<_Ty> > { \
-			using type = pointer_t<const _Ty>; \
+		struct corresponding_type_with_const_target<const pointer_template<_Ty> > { \
+			using type = pointer_template<const _Ty>; \
 		}; \
 		template<typename _Ty> \
-		struct corresponding_type_with_nonconst_target<const pointer_t<const _Ty> > { \
-			using type = pointer_t<_Ty>; \
+		struct corresponding_type_with_nonconst_target<const pointer_template<const _Ty> > { \
+			using type = pointer_template<_Ty>; \
 		};
 
-#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION(pointer_t) \
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION(pointer_template) \
 		template<typename _Ty, typename _TID> \
-		struct corresponding_type_with_const_target<pointer_t<_Ty, _TID> > { \
-			using type = pointer_t<const _Ty, _TID>; \
+		struct corresponding_type_with_const_target<pointer_template<_Ty, _TID> > { \
+			using type = pointer_template<const _Ty, _TID>; \
 		}; \
 		template<typename _Ty, typename _TID> \
-		struct corresponding_type_with_nonconst_target<pointer_t<const _Ty, _TID> > { \
-			using type = pointer_t<_Ty, _TID>; \
+		struct corresponding_type_with_nonconst_target<pointer_template<const _Ty, _TID> > { \
+			using type = pointer_template<_Ty, _TID>; \
 		}; \
 		template<typename _Ty, typename _TID> \
-		struct corresponding_type_with_const_target<const pointer_t<_Ty, _TID> > { \
-			using type = pointer_t<const _Ty, _TID>; \
+		struct corresponding_type_with_const_target<const pointer_template<_Ty, _TID> > { \
+			using type = pointer_template<const _Ty, _TID>; \
 		}; \
 		template<typename _Ty, typename _TID> \
-		struct corresponding_type_with_nonconst_target<const pointer_t<const _Ty, _TID> > { \
-			using type = pointer_t<_Ty, _TID>; \
+		struct corresponding_type_with_nonconst_target<const pointer_template<const _Ty, _TID> > { \
+			using type = pointer_template<_Ty, _TID>; \
 		};
 	}
-#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(pointer_t) \
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(pointer_template) \
 	namespace impl { \
-		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION(pointer_t); \
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION(pointer_template); \
 	}
-#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(pointer_t) \
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(pointer_template) \
 	namespace impl { \
-		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION(pointer_t); \
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION(pointer_template); \
 	}
 
 	namespace impl {

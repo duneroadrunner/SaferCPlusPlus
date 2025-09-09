@@ -206,6 +206,7 @@ namespace mse {
 		template <class Y> friend class TNDNoradProxyConstPointer;
 		friend class TNDNoradProxyNotNullPointer<_Ty>;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNDNoradProxyPointer);
 
 	template<typename _Ty>
 	class TNDNoradProxyConstPointer : public mse::TNDNoradConstPointer<mse::TXScopeFixedConstPointer<_Ty> > {
@@ -310,6 +311,7 @@ namespace mse {
 		template<typename _Ty2>
 		friend TNDNoradProxyNotNullPointer<_Ty2> not_null_from_nullable(const TNDNoradProxyPointer<_Ty2>& src);
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNDNoradProxyNotNullPointer);
 
 	template<typename _Ty>
 	class TNDNoradProxyNotNullConstPointer : public TNDNoradProxyConstPointer<_Ty> {
@@ -382,6 +384,7 @@ namespace mse {
 
 		friend class TNDXScopeNoradProxyObj<_Ty>;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNDNoradProxyFixedPointer);
 
 	template<typename _Ty>
 	class TNDNoradProxyFixedConstPointer : public TNDNoradProxyNotNullConstPointer<_Ty> {

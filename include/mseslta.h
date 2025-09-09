@@ -247,6 +247,9 @@ namespace mse {
 			template<typename _ncTy>
 			friend class TXSLTAConstPointer;
 		} MSE_ATTR_STR("mse::lifetime_label(99)");
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTAPointer);
+	namespace rsv {
 
 		template<typename _Ty>
 		using xl_ptr = TXSLTAPointer< _Ty>; /* provisional shorter alias */
@@ -399,6 +402,7 @@ namespace mse {
 			return TXSLTAOwnerPointer<X>::make(std::forward<X>(src_ref));
 		}
 	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTAOwnerPointer);
 }
 
 namespace std {

@@ -236,18 +236,18 @@ namespace mse {
 			template<typename _Ty, typename _TRefCounter>
 			class TGNoradPointer : public mse::us::impl::StrongPointerTagBase
 				, public std::conditional<(!std::is_convertible<_Ty*, mse::us::impl::AsyncNotShareableTagBase*>::value)
-					&& (std::is_arithmetic/*as opposed to say, atomic*/<_TRefCounter>::value)
-					, mse::us::impl::AsyncNotShareableTagBase, mse::impl::TPlaceHolder<mse::us::impl::AsyncNotShareableTagBase, TGNoradPointer< _Ty, _TRefCounter> > >::type
+				&& (std::is_arithmetic/*as opposed to say, atomic*/<_TRefCounter>::value)
+				, mse::us::impl::AsyncNotShareableTagBase, mse::impl::TPlaceHolder<mse::us::impl::AsyncNotShareableTagBase, TGNoradPointer< _Ty, _TRefCounter> > >::type
 				, public std::conditional<(!std::is_convertible<_Ty*, mse::us::impl::AsyncNotPassableTagBase*>::value)
-					&& (std::is_arithmetic/*as opposed to say, atomic*/<_TRefCounter>::value)
-					, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder<mse::us::impl::AsyncNotPassableTagBase, TGNoradPointer< _Ty, _TRefCounter> > >::type
+				&& (std::is_arithmetic/*as opposed to say, atomic*/<_TRefCounter>::value)
+				, mse::us::impl::AsyncNotPassableTagBase, mse::impl::TPlaceHolder<mse::us::impl::AsyncNotPassableTagBase, TGNoradPointer< _Ty, _TRefCounter> > >::type
 			{
 			public:
 				TGNoradPointer() : m_ptr() {}
 				TGNoradPointer(const TGNoradPointer& src_cref) : m_ptr(src_cref.m_ptr) {
 					if (m_ptr) { (*m_ptr).increment_refcount(); }
 				}
-				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 				TGNoradPointer(const TGNoradPointer<_Ty2, _TRefCounter>& src_cref) : m_ptr(src_cref.m_ptr) {
 					if (m_ptr) { (*m_ptr).increment_refcount(); }
 				}
@@ -264,7 +264,7 @@ namespace mse {
 					if (m_ptr) { (*m_ptr).increment_refcount(); }
 					return (*this);
 				}
-				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2 *, _Ty *>::value> MSE_IMPL_EIS >
+				template<class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<_Ty2*, _Ty*>::value> MSE_IMPL_EIS >
 				TGNoradPointer<_Ty, _TRefCounter>& operator=(const TGNoradPointer<_Ty2, _TRefCounter>& _Right_cref) {
 					return (*this).operator=(TGNoradPointer(_Right_cref));
 				}
@@ -280,9 +280,9 @@ namespace mse {
 
 				MSE_IMPL_POINTER_EQUALITY_COMPARISON_OPERATOR_DECLARATION(TGNoradPointer);
 				MSE_IMPL_UNORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(TGNoradPointer)
-				MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TGNoradPointer)
+					MSE_IMPL_EQUALITY_COMPARISON_WITH_ANY_POINTER_TYPE_OPERATOR_DECLARATIONS(TGNoradPointer)
 
-				explicit operator bool() const { return !(!m_ptr); }
+					explicit operator bool() const { return !(!m_ptr); }
 
 				/* In C++, if an object is deleted via a pointer to its base class and the base class' destructor is not virtual,
 				then the (derived) object's destructor won't be called possibly resulting in resource leaks. With registered
@@ -326,6 +326,11 @@ namespace mse {
 				friend class TGNoradNotNullPointer<_Ty, _TRefCounter>;
 				template <class _Ty2> friend void mse::ndnorad_delete(TNDNoradPointer<_Ty2>& ndnoradPtrRef);
 			};
+		}
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::us::impl::TGNoradPointer);
+	namespace us {
+		namespace impl {
 
 			template<typename _Ty, typename _TRefCounter>
 			class TGNoradConstPointer : public mse::us::impl::StrongPointerTagBase
@@ -470,6 +475,11 @@ namespace mse {
 				template<typename _Ty2>
 				friend TGNoradNotNullPointer<_Ty2, _TRefCounter> not_null_from_nullable(const TGNoradPointer<_Ty2, _TRefCounter>& src);
 			};
+		}
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::us::impl::TGNoradNotNullPointer);
+	namespace us {
+		namespace impl {
 
 			template<typename _Ty, typename _TRefCounter>
 			class TGNoradNotNullConstPointer : public TGNoradConstPointer<_Ty, _TRefCounter>, public mse::us::impl::NeverNullTagBase {
@@ -565,6 +575,11 @@ namespace mse {
 
 				friend class TGNoradObj<_Ty, _TRefCounter>;
 			};
+		}
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::us::impl::TGNoradFixedPointer);
+	namespace us {
+		namespace impl {
 
 			template<typename _Ty, typename _TRefCounter>
 			class TGNoradFixedConstPointer : public TGNoradNotNullConstPointer<_Ty, _TRefCounter> {

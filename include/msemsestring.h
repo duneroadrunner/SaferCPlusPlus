@@ -3601,6 +3601,10 @@ namespace mse {
 			using Tgnii_basic_string_ss_reverse_iterator_type = std::reverse_iterator<Tgnii_basic_string_ss_iterator_type<_TBasicStringPointer> >;
 			template<typename _TBasicStringConstPointer>
 			using Tgnii_basic_string_ss_const_reverse_iterator_type = std::reverse_iterator<Tgnii_basic_string_ss_const_iterator_type<_TBasicStringConstPointer> >;
+		}
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION(mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_iterator_type, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_iterator_type);
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION(mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_reverse_iterator_type, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_ss_const_reverse_iterator_type);
+		namespace ns_gnii_basic_string {
 
 			template<typename _TBasicString>
 			using Tgnii_basic_string_rp_ss_iterator_type = Tgnii_basic_string_ss_iterator_type<msev_pointer<_TBasicString> >;
@@ -3709,6 +3713,9 @@ namespace mse {
 
 				friend _TBasicString;
 			};
+		}
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION(mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_iterator_type, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_cslsstrong_const_iterator_type);
+		namespace ns_gnii_basic_string {
 
 			template<typename _TBasicString>
 			class Tgnii_basic_string_xscope_ss_iterator_type;
@@ -3807,6 +3814,7 @@ namespace mse {
 				friend _TBasicString;
 			};
 		}
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION(mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_iterator_type, mse::impl::ns_gnii_basic_string::Tgnii_basic_string_xscope_ss_const_iterator_type);
 	}
 
 	namespace mstd {

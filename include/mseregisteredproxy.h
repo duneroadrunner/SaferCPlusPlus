@@ -192,6 +192,7 @@ namespace mse {
 		template <class Y> friend class TNDRegisteredProxyConstPointer;
 		friend class TNDRegisteredProxyNotNullPointer<_Ty>;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNDRegisteredProxyPointer);
 
 	template<typename _Ty, typename _Tz>
 	inline auto operator==(const TNDRegisteredProxyPointer<_Ty>& lhs, const _Tz& rhs) {
@@ -320,6 +321,7 @@ namespace mse {
 		template<typename _Ty2>
 		friend TNDRegisteredProxyNotNullPointer<_Ty2> not_null_from_nullable(const TNDRegisteredProxyPointer<_Ty2>& src);
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNDRegisteredProxyNotNullPointer);
 
 	template<typename _Ty>
 	class TNDRegisteredProxyNotNullConstPointer : public TNDRegisteredProxyConstPointer<_Ty> {
@@ -392,6 +394,7 @@ namespace mse {
 
 		friend class TNDXScopeRegisteredProxyObj<_Ty>;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNDRegisteredProxyFixedPointer);
 
 	template<typename _Ty>
 	class TNDRegisteredProxyFixedConstPointer : public TNDRegisteredProxyNotNullConstPointer<_Ty> {

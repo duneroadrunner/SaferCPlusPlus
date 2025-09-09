@@ -345,6 +345,7 @@ namespace mse {
 
 		friend struct std::hash<mse::TXScopeAnyPointer<_Ty> >;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TXScopeAnyPointer);
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_any_pointer(const _Ty& x) {
@@ -392,6 +393,7 @@ namespace mse {
 
 		friend struct std::hash<mse::TAnyPointer<_Ty> >;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TAnyPointer);
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_any_pointer(const _Ty & x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
@@ -809,6 +811,7 @@ namespace mse {
 
 		friend struct std::hash<mse::TXScopePolyPointer<_Ty> >;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TXScopePolyPointer);
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_poly_pointer(const _Ty & x) {
@@ -852,6 +855,7 @@ namespace mse {
 
 		friend struct std::hash<mse::TPolyPointer<_Ty> >;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TPolyPointer);
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_poly_pointer(const _Ty & x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
@@ -2423,6 +2427,7 @@ namespace mse {
 
 		friend class TAnyRandomAccessConstIterator<_Ty>;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TXScopeAnyRandomAccessIterator, mse::TXScopeAnyRandomAccessConstIterator);
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_any_random_access_const_iterator(const _Ty & x) {
@@ -2510,6 +2515,7 @@ namespace mse {
 	private:
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TAnyRandomAccessIterator, mse::TAnyRandomAccessConstIterator);
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_any_random_access_const_iterator(const _Ty & x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
@@ -3417,6 +3423,9 @@ namespace mse {
 		template<typename _Ty2>
 		friend TAnyRandomAccessIterator<_Ty2> not_null_from_nullable(const TNullableAnyRandomAccessIterator<_Ty2>& src);
 	};
+	/* Since there is no mse::TNullableAnyRandomAccessConstIterator<> at the moment, we'll designate mse::TNullableAnyRandomAccessIterator<const T> 
+	to be the "const" counterpart to mse::TNullableAnyRandomAccessIterator<T>. */
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNullableAnyRandomAccessIterator);
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_nullable_any_random_access_iterator(const _Ty& x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
@@ -3490,6 +3499,9 @@ namespace mse {
 		template<typename _Ty2>
 		friend TXScopeAnyRandomAccessIterator<_Ty2> not_null_from_nullable(const TXScopeNullableAnyRandomAccessIterator<_Ty2>& src);
 	};
+	/* Since there is no mse::TXScopeNullableAnyRandomAccessConstIterator<> at the moment, we'll designate mse::TXScopeNullableAnyRandomAccessIterator<const T>
+	to be the "const" counterpart to mse::TXScopeNullableAnyRandomAccessIterator<T>. */
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TXScopeNullableAnyRandomAccessIterator);
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_xscope_nullable_any_random_access_iterator(const _Ty& x) {
@@ -3592,6 +3604,7 @@ namespace mse {
 
 		bool m_is_null = false;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TNullableAnyPointer);
 
 	template <typename _Tx = void, typename _Ty = void>
 	auto make_nullable_any_pointer(const _Ty& x) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
@@ -3678,6 +3691,7 @@ namespace mse {
 
 		bool m_is_null = false;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TXScopeNullableAnyPointer);
 
 	template <typename _Ty>
 	bool operator==(const std::nullptr_t& lhs, const TXScopeNullableAnyPointer<_Ty>& rhs) { return rhs == lhs; }

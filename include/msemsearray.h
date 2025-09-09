@@ -1435,6 +1435,98 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAContainerPointer)");
 
+	namespace impl {
+
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION(non_const_iterator_template, const_iterator_template) \
+		template <typename _TRAContainerPointer> \
+		struct corresponding_type_with_const_target<non_const_iterator_template<_TRAContainerPointer> > { \
+			using type = const_iterator_template<_TRAContainerPointer>; \
+		}; \
+		template <typename _TRAContainerPointer> \
+		struct corresponding_type_with_nonconst_target<const_iterator_template<_TRAContainerPointer> > { \
+			using type = non_const_iterator_template<_TRAContainerPointer>; \
+		}; \
+		template <typename _TRAContainerPointer> \
+		struct corresponding_type_with_const_target<const non_const_iterator_template<_TRAContainerPointer> > { \
+			using type = const const_iterator_template<_TRAContainerPointer>; \
+		}; \
+		template <typename _TRAContainerPointer> \
+		struct corresponding_type_with_nonconst_target<const const_iterator_template<_TRAContainerPointer> > { \
+			using type = const non_const_iterator_template<_TRAContainerPointer>; \
+		};
+
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_TWO_TPARAM_SPECIALIZATION(non_const_iterator_template, const_iterator_template) \
+		template <typename _TRAContainerPointer, typename _TParam2> \
+		struct corresponding_type_with_const_target<non_const_iterator_template<_TRAContainerPointer, _TParam2> > { \
+			using type = const_iterator_template<_TRAContainerPointer, _TParam2>; \
+		}; \
+		template <typename _TRAContainerPointer, typename _TParam2> \
+		struct corresponding_type_with_nonconst_target<const_iterator_template<_TRAContainerPointer, _TParam2> > { \
+			using type = non_const_iterator_template<_TRAContainerPointer, _TParam2>; \
+		}; \
+		template <typename _TRAContainerPointer, typename _TParam2> \
+		struct corresponding_type_with_const_target<const non_const_iterator_template<_TRAContainerPointer, _TParam2> > { \
+			using type = const const_iterator_template<_TRAContainerPointer, _TParam2>; \
+		}; \
+		template <typename _TRAContainerPointer, typename _TParam2> \
+		struct corresponding_type_with_nonconst_target<const const_iterator_template<_TRAContainerPointer, _TParam2> > { \
+			using type = const non_const_iterator_template<_TRAContainerPointer, _TParam2>; \
+		};
+
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ARRAY_ITERATOR_THREE_TPARAM_SPECIALIZATION(non_const_iterator_template, const_iterator_template) \
+		template <typename _TElement, size_t _Size, typename _TParam3> \
+		struct corresponding_type_with_const_target<non_const_iterator_template<_TElement, _Size, _TParam3> > { \
+			using type = const_iterator_template<_TElement, _Size, _TParam3>; \
+		}; \
+		template <typename _TElement, size_t _Size, typename _TParam3> \
+		struct corresponding_type_with_nonconst_target<const_iterator_template<_TElement, _Size, _TParam3> > { \
+			using type = non_const_iterator_template<_TElement, _Size, _TParam3>; \
+		}; \
+		template <typename _TElement, size_t _Size, typename _TParam3> \
+		struct corresponding_type_with_const_target<const non_const_iterator_template<_TElement, _Size, _TParam3> > { \
+			using type = const const_iterator_template<_TElement, _Size, _TParam3>; \
+		}; \
+		template <typename _TElement, size_t _Size, typename _TParam3> \
+		struct corresponding_type_with_nonconst_target<const const_iterator_template<_TElement, _Size, _TParam3> > { \
+			using type = const non_const_iterator_template<_TElement, _Size, _TParam3>; \
+		};
+
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ARRAY_ITERATOR_FOUR_TPARAM_SPECIALIZATION(non_const_iterator_template, const_iterator_template) \
+		template <typename _TArrayConstPointer, typename _TElement, size_t _Size, typename _TParam3> \
+		struct corresponding_type_with_const_target<non_const_iterator_template<_TArrayConstPointer, _TElement, _Size, _TParam3> > { \
+			using type = const_iterator_template<_TArrayConstPointer, _TElement, _Size, _TParam3>; \
+		}; \
+		template <typename _TArrayConstPointer, typename _TElement, size_t _Size, typename _TParam3> \
+		struct corresponding_type_with_nonconst_target<const_iterator_template<_TArrayConstPointer, _TElement, _Size, _TParam3> > { \
+			using type = non_const_iterator_template<_TArrayConstPointer, _TElement, _Size, _TParam3>; \
+		}; \
+		template <typename _TArrayConstPointer, typename _TElement, size_t _Size, typename _TParam3> \
+		struct corresponding_type_with_const_target<const non_const_iterator_template<_TArrayConstPointer, _TElement, _Size, _TParam3> > { \
+			using type = const const_iterator_template<_TArrayConstPointer, _TElement, _Size, _TParam3>; \
+		}; \
+		template <typename _TArrayConstPointer, typename _TElement, size_t _Size, typename _TParam3> \
+		struct corresponding_type_with_nonconst_target<const const_iterator_template<_TArrayConstPointer, _TElement, _Size, _TParam3> > { \
+			using type = const non_const_iterator_template<_TArrayConstPointer, _TElement, _Size, _TParam3>; \
+		};
+	}
+
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(non_const_iterator_template, const_iterator_template) \
+	namespace impl { \
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION(non_const_iterator_template, const_iterator_template); \
+	}
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(non_const_iterator_template, const_iterator_template) \
+	namespace impl { \
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_TWO_TPARAM_SPECIALIZATION(non_const_iterator_template, const_iterator_template); \
+	}
+#define MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ARRAY_ITERATOR_THREE_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(non_const_iterator_template, const_iterator_template) \
+	namespace impl { \
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ARRAY_ITERATOR_THREE_TPARAM_SPECIALIZATION(non_const_iterator_template, const_iterator_template); \
+	}
+
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TXScopeRAIterator, mse::TXScopeRAConstIterator);
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TRAIterator, mse::TRAConstIterator);
+
+
 	template <typename _TRAContainerPointer>
 	auto xscope_pointer(const TXScopeRAIterator<_TRAContainerPointer>& iter_cref) {
 		mse::impl::T_valid_if_is_static_structure_or_locking_strong_iterator_msemsearray<TXScopeRAIterator<_TRAContainerPointer> >();
@@ -1895,6 +1987,7 @@ namespace mse {
 
 		template<class _TRAContainerPointer2> friend TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer2> mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer2>::size_type index);
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TXScopeCSSSStrongRAIterator, mse::TXScopeCSSSStrongRAConstIterator);
 
 	/* These specializations are here only because there seems to be a bug(?) in g++7's (but not g++5's) std::is_constructible<>
 	such that if its argument is convertible to one of these specializations (which are invalid instantiations and would
@@ -2623,6 +2716,7 @@ namespace mse {
 
 		MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 	};
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TXScopeCSSSXSTERAIterator, mse::TXScopeCSSSXSTERAConstIterator);
 
 	namespace rsv {
 
@@ -2889,6 +2983,10 @@ namespace mse {
 			using Tarray_ss_reverse_iterator_type = std::reverse_iterator<Tarray_ss_iterator_type<_TArrayPointer, _Ty, _Size, _TStateMutex> >;
 			template<typename _TArrayConstPointer, class _Ty, size_t _Size, class _TStateMutex/*, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::is_potentially_not_xscope<_TArrayConstPointer>::value)> MSE_IMPL_EIS*/>
 			using Tarray_ss_const_reverse_iterator_type = std::reverse_iterator<Tarray_ss_const_iterator_type<_TArrayConstPointer, _Ty, _Size, _TStateMutex> >;
+		}
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ARRAY_ITERATOR_FOUR_TPARAM_SPECIALIZATION(mse::impl::ns_nii_array::Tarray_ss_iterator_type, mse::impl::ns_nii_array::Tarray_ss_const_iterator_type);
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ARRAY_ITERATOR_FOUR_TPARAM_SPECIALIZATION(mse::impl::ns_nii_array::Tarray_ss_reverse_iterator_type, mse::impl::ns_nii_array::Tarray_ss_const_reverse_iterator_type);
+		namespace ns_nii_array {
 
 			template<class _Ty, size_t _Size, class _TStateMutex>
 			class Tnii_array_xscope_ss_iterator_type;
@@ -2966,6 +3064,7 @@ namespace mse {
 				friend class /*_Myt*/nii_array<_Ty, _Size>;
 			};
 		}
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ARRAY_ITERATOR_THREE_TPARAM_SPECIALIZATION(mse::impl::ns_nii_array::Tnii_array_xscope_ss_iterator_type, mse::impl::ns_nii_array::Tnii_array_xscope_ss_const_iterator_type);
 	}
 
 	template<class _Ty, class _TStateMutex>
@@ -4299,6 +4398,8 @@ namespace mse {
 			}
 		}
 	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTARAIterator, mse::rsv::TXSLTARAConstIterator);
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTACSSSStrongRAIterator, mse::rsv::TXSLTACSSSStrongRAConstIterator);
 
 	namespace impl {
 
@@ -4422,6 +4523,13 @@ namespace mse {
 		template <typename _TRAContainer>
 		using TXSLTACSSSXSRAIterator = TXSLTACSSSStrongRAIterator<mse::rsv::TXSLTAPointer<_TRAContainer> >;
 
+		template <typename _TRAContainer>
+		using TXSLTACSSSXSRAConstReverseIterator = std::reverse_iterator<TXSLTACSSSXSRAConstIterator<_TRAContainer> >;
+		template <typename _TRAContainer>
+		using TXSLTACSSSXSRAReverseIterator = std::reverse_iterator<TXSLTACSSSXSRAIterator<_TRAContainer> >;
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTACSSSXSRAReverseIterator, mse::rsv::TXSLTACSSSXSRAConstReverseIterator);
+	namespace rsv {
 
 		template <typename _TElement> class TXSLTACSSSXSTERAConstIterator;
 
@@ -4431,7 +4539,7 @@ namespace mse {
 			typedef TXSLTACSSSStrongRAIterator<mse::us::impl::TXScopeRuntimeRawArrayProxyAndSelfPointer<_TElement> > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-		//private:
+			//private:
 		public:
 			struct CDummy {};
 			template<typename _Ty2, typename _TRAIterator2>
@@ -4768,6 +4876,10 @@ namespace mse {
 
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTACSSSXSTERAIterator, mse::rsv::TXSLTACSSSXSTERAConstIterator);
+	namespace rsv {
+
 		template <typename _TRAContainerPointer>
 		using TXSLTARandomAccessIterator = TXSLTARAIterator<_TRAContainerPointer>;
 		template <typename _TRAContainerPointer>
@@ -5256,8 +5368,8 @@ namespace mse {
 			typedef TXSLTACSSSXSRAIterator<_Myt> xslta_iterator;
 			typedef xslta_const_iterator const_iterator;
 			typedef xslta_iterator iterator;
-			typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
-			typedef std::reverse_iterator<iterator> reverse_iterator;
+			typedef TXSLTACSSSXSRAConstReverseIterator<_Myt> const_reverse_iterator;
+			typedef TXSLTACSSSXSRAReverseIterator<_Myt> reverse_iterator;
 
 			xslta_iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 				return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/);
@@ -7317,6 +7429,9 @@ namespace mse {
 			return (*this);
 		}
 	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)");
+
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TXScopeRASectionIterator, mse::TXScopeRASectionConstIterator);
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::TRASectionIterator, mse::TRASectionConstIterator);
 
 	template <typename _TRAIterator>
 	auto xscope_pointer(const TXScopeRASectionIterator<_TRAIterator>& iter_cref) {
@@ -9865,7 +9980,7 @@ namespace mse {
 	MSE_OVERLOAD_FOR_RETURNABLE_FPARAM_DECLARATION(make_xscope_csssxste_random_access_section)
 
 
-	namespace rsv {
+		namespace rsv {
 		namespace us {
 			namespace impl {
 				namespace ns_ra_section {
@@ -9944,7 +10059,7 @@ namespace mse {
 
 					MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(TXSLTARASectionIteratorBase, TXSLTARASectionConstIteratorBase<_TRAIterator>)
 
-					TXSLTARASectionIteratorBase& operator=(const TXSLTARASectionIteratorBase& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+						TXSLTARASectionIteratorBase& operator=(const TXSLTARASectionIteratorBase& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 						if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TXSLTARASectionIteratorBase& operator=() - TXSLTARASectionIteratorBase")); }
 						m_index = _Right_cref.m_index;
 						return (*this);
@@ -10075,7 +10190,7 @@ namespace mse {
 
 					typedef typename arrow_return_type_helper2<deref_return_type, typename std::is_reference<deref_return_type>::type>::type arrow_return_type;
 
-					/* operator->() is available only when return type of operator*() is a reference (which is most of the time, 
+					/* operator->() is available only when return type of operator*() is a reference (which is most of the time,
 					but not with some dynamic containers like rsv::xslta_vector<>). */
 					template<typename arrow_return_type2 = arrow_return_type, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<arrow_return_type2, arrow_return_type>::value) && (!std::is_same<arrow_return_type2, void>::value)> MSE_IMPL_EIS>
 					arrow_return_type2 operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
@@ -10105,7 +10220,7 @@ namespace mse {
 
 					MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(TXSLTARASectionConstIteratorBase)
 
-					TXSLTARASectionConstIteratorBase& operator=(const TXSLTARASectionConstIteratorBase& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+						TXSLTARASectionConstIteratorBase& operator=(const TXSLTARASectionConstIteratorBase& _Right_cref) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 						if (!(_Right_cref.m_ra_iterator == m_ra_iterator)) { MSE_THROW(msearray_range_error("invalid argument - TXSLTARASectionConstIteratorBase& operator=() - TXSLTARASectionConstIteratorBase")); }
 						m_index = _Right_cref.m_index;
 						return (*this);
@@ -10176,7 +10291,9 @@ namespace mse {
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
-
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTARASectionIterator, mse::rsv::TXSLTARASectionConstIterator);
+	namespace rsv {
 
 		/* These are some free functions to obtain a subsection of a given section. */
 		template <typename _TSection>

@@ -406,6 +406,7 @@ namespace mse {
 			};
 		}
 	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::us::impl::TXScopeCSLSStrongRAIterator, mse::us::impl::TXScopeCSLSStrongRAConstIterator);
 
 	namespace impl {
 
@@ -635,6 +636,10 @@ namespace mse {
 			using Tgnii_vector_ss_reverse_iterator_type = std::reverse_iterator<Tgnii_vector_ss_iterator_type<_TVectorPointer> >;
 			template<typename _TVectorConstPointer>
 			using Tgnii_vector_ss_const_reverse_iterator_type = std::reverse_iterator<Tgnii_vector_ss_const_iterator_type<_TVectorConstPointer> >;
+		}
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION(mse::impl::ns_gnii_vector::Tgnii_vector_ss_iterator_type, mse::impl::ns_gnii_vector::Tgnii_vector_ss_const_iterator_type);
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION(mse::impl::ns_gnii_vector::Tgnii_vector_ss_reverse_iterator_type, mse::impl::ns_gnii_vector::Tgnii_vector_ss_const_reverse_iterator_type);
+		namespace ns_gnii_vector {
 
 			template<typename _TVector>
 			using Tgnii_vector_rp_ss_iterator_type = Tgnii_vector_ss_iterator_type<msev_pointer<_TVector> >;
@@ -742,6 +747,9 @@ namespace mse {
 
 				friend _TVector;
 			};
+		}
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION(mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_iterator_type, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_cslsstrong_const_iterator_type);
+		namespace ns_gnii_vector {
 
 			template<typename _TVector>
 			class Tgnii_vector_xscope_ss_iterator_type;
@@ -842,6 +850,7 @@ namespace mse {
 				friend _TVector;
 			};
 		}
+		MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION(mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_iterator_type, mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type);
 	}
 
 	namespace us {
@@ -4945,6 +4954,9 @@ namespace mse {
 
 			template<class TElementProxyConstRef2, class _TRAContainerPointer2> friend TXSLTADynamicContainerRAConstIterator<TElementProxyConstRef2, _TRAContainerPointer2> mse::rsv::us::unsafe_make_xslta_dynamic_container_ra_const_iterator(const _TRAContainerPointer2& ra_container_pointer, typename TXSLTADynamicContainerRAConstIterator<TElementProxyConstRef2, _TRAContainerPointer2>::size_type index);
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTADynamicContainerRAIterator, mse::rsv::TXSLTADynamicContainerRAConstIterator);
+	namespace rsv {
 
 		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
 		using TXSLTAVectorElementProxyRef = mse::rsv::TXSLTADynamicRAContainerElementProxyRef<mse::rsv::xslta_accessing_fixed_vector<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty, _A>;

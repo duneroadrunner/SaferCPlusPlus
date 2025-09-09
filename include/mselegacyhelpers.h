@@ -676,10 +676,10 @@ namespace mse {
 			TLHNullableAnyPointer(const base_class& src) : base_class(src) {}
 			TLHNullableAnyPointer() = default;
 			TLHNullableAnyPointer(std::nullptr_t) : base_class(std::nullptr_t()) {}
-			/* We hesitate to support construction from raw pointers, as raw pointers are considered scope pointers in the scpptool-enforced 
-			safe subset, and TLHNullableAnyPointer<> is not supposed to hold a scope pointer. But this type is intended for facilitating (the 
-			migration of, and) interfacing with legacy code, which may be using raw pointers as non-scope pointers. So we leave it to the 
-			scpptool static analyzer to flag the likely safety violation committed when invoking this constructor, rather than sacrifice 
+			/* We hesitate to support construction from raw pointers, as raw pointers are considered scope pointers in the scpptool-enforced
+			safe subset, and TLHNullableAnyPointer<> is not supposed to hold a scope pointer. But this type is intended for facilitating (the
+			migration of, and) interfacing with legacy code, which may be using raw pointers as non-scope pointers. So we leave it to the
+			scpptool static analyzer to flag the likely safety violation committed when invoking this constructor, rather than sacrifice
 			the interoperability with legacy that would by lost by not providing this constructor. */
 			TLHNullableAnyPointer(_Ty* ptr) : base_class(mse::us::TSaferPtrForLegacy<_Ty>(ptr)) {}
 			TLHNullableAnyPointer(void* src) : base_class(mse::us::TSaferPtrForLegacy<_Ty>((_Ty*)src)) {}
@@ -687,16 +687,16 @@ namespace mse {
 			TLHNullableAnyPointer(const void* src) : base_class(mse::us::TSaferPtrForLegacy<_Ty>((_Ty2*)src)) {}
 
 			template <typename _TPointer1, MSE_IMPL_EIP mse::impl::enable_if_t<(
-					(!std::is_convertible<_TPointer1, TLHNullableAnyPointer>::value)
-					&& (!std::is_base_of<base_class, _TPointer1>::value)
-					&& (!std::is_same<_TPointer1, std::nullptr_t>::value)
-					&& (!std::is_same<_TPointer1, NULL_t>::value)
-					&& (!std::is_same<_TPointer1, ZERO_LITERAL_t>::value)
-					&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
-					&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
+				(!std::is_convertible<_TPointer1, TLHNullableAnyPointer>::value)
+				&& (!std::is_base_of<base_class, _TPointer1>::value)
+				&& (!std::is_same<_TPointer1, std::nullptr_t>::value)
+				&& (!std::is_same<_TPointer1, NULL_t>::value)
+				&& (!std::is_same<_TPointer1, ZERO_LITERAL_t>::value)
+				&& MSE_IMPL_TARGET_CAN_BE_COMMONIZED_REFERENCED_AS_CRITERIA1(_TPointer1, _Ty)
+				&& mse::impl::is_potentially_not_xscope<_TPointer1>::value
 				) || (std::is_base_of<const_void_star_replacement, _TPointer1>::value && std::is_const<_Ty>::value)
 			> MSE_IMPL_EIS >
-			TLHNullableAnyPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)") 
+			TLHNullableAnyPointer(const _TPointer1& pointer) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TPointer1)")
 				: base_class(construction_helper1(typename std::is_base_of<const_void_star_replacement, _TPointer1>::type(), pointer)) {}
 
 			friend void swap(TLHNullableAnyPointer& first, TLHNullableAnyPointer& second) {
@@ -774,6 +774,9 @@ namespace mse {
 
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::lh::TLHNullableAnyPointer);
+	namespace lh {
 
 		/* specializations defined later in the file */
 		template<>
@@ -925,6 +928,9 @@ namespace mse {
 		private:
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 		};
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::lh::TXScopeLHNullableAnyPointer);
+	namespace lh {
 
 		/* specializations defined later in the file */
 		template<>
@@ -1589,6 +1595,11 @@ namespace mse {
 			base_class& contained_iter()& { return (*this); }
 			base_class&& contained_iter()&& { return std::move(*this); }
 		};
+	}
+	/* Since there is no mse::TLHNullableAnyRandomAccessConstIterator<> at the moment, we'll designate mse::TLHNullableAnyRandomAccessIterator<const T>
+	to be the "const" counterpart to mse::TLHNullableAnyRandomAccessIterator<T>. */
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::lh::TLHNullableAnyRandomAccessIterator);
+	namespace lh {
 
 		template <typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_constructible<_Ty, TLHNullableAnyRandomAccessIterator<_Tz> >::value) 
 			&& (std::is_constructible<TLHNullableAnyRandomAccessIterator<_Tz>, _Ty>::value)> MSE_IMPL_EIS >
@@ -1691,6 +1702,11 @@ namespace mse {
 			base_class& contained_iter()& { return (*this); }
 			base_class&& contained_iter()&& { return std::move(*this); }
 		};
+	}
+	/* Since there is no mse::TXScopeLHNullableAnyRandomAccessConstIterator<> at the moment, we'll designate mse::TXScopeLHNullableAnyRandomAccessIterator<const T>
+	to be the "const" counterpart to mse::TXScopeLHNullableAnyRandomAccessIterator<T>. */
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::lh::TXScopeLHNullableAnyRandomAccessIterator);
+	namespace lh {
 
 		namespace impl {
 			template <typename _Ty>
@@ -1851,6 +1867,11 @@ namespace mse {
 			auto vector_refcptr() { return (*this).target_container_ptr(); }
 			auto vector_refcptr() const { return (*this).target_container_ptr(); }
 		};
+	}
+	/* Since there is no mse::TStrongVectorConstIterator<> at the moment, we'll designate mse::TStrongVectorIterator<const T>
+	to be the "const" counterpart to mse::TStrongVectorIterator<T>. */
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::lh::TStrongVectorIterator);
+	namespace lh {
 
 		template <typename _Ty>
 		bool operator==(const NULL_t lhs, const TStrongVectorIterator<_Ty>& rhs) { return rhs == lhs; }
@@ -5634,6 +5655,13 @@ namespace mse {
 					mse::TRegisteredObj<mse::lh::TLHNullableAnyPointer<char> > naptr1;
 					testfn1(mse::us::lh::make_temporary_raw_pointer_to_pointer_proxy_from(&naptr1));
 					std::cout << *naptr1 << " \n";
+					int q = 5;
+				}
+				{
+					typedef typename mse::impl::corresponding_type_with_const_target<mse::TRegisteredPointer<int> >::type type1;
+					type1 regcptr1 = nullptr;
+					typedef typename mse::impl::corresponding_type_with_nonconst_target<mse::TRefCountingPointer<const int> >::type type2;
+					type2 refc_ptr1 = nullptr;
 					int q = 5;
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
