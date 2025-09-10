@@ -1485,30 +1485,43 @@ namespace mse {
 					auto any_ra_iter1 = mse::not_null_from_nullable(nullable_any_ra_iter1);
 					auto any1 = mse::us::impl::ns_any::contained_any(any_ra_iter1);
 
-#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT1(type1) \
+#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT1(target_type, type1) \
 					{ \
-						auto cast_ptr = mse::us::impl::ns_any::any_cast<mse::us::impl::TCommonizedRandomAccessIterator<_Ty, type1>>(std::addressof(any1)); \
+						auto cast_ptr = mse::us::impl::ns_any::any_cast<mse::us::impl::TCommonizedRandomAccessIterator<target_type, type1>>(std::addressof(any1)); \
 						if (cast_ptr) { \
 							return retval_t{ mse::lh::impl::explicitly_castable_any::convert<T1>((*cast_ptr).m_random_access_iterator) }; \
 						} \
 					}
 
-#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(type1) \
-					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT1(type1) \
-					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT1(mse::impl::remove_const_t<type1>) \
+#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(target_type, type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT1(target_type, type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT1(target_type, mse::impl::remove_const_t<type1>)
 
-#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT3(type1) \
-					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(type1) \
-					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(typename mse::lh::impl::NDNoradWrapped<type1>::type) \
-					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(typename mse::lh::impl::NDRegisteredWrapped<type1>::type)
+#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT3(target_type, type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(target_type, type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(target_type, typename mse::lh::impl::NDNoradWrapped<type1>::type) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT2(target_type, typename mse::lh::impl::NDRegisteredWrapped<type1>::type)
 
-#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT4(type1) \
-					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT3(type1) \
-					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT3(mse::impl::remove_const_t<type1>) \
+#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT4(target_type, type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT3(target_type, type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT3(target_type, mse::impl::remove_const_t<type1>)
+
+#if !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT5(type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT4(_Ty, type1); \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT4(_Ty, typename mse::impl::corresponding_type_with_nonconst_target<type1>::type); \
+					MSE_IF_CONSTEXPR(!std::is_const<mse::impl::target_type<typename mse::impl::corresponding_type_with_nonconst_target<type1>::type> >::value) { \
+						MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT4(mse::impl::remove_const_t<_Ty>, typename mse::impl::corresponding_type_with_nonconst_target<type1>::type); \
+					}
+#else // !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
+#define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT5(type1) \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT4(_Ty, type1); \
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT4(_Ty, typename mse::impl::corresponding_type_with_nonconst_target<type1>::type);
+#endif // !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 
 					typedef ValueType T1;
 
-					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT4(T1);
+					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT5(T1);
 
 					return retval_t{};
 				}
