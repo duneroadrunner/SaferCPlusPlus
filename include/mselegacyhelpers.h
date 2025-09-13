@@ -2627,10 +2627,25 @@ namespace mse {
 
 				template<class _TPointer, class _TPointer2>
 				_TPointer memcpy_helper2(std::false_type, _TPointer const& destination, _TPointer2 const& source, size_t num_bytes) {
-					//typedef mse::impl::remove_reference_t<decltype(*destination)> element_t;
-					//auto num_items = num_bytes / sizeof(element_t);
-					//assert(1 == num_items);
-					//assert(num_items * sizeof(element_t) == num_bytes);
+					typedef mse::impl::remove_reference_t<decltype(*destination)> element_t;
+					if ((sizeof(element_t) != num_bytes) && (0 != num_bytes)) {
+						typedef mse::impl::remove_reference_t<decltype(*source)> source_element_t;
+						if (sizeof(source_element_t) != num_bytes) {
+							auto num_items = num_bytes / sizeof(element_t);
+							if (num_items * sizeof(element_t) != num_bytes) {
+								num_items = num_bytes / sizeof(source_element_t);
+								if (num_items * sizeof(source_element_t) != num_bytes) {
+									MSE_THROW(std::logic_error("lh::memcpy(): The given 'number of bytes' argument does not seem to be a multiple of the size of the buffer element type. "
+										"Note that the library's safe types may be different in size to the original types they were designed to replace "
+										"(and maybe have different size in debug and release mode) and this may be need to be taken into account when calculating the argument value. "));
+								}
+							}
+							MSE_THROW(std::logic_error("lh::memcpy(): Either the source or destination arguments (or both) is deemed to be a pointer that is not an iterator, "
+								"but the given 'number of bytes' argument does not seem to match the size of the pointer's target element type. "
+								"If the source and destination arguments are intended to point (in)to buffers, then the pointer argument(s) need to be replaced with iterators. "));
+						}
+					}
+
 					*destination = *source;
 					return destination;
 				}
@@ -2639,7 +2654,15 @@ namespace mse {
 				_TIter memcpy_helper1(std::true_type, _TIter const& destination, _TIter2 const& source, size_t num_bytes) {
 					typedef mse::impl::remove_reference_t<decltype((destination)[0])> element_t;
 					auto num_items = num_bytes / sizeof(element_t);
-					//assert(num_items * sizeof(element_t) == num_bytes);
+					if (num_items * sizeof(element_t) != num_bytes) {
+						typedef mse::impl::remove_reference_t<decltype((source)[0])> source_element_t;
+						num_items = num_bytes / sizeof(source_element_t);
+						if (num_items * sizeof(source_element_t) != num_bytes) {
+							MSE_THROW(std::logic_error("lh::memcpy(): The given 'number of bytes' argument does not seem to be a multiple of the size of the buffer element type. "
+								"Note that the library's safe types may be different in size to the original types they were designed to replace "
+								"(and maybe have different size in debug and release mode) and this may be need to be taken into account when calculating the argument value. "));
+						}
+					}
 					for (size_t i = 0; i < num_items; i += 1) {
 						destination[i] = source[i];
 					}
@@ -2859,6 +2882,24 @@ namespace mse {
 					//auto num_items = num_bytes / sizeof(element_t);
 					//assert(1 == num_items);
 					//assert(num_items * sizeof(element_t) == num_bytes);
+					typedef mse::impl::remove_reference_t<decltype(*source1)> element_t;
+					if ((sizeof(element_t) != num_bytes) && (0 != num_bytes)) {
+						typedef mse::impl::remove_reference_t<decltype(*source2)> source_element_t;
+						if (sizeof(source_element_t) != num_bytes) {
+							auto num_items = num_bytes / sizeof(element_t);
+							if (num_items * sizeof(element_t) != num_bytes) {
+								num_items = num_bytes / sizeof(source_element_t);
+								if (num_items * sizeof(source_element_t) != num_bytes) {
+									MSE_THROW(std::logic_error("lh::memcmp(): The given 'number of bytes' argument does not seem to be a multiple of the size of the buffer element type. "
+										"Note that the library's safe types may be different in size to the original types they were designed to replace "
+										"(and maybe have different size in debug and release mode) and this may be need to be taken into account when calculating the argument value. "));
+								}
+							}
+							MSE_THROW(std::logic_error("lh::memcmp(): Either the source1 or source2 arguments (or both) is deemed to be a pointer that is not an iterator, "
+								"but the given 'number of bytes' argument does not seem to match the size of the pointer's target element type. "
+								"If the source1 and source2 arguments are intended to point (in)to buffers, then the pointer argument(s) need to be replaced with iterators. "));
+						}
+					}
 
 					if (*source1 > *source2) {
 						return 1;
@@ -2885,7 +2926,15 @@ namespace mse {
 				int memcmp_helper1(std::true_type, _TIter const& source1, _TIter2 const& source2, size_t num_bytes) {
 					typedef mse::impl::remove_reference_t<decltype((source1)[0])> element_t;
 					auto num_items = num_bytes / sizeof(element_t);
-					//assert(num_items * sizeof(element_t) == num_bytes);
+					if (num_items * sizeof(element_t) != num_bytes) {
+						typedef mse::impl::remove_reference_t<decltype((source2)[0])> source_element_t;
+						num_items = num_bytes / sizeof(source_element_t);
+						if (num_items * sizeof(source_element_t) != num_bytes) {
+							MSE_THROW(std::logic_error("lh::memcmp(): The given 'number of bytes' argument does not seem to be a multiple of the size of the buffer element type. "
+								"Note that the library's safe types may be different in size to the original types they were designed to replace "
+								"(and maybe have different size in debug and release mode) and this may be need to be taken into account when calculating the argument value. "));
+						}
+					}
 					for (size_t i = 0; i < num_items; i += 1) {
 						if (source1[i] > source2[i]) {
 							return 1;
@@ -2945,9 +2994,14 @@ namespace mse {
 				template<class _TIter>
 				_TIter memset_helper1(std::true_type, _TIter const& iter, int value, size_t num_bytes) {
 					typedef mse::impl::remove_reference_t<decltype(iter[0])> element_t;
-					const auto element_value = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t&, long long int>::type(), value);
 					auto num_items = num_bytes / sizeof(element_t);
-					//assert(num_items * sizeof(element_t) == num_bytes);
+					if (num_items * sizeof(element_t) != num_bytes) {
+						MSE_THROW(std::logic_error("lh::memcpy(): The given 'number of bytes' argument does not seem to be a multiple of the size of the buffer element type. "
+							"Note that the library's safe types may be different in size to the original types they were designed to replace "
+							"(and maybe have different size in debug and release mode) and this may be need to be taken into account when calculating the argument value. "));
+					}
+
+					const auto element_value = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t&, long long int>::type(), value);
 					for (size_t i = 0; i < num_items; i += 1) {
 						iter[i] = element_value;
 					}
@@ -2957,9 +3011,18 @@ namespace mse {
 				template<class _TPointer>
 				_TPointer memset_helper1(std::false_type, _TPointer ptr, int value, size_t num_bytes) {
 					typedef mse::impl::remove_reference_t<decltype(*ptr)> element_t;
-					//auto num_items = num_bytes / sizeof(element_t);
-					//assert(1 == num_items);
-					//assert(num_items * sizeof(element_t) == num_bytes);
+					if ((sizeof(element_t) != num_bytes) && (0 != num_bytes)) {
+						auto num_items = num_bytes / sizeof(element_t);
+						if (num_items * sizeof(element_t) != num_bytes) {
+							MSE_THROW(std::logic_error("lh::memcpy(): The given 'number of bytes' argument does not seem to be a multiple of the size of the buffer element type. "
+								"Note that the library's safe types may be different in size to the original types they were designed to replace "
+								"(and maybe have different size in debug and release mode) and this may be need to be taken into account when calculating the argument value. "));
+						}
+						MSE_THROW(std::logic_error("lh::memcpy(): The first argument is deemed to be a pointer that is not an iterator, "
+							"but the given 'number of bytes' argument does not seem to match the size of the pointer's target element type. "
+							"If the first argument is intended to point (in)to a buffer, then the pointer argument needs to be replaced with an iterator. "));
+					}
+
 					//*ptr = memset_adjusted_value1<element_t>(typename std::is_assignable<element_t&, long long int>::type(), value);
 					*ptr = memset_adjusted_value1<element_t>(typename std::is_constructible<element_t, long long int>::type(), value);
 					return ptr;
