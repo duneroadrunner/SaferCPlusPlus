@@ -2150,22 +2150,146 @@ namespace mse {
 
 		namespace impl {
 			template<class _TPtr>
+			bool delete_if_pointing_to_registered_or_norad_allocation(_TPtr& ptr_param_ref) {
+				if (!ptr_param_ref) {
+					return false;
+				}
+				typedef mse::impl::target_type<_TPtr> _Ty;
+				auto ptr = mse::us::lh::make_raw_pointer_from(ptr_param_ref);
+				/* Here we'll try to "unregister" the pointer (target object) in each of the registries. If any of the unregistration attempts 
+				is reported as successful (indicating that the target object was indeed in the registry) then we'll `delete()` the object 
+				(which will invoke its destructor). */
+				if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDRegisteredObj<_Ty> >().unregisterPointer(ptr)) {
+					/* reinterpret_cast<>() should/might work here because the object targeted by the raw pointer would (always) be placed at
+					the very front of the object layout. */
+					auto ptr2 = reinterpret_cast<const mse::TNDRegisteredObj<_Ty> *>(ptr);
+					delete ptr2;
+					ptr_param_ref = nullptr;
+					return true;
+				}
+				if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDCRegisteredObj<_Ty> >().unregisterPointer(ptr)) {
+					auto ptr2 = reinterpret_cast<const mse::TNDCRegisteredObj<_Ty> *>(ptr);
+					delete ptr2;
+					ptr_param_ref = nullptr;
+					return true;
+				}
+				if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDNoradObj<_Ty> >().unregisterPointer(ptr)) {
+					auto ptr2 = reinterpret_cast<const mse::TNDNoradObj<_Ty> *>(ptr);
+					delete ptr2;
+					ptr_param_ref = nullptr;
+					return true;
+				}
+				return false;
+			}
+
+			template<class _TPtr>
+			class CAllocF;
+
+			template<class _TPtr>
+			void allocate_reg_unsupported_helper(std::true_type, _TPtr& ptr, size_t num_bytes) {
+				typedef mse::impl::target_type<_TPtr> target_t;
+				//ptr = mse::make_refcounting<target_t>();
+				ptr = ::malloc(sizeof(target_t));
+			}
+			template<class _TPtr>
+			void allocate_reg_unsupported_helper(std::false_type, _TPtr& ptr, size_t num_bytes) {}
+			inline void free_reg_unsupported_helper(std::true_type, void*& ptr) {
+				/* While void is not a supported target type of the ("registered" and "norad" pointer) registries, the original pointer 
+				represented by a void* might have a supported target type, and thus, the address the void* is pointing at may refer to 
+				an allocation that is being tracked in one of the registries.
+				At the moment, we don't have a general mechanism to determine how the target of the pointer represented by a void*
+				was allocated and how it can be safely deallocated. The problem is that the void* could have been obtained from an unsafe
+				cast of a "safe" smart pointer (whose target would not have been allocated by malloc()/calloc()). So, for the moment 
+				we're just going to leak in this case. */
+
+				{
+					/* Well, we might as well take a shot-in-the-dark and see if it happens to be registered allocation of chars. */
+					char* char_ptr = (char*)ptr;
+					delete_if_pointing_to_registered_or_norad_allocation(char_ptr);
+					if (!char_ptr) {
+						return;
+					}
+				}
+
+				//::free(ptr);
+				//ptr = nullptr;
+			}
+			template<class _Ty>
+			void free_reg_unsupported_helper(std::true_type, _Ty*& ptr) {
+				/* Since it has an unsupported target type we can pretty much assume that the target allocation is not one that is tracked
+				in a ("registered" or "norad" pointer) registry. We're going to assume that it was just allocated with malloc()/calloc(). */
+				::free(ptr);
+				ptr = nullptr;
+			}
+			template<class _TPtr>
+			void free_reg_unsupported_helper(std::true_type, _TPtr& ptr) {
+				//::free(ptr);
+				//ptr = nullptr;
+			}
+			template<class _Ty>
+			void free_reg_unsupported_helper(std::true_type, mse::lh::TLHNullableAnyPointer<_Ty>& ptr) {
+				auto maybe_raw_pointer = mse::us::impl::maybe_any_cast<_Ty*>(ptr);
+				if (maybe_raw_pointer.has_value()) {
+					auto raw_pointer = maybe_raw_pointer.value();
+					::free(raw_pointer);
+				}
+				ptr = nullptr;
+			}
+#ifndef MSE_LEGACYHELPERS_DISABLED
+			inline void free_reg_unsupported_helper(std::true_type, mse::lh::void_star_replacement& ptr) {
+				/* At the moment, we don't have a general mechanism to determine how the target of the pointer held in an lh::void_star_replacement 
+				was allocated and how it can be safely deallocated. So, for the moment we're just going to leak in this case. */
+				//ptr = (void *)nullptr;
+			}
+#endif // !MSE_LEGACYHELPERS_DISABLED
+			template<class _TPtr>
+			void free_reg_unsupported_helper(std::false_type, _TPtr& ptr) { assert(false); }
+
+			template<class _TPtr>
 			class CAllocF {
 			public:
 				static void free(_TPtr& ptr) {
+					if (!ptr) {
+						return;
+					}
+					typedef mse::impl::target_type<_TPtr> target_t;
+					static const bool s_is_reg_unsupported = std::is_union<target_t>::value || (!mse::impl::is_complete_type<target_t>::value);
+					MSE_IF_CONSTEXPR(s_is_reg_unsupported) {
+						/* Since it has an unsupported target type we can pretty much assume that the target allocation is not one that is tracked
+						in a ("registered" or "norad" pointer) registry. */
+						free_reg_unsupported_helper(typename std::integral_constant<bool, s_is_reg_unsupported>::type(), ptr);
+					}
+					else {
+						delete_if_pointing_to_registered_or_norad_allocation(ptr);
+						if (!ptr) {
+							return;
+						}
+					}
 					ptr = nullptr;
 				}
 				static void allocate(_TPtr& ptr, size_t num_bytes) {
-					typedef mse::impl::remove_reference_t<decltype(*ptr)> target_t;
+					typedef mse::impl::target_type<_TPtr> target_t;
 					if (0 == num_bytes) {
 						ptr = nullptr;
 					}
 					else if (sizeof(target_t) == num_bytes) {
-						ptr = mse::make_refcounting<target_t>();
+						static const bool s_is_reg_unsupported = std::is_union<target_t>::value || (!mse::impl::is_complete_type<target_t>::value);
+						MSE_IF_CONSTEXPR(s_is_reg_unsupported) {
+							allocate_reg_unsupported_helper(typename std::integral_constant<bool, s_is_reg_unsupported>::type(), ptr, num_bytes);
+						}
+						else {
+							ptr = mse::registered_new<target_t>(target_t{});
+						}
 					}
 					else {
 						assert(false);
-						ptr = mse::make_refcounting<target_t>();
+						MSE_IF_CONSTEXPR(std::is_union<target_t>::value) {
+							//ptr = mse::make_refcounting<target_t>();
+							ptr = malloc(sizeof(target_t));
+						}
+						else {
+							ptr = mse::registered_new<target_t>(target_t{});
+						}
 						//MSE_THROW(std::bad_alloc("the given allocation size is not supported for this pointer type - CAllocF<_TPtr>::allocate()"));
 					}
 				}
@@ -2178,34 +2302,25 @@ namespace mse {
 					if (!ptr) {
 						return;
 					}
-					/* This raw pointer could be one that was (unsafely) converted from one of the libraries safe (smart) pointers. In such case, 
-					it could be pointing to an allocated object that is being tracked in one of the library's registries. So we'll try to 
-					"unregister" the pointer (target object) in each of the registries. If any of the unregistration attempts is reported as 
-					successful (indicating that the target object was indeed in the registry) then we'll `delete()` the object (which will invoke 
-					its destructor). 
-					Note that attempting to "free()" a "registered" object via a raw pointer *may* (or may not) work, but in any case is very 
-					much not condoned. */
-					if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDRegisteredObj<_Ty> >().unregisterPointer(ptr)) {
-						/* reinterpret_cast<>() should/might work here because the object targeted by the raw pointer would (always) be placed at 
-						the very front of the object layout. */
-						auto ptr2 = reinterpret_cast<const mse::TNDRegisteredObj<_Ty> *>(ptr);
-						delete ptr2;
-						ptr = nullptr;
-						return;
+					typedef _Ty target_t;
+					static const bool s_is_reg_unsupported = std::is_union<target_t>::value || (!mse::impl::is_complete_type<target_t>::value);
+					MSE_IF_CONSTEXPR(s_is_reg_unsupported) {
+						/* Since it has an unsupported target type we can pretty much assume that the target allocation is not one that is tracked
+						in a ("registered" or "norad" pointer) registry. */
+						free_reg_unsupported_helper(typename std::integral_constant<bool, s_is_reg_unsupported>::type(), ptr);
 					}
-					if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDCRegisteredObj<_Ty> >().unregisterPointer(ptr)) {
-						auto ptr2 = reinterpret_cast<const mse::TNDCRegisteredObj<_Ty> *>(ptr);
-						delete ptr2;
-						ptr = nullptr;
-						return;
+					else {
+						/* This raw pointer could be one that was (unsafely) converted from one of the libraries safe (smart) pointers. In such case,
+						it could be pointing to an allocated object that is being tracked in one of the library's registries. In such case we'd want
+						the allocation to be "unregistered" and deleted appropriately.
+						Note that while attempting to "free()" a "registered" object via a raw pointer *may* (or may not) work, in any case it is 
+						very much not condoned. */
+						delete_if_pointing_to_registered_or_norad_allocation(ptr);
+						if (!ptr) {
+							return;
+						}
+						::free(ptr);
 					}
-					if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDNoradObj<_Ty> >().unregisterPointer(ptr)) {
-						auto ptr2 = reinterpret_cast<const mse::TNDNoradObj<_Ty> *>(ptr);
-						delete ptr2;
-						ptr = nullptr;
-						return;
-					}
-					::free(ptr);
 					ptr = nullptr;
 				}
 				static void free(_Ty* const& ptr) {
@@ -2238,6 +2353,32 @@ namespace mse {
 			void allocate(_Ty*& ptr, size_t num_bytes) { CAllocF<_Ty*>::allocate(ptr, num_bytes); }
 			template<class _Ty>
 			void reallocate(_Ty*& ptr, size_t num_bytes) { CAllocF<_Ty*>::reallocate(ptr, num_bytes); }
+
+			template<class _Ty>
+			class CAllocF<mse::TRefCountingPointer<_Ty>> {
+			public:
+				static void free(mse::TRefCountingPointer<_Ty>& ptr) {
+					ptr = nullptr;
+				}
+				static void allocate(mse::TRefCountingPointer<_Ty>& ptr, size_t num_bytes) {
+					typedef _Ty target_t;
+					if (0 == num_bytes) {
+						ptr = nullptr;
+					}
+					else if (sizeof(target_t) == num_bytes) {
+						ptr = mse::make_refcounting<target_t>();
+					}
+					else {
+						assert(false);
+						ptr = mse::make_refcounting<target_t>();
+						MSE_THROW(std::logic_error("The given `num_bytes` argument does not seem to match the size of the pointer target type. - CAllocF<mse::TRefCountingPointer<_Ty> >::allocate()"));
+					}
+				}
+			};
+			template<class _Ty>
+			void free_overloaded(mse::TRefCountingPointer<_Ty>& ptr) { CAllocF<mse::TRefCountingPointer<_Ty>>::free(ptr); }
+			template<class _Ty>
+			void allocate_overloaded(mse::TRefCountingPointer<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::TRefCountingPointer<_Ty>>::allocate(ptr, num_bytes); }
 
 			template<class _Ty>
 			class CAllocF<mse::lh::TStrongVectorIterator<_Ty>> {
@@ -3931,6 +4072,14 @@ namespace mse {
 			template<typename _Ty>
 			friend _Ty mse::us::lh::unsafe_cast(const mse::lh::void_star_replacement& x);
 		};
+	}
+	namespace impl {
+		template<>
+		struct target_type_impl<mse::lh::void_star_replacement> {
+			typedef void type;
+		};
+	}
+	namespace lh {
 
 		class const_void_star_replacement : public impl::explicitly_castable_any {
 		public:
@@ -4106,6 +4255,14 @@ namespace mse {
 			template<typename _Ty>
 			friend _Ty mse::us::lh::unsafe_cast(const mse::lh::const_void_star_replacement& x);
 		};
+	}
+	namespace impl {
+		template<>
+		struct target_type_impl<mse::lh::const_void_star_replacement> {
+			typedef void const type;
+		};
+	}
+	namespace lh {
 
 		template <typename _Ty>
 		auto TLHNullableAnyRandomAccessIterator<_Ty>::construction_helper1(std::true_type, const const_void_star_replacement& src) -> TLHNullableAnyRandomAccessIterator<const _Ty> {
