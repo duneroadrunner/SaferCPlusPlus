@@ -427,8 +427,12 @@ namespace mse {
 				static void allocate(_TPtr& ptr, size_t num_bytes) {
 					ptr = _TPtr(::malloc(num_bytes));
 				}
-				static void reallocate(_TPtr& ptr, size_t num_bytes) {
-					ptr = _TPtr(::realloc(ptr, num_bytes));
+				static bool reallocate(_TPtr& ptr, size_t num_bytes) {
+					auto new_ptr = _TPtr(::realloc(ptr, num_bytes));
+					if (new_ptr) {
+						ptr = new_ptr;
+					}
+					return bool(new_ptr);
 				}
 			};
 		}
@@ -1913,7 +1917,7 @@ namespace mse {
 			TXScopeStrongVectorIterator(_XSTD initializer_list<_Ty> _Ilist) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_Ilist), 0) {}
 			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, base_class>::value)
 				|| (std::is_same<_Ty2, mse::TRAIterator<mse::TRefCountingPointer<mse::stnii_vector<_Ty>>> >::value)
-				> MSE_IMPL_EIS >
+			> MSE_IMPL_EIS >
 			TXScopeStrongVectorIterator(const _Ty2& src) : base_class(src) {}
 			/* turns out that size_type and NULL_t could be the same type on some platforms */
 			//explicit TXScopeStrongVectorIterator(size_type _N) : base_class(mse::make_refcounting<mse::stnii_vector<_Ty>>(_N), 0) {}
@@ -2113,7 +2117,7 @@ namespace mse {
 			template <class _Ty>
 			auto as_lh_decayed(_Ty&& src) { return typename lh_decay<_Ty>::type(MSE_FWD(src)); }
 		}
-		
+
 		template<class _Fty>
 		class TNativeFunctionPointerReplacement : public mse::mstd::function<_Fty> {
 		public:
@@ -2127,7 +2131,7 @@ namespace mse {
 			}
 
 			template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const TNativeFunctionPointerReplacement*>::value)
-				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value) 
+				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)
 				&& (!std::is_same<_Fty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Fty2, NULL_t>::value) && (mse::impl::is_potentially_not_xscope<_Fty2>::value)
 				&& (std::is_constructible<base_class, _Fty2>::value)
 			> MSE_IMPL_EIS >
@@ -2135,7 +2139,7 @@ namespace mse {
 				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
 			}
 			template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const TNativeFunctionPointerReplacement*>::value)
-				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value) 
+				&& (!std::is_convertible<_Fty2, std::nullptr_t>::value) && (!std::is_same<_Fty2, int>::value)
 				&& (!std::is_same<_Fty2, ZERO_LITERAL_t>::value) && (!std::is_same<_Fty2, NULL_t>::value) && (mse::impl::is_potentially_not_xscope<_Fty2>::value)
 				&& (std::is_constructible<base_class, _Fty2>::value)
 			> MSE_IMPL_EIS >
@@ -2146,104 +2150,158 @@ namespace mse {
 			base_class const& operator*() const { return (*this); }
 			auto operator->() const { return std::addressof(operator*()); }
 		};
+	}
+	namespace us {
+		namespace lh {
+			namespace impl {
+#ifdef _MSC_VER
+#pragma warning( push )  
+#pragma warning( disable : 4127 )
+#endif /*_MSC_VER*/
 
-
-		namespace impl {
-			template<class _TPtr>
-			bool delete_if_pointing_to_registered_or_norad_allocation(_TPtr& ptr_param_ref) {
-				if (!ptr_param_ref) {
-					return false;
-				}
-				typedef mse::impl::target_type<_TPtr> _Ty;
-				auto ptr = mse::us::lh::make_raw_pointer_from(ptr_param_ref);
-				/* Here we'll try to "unregister" the pointer (target object) in each of the registries. If any of the unregistration attempts 
-				is reported as successful (indicating that the target object was indeed in the registry) then we'll `delete()` the object 
-				(which will invoke its destructor). */
-				if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDRegisteredObj<_Ty> >().unregisterPointer(ptr)) {
-					/* reinterpret_cast<>() should/might work here because the object targeted by the raw pointer would (always) be placed at
-					the very front of the object layout. */
-					auto ptr2 = reinterpret_cast<const mse::TNDRegisteredObj<_Ty> *>(ptr);
-					delete ptr2;
-					ptr_param_ref = nullptr;
-					return true;
-				}
-				if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDCRegisteredObj<_Ty> >().unregisterPointer(ptr)) {
-					auto ptr2 = reinterpret_cast<const mse::TNDCRegisteredObj<_Ty> *>(ptr);
-					delete ptr2;
-					ptr_param_ref = nullptr;
-					return true;
-				}
-				if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDNoradObj<_Ty> >().unregisterPointer(ptr)) {
-					auto ptr2 = reinterpret_cast<const mse::TNDNoradObj<_Ty> *>(ptr);
-					delete ptr2;
-					ptr_param_ref = nullptr;
-					return true;
-				}
-				return false;
-			}
-
-			template<class _TPtr>
-			class CAllocF;
-
-			template<class _TPtr>
-			void allocate_reg_unsupported_helper(std::true_type, _TPtr& ptr, size_t num_bytes) {
-				typedef mse::impl::target_type<_TPtr> target_t;
-				//ptr = mse::make_refcounting<target_t>();
-				ptr = ::malloc(sizeof(target_t));
-			}
-			template<class _TPtr>
-			void allocate_reg_unsupported_helper(std::false_type, _TPtr& ptr, size_t num_bytes) {}
-			inline void free_reg_unsupported_helper(std::true_type, void*& ptr) {
-				/* While void is not a supported target type of the ("registered" and "norad" pointer) registries, the original pointer 
-				represented by a void* might have a supported target type, and thus, the address the void* is pointing at may refer to 
-				an allocation that is being tracked in one of the registries.
-				At the moment, we don't have a general mechanism to determine how the target of the pointer represented by a void*
-				was allocated and how it can be safely deallocated. The problem is that the void* could have been obtained from an unsafe
-				cast of a "safe" smart pointer (whose target would not have been allocated by malloc()/calloc()). So, for the moment 
-				we're just going to leak in this case. */
-
-				{
-					/* Well, we might as well take a shot-in-the-dark and see if it happens to be registered allocation of chars. */
-					char* char_ptr = (char*)ptr;
-					delete_if_pointing_to_registered_or_norad_allocation(char_ptr);
-					if (!char_ptr) {
-						return;
+				/* CSAllocRegistry essentially just maintains a list of all objects allocated by a registered "new" call and not (yet)
+				subsequently deallocated with a corresponding registered delete. */
+				class CSAllocRegistry {
+				public:
+					typedef std::function<bool(void*)> deleter_t;
+					struct CAllocInfo1 {
+						size_t num_bytes = 0;
+						deleter_t deleter;
+					};
+					CSAllocRegistry() {}
+					~CSAllocRegistry() {}
+					bool registerPointer(void* alloc_ptr, size_t num_bytes, deleter_t deleter) {
+						if (nullptr == alloc_ptr) { return true; }
+						{
+							if (1 <= sc_fs1_max_objects) {
+								/* We'll add this object to fast storage. */
+								if (sc_fs1_max_objects == m_num_fs1_objects) {
+									/* Too many objects. We're gonna move the oldest object to slow storage. */
+									moveObjectFromFastStorage1ToSlowStorage(0);
+								}
+								auto& fs1_object_ref = m_fs1_objects[m_num_fs1_objects];
+								fs1_object_ref = { alloc_ptr, {num_bytes, std::move(deleter)} };
+								m_num_fs1_objects += 1;
+								return true;
+							}
+							else {
+								/* Add the mapping to slow storage. */
+								pointer_to_alloc_info_map_t::value_type item({ alloc_ptr, {num_bytes, std::move(deleter)} });
+								m_pointer_to_alloc_info_map.insert(item);
+							}
+						}
+						return true;
 					}
-				}
+					bool unregisterPointer(void* alloc_ptr) {
+						if (nullptr == alloc_ptr) { return true; }
+						bool retval = false;
+						{
+							/* check if the object is in "fast storage 1" first */
+							for (int i = (m_num_fs1_objects - 1); i >= 0; i -= 1) {
+								if (alloc_ptr == m_fs1_objects[i].first) {
+									removeObjectFromFastStorage1(i);
+									return true;
+								}
+							}
 
-				//::free(ptr);
-				//ptr = nullptr;
+							/* The object was not in "fast storage 1". It's proably in "slow storage". */
+							auto num_erased = m_pointer_to_alloc_info_map.erase(alloc_ptr);
+							if (1 <= num_erased) {
+								retval = true;
+							}
+						}
+						return retval;
+					}
+					bool registerPointer(const void* alloc_ptr, size_t num_bytes, deleter_t const& deleter) { return (*this).registerPointer(const_cast<void*>(alloc_ptr), num_bytes, deleter); }
+					bool unregisterPointer(const void* alloc_ptr) { return (*this).unregisterPointer(const_cast<void*>(alloc_ptr)); }
+					void reserve_space_for_one_more() {
+						/* The purpose of this function is to ensure that the next call to registerPointer() won't
+						need to allocate more memory, and thus won't have any chance of throwing an exception due to
+						memory allocation failure. */
+						m_pointer_to_alloc_info_map.reserve(m_pointer_to_alloc_info_map.size() + 1);
+					}
+					mse::xscope_fixed_optional<CAllocInfo1*> allocation_info_ptr_if_present(void* alloc_ptr) {
+						mse::xscope_fixed_optional<CAllocInfo1*> retval;
+						auto found_it = m_pointer_to_alloc_info_map.find(alloc_ptr);
+						if (m_pointer_to_alloc_info_map.end() != found_it) {
+							return &(found_it->second);
+						}
+						return retval;
+					}
+					mse::xscope_fixed_optional<deleter_t*> deleter_ptr_if_present(void* alloc_ptr) {
+						mse::xscope_fixed_optional<deleter_t*> retval;
+						auto found_it = m_pointer_to_alloc_info_map.find(alloc_ptr);
+						if (m_pointer_to_alloc_info_map.end() != found_it) {
+							return &(found_it->second.deleter);
+						}
+						return retval;
+					}
+
+					bool isEmpty() const { return ((0 == m_num_fs1_objects) && (0 == m_pointer_to_alloc_info_map.size())); }
+
+				private:
+					/* So this tracker stores the allocation pointers in either "fast storage1" or "slow storage". The code for
+					"fast storage1" is ugly. The code for "slow storage" is more readable. */
+					void removeObjectFromFastStorage1(int fs1_obj_index) {
+						for (int j = fs1_obj_index; j < (m_num_fs1_objects - 1); j += 1) {
+							m_fs1_objects[j] = m_fs1_objects[j + 1];
+						}
+						m_num_fs1_objects -= 1;
+					}
+					void moveObjectFromFastStorage1ToSlowStorage(int fs1_obj_index) {
+						auto& fs1_object_ref = m_fs1_objects[fs1_obj_index];
+						/* First we're gonna copy this object to slow storage. */
+						//std::unordered_set<CFS1Object>::value_type item(fs1_object_ref);
+						m_pointer_to_alloc_info_map.insert(fs1_object_ref);
+						/* Then we're gonna remove the object from fast storage */
+						removeObjectFromFastStorage1(fs1_obj_index);
+					}
+
+					//typedef void* CFS1Object;
+					typedef std::unordered_map<void*, CAllocInfo1> pointer_to_alloc_info_map_t;
+					typedef std::pair<void*, CAllocInfo1> CFS1Object;
+
+#ifndef MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS
+#define MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS 8/* Arbitrary. The optimal number depends on how slow "slow storage" is. */
+#endif // !MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS
+					MSE_CONSTEXPR static const int sc_fs1_max_objects = MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS;
+					CFS1Object m_fs1_objects[sc_fs1_max_objects];
+					int m_num_fs1_objects = 0;
+
+					/* "slow storage" */
+					pointer_to_alloc_info_map_t m_pointer_to_alloc_info_map;
+				};
+
+#ifdef _MSC_VER
+#pragma warning( pop )  
+#endif /*_MSC_VER*/
+
+				inline CSAllocRegistry& tlSAllocRegistry_ref() {
+					thread_local static CSAllocRegistry tlSAllocRegistry;
+					return tlSAllocRegistry;
+				}
 			}
-			template<class _Ty>
-			void free_reg_unsupported_helper(std::true_type, _Ty*& ptr) {
-				/* Since it has an unsupported target type we can pretty much assume that the target allocation is not one that is tracked
-				in a ("registered" or "norad" pointer) registry. We're going to assume that it was just allocated with malloc()/calloc(). */
-				::free(ptr);
-				ptr = nullptr;
-			}
-			template<class _TPtr>
-			void free_reg_unsupported_helper(std::true_type, _TPtr& ptr) {
-				//::free(ptr);
-				//ptr = nullptr;
-			}
-			template<class _Ty>
-			void free_reg_unsupported_helper(std::true_type, mse::lh::TLHNullableAnyPointer<_Ty>& ptr) {
-				auto maybe_raw_pointer = mse::us::impl::maybe_any_cast<_Ty*>(ptr);
-				if (maybe_raw_pointer.has_value()) {
-					auto raw_pointer = maybe_raw_pointer.value();
-					::free(raw_pointer);
+		}
+	}
+	namespace lh {
+		namespace impl {
+
+			template<class TPtr>
+			void free_valid_non_null(TPtr& ptr) {
+				if (ptr) {
+					auto void_ptr = (void*)mse::us::lh::make_raw_pointer_from(ptr);
+					auto maybe_deleter_ptr = mse::us::lh::impl::tlSAllocRegistry_ref().deleter_ptr_if_present(void_ptr);
+					if (maybe_deleter_ptr.has_value()) {
+						auto& deleter_ptr = maybe_deleter_ptr.value();
+						assert(deleter_ptr);
+						(*deleter_ptr)(void_ptr);
+					}
+					/* Unregistering the iterator has the side effect of destroying the deleter lambda. If the deleter lambda captures a (shared
+					owning) strong vector iterator by value, then the corresponding reference count will be decremented accordingly. */
+					mse::us::lh::impl::tlSAllocRegistry_ref().unregisterPointer(void_ptr);
 				}
 				ptr = nullptr;
 			}
-#ifndef MSE_LEGACYHELPERS_DISABLED
-			inline void free_reg_unsupported_helper(std::true_type, mse::lh::void_star_replacement& ptr) {
-				/* At the moment, we don't have a general mechanism to determine how the target of the pointer held in an lh::void_star_replacement 
-				was allocated and how it can be safely deallocated. So, for the moment we're just going to leak in this case. */
-				//ptr = (void *)nullptr;
-			}
-#endif // !MSE_LEGACYHELPERS_DISABLED
-			template<class _TPtr>
-			void free_reg_unsupported_helper(std::false_type, _TPtr& ptr) { assert(false); }
 
 			template<class _TPtr>
 			class CAllocF {
@@ -2252,20 +2310,7 @@ namespace mse {
 					if (!ptr) {
 						return;
 					}
-					typedef mse::impl::target_type<_TPtr> target_t;
-					static const bool s_is_reg_unsupported = std::is_union<target_t>::value || (!mse::impl::is_complete_type<target_t>::value);
-					MSE_IF_CONSTEXPR(s_is_reg_unsupported) {
-						/* Since it has an unsupported target type we can pretty much assume that the target allocation is not one that is tracked
-						in a ("registered" or "norad" pointer) registry. */
-						free_reg_unsupported_helper(typename std::integral_constant<bool, s_is_reg_unsupported>::type(), ptr);
-					}
-					else {
-						delete_if_pointing_to_registered_or_norad_allocation(ptr);
-						if (!ptr) {
-							return;
-						}
-					}
-					ptr = nullptr;
+					free_valid_non_null(ptr);
 				}
 				static void allocate(_TPtr& ptr, size_t num_bytes) {
 					typedef mse::impl::target_type<_TPtr> target_t;
@@ -2273,249 +2318,365 @@ namespace mse {
 						ptr = nullptr;
 					}
 					else if (sizeof(target_t) == num_bytes) {
-						static const bool s_is_reg_unsupported = std::is_union<target_t>::value || (!mse::impl::is_complete_type<target_t>::value);
-						MSE_IF_CONSTEXPR(s_is_reg_unsupported) {
-							allocate_reg_unsupported_helper(typename std::integral_constant<bool, s_is_reg_unsupported>::type(), ptr, num_bytes);
-						}
-						else {
-							ptr = mse::registered_new<target_t>(target_t{});
-						}
+						ptr = mse::make_refcounting<target_t>();
+						mse::us::lh::impl::tlSAllocRegistry_ref().registerPointer(mse::us::lh::make_raw_pointer_from(ptr), sizeof(target_t), std::function<bool(void*)>{[ptr](void*) {
+							/* The "deleter" (lambda) for a TRefCointingPointer<> doesn't need to explicitly do anything. The fact that this lambda
+							captures a copy of the TRefCointingPointer<> means that target object will not be deallocated before (the last copy of)
+							this "deleter" lambda itself is destroyed. */
+							return true;
+							} });
 					}
 					else {
 						assert(false);
-						MSE_IF_CONSTEXPR(std::is_union<target_t>::value) {
-							//ptr = mse::make_refcounting<target_t>();
-							ptr = malloc(sizeof(target_t));
-						}
-						else {
-							ptr = mse::registered_new<target_t>(target_t{});
-						}
+						ptr = mse::make_refcounting<target_t>();
+						mse::us::lh::impl::tlSAllocRegistry_ref().registerPointer(std::addressof(*ptr), sizeof(target_t), std::function<bool(void*)>{[ptr](void*) {
+							/* The "deleter" (lambda) for a TRefCointingPointer<> doesn't need to explicitly do anything. The fact that this lambda
+							captures a copy of the TRefCointingPointer<> means that target object will not be deallocated before (the last copy of)
+							this "deleter" lambda itself is destroyed. */
+							return true;
+							} });
 						//MSE_THROW(std::bad_alloc("the given allocation size is not supported for this pointer type - CAllocF<_TPtr>::allocate()"));
 					}
 				}
-				//static void reallocate(_TPtr& ptr, size_t num_bytes);
+				//static bool reallocate(_TPtr& ptr, size_t num_bytes);
 			};
+
 			template<class _Ty>
 			class CAllocF<_Ty*> {
 			public:
-				static void free(_Ty*& ptr) {
-					if (!ptr) {
-						return;
+				static void free(_Ty*& iter) {
+					if (iter) {
+						free_valid_non_null(iter);
 					}
-					typedef _Ty target_t;
-					static const bool s_is_reg_unsupported = std::is_union<target_t>::value || (!mse::impl::is_complete_type<target_t>::value);
-					MSE_IF_CONSTEXPR(s_is_reg_unsupported) {
-						/* Since it has an unsupported target type we can pretty much assume that the target allocation is not one that is tracked
-						in a ("registered" or "norad" pointer) registry. */
-						free_reg_unsupported_helper(typename std::integral_constant<bool, s_is_reg_unsupported>::type(), ptr);
-					}
-					else {
-						/* This raw pointer could be one that was (unsafely) converted from one of the libraries safe (smart) pointers. In such case,
-						it could be pointing to an allocated object that is being tracked in one of the library's registries. In such case we'd want
-						the allocation to be "unregistered" and deleted appropriately.
-						Note that while attempting to "free()" a "registered" object via a raw pointer *may* (or may not) work, in any case it is 
-						very much not condoned. */
-						delete_if_pointing_to_registered_or_norad_allocation(ptr);
-						if (!ptr) {
+					iter = nullptr;
+				}
+				static void allocate(_Ty*& iter, size_t num_bytes) {
+					const size_t num_items = num_bytes / sizeof(_Ty);
+					if (1 <= num_items) {
+						/* We use calloc() to in an effort to maximize compatibility with unsafe legacy code. */
+						iter = (_Ty*)::calloc(num_bytes, 1);
+						if (!iter) {
 							return;
 						}
-						::free(ptr);
-					}
-					ptr = nullptr;
-				}
-				static void free(_Ty* const& ptr) {
-					if (!ptr) {
-						return;
-					}
-					if (mse::us::impl::tlSAllocRegistry_ref<mse::TNDRegisteredObj<_Ty> >().unregisterPointer(ptr)
-						|| mse::us::impl::tlSAllocRegistry_ref<mse::TNDCRegisteredObj<_Ty> >().unregisterPointer(ptr)
-						|| mse::us::impl::tlSAllocRegistry_ref<mse::TNDNoradObj<_Ty> >().unregisterPointer(ptr)
-						) {
-						delete ptr;
-						//ptr = nullptr;
-						return;
-					}
-					::free(ptr);
-					//ptr = nullptr;
-				}
-				static void allocate(_Ty*& ptr, size_t num_bytes) {
-					ptr = (_Ty*)(::malloc(num_bytes));
-				}
-				static void reallocate(_Ty*& ptr, size_t num_bytes) {
-					ptr = (_Ty*)(::realloc(ptr, num_bytes));
-				}
-			};
-			template<class _Ty>
-			void free(_Ty*& ptr) { CAllocF<_Ty*>::free(ptr); }
-			template<class _Ty>
-			void free(_Ty* const& ptr) { CAllocF<_Ty*>::free(ptr); }
-			template<class _Ty>
-			void allocate(_Ty*& ptr, size_t num_bytes) { CAllocF<_Ty*>::allocate(ptr, num_bytes); }
-			template<class _Ty>
-			void reallocate(_Ty*& ptr, size_t num_bytes) { CAllocF<_Ty*>::reallocate(ptr, num_bytes); }
-
-			template<class _Ty>
-			class CAllocF<mse::TRefCountingPointer<_Ty>> {
-			public:
-				static void free(mse::TRefCountingPointer<_Ty>& ptr) {
-					ptr = nullptr;
-				}
-				static void allocate(mse::TRefCountingPointer<_Ty>& ptr, size_t num_bytes) {
-					typedef _Ty target_t;
-					if (0 == num_bytes) {
-						ptr = nullptr;
-					}
-					else if (sizeof(target_t) == num_bytes) {
-						ptr = mse::make_refcounting<target_t>();
+						MSE_IF_CONSTEXPR(std::is_default_constructible<_Ty>::value) {
+							for (size_t i = 0; num_items > i; i += 1) {
+								/* placement new() to initialize the allocation */
+								new (iter + i) _Ty{};
+							}
+						}
+						mse::us::lh::impl::tlSAllocRegistry_ref().registerPointer((void*)mse::us::lh::make_raw_pointer_from(iter), num_bytes, std::function<bool(void*)>{[iter, num_bytes](void* viter) {
+							_Ty* iter = (_Ty*)viter;
+							if (!iter) {
+								return false;
+							}
+							const size_t num_items = num_bytes / sizeof(_Ty);
+							if (1 <= num_items) {
+								MSE_IF_CONSTEXPR(std::is_default_constructible<_Ty>::value) {
+									for (size_t i = 0; num_items > i; i += 1) {
+										/* manually calling the destructor of each element */
+										(*(iter + i)).~_Ty();
+									}
+								}
+								::free(iter);
+							}
+							return true;
+							} });
 					}
 					else {
-						assert(false);
-						ptr = mse::make_refcounting<target_t>();
-						MSE_THROW(std::logic_error("The given `num_bytes` argument does not seem to match the size of the pointer target type. - CAllocF<mse::TRefCountingPointer<_Ty> >::allocate()"));
+						iter = nullptr;
 					}
+				}
+				static bool reallocate(_Ty*& iter, size_t num_bytes) {
+					const size_t new_num_items = num_bytes / sizeof(_Ty);
+					_Ty* new_alloc_iter = nullptr;
+					if (1 <= new_num_items) {
+						/* Even though we're passed a raw pointer, it could have been (unsafely) converted from one of the library's (safe) smart pointers, 
+						so we don't actually know how the raw pointer argument's target was allocated. Given that, this reallocate() function is always
+						going to (try to) make a new allocation of the new given size, copy the contents from the original allocation, then (try to) 
+						deallocate the original allocation. */
+						allocate(new_alloc_iter, num_bytes);
+						if (!new_alloc_iter) {
+							return false;
+						}
+					}
+					size_t source_num_items = 0;
+
+					void* void_ptr = nullptr;
+					typedef typename mse::us::lh::impl::CSAllocRegistry::CAllocInfo1 alloc_info_t;
+					mse::us::impl::optional1<alloc_info_t*> maybe_alloc_info_ptr;
+					if (iter) {
+						/* We'll determine if the allocation is being tracked in the registry. */
+						void_ptr = (void*)mse::us::lh::make_raw_pointer_from(iter);
+						auto l_maybe_allocation_info_ptr = mse::us::lh::impl::tlSAllocRegistry_ref().allocation_info_ptr_if_present(void_ptr);
+
+						if (!(l_maybe_allocation_info_ptr.has_value())) {
+							/* This seems to be an allocation we're not tracking. This reallocate() function really should not be used with untracked allocations. */
+							//MSE_THROW(std::logic_error("CAllocF<_Ty*>::reallocate() was passed a raw pointer pointing to an allocation that doesn't seem to have been allocated with lh::allocate(). This is not supported."));
+							/* I suppose we could just assume the target allocation was malloc()ed. */
+							auto new_alloc_vptr = ::realloc(iter, num_bytes);
+							if (new_alloc_vptr) {
+								iter = (_Ty*)new_alloc_vptr;
+								return true;
+							}
+							return false;
+						} else {
+							auto* allocation_info_ptr = l_maybe_allocation_info_ptr.value();
+							assert(allocation_info_ptr);
+							source_num_items = allocation_info_ptr->num_bytes / sizeof(_Ty);
+							maybe_alloc_info_ptr = allocation_info_ptr;
+						}
+					}
+					const size_t min_num_items = std::min(new_num_items, source_num_items);
+					for (size_t i = 0; min_num_items > i; i += 1) {
+						/* Copying the contents of the original allocation to the new one. */
+						*(new_alloc_iter + i) = std::move(*(iter + i));
+					}
+					if (maybe_alloc_info_ptr.has_value()) {
+						/* Deallocate the original allocation. */
+						auto& alloc_info_ptr = maybe_alloc_info_ptr.value();
+						assert(alloc_info_ptr);
+						alloc_info_ptr->deleter(void_ptr);
+					}
+					iter = new_alloc_iter;
+					return true;
 				}
 			};
 			template<class _Ty>
-			void free_overloaded(mse::TRefCountingPointer<_Ty>& ptr) { CAllocF<mse::TRefCountingPointer<_Ty>>::free(ptr); }
+			void free_overloaded(_Ty*& iter) { CAllocF<_Ty*>::free(iter); }
 			template<class _Ty>
-			void allocate_overloaded(mse::TRefCountingPointer<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::TRefCountingPointer<_Ty>>::allocate(ptr, num_bytes); }
+			void allocate_overloaded(_Ty*& iter, size_t num_bytes) { CAllocF<_Ty*>::allocate(iter, num_bytes); }
+			template<class _Ty>
+			bool reallocate_overloaded(_Ty*& iter, size_t num_bytes) { return CAllocF<_Ty*>::reallocate(iter, num_bytes); }
 
 			template<class _Ty>
 			class CAllocF<mse::lh::TStrongVectorIterator<_Ty>> {
 			public:
-				static void free(mse::lh::TStrongVectorIterator<_Ty>& ptr) {
-					ptr = mse::lh::TStrongVectorIterator<_Ty>();
+				static void free(mse::lh::TStrongVectorIterator<_Ty>& iter) {
+					if (1 <= iter.size()) {
+						free_valid_non_null(iter);
+					}
+					iter = nullptr;
 				}
-				static void allocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
+				static void allocate(mse::lh::TStrongVectorIterator<_Ty>& iter, size_t num_bytes) {
 					mse::lh::TStrongVectorIterator<_Ty> tmp;
 					tmp.resize(num_bytes / sizeof(_Ty));
-					ptr = tmp;
+					iter = tmp;
+					if (1 <= iter.size()) {
+						mse::us::lh::impl::tlSAllocRegistry_ref().registerPointer((void*)mse::us::lh::make_raw_pointer_from(iter), iter.size() * sizeof(_Ty), std::function<bool(void*)>{[iter](void*) {
+							/* The "deleter" (lambda) for a lh::TStrongVectorIterator<> doesn't need to explicitly do anything. The fact that this lambda
+							captures a copy of the lh::TStrongVectorIterator<> means that target object will not be deallocated before (the last copy of)
+							this "deleter" lambda itself is destroyed. */
+							return true;
+							} });
+					}
 				}
-				static void reallocate(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
-					ptr.resize(num_bytes / sizeof(_Ty));
+				static bool reallocate(mse::lh::TStrongVectorIterator<_Ty>& iter, size_t num_bytes) {
+					void* void_ptr = nullptr;
+					typedef typename mse::us::lh::impl::CSAllocRegistry::deleter_t deleter_t;
+					mse::us::impl::optional1<deleter_t*> maybe_deleter_ptr;
+					if (1 <= iter.size()) {
+						/* First we unregister the existing allocation, if any, at its current memory address. */
+						void_ptr = (void*)mse::us::lh::make_raw_pointer_from(iter);
+						auto l_maybe_deleter_ptr = mse::us::lh::impl::tlSAllocRegistry_ref().deleter_ptr_if_present(void_ptr);
+						if (l_maybe_deleter_ptr.has_value()) {
+							maybe_deleter_ptr = l_maybe_deleter_ptr.value();
+						}
+						mse::us::lh::impl::tlSAllocRegistry_ref().unregisterPointer(void_ptr);
+					}
+
+					iter.resize(num_bytes / sizeof(_Ty));
+
+					if (1 <= iter.size()) {
+						auto new_rawptr = (void*)mse::us::lh::make_raw_pointer_from(iter);
+						/* And now we (re)register the new allocation at its (possibly) new memory address. */
+						mse::us::lh::impl::tlSAllocRegistry_ref().registerPointer(new_rawptr, iter.size() * sizeof(_Ty), std::function<bool(void*)>{[iter](void*) {
+							/* The "deleter" (lambda) for a lh::TStrongVectorIterator<> doesn't need to explicitly do anything. The fact that this lambda
+							captures a copy of the lh::TStrongVectorIterator<> means that target object will not be deallocated before (the last copy of)
+							this "deleter" lambda itself is destroyed. */
+							return true;
+							} });
+					}
+					return true;
 				}
 			};
 			template<class _Ty>
-			void free_overloaded(mse::lh::TStrongVectorIterator<_Ty>& ptr) { CAllocF<mse::lh::TStrongVectorIterator<_Ty>>::free(ptr); }
+			void free_overloaded(mse::lh::TStrongVectorIterator<_Ty>& iter) { CAllocF<mse::lh::TStrongVectorIterator<_Ty>>::free(iter); }
 			template<class _Ty>
-			void allocate_overloaded(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TStrongVectorIterator<_Ty>>::allocate(ptr, num_bytes); }
+			void allocate_overloaded(mse::lh::TStrongVectorIterator<_Ty>& iter, size_t num_bytes) { CAllocF<mse::lh::TStrongVectorIterator<_Ty>>::allocate(iter, num_bytes); }
 			template<class _Ty>
-			void reallocate_overloaded(mse::lh::TStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TStrongVectorIterator<_Ty>>::reallocate(ptr, num_bytes); }
+			bool reallocate_overloaded(mse::lh::TStrongVectorIterator<_Ty>& iter, size_t num_bytes) { return CAllocF<mse::lh::TStrongVectorIterator<_Ty>>::reallocate(iter, num_bytes); }
 
 			template<class _Ty>
 			class CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>> {
 			public:
-				static void free(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr) {
-					ptr = mse::lh::TXScopeStrongVectorIterator<_Ty>();
+				static void free(mse::lh::TXScopeStrongVectorIterator<_Ty>& iter) {
+					if (1 <= iter.size()) {
+						free_valid_non_null(iter);
+					}
+					iter = nullptr;
 				}
-				static void allocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
-					mse::lh::TXScopeStrongVectorIterator<_Ty> tmp(num_bytes / sizeof(_Ty));
-					ptr = tmp;
+				static void allocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& iter, size_t num_bytes) {
+					mse::lh::TXScopeStrongVectorIterator<_Ty> tmp;
+					tmp.resize(num_bytes / sizeof(_Ty));
+					iter = tmp;
+					if (1 <= iter.size()) {
+						mse::us::lh::impl::tlSAllocRegistry_ref().registerPointer((void*)mse::us::lh::make_raw_pointer_from(iter), iter.size() * sizeof(_Ty), std::function<bool(void*)>{[iter](void*) {
+							/* The "deleter" (lambda) for a lh::TStrongVectorIterator<> doesn't need to explicitly do anything. The fact that this lambda
+							captures a copy of the lh::TStrongVectorIterator<> means that target object will not be deallocated before (the last copy of)
+							this "deleter" lambda itself is destroyed. */
+							return true;
+							} });
+					}
 				}
-				static void reallocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) {
-					ptr.resize(num_bytes / sizeof(_Ty));
+				static bool reallocate(mse::lh::TXScopeStrongVectorIterator<_Ty>& iter, size_t num_bytes) {
+					void* void_ptr = nullptr;
+					typedef typename mse::us::lh::impl::CSAllocRegistry::deleter_t deleter_t;
+					mse::us::impl::optional1<deleter_t*> maybe_deleter_ptr;
+					if (1 <= iter.size()) {
+						/* First we unregister the existing allocation, if any, at its current memory address. */
+						void_ptr = (void*)mse::us::lh::make_raw_pointer_from(iter);
+						auto l_maybe_deleter_ptr = mse::us::lh::impl::tlSAllocRegistry_ref().deleter_ptr_if_present(void_ptr);
+						if (l_maybe_deleter_ptr.has_value()) {
+							maybe_deleter_ptr = l_maybe_deleter_ptr.value();
+						}
+						mse::us::lh::impl::tlSAllocRegistry_ref().unregisterPointer(void_ptr);
+					}
+
+					iter.resize(num_bytes / sizeof(_Ty));
+
+					if (1 <= iter.size()) {
+						auto new_rawptr = (void*)mse::us::lh::make_raw_pointer_from(iter);
+						/* And now we (re)register the new allocation at its (possibly) new memory address. */
+						mse::us::lh::impl::tlSAllocRegistry_ref().registerPointer(new_rawptr, iter.size() * sizeof(_Ty), std::function<bool(void*)>{[iter](void*) {
+							/* The "deleter" (lambda) for a lh::TStrongVectorIterator<> doesn't need to explicitly do anything. The fact that this lambda
+							captures a copy of the lh::TStrongVectorIterator<> means that target object will not be deallocated before (the last copy of)
+							this "deleter" lambda itself is destroyed. */
+							return true;
+							} });
+					}
+					return true;
 				}
 			};
 			template<class _Ty>
-			void free_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr) { CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::free(ptr); }
+			void free_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& iter) { CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::free(iter); }
 			template<class _Ty>
-			void allocate_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::allocate(ptr, num_bytes); }
+			void allocate_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& iter, size_t num_bytes) { CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::allocate(iter, num_bytes); }
 			template<class _Ty>
-			void reallocate_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::reallocate(ptr, num_bytes); }
+			bool reallocate_overloaded(mse::lh::TXScopeStrongVectorIterator<_Ty>& iter, size_t num_bytes) { return CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty>>::reallocate(iter, num_bytes); }
 
 			template<class _Ty>
 			class CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>> {
 			public:
-				static void free(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr) {
-					ptr = mse::lh::TStrongVectorIterator<_Ty>();
+				static void free(mse::TNullableAnyRandomAccessIterator<_Ty>& iter) {
+					if (1 <= iter.size()) {
+						free_valid_non_null(iter);
+					}
+					iter = nullptr;
 				}
-				static void allocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+				static void allocate(mse::TNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) {
 					mse::lh::TStrongVectorIterator<_Ty> tmp;
-					tmp.resize(num_bytes / sizeof(_Ty));
-					ptr = tmp;
+					CAllocF<mse::lh::TStrongVectorIterator<_Ty> >::allocate(tmp, num_bytes);
+					iter = tmp;
 				}
-				//static void reallocate(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes);
+				//static bool reallocate(mse::TNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes);
 			};
 			template<class _Ty>
-			void free_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::free(ptr); }
+			void free_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& iter) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::free(iter); }
 			template<class _Ty>
-			void allocate_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::allocate(ptr, num_bytes); }
+			void allocate_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::allocate(iter, num_bytes); }
 			//template<class _Ty>
-			//void reallocate_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::reallocate(ptr, num_bytes); }
+			//bool reallocate_overloaded(mse::TNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) { return CAllocF<mse::TNullableAnyRandomAccessIterator<_Ty>>::reallocate(iter, num_bytes); }
 
 			template<class _Ty>
 			class CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>> {
 			public:
-				static void free(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr) {
-					ptr = mse::lh::TStrongVectorIterator<_Ty>();
-				}
-				static void allocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
-					mse::lh::TStrongVectorIterator<_Ty> tmp;
-					tmp.resize(num_bytes / sizeof(_Ty));
-					ptr = tmp;
-				}
-				static void reallocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
-					if (!ptr) {
-						allocate(ptr, num_bytes);
-						return;
+				static void free(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& iter) {
+					if (iter) {
+						free_valid_non_null(iter);
 					}
-					auto maybe_strong_vec_iter = mse::lh::us::impl::maybe_any_cast<mse::lh::TStrongVectorIterator<_Ty>>(ptr);
+					iter = nullptr;
+				}
+				static void allocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) {
+					mse::lh::TStrongVectorIterator<_Ty> tmp;
+					CAllocF<mse::lh::TStrongVectorIterator<_Ty> >::allocate(tmp, num_bytes);
+					iter = tmp;
+				}
+				static bool reallocate(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) {
+					if (!iter) {
+						allocate(iter, num_bytes);
+						return bool(iter);
+					}
+					auto maybe_strong_vec_iter = mse::lh::us::impl::maybe_any_cast<mse::lh::TStrongVectorIterator<_Ty>>(iter);
 					if (maybe_strong_vec_iter.has_value()) {
 						auto& strong_vec_iter = maybe_strong_vec_iter.value();
-						strong_vec_iter.resize(num_bytes / sizeof(_Ty));
-						return;
+						bool res = CAllocF<mse::lh::TStrongVectorIterator<_Ty> >::reallocate(strong_vec_iter, num_bytes);
+						if (res) {
+							iter = strong_vec_iter;
+						}
+						return res;
 					}
 					MSE_THROW(std::logic_error("the provided pointer/iterator was not recognized as pointing to a target supported for reallocation - CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::reallocate()"));
+					return false;
 				}
 			};
 			template<class _Ty>
-			void free_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::free(ptr); }
+			void free_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& iter) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::free(iter); }
 			template<class _Ty>
-			void allocate_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::allocate(ptr, num_bytes); }
+			void allocate_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::allocate(iter, num_bytes); }
 			template<class _Ty>
-			void reallocate_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::reallocate(ptr, num_bytes); }
+			bool reallocate_overloaded(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) { return CAllocF<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty>>::reallocate(iter, num_bytes); }
 
 			template<class _Ty>
 			class CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>> {
 			public:
-				static void free(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr) {
-					ptr = mse::lh::TStrongVectorIterator<_Ty>();
+				static void free(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& iter) {
+					if (iter) {
+						free_valid_non_null(iter);
+					}
+					iter = nullptr;
 				}
-				static void allocate(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
+				static void allocate(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) {
 					mse::lh::TStrongVectorIterator<_Ty> tmp;
-					tmp.resize(num_bytes / sizeof(_Ty));
-					ptr = tmp;
+					CAllocF<mse::lh::TStrongVectorIterator<_Ty> >::allocate(tmp, num_bytes);
+					iter = tmp;
 				}
-				static void reallocate(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) {
-					if (!ptr) {
-						allocate(ptr, num_bytes);
-						return;
+				static bool reallocate(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) {
+					if (!iter) {
+						allocate(iter, num_bytes);
+						return bool(iter);
 					}
 					{
-						auto maybe_strong_vec_iter = mse::lh::us::impl::maybe_any_cast<mse::lh::TStrongVectorIterator<_Ty>>(ptr);
+						auto maybe_strong_vec_iter = mse::lh::us::impl::maybe_any_cast<mse::lh::TStrongVectorIterator<_Ty>>(iter);
 						if (maybe_strong_vec_iter.has_value()) {
 							auto& strong_vec_iter = maybe_strong_vec_iter.value();
-							strong_vec_iter.resize(num_bytes / sizeof(_Ty));
-							return;
+							bool res = CAllocF<mse::lh::TStrongVectorIterator<_Ty> >::reallocate(strong_vec_iter, num_bytes);
+							if (res) {
+								iter = strong_vec_iter;
+							}
+							return res;
 						}
 					}
 					{
-						auto maybe_strong_vec_iter = mse::lh::us::impl::maybe_any_cast<mse::lh::TXScopeStrongVectorIterator<_Ty>>(ptr);
+						auto maybe_strong_vec_iter = mse::lh::us::impl::maybe_any_cast<mse::lh::TXScopeStrongVectorIterator<_Ty>>(iter);
 						if (maybe_strong_vec_iter.has_value()) {
 							auto& strong_vec_iter = maybe_strong_vec_iter.value();
-							strong_vec_iter.resize(num_bytes / sizeof(_Ty));
-							return;
+							bool res = CAllocF<mse::lh::TXScopeStrongVectorIterator<_Ty> >::reallocate(strong_vec_iter, num_bytes);
+							if (res) {
+								iter = strong_vec_iter;
+							}
+							return res;
 						}
 					}
 					MSE_THROW(std::logic_error("the provided pointer/iterator was not recognized as pointing to a target supported for reallocation - CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::reallocate()"));
+					return false;
 				}
 			};
 			template<class _Ty>
-			void free_overloaded(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr) { CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::free(ptr); }
+			void free_overloaded(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& iter) { CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::free(iter); }
 			template<class _Ty>
-			void allocate_overloaded(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::allocate(ptr, num_bytes); }
+			void allocate_overloaded(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) { CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::allocate(iter, num_bytes); }
 			template<class _Ty>
-			void reallocate_overloaded(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& ptr, size_t num_bytes) { CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::reallocate(ptr, num_bytes); }
+			bool reallocate_overloaded(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>& iter, size_t num_bytes) { return CAllocF<mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty>>::reallocate(iter, num_bytes); }
 
 			template<class T, class EqualTo>
 			struct IsSupportedByAllocateOverloaded_impl
@@ -2584,7 +2745,10 @@ namespace mse {
 		_TDynArrayIter reallocate(const _TDynArrayIter& ptr2, size_t num_bytes) {
 			_TDynArrayIter ptr = ptr2;
 			MSE_TRY{
-				impl::reallocate_helper1(typename impl::IsSupportedByAllocateOverloaded<_TDynArrayIter>::type(), ptr, num_bytes);
+				bool res = impl::reallocate_helper1(typename impl::IsSupportedByAllocateOverloaded<_TDynArrayIter>::type(), ptr, num_bytes);
+				if (!res) {
+					return _TDynArrayIter();
+				}
 			}
 			MSE_CATCH_ANY{
 				return _TDynArrayIter();
