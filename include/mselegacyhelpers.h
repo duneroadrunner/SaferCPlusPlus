@@ -782,6 +782,11 @@ namespace mse {
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::lh::TLHNullableAnyPointer);
 	namespace lh {
 
+		template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
+		inline retval_t maybe_any_cast(const TLHNullableAnyPointer<_Ty>& operand) {
+			return mse::maybe_any_cast<ValueType>(mse::us::impl::as_ref<const typename TLHNullableAnyPointer<_Ty>::base_class>(operand));
+		}
+
 		/* specializations defined later in the file */
 		template<>
 		class TLHNullableAnyPointer<void>;
@@ -935,6 +940,11 @@ namespace mse {
 	}
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::lh::TXScopeLHNullableAnyPointer);
 	namespace lh {
+
+		template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
+		inline retval_t maybe_any_cast(const TXScopeLHNullableAnyPointer<_Ty>& operand) {
+			return mse::maybe_any_cast<ValueType>(mse::us::impl::as_ref<const typename TXScopeLHNullableAnyPointer<_Ty>::base_class>(operand));
+		}
 
 		/* specializations defined later in the file */
 		template<>
@@ -1618,10 +1628,15 @@ namespace mse {
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::lh::TLHNullableAnyRandomAccessIterator);
 	namespace lh {
 
-		template <typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_constructible<_Ty, TLHNullableAnyRandomAccessIterator<_Tz> >::value) 
+		template <typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_constructible<_Ty, TLHNullableAnyRandomAccessIterator<_Tz> >::value)
 			&& (std::is_constructible<TLHNullableAnyRandomAccessIterator<_Tz>, _Ty>::value)> MSE_IMPL_EIS >
 		auto operator-(_Ty const& lhs_cref, TLHNullableAnyRandomAccessIterator<_Tz> const& rhs_cref) -> typename TLHNullableAnyRandomAccessIterator<_Tz>::difference_type {
 			return -(rhs_cref - lhs_cref);
+		}
+
+		template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
+		inline retval_t maybe_any_cast(const TLHNullableAnyRandomAccessIterator<_Ty>& operand) {
+			return mse::lh::us::impl::maybe_any_cast<ValueType>(mse::us::impl::as_ref<const typename TLHNullableAnyRandomAccessIterator<_Ty>::base_class>(operand));
 		}
 	}
 	namespace us {
@@ -1724,6 +1739,17 @@ namespace mse {
 	to be the "const" counterpart to mse::TXScopeLHNullableAnyRandomAccessIterator<T>. */
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::lh::TXScopeLHNullableAnyRandomAccessIterator);
 	namespace lh {
+
+		template <typename _Ty, typename _Tz, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_constructible<_Ty, TXScopeLHNullableAnyRandomAccessIterator<_Tz> >::value)
+			&& (std::is_constructible<TXScopeLHNullableAnyRandomAccessIterator<_Tz>, _Ty>::value)> MSE_IMPL_EIS >
+		auto operator-(_Ty const& lhs_cref, TXScopeLHNullableAnyRandomAccessIterator<_Tz> const& rhs_cref) -> typename TXScopeLHNullableAnyRandomAccessIterator<_Tz>::difference_type {
+			return -(rhs_cref - lhs_cref);
+		}
+
+		template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
+		inline retval_t maybe_any_cast(const TXScopeLHNullableAnyRandomAccessIterator<_Ty>& operand) {
+			return mse::lh::us::impl::maybe_any_cast<ValueType>(mse::us::impl::as_ref<const typename TXScopeLHNullableAnyRandomAccessIterator<_Ty>::base_class>(operand));
+		}
 
 		namespace impl {
 			template <typename _Ty>
@@ -6024,6 +6050,20 @@ namespace mse {
 					auto lhnara_iter3 = mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(&i1);
 					auto lhnara_iter4 = mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(&((const int&)i1));
 					auto diff3 = lhnara_iter3 - lhnara_iter4;
+
+#ifndef MSE_LEGACYHELPERS_DISABLED
+					auto maybe_sviter2 = mse::lh::maybe_any_cast<mse::lh::TStrongVectorIterator<char> >(lhnara_iter1);
+					if (maybe_sviter2.has_value()) {
+						auto& sviter2 = maybe_sviter2.value();
+						auto xs_strong_pointer_store1 = mse::make_xscope_strong_pointer_store(sviter2.target_container_ptr());
+						auto char_vec_xsptr = xs_strong_pointer_store1.xscope_ptr();
+						auto xs_bf_char_nii_vec1 = mse::make_xscope_borrowing_fixed_nii_vector(char_vec_xsptr);
+						auto sz1 = xs_bf_char_nii_vec1.size();
+						auto const& xs_bf_char_nii_vec1_cref = xs_bf_char_nii_vec1;
+						auto& item_ref1 = xs_bf_char_nii_vec1_cref.at(0);
+						int q = 5;
+					}
+#endif // !MSE_LEGACYHELPERS_DISABLED
 
 					int q = 5;
 				}
