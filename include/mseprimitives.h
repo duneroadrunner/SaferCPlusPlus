@@ -663,6 +663,8 @@ store. Whether or not that is the case is perhaps kind of a judgement call. */
 		TInt& operator=(const _Ty& x) { (*this).template assign_check_range<_Ty>(x); (*this).m_val = (base_type)x; return (*this); }
 
 		operator base_type() const { (*this).assert_initialized(); return (*this).m_val; }
+		template<typename _Ty, class = typename std::enable_if<std::is_enum<_Ty>::value, void>::type>
+		explicit operator _Ty() const { (*this).assert_initialized(); return _Ty((*this).m_val); }
 		/* provisional */
 		const base_type& mse_base_type_ref() const & { (*this).assert_initialized(); return (*this).m_val; }
 		const base_type& mse_base_type_ref() const&& = delete;
