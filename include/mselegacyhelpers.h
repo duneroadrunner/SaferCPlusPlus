@@ -2148,6 +2148,7 @@ namespace mse {
 		class TNativeFunctionPointerReplacement : public mse::mstd::function<_Fty> {
 		public:
 			typedef mse::mstd::function<_Fty> base_class;
+			typedef TNativeFunctionPointerReplacement _Myt;
 			TNativeFunctionPointerReplacement() noexcept : base_class() {}
 			TNativeFunctionPointerReplacement(std::nullptr_t) noexcept : base_class(nullptr) {}
 			template <typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, ZERO_LITERAL_t>::value) || (std::is_same<_Ty2, NULL_t>::value)> MSE_IMPL_EIS >
@@ -2162,6 +2163,7 @@ namespace mse {
 				&& (std::is_constructible<base_class, _Fty2>::value)
 			> MSE_IMPL_EIS >
 			TNativeFunctionPointerReplacement(const _Fty2& func) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Fty2)") : base_class(func) {
+				constructor_helper1(typename std::is_function<mse::impl::target_or_void_type<_Fty2> >::type(), func);
 				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
 			}
 			template <typename _Fty2, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_convertible<const _Fty2*, const TNativeFunctionPointerReplacement*>::value)
@@ -2170,11 +2172,59 @@ namespace mse {
 				&& (std::is_constructible<base_class, _Fty2>::value)
 			> MSE_IMPL_EIS >
 			TNativeFunctionPointerReplacement(_Fty2&& func) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Fty2)") : base_class(MSE_FWD(func)) {
+				constructor_helper1(typename std::is_function<mse::impl::target_or_void_type<_Fty2> >::type(), MSE_FWD(func));
 				mse::impl::T_valid_if_not_an_xscope_type<_Fty2>();
 			}
 
 			base_class const& operator*() const { return (*this); }
 			auto operator->() const { return std::addressof(operator*()); }
+
+			friend bool operator==(const _Myt& _Left_cref, const NULL_t& _Right_cref) { assert(0 == _Right_cref); return !bool(_Left_cref); }
+			friend bool operator==(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !bool(_Left_cref); }
+			friend bool operator==(const _Myt& _Left_cref, const _Myt& _Right_cref) {
+				if (!_Left_cref) {
+					return !_Right_cref;
+				}
+				else if (!_Right_cref) {
+					return false;
+				}
+				if (_Left_cref.m_maybe_shadow_fn_ptr.has_value() && _Right_cref.m_maybe_shadow_fn_ptr.has_value()) {
+					/* If the stored function objects are function pointers, then this equality comparison operator should compare their values 
+					as expected. Otherwise, this operator will indicate whether or not the two arguments were constructed with references to 
+					the same (function) object instance, which is not quite the same as comparing whether their values are "equal". */
+					auto& lhs_shadow_fn_ptr = _Left_cref.m_maybe_shadow_fn_ptr.value();
+					auto& rhs_shadow_fn_ptr = _Right_cref.m_maybe_shadow_fn_ptr.value();
+					return (lhs_shadow_fn_ptr == rhs_shadow_fn_ptr);
+				}
+				return false;
+			}
+
+#ifndef MSE_HAS_CXX20
+			friend bool operator==(const NULL_t& _Left_cref, const _Myt& _Right_cref) { assert(0 == _Left_cref); return !bool(_Right_cref); }
+			friend bool operator==(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !bool(_Right_cref); }
+
+			friend bool operator!=(const _Myt& _Left_cref, const NULL_t& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			friend bool operator!=(const NULL_t& _Left_cref, const _Myt& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			friend bool operator!=(const _Myt& _Left_cref, const std::nullptr_t& _Right_cref) { return !(_Left_cref == _Right_cref); }
+			friend bool operator!=(const std::nullptr_t& _Left_cref, const _Myt& _Right_cref) { return !(_Left_cref == _Right_cref); }
+
+			friend bool operator!=(const _Myt& _Left_cref, const _Myt& _Right_cref) { return !(_Left_cref == _Right_cref); }
+#endif // !MSE_HAS_CXX20
+		private:
+
+			template <typename FnPtr>
+			void constructor_helper1(std::true_type, FnPtr const& fn_ptr) {
+				m_maybe_shadow_fn_ptr = (void const*)std::addressof(*fn_ptr);
+			}
+			template <typename _Fty2>
+			void constructor_helper1(std::false_type, _Fty2 const& func) {
+				/* We're potentially taking the address of a lambda here. Is that copacetic? */
+				m_maybe_shadow_fn_ptr = (void const*)std::addressof(func);
+			}
+
+			/* We store an auxiliary pointer in attempt to support an equality comparison operator (that is notably not supported by 
+			the underlying (std::function) base class). */
+			mse::us::impl::optional1<void const*> m_maybe_shadow_fn_ptr = nullptr;
 		};
 	}
 	namespace us {
@@ -5475,6 +5525,9 @@ namespace mse {
 					direction_reg1 = WEST;
 
 					mse::TRegisteredObj<int> int_reg1 = 2;
+					typedef enum direction direction_t;
+					dir2 = direction_t(int_reg1);
+					dir2 = (enum direction)int_reg1;
 					int i2 = int_reg1;
 					bool b3 = (i2 == dir2);
 					bool b4 = (int_reg1 == dir2);
@@ -5740,6 +5793,8 @@ namespace mse {
 					nfr3 = lambda4;
 					nfr3 = lambda5;
 					//nfr3 = lambda6;
+					bool b1 = (NULL == nfr3);
+					bool b2 = (nfr3 == nullptr);
 					std::vector<int> int_vec1 = { 1, 2, 3 };
 					mse::TAnyRandomAccessIterator<int> int_ariter1 = int_vec1.begin();
 					auto maybe_stdvec_iter2 = mse::us::impl::maybe_any_cast<typename std::vector<int>::iterator>(int_ariter1);
