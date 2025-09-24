@@ -5076,11 +5076,11 @@ namespace mse {
 				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
 			}
 			template<typename _Ty>
-			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TLHNullableAnyPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& ptr1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::lh::TLHNullableAnyPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& ptr1) -> TXScopePointerToRawPointersStore<_Ty> {
 				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
 			}
 			template<typename _Ty>
-			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::TRegisteredNotNullPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& ptr1) -> TXScopeConstArrayOfRawPointersStore<_Ty> {
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::TRegisteredNotNullPointer<mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> > const& ptr1) -> TXScopePointerToRawPointersStore<_Ty> {
 				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
 			}
 			template<typename _Ty>
@@ -5106,6 +5106,15 @@ namespace mse {
 			template<typename _Ty>
 			auto make_temporary_raw_pointer_to_pointer_proxy_from(mse::TRegisteredNotNullPointer<mse::lh::TLHNullableAnyPointer<_Ty> > const& ptr1) -> TXScopePointerToRawPointersStore<_Ty> {
 				return TXScopePointerToRawPointersStore<_Ty>(ptr1);
+			}
+			template<typename _Ty, size_t _Size>
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(_Ty(*ptr1)[_Size]) {
+				/* Regardless of how useful a pointer to native array parameter might be, we have encountered them in the wild. */
+				return ptr1;
+			}
+			template<typename _Ty>
+			auto make_temporary_raw_pointer_to_pointer_proxy_from(_Ty** ptr1) {
+				return ptr1;
 			}
 
 			/* The generic make_raw_pointer_from() implementations will often internally use a const reference to the argument even if 
