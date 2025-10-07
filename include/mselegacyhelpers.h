@@ -2960,54 +2960,9 @@ namespace mse {
 			struct HasOrInheritsSubscriptOperator<T, mse::impl::void_t<decltype(std::declval<T>()[0])> > : std::true_type {};
 
 			namespace us {
-				template<class _TIter, class _TIter2>
-				_TIter memcpy_helper2(std::true_type, _TIter const& destination, _TIter2 const& source, size_t num_bytes) {
-					//static_assert(std::is_same<mse::lh::void_star_replacement, _TIter2>::value || std::is_same<const mse::lh::const_void_star_replacement, const _TIter2>::value, "");
-
-					/* Here the source parameter is presumed to be an lh::void_star_replacement. In order to complete the operation safely we 
-					need to guess the type stored in the lh::void_star_replacement and recover it. We're going to use some macros to help 
-					generate a whole bunch of guesses. */
-
-					typedef mse::impl::target_type<_TIter> element_t;
-					auto& ecany_ref = mse::us::impl::as_ref<const mse::lh::impl::explicitly_castable_any>(source);
-
-#define MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(type1) \
-					{ \
-						auto maybe_casted = mse::lh::impl::maybe_any_cast_of_explicitly_castable_any<type1>(ecany_ref); \
-						if (maybe_casted.has_value()) { \
-							return mse::lh::memcpy(destination, mse::lh::impl::explicitly_castable_any::convert<type1>(maybe_casted.value()), num_bytes); \
-						} \
-					}
-
-#define MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(type1, MACRO_FUNCTION) \
-					{ \
-						MACRO_FUNCTION(mse::lh::TLHNullableAnyRandomAccessIterator<type1>); \
-						MACRO_FUNCTION(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<type1>); \
-						MACRO_FUNCTION(mse::lh::TStrongVectorIterator<type1>); \
-						MACRO_FUNCTION(mse::lh::TXScopeStrongVectorIterator<type1>); \
-						MACRO_FUNCTION(mse::lh::TLHNullableAnyPointer<type1>); \
-						MACRO_FUNCTION(mse::lh::TXScopeLHNullableAnyPointer<type1>); \
-						MACRO_FUNCTION(mse::TRefCountingPointer<type1>); \
-						MACRO_FUNCTION(mse::TRefCountingNotNullPointer<type1>); \
-						MACRO_FUNCTION(mse::TRegisteredPointer<type1>); \
-						MACRO_FUNCTION(mse::TRegisteredNotNullPointer<type1>); \
-						MACRO_FUNCTION(mse::TNoradPointer<type1>); \
-						MACRO_FUNCTION(mse::TNoradNotNullPointer<type1>); \
-						typedef type1* type1_ptr_t; \
-						MACRO_FUNCTION(type1_ptr_t); \
-					}
-
-					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(element_t, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
-					MSE_IF_CONSTEXPR(!std::is_const<element_t>::value) {
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
-					}
-
-					MSE_THROW(std::logic_error("could not determine the type represented by the (presumably lh::void_star_replacement) argument - lh::impl::us::memcpy_helper2()"));
-					return destination;
-				}
 
 				template<class _TPointer, class _TPointer2>
-				_TPointer memcpy_helper2(std::false_type, _TPointer const& destination, _TPointer2 const& source, size_t num_bytes) {
+				_TPointer memcpy_helper3(std::false_type, _TPointer const& destination, _TPointer2 const& source, size_t num_bytes) {
 					typedef mse::impl::remove_reference_t<decltype(*destination)> element_t;
 					if ((sizeof(element_t) != num_bytes) && (0 != num_bytes)) {
 						typedef mse::impl::remove_reference_t<decltype(*source)> source_element_t;
@@ -3028,6 +2983,87 @@ namespace mse {
 					}
 
 					*destination = *source;
+					return destination;
+				}
+
+				template<class _TIter, class _TIter2>
+				_TIter memcpy_helper3(std::true_type, _TIter const& destination, _TIter2 const& source, size_t num_bytes) {
+					//static_assert(std::is_same<mse::lh::void_star_replacement, _TIter>::value || std::is_same<const mse::lh::const_void_star_replacement, const _TIter>::value, "");
+
+					/* Here the destination parameter is presumed to be an lh::void_star_replacement. In order to complete the operation safely we
+					need to guess the type stored in the lh::void_star_replacement and recover it. We're going to use some macros to help
+					generate a whole bunch of guesses. */
+
+					typedef mse::impl::target_type<_TIter2> element_t;
+					auto& ecany_ref = mse::us::impl::as_ref<const mse::lh::impl::explicitly_castable_any>(destination);
+
+#define MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT1(type1) \
+					{ \
+						auto maybe_casted = mse::lh::impl::maybe_any_cast_of_explicitly_castable_any<type1>(ecany_ref); \
+						if (maybe_casted.has_value()) { \
+							return mse::lh::memcpy(mse::lh::impl::explicitly_castable_any::convert<type1>(maybe_casted.value()), source, num_bytes); \
+						} \
+					}
+
+#define MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT2(type1, MACRO_FUNCTION) \
+					{ \
+						MACRO_FUNCTION(mse::lh::TLHNullableAnyRandomAccessIterator<type1>); \
+						MACRO_FUNCTION(mse::lh::TXScopeLHNullableAnyRandomAccessIterator<type1>); \
+						MACRO_FUNCTION(mse::lh::TStrongVectorIterator<type1>); \
+						MACRO_FUNCTION(mse::lh::TXScopeStrongVectorIterator<type1>); \
+						MACRO_FUNCTION(mse::lh::TLHNullableAnyPointer<type1>); \
+						MACRO_FUNCTION(mse::lh::TXScopeLHNullableAnyPointer<type1>); \
+						MACRO_FUNCTION(mse::TRefCountingPointer<type1>); \
+						MACRO_FUNCTION(mse::TRefCountingNotNullPointer<type1>); \
+						MACRO_FUNCTION(mse::TRegisteredPointer<type1>); \
+						MACRO_FUNCTION(mse::TRegisteredNotNullPointer<type1>); \
+						MACRO_FUNCTION(mse::TNoradPointer<type1>); \
+						MACRO_FUNCTION(mse::TNoradNotNullPointer<type1>); \
+						typedef type1* type1_ptr_t; \
+						MACRO_FUNCTION(type1_ptr_t); \
+					}
+
+					MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT2(element_t, MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT1);
+					MSE_IF_CONSTEXPR(!std::is_const<element_t>::value) {
+						//MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT1);
+					}
+
+					MSE_THROW(std::logic_error("could not determine the type represented by the (presumably lh::void_star_replacement) argument - lh::impl::us::memcpy_helper2()"));
+					return destination;
+				}
+
+				template<class _TPointer, class _TPointer2>
+				_TPointer memcpy_helper2(std::false_type, _TPointer const& destination, _TPointer2 const& source, size_t num_bytes) {
+					return memcpy_helper3(typename std::integral_constant<bool, std::is_same<const mse::lh::void_star_replacement, const _TPointer>::value || std::is_same<const mse::lh::const_void_star_replacement, const _TPointer>::value>::type(), destination, source, num_bytes);
+				}
+
+				template<class _TIter, class _TIter2>
+				_TIter memcpy_helper2(std::true_type, _TIter const& destination, _TIter2 const& source, size_t num_bytes) {
+					//static_assert(std::is_same<mse::lh::void_star_replacement, _TIter2>::value || std::is_same<const mse::lh::const_void_star_replacement, const _TIter2>::value, "");
+
+					/* Here the source parameter is presumed to be an lh::void_star_replacement. In order to complete the operation safely we 
+					need to guess the type stored in the lh::void_star_replacement and recover it. We're going to use some macros to help 
+					generate a whole bunch of guesses. */
+
+					typedef mse::impl::target_type<_TIter> element_t;
+					auto& ecany_ref = mse::us::impl::as_ref<const mse::lh::impl::explicitly_castable_any>(source);
+
+#define MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(type1) \
+					{ \
+						auto maybe_casted = mse::lh::impl::maybe_any_cast_of_explicitly_castable_any<type1>(ecany_ref); \
+						if (maybe_casted.has_value()) { \
+							return mse::lh::memcpy(destination, mse::lh::impl::explicitly_castable_any::convert<type1>(maybe_casted.value()), num_bytes); \
+						} \
+					}
+
+#define MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(type1, MACRO_FUNCTION) MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT2(type1, MACRO_FUNCTION)
+
+					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(element_t, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
+					MSE_IF_CONSTEXPR(!std::is_const<element_t>::value) {
+						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
+					}
+
+					MSE_THROW(std::logic_error("could not determine the type represented by the (presumably lh::void_star_replacement) argument - lh::impl::us::memcpy_helper2()"));
 					return destination;
 				}
 
