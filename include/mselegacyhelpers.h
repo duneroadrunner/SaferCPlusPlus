@@ -2102,6 +2102,14 @@ namespace mse {
 			operator mse::TNullableAnyRandomAccessIterator<const _Ty>() const {
 				return base_class::begin();
 			}
+
+			mse::TNullableAnyRandomAccessIterator<_Ty> operator&() {
+				return mse::TNullableAnyRandomAccessIterator<_Ty>(*this);
+			}
+			mse::TNullableAnyRandomAccessIterator<const _Ty> operator&() const {
+				return mse::TNullableAnyRandomAccessIterator<const _Ty>(*this);
+			}
+
 			typename base_class::iterator operator+(typename base_class::difference_type n) { return base_class::begin() + n; }
 			typename base_class::iterator operator-(typename base_class::difference_type n) { return base_class::begin() - n; }
 			typename base_class::difference_type operator-(const typename base_class::iterator& _Right_cref) const { return base_class::begin() - _Right_cref; }
@@ -5976,6 +5984,12 @@ namespace mse {
 					char input1[] = "one + two * (three - four)!";
 					mse::lh::TNativeArrayReplacement<char, sizeof input1> arr1;
 					mse::lh::strcpy(arr1, input1);
+
+					/* Just exercising lh::TNativeArrayReplacement<>'s overloaded operator&() as an aside. */
+					auto iter6 = &arr1;
+					mse::lh::strcpy(iter6, input1);
+					mse::lh::strcpy(&arr1, input1);
+
 					mse::lh::TNativeArrayReplacement<char, sizeof input1> arr2;
 					mse::lh::strcpy(arr2, input1);
 					auto iter1 = mse::lh::TLHNullableAnyRandomAccessIterator<char>(arr1);
