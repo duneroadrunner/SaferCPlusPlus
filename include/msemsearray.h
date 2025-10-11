@@ -334,96 +334,67 @@ namespace mse {
 				template<class _Ty, size_t _Size>
 				class default_constructible_array_helper_type {
 				public:
-					template <typename TBeginIter, typename TEndIter>
-					static _Ty value(const TBeginIter& begin_iter, const TEndIter& end_iter, size_t index) {
-						if (end_iter > (begin_iter + index)) {
-							return _Ty(*(begin_iter + index));
-						}
-						else {
-							//typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*begin_iter)> T;
-							return _Ty();
-						}
+					template <typename Ty, std::size_t Size, typename Iter, std::size_t... Is>
+					static constexpr std::array<Ty, Size> make_array_impl(Iter begin_iter, std::size_t available, std::index_sequence<Is...>) {
+						return std::array<Ty, Size>{ ((Is < available) ? *(begin_iter + Is) : Ty{}) ... };
 					}
-					template <typename TBeginIter, typename TEndIter, size_t... IDXs>
-					static auto _range_to_tuple(const TBeginIter& begin_iter, const TEndIter& end_iter, std::index_sequence<IDXs...>) {
-						//return std::tuple{ value(begin_iter, end_iter, IDXs)... };
-						return std::make_tuple(value(begin_iter, end_iter, IDXs)...);
+					template <typename Ty, std::size_t Size, typename Iter>
+					static constexpr std::array<Ty, Size> make_array(Iter begin_iter, std::size_t available) {
+						return make_array_impl<Ty, Size>(begin_iter, available, std::make_index_sequence<Size>{});
 					}
-					template <size_t N, typename TBeginIter, typename TEndIter>
-					static auto range_to_tuple(const TBeginIter& begin_iter, const TEndIter& end_iter) {
-						return _range_to_tuple(begin_iter, end_iter, std::make_index_sequence<N>{});
-					}
-					template<class T, std::size_t... Is, typename... Ts>
-					static std::array<T, sizeof...(Is)>
-						range_to_array_impl(std::index_sequence<Is...>, std::tuple<Ts...>&& parts)
-					{
-						return { std::get<Is>(std::move(parts))... };
-					}
-					template <typename T, size_t N, typename TBeginIter, typename TEndIter>
-					static auto range_to_array(const TBeginIter& begin_iter, const TEndIter& end_iter)
-					{
-						auto aggregate_tuple = range_to_tuple<N>(begin_iter, end_iter);
-						constexpr auto size = std::tuple_size<decltype(aggregate_tuple)>::value;
-						std::make_index_sequence<size> seq;
-						return (range_to_array_impl<T>)(seq, std::move(aggregate_tuple));
-					}
+					template<typename _TBeginIter, typename _TEndIter>
+					static constexpr std::array<_Ty, _Size> std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter) {
+						const auto diff = end_iter - begin_iter;
+						using diff_type = decltype(diff);
 
-					template<typename _TBeginIter, typename _TEndIter>
-					static constexpr std::array<_Ty, _Size> std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
-					{
-						return range_to_array<_Ty, _Size>(begin_iter, end_iter);
+						const size_t available = (diff < diff_type(0)) ? 0 : static_cast<size_t>(diff);
+
+#ifdef MSE_HAS_CXX20
+						return[begin_iter, available]<std::size_t... Is>(std::index_sequence<Is...>) {
+							return std::array<_Ty, _Size>{
+								((Is < available) ? *(begin_iter + Is) : _Ty())...
+							};
+						}(std::make_index_sequence<_Size>{});
+#else // MSE_HAS_CXX20
+						return make_array<_Ty, _Size>(begin_iter, available);
+#endif // MSE_HAS_CXX20
 					}
 				};
-				/*
-				template<class _Ty>
-				class default_constructible_array_helper_type<_Ty, 0> {
-				public:
-					template<typename _TBeginIter, typename _TEndIter>
-					static constexpr auto std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
-					{
-						return _XSTD array<_Ty, 0>{};
-					}
-				};
-				*/
 
 				template<class _Ty, size_t _Size>
 				class not_default_constructible_array_helper_type {
 				public:
-					template <typename TBeginIter, typename TEndIter>
-					static _Ty value(const TBeginIter& begin_iter, const TEndIter& end_iter, size_t index) {
-						if (end_iter <= (begin_iter + index)) {
+					template <typename TBeginIter>
+					static constexpr _Ty erroneus_condition1(const TBeginIter& begin_iter) {
+						if (true) {
 							MSE_THROW(msearray_range_error("not enough elements in the (non-default constructible) array initializer list"));
 						}
-						return _Ty(*(begin_iter + index));
+						return _Ty(*(begin_iter));
 					}
-					template <typename TBeginIter, typename TEndIter, size_t... IDXs>
-					static auto _range_to_tuple(TBeginIter iter, const TEndIter& end_iter, std::index_sequence<IDXs...>) {
-						//return std::tuple{ value(iter, end_iter, IDXs)... };
-						return std::make_tuple(value(iter, end_iter, IDXs)...);
+					template <typename Ty, std::size_t Size, typename Iter, std::size_t... Is>
+					static constexpr std::array<Ty, Size> make_array_impl(Iter begin_iter, std::size_t available, std::index_sequence<Is...>) {
+						return std::array<Ty, Size>{ ((Is < available) ? *(begin_iter + Is) : erroneus_condition1(begin_iter)) ... };
 					}
-					template <size_t N, typename TBeginIter, typename TEndIter>
-					static auto range_to_tuple(const TBeginIter& begin_iter, const TEndIter& end_iter) {
-						return _range_to_tuple(begin_iter, end_iter, std::make_index_sequence<N>{});
+					template <typename Ty, std::size_t Size, typename Iter>
+					static constexpr std::array<Ty, Size> make_array(Iter begin_iter, std::size_t available) {
+						return make_array_impl<Ty, Size>(begin_iter, available, std::make_index_sequence<Size>{});
 					}
-					template<class T, std::size_t... Is, typename... Ts>
-					static std::array<T, sizeof...(Is)>
-						range_to_array_impl(std::index_sequence<Is...>, std::tuple<Ts...>&& parts)
-					{
-						return { std::get<Is>(std::move(parts))... };
-					}
-					template <typename T, size_t N, typename TBeginIter, typename TEndIter>
-					static auto range_to_array(const TBeginIter& begin_iter, const TEndIter& end_iter)
-					{
-						auto aggregate_tuple = range_to_tuple<N>(begin_iter, end_iter);
-						constexpr auto size = std::tuple_size<decltype(aggregate_tuple)>::value;
-						std::make_index_sequence<size> seq;
-						return (range_to_array_impl<T>)(seq, std::move(aggregate_tuple));
-					}
-
 					template<typename _TBeginIter, typename _TEndIter>
-					static constexpr std::array<_Ty, _Size> std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter)
-					{
-						return range_to_array<_Ty, _Size>(begin_iter, end_iter);
+					static constexpr std::array<_Ty, _Size> std_array_initialized_with_range(const _TBeginIter& begin_iter, const _TEndIter& end_iter) {
+						const auto diff = end_iter - begin_iter;
+						using diff_type = decltype(diff);
+
+						const size_t available = (diff < diff_type(0)) ? 0 : static_cast<size_t>(diff);
+
+#ifdef MSE_HAS_CXX20
+						return[begin_iter, available]<std::size_t... Is>(std::index_sequence<Is...>) {
+							return std::array<_Ty, _Size>{
+								((Is < available) ? *(begin_iter + Is) : erroneus_condition1(begin_iter))...
+							};
+						}(std::make_index_sequence<_Size>{});
+#else // MSE_HAS_CXX20
+						return make_array<_Ty, _Size>(begin_iter, available);
+#endif // MSE_HAS_CXX20
 					}
 				};
 				template<class _Ty>
