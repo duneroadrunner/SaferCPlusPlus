@@ -710,11 +710,12 @@ namespace mse {
 	this_class operator ++(int) { auto _Tmp = *this; operator +=(1); return (_Tmp); } \
 	this_class& operator --() { operator -=(1); return (*this); } \
 	this_class operator --(int) { auto _Tmp = *this; operator -=(1); return (_Tmp); } \
-	this_class operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; } \
 	this_class operator-(difference_type n) const { return ((*this) + (-n)); } \
 	difference_type operator-(const base_class& _Right_cref) const { \
 		return base_class::operator-(_Right_cref); \
-	}
+	} \
+	friend this_class operator+(this_class const& lhs, difference_type n) { auto retval = lhs; retval += n; return retval; } \
+	friend this_class operator+(difference_type n, this_class const& rhs) { auto retval = rhs; retval += n; return retval; }
 
 #define MSE_IMPL_LESS_THAN_OPERATOR_DELEGATING_DECLARATION(this_type, delegate_type) \
 	MSE_IMPL_OPERATOR_DELEGATING_DECLARATION(<, this_type, delegate_type)

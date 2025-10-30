@@ -6179,6 +6179,9 @@ namespace mse {
 					}
 #endif // !MSE_LEGACYHELPERS_DISABLED
 
+					lhnara_iter1 = lhnara_iter1 + 1;
+					lhnara_iter1 = 1 + lhnara_iter1;
+
 					int q = 5;
 				}
 				{
