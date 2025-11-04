@@ -5181,6 +5181,15 @@ namespace mse {
 					using type_or_raw_pointer_if_dereferenceable = typename type_or_raw_pointer_if_dereferenceable_impl<T>::type;
 
 					template<typename T>
+					auto casted_arg_helper2(std::true_type, const T& arg) {
+						return (typename std::conditional<std::is_base_of<mse::lh::void_star_replacement, T>::value, void*, const void*>::type)(arg);
+					}
+					template<typename T>
+					auto casted_arg_helper2(std::false_type, const T& arg) {
+						return arg;
+					}
+
+					template<typename T>
 					auto casted_pointer_arg_helper(std::true_type, const T& arg) {
 						return mse::us::lh::make_temporary_raw_pointer_to_pointer_proxy_from(arg);
 					}
@@ -5194,7 +5203,7 @@ namespace mse {
 					}
 					template<typename T>
 					auto casted_arg_helper1(std::false_type, const T& arg) {
-						return arg;
+						return casted_arg_helper2(typename std::integral_constant<bool, std::is_base_of<mse::lh::void_star_replacement, T>::value || std::is_base_of<mse::lh::const_void_star_replacement, T>::value>::type(), arg);
 					}
 					template<typename T>
 					auto casted_arg(const T& arg) {
@@ -5235,7 +5244,7 @@ namespace mse {
 			}
 
 			/* Overload for functions that return void. */
-			template< typename TWrappee, typename TWrapperRet, typename... TArgs>
+			template< typename TWrappee, typename... TArgs>
 			auto unsafe_make_fn_wrapper(const TWrappee& wrappee, mse::lh::TNativeFunctionPointerReplacement<void(TArgs...)>) {
 				auto retval = [wrappee](TArgs... args) { wrappee(impl::ns_fn_wrapper::casted_arg(args)...); };
 				return retval;
@@ -5245,7 +5254,7 @@ namespace mse {
 				namespace ns_raw_fn_wrapper {
 					template<typename T>
 					auto casted_arg_helper2(std::true_type, const T& arg) {
-						return (typename std::conditional<std::is_base_of<mse::lh::void_star_replacement, T>::value, void*, const void*>::type)(arg);
+						return (typename std::conditional<std::is_same<void*, T>::value, mse::lh::void_star_replacement, mse::lh::const_void_star_replacement>::type)(arg);
 					}
 					template<typename T>
 					auto casted_arg_helper2(std::false_type, const T& arg) {
@@ -5253,12 +5262,21 @@ namespace mse {
 					}
 
 					template<typename T>
+					auto casted_pointer_arg_helper(std::true_type, const T& arg) {
+						/* T seems to be an iterator */
+						return mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(arg);
+					}
+					template<typename T>
+					auto casted_pointer_arg_helper(std::false_type, const T& arg) {
+						return mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(arg);
+					}
+					template<typename T>
 					auto casted_arg_helper1(std::true_type, const T& arg) {
-						return mse::us::lh::make_raw_pointer_from(arg);
+						return casted_pointer_arg_helper<T>(typename mse::impl::SupportsSubtraction_poly<T>::type(), arg);
 					}
 					template<typename T>
 					auto casted_arg_helper1(std::false_type, const T& arg) {
-						return casted_arg_helper2(typename std::integral_constant<bool, std::is_base_of<mse::lh::void_star_replacement, T>::value || std::is_base_of<mse::lh::const_void_star_replacement, T>::value>::type(), arg);
+						return casted_arg_helper2(typename std::integral_constant<bool, std::is_same<void*, T>::value || std::is_same<void const*, T>::value>::type(), arg);
 					}
 					template<typename T>
 					auto casted_arg(const T& arg) {
@@ -6090,21 +6108,24 @@ namespace mse {
 					}
 				}
 				{
+					struct CB {
+						static size_t strlen1(mse::lh::TLHNullableAnyRandomAccessIterator<const char> str) /*noexcept*/ {
+							return std::strlen(mse::us::lh::make_raw_pointer_from(str));
+						}
+						static size_t strlen2(mse::lh::TLHNullableAnyRandomAccessIterator<const char> str) /*noexcept*/ {
+							return std::strlen(mse::us::lh::make_raw_pointer_from(str));
+						}
+						static void foo1() {};
+					};
+
 					auto* fnptr1 = &(std::strlen);
 
-					auto raw_fn2 = mse::us::lh::make_raw_fn_wrapper(&(std::strlen), fnptr1);
+					auto raw_fn2 = mse::us::lh::make_raw_fn_wrapper(&(CB::strlen1), fnptr1);
 
 					fnptr1 = &(std::strlen);
 					fnptr1 = raw_fn2;
 					auto slen1 = raw_fn2("abc");
 					auto slen2 = fnptr1("abcd");
-
-					struct CB {
-						static size_t strlen2(const char* str) /*noexcept*/ {
-							return std::strlen(str);
-						}
-						static void foo1() {};
-					};
 
 					MSE_TRY {
 						auto raw_fn3 = mse::us::lh::make_raw_fn_wrapper(&(CB::strlen2), fnptr1);
@@ -6118,10 +6139,6 @@ namespace mse {
 					auto raw_fn4 = mse::us::lh::make_raw_fn_wrapper<int/*arbitrary, but unique*/>(&(CB::strlen2), fnptr1);
 					auto slen5 = raw_fn4("abc");
 					auto slen6 = raw_fn2("abc");
-
-					auto* fnptr2 = &(CB::foo1);
-					auto raw_fn5 = mse::us::lh::make_raw_fn_wrapper(&(CB::foo1), fnptr2);
-					fnptr2 = raw_fn5;
 				}
 				{
 					mse::lh::TLHNullableAnyRandomAccessIterator<char> lhnara_iter1;
@@ -6209,13 +6226,6 @@ namespace mse {
 					mse::TRegisteredObj<mse::lh::TLHNullableAnyPointer<char> > naptr1;
 					testfn1(mse::us::lh::make_temporary_raw_pointer_to_pointer_proxy_from(&naptr1));
 					std::cout << *naptr1 << " \n";
-					int q = 5;
-				}
-				{
-					typedef typename mse::impl::corresponding_type_with_const_target<mse::TRegisteredPointer<int> >::type type1;
-					type1 regcptr1 = nullptr;
-					typedef typename mse::impl::corresponding_type_with_nonconst_target<mse::TRefCountingPointer<const int> >::type type2;
-					type2 refc_ptr1 = nullptr;
 					int q = 5;
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
