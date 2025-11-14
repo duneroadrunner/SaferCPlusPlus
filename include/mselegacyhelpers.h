@@ -137,8 +137,7 @@
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) (ptr)
 #define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) (iter)
 #define MSE_LH_UNSAFE_MAKE_FN_WRAPPER(wrappee, function_pointer_with_desired_wrapper_signature) (wrappee)
-#define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER(distinguishing_id_type, wrappee_fnptr, function_pointer_with_desired_wrapper_signature) (wrappee_fnptr)
-#define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER_SHORT1(wrappee_fnptr, function_pointer_with_desired_wrapper_signature) (wrappee_fnptr)
+#define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER(wrappee_fnptr, function_pointer_with_desired_wrapper_signature) (wrappee_fnptr)
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
@@ -238,8 +237,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(ptr)
 #define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(iter)
 #define MSE_LH_UNSAFE_MAKE_FN_WRAPPER(wrappee, function_pointer_with_desired_wrapper_signature) mse::us::lh::unsafe_make_fn_wrapper(wrappee, function_pointer_with_desired_wrapper_signature)
-#define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER(distinguishing_id_type, wrappee_fnptr, function_pointer_with_desired_wrapper_signature) mse::us::lh::make_raw_fn_wrapper<distinguishing_id_type>(wrappee_fnptr, function_pointer_with_desired_wrapper_signature)
-#define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER_SHORT1(wrappee_fnptr, function_pointer_with_desired_wrapper_signature) mse::us::lh::make_raw_fn_wrapper(wrappee_fnptr, function_pointer_with_desired_wrapper_signature)
+// MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER(wrappee_fnptr, example_fnptr_with_desired_signature) is defined later in this file
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
@@ -5296,53 +5294,80 @@ namespace mse {
 						return casted_retval_helper1<TWrapperRet>(typename mse::impl::IsDereferenceable_pb<T>::type(), retval);
 					}
 				}
+
+				/* This function is used to create a "wrapper" (lambda) function (with a potentially unsafe interface) that just calls the
+				given function (with a presumably safe interface). The function signature of the wrapper function is deduced from the
+				(otherwise unused) second (function pointer) parameter. Each specialization of this function template may only be used to
+				wrap one distinct function. If you want to wrap a number of different functions that have the same function signature, you
+				should (explicitly) specify a unique TDistinguishingID template argument for each distinct function that you want to wrap. 
+				Following is a macro that invokes this function while automatically supplying a unique TDistinguishingID template argument. */
+				template<typename TDistinguishingID = void, typename TWrappeeFnPtr, typename TWrapperRet, typename... TArgs>
+				auto make_raw_fn_wrapper(TWrappeeFnPtr const& wrappee_fnptr, TWrapperRet(*)(TArgs...)) {
+					thread_local TWrappeeFnPtr tl_wrappee_fnptr1;
+					thread_local bool tl_first_run = true;
+					if (!tl_first_run) {
+						if (wrappee_fnptr != tl_wrappee_fnptr1) {
+							MSE_THROW(std::logic_error("Apparent attempt to use mse::us::lh::impl::make_raw_fn_wrapper<>() specialization to wrap multiple different functions. Specify a unique TDistinguishingID template argument for each different function to be wrapped."));
+							int q = 3;
+						}
+					}
+					tl_first_run = false;
+					tl_wrappee_fnptr1 = wrappee_fnptr;
+
+					auto retval = [](TArgs... args) noexcept {
+						thread_local TWrappeeFnPtr tl_wrappee_fnptr2 = tl_wrappee_fnptr1;
+						return TWrapperRet(ns_raw_fn_wrapper::casted_retval<TWrapperRet>(tl_wrappee_fnptr2(ns_raw_fn_wrapper::casted_arg(args)...)));
+						};
+					return retval;
+				}
+
+				/* Overload for functions that return void. */
+				template<typename TDistinguishingID = void, typename TWrappeeFnPtr, typename... TArgs>
+				auto make_raw_fn_wrapper(TWrappeeFnPtr const& wrappee_fnptr, void(*)(TArgs...)) {
+					thread_local TWrappeeFnPtr tl_wrappee_fnptr1;
+					thread_local bool tl_first_run = true;
+					if (!tl_first_run) {
+						if (wrappee_fnptr != tl_wrappee_fnptr1) {
+							MSE_THROW(std::logic_error("Apparent attempt to use mse::us::lh::impl::make_raw_fn_wrapper<>() specialization to wrap multiple different functions. Specify a unique TDistinguishingID template argument for each different function to be wrapped."));
+							int q = 3;
+						}
+					}
+					tl_first_run = false;
+					tl_wrappee_fnptr1 = wrappee_fnptr;
+
+					auto retval = [](TArgs... args) noexcept {
+						thread_local TWrappeeFnPtr tl_wrappee_fnptr2 = tl_wrappee_fnptr1;
+						tl_wrappee_fnptr2(ns_raw_fn_wrapper::casted_arg(args)...);
+						};
+					return retval;
+				}
+
+				template<size_t... NumericIDs>
+				struct UID1_t {};
+
+				// AI generated constexpr string simple rolling-hash (base 131)
+				constexpr std::size_t constexpr_hash1_step(const char* s, std::size_t h = 0u) {
+					return *s ? constexpr_hash1_step(s + 1, h * 131u + static_cast<std::size_t>(static_cast<unsigned char>(*s))) : h;
+				}
+				template<std::size_t N>
+				constexpr std::size_t constexpr_hash1(const char(&str)[N]) {
+					return constexpr_hash1_step(str, 0);
+				}
 			}
 
-			/* This function is used to create a "wrapper" (lambda) function (with a potentially unsafe interface) that just calls the
+#if (defined(__GNUC__) || defined(_MSC_VER))
+
+			/* This macro is used to create a "wrapper" (lambda) function (with a potentially unsafe interface) that just calls the
 			given function (with a presumably safe interface). The function signature of the wrapper function is deduced from the
-			(otherwise unused) second (function pointer) parameter. Each specialization of this function template may only be used to 
-			wrap one distinct function. If you want to wrap a number of different functions that have the same function signature, you 
-			should (explicitly) specify a unique TDistinguishingID template argument for each distinct function that you want to wrap. */
-			template<typename TDistinguishingID = void, typename TWrappeeFnPtr, typename TWrapperRet, typename... TArgs>
-			auto make_raw_fn_wrapper(TWrappeeFnPtr const& wrappee_fnptr, TWrapperRet(*)(TArgs...)) {
-				thread_local TWrappeeFnPtr tl_wrappee_fnptr1;
-				thread_local bool tl_first_run = true;
-				if (!tl_first_run) {
-					if (wrappee_fnptr != tl_wrappee_fnptr1) {
-						MSE_THROW(std::logic_error("Apparent attempt to use mse::us::lh::make_raw_fn_wrapper<>() specialization to wrap multiple different functions. Specify a unique TDistinguishingID template argument for each different function to be wrapped."));
-						int q = 3;
-					}
-				}
-				tl_first_run = false;
-				tl_wrappee_fnptr1 = wrappee_fnptr;
+			(otherwise unused) second (function pointer) parameter. (And remember that macro arguments with commas need to be 
+			wrapped in parentheses.) */
+#define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER(wrappee_fnptr, example_fnptr_with_desired_signature) mse::us::lh::impl::make_raw_fn_wrapper<mse::us::lh::impl::UID1_t<mse::us::lh::impl::constexpr_hash1(__FILE__), __LINE__, __COUNTER__> >(wrappee_fnptr, example_fnptr_with_desired_signature)
 
-				auto retval = [](TArgs... args) noexcept {
-					thread_local TWrappeeFnPtr tl_wrappee_fnptr2 = tl_wrappee_fnptr1;
-					return TWrapperRet(impl::ns_raw_fn_wrapper::casted_retval<TWrapperRet>(tl_wrappee_fnptr2(impl::ns_raw_fn_wrapper::casted_arg(args)...)));
-					};
-				return retval;
-			}
+#else // (defined(__GNUC__) || defined(_MSC_VER))
+#define MSE_LH_MAKE_RAW_FN_WRAPPER(wrappee_fnptr, example_fnptr_with_desired_signature) mse::us::lh::impl::make_raw_fn_wrapper<mse::us::lh::impl::UID1_t<mse::us::lh::impl::constexpr_hash1(__FILE__), __LINE__> >(wrappee_fnptr, example_fnptr_with_desired_signature)
+#endif // (defined(__GNUC__) || defined(_MSC_VER))
 
-			/* Overload for functions that return void. */
-			template<typename TDistinguishingID = void, typename TWrappeeFnPtr, typename... TArgs>
-			auto make_raw_fn_wrapper(TWrappeeFnPtr const& wrappee_fnptr, void(*)(TArgs...)) {
-				thread_local TWrappeeFnPtr tl_wrappee_fnptr1;
-				thread_local bool tl_first_run = true;
-				if (!tl_first_run) {
-					if (wrappee_fnptr != tl_wrappee_fnptr1) {
-						MSE_THROW(std::logic_error("Apparent attempt to use mse::us::lh::make_raw_fn_wrapper<>() specialization to wrap multiple different functions. Specify a unique TDistinguishingID template argument for each different function to be wrapped."));
-						int q = 3;
-					}
-				}
-				tl_first_run = false;
-				tl_wrappee_fnptr1 = wrappee_fnptr;
 
-				auto retval = [](TArgs... args) noexcept {
-					thread_local TWrappeeFnPtr tl_wrappee_fnptr2 = tl_wrappee_fnptr1;
-					tl_wrappee_fnptr2(impl::ns_raw_fn_wrapper::casted_arg(args)...);
-					};
-				return retval;
-			}
 		}
 	}
 }
@@ -6120,7 +6145,7 @@ namespace mse {
 
 					auto* fnptr1 = &(std::strlen);
 
-					auto raw_fn2 = mse::us::lh::make_raw_fn_wrapper(&(CB::strlen1), fnptr1);
+					auto raw_fn2 = MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER((&(CB::strlen1)), fnptr1);
 
 					fnptr1 = &(std::strlen);
 					fnptr1 = raw_fn2;
@@ -6128,7 +6153,7 @@ namespace mse {
 					auto slen2 = fnptr1("abcd");
 
 					MSE_TRY {
-						auto raw_fn3 = mse::us::lh::make_raw_fn_wrapper(&(CB::strlen2), fnptr1);
+						auto raw_fn3 = MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER((&(CB::strlen2)), fnptr1);
 						auto slen3 = raw_fn3("abc");
 						auto slen4 = raw_fn2("abc");
 					}
@@ -6136,7 +6161,7 @@ namespace mse {
 						int q = 5;
 					}
 
-					auto raw_fn4 = mse::us::lh::make_raw_fn_wrapper<int/*arbitrary, but unique*/>(&(CB::strlen2), fnptr1);
+					auto raw_fn4 = MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER((&(CB::strlen2)), fnptr1);
 					auto slen5 = raw_fn4("abc");
 					auto slen6 = raw_fn2("abc");
 				}

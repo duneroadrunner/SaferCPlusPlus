@@ -53,6 +53,11 @@
 #endif /*(defined(__GNUC__) || defined(__GNUG__))*/
 #endif /*_MSC_VER*/
 
+#ifdef MSE_HAS_CXX20
+#include <source_location>
+#endif // MSE_HAS_CXX20
+
+
 #ifndef _NODISCARD
 #ifdef MSE_HAS_CXX17
 #define _NODISCARD [[nodiscard]]
@@ -1389,14 +1394,22 @@ namespace mse {
 #ifndef MSE_SUPPRESS_CHECK_IN_XSCOPE
 
 #define MSE_IMPL_MACRO_TEXT_CONCAT_(a,b)  a##b
+#define MSE_IMPL_MACRO_TEXT_CONCAT4_(a,b,c,d)  a##b##c##d
 
 	namespace rsv {
 		MSE_MAYBE_UNUSED inline void suppress_check_directive() {}
 #define MSE_SUPPRESS_CHECK_IN_XSCOPE \
 		mse::rsv::suppress_check_directive();
 
+#if (defined(__GNUC__) || defined(_MSC_VER))
+#define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(a, b) MSE_IMPL_MACRO_TEXT_CONCAT4_(mse_suppress_check_directive_, a, _, b)
+#define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(__LINE__, __COUNTER__)
+#else// (defined(__GNUC__) || defined(_MSC_VER))
 #define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(a) MSE_IMPL_MACRO_TEXT_CONCAT_(mse_suppress_check_directive_, a)
 #define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(__LINE__)
+#endif // (defined(__GNUC__) || defined(_MSC_VER))
+
+
 
 #define MSE_SUPPRESS_CHECK_IN_DECLSCOPE \
 		MSE_MAYBE_UNUSED static void MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME() {}
