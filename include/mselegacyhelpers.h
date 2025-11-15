@@ -138,6 +138,7 @@
 #define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) (iter)
 #define MSE_LH_UNSAFE_MAKE_FN_WRAPPER(wrappee, function_pointer_with_desired_wrapper_signature) (wrappee)
 #define MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER(wrappee_fnptr, function_pointer_with_desired_wrapper_signature) (wrappee_fnptr)
+#define MSE_LH_UNSAFE_AS_IF_NONADDRESSABLE(value) value
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
@@ -237,7 +238,7 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #define MSE_LH_UNSAFE_MAKE_POINTER_FROM(ptr) mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(ptr)
 #define MSE_LH_UNSAFE_MAKE_ARRAY_ITERATOR_FROM(iter) mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(iter)
 #define MSE_LH_UNSAFE_MAKE_FN_WRAPPER(wrappee, function_pointer_with_desired_wrapper_signature) mse::us::lh::unsafe_make_fn_wrapper(wrappee, function_pointer_with_desired_wrapper_signature)
-// MSE_LH_UNSAFE_MAKE_RAW_FN_WRAPPER(wrappee_fnptr, example_fnptr_with_desired_signature) is defined later in this file
+#define MSE_LH_UNSAFE_AS_IF_NONADDRESSABLE(value) mse::us::impl::base_type_raw_reference_to(value)
 
 #ifndef MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 #define MSE_LH_SUPPRESS_CHECK_IN_XSCOPE MSE_SUPPRESS_CHECK_IN_XSCOPE
