@@ -4779,10 +4779,20 @@ namespace mse {
 			private:
 				xscope_accessing_fixed_optional_base2(const xscope_accessing_fixed_optional_base2&) = delete;
 
-				template <typename T, typename = void>
-				struct IsSupportedLenderType : std::false_type {};
-				template <typename T>
-				struct IsSupportedLenderType<T, mse::impl::void_t<decltype(T::s_make_xscope_shared_structure_lock_guard(std::declval<T&>()))> > : std::true_type {};
+				template<class T, class EqualTo>
+				struct IsSupportedLenderType_impl
+				{
+					template<class U, class V>
+					static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+					template<typename, typename>
+					static auto test(...) -> std::false_type;
+
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct IsSupportedLenderType : IsSupportedLenderType_impl<
+					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {
+				};
 
 				template<class _TLender2 = _TLender, MSE_IMPL_EIP mse::impl::enable_if_t<IsSupportedLenderType<_TLender2>::value> MSE_IMPL_EIS >
 				void valid_if_IsSupportedLenderType() const {}
@@ -5262,10 +5272,20 @@ namespace mse {
 				private:
 					xslta_accessing_fixed_optional_base2(const xslta_accessing_fixed_optional_base2&) = delete;
 
-					template <typename T, typename = void>
-					struct IsSupportedLenderType : std::false_type {};
-					template <typename T>
-					struct IsSupportedLenderType<T, mse::impl::void_t<decltype(T::s_make_xscope_shared_structure_lock_guard(std::declval<T&>()))> > : std::true_type {};
+					template<class T, class EqualTo>
+					struct IsSupportedLenderType_impl
+					{
+						template<class U, class V>
+						static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+						template<typename, typename>
+						static auto test(...) -> std::false_type;
+
+						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+					};
+					template<class T, class EqualTo = T>
+					struct IsSupportedLenderType : IsSupportedLenderType_impl<
+						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {
+					};
 
 					template<class _TLender2 = _TLender, MSE_IMPL_EIP mse::impl::enable_if_t<IsSupportedLenderType<_TLender2>::value> MSE_IMPL_EIS >
 					void valid_if_IsSupportedLenderType() const {}

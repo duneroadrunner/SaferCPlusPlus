@@ -2489,10 +2489,21 @@ namespace mse {
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
 
 	namespace impl {
-		template <typename T, typename = void>
-		struct HasAllocatorMemberType_vc : std::false_type {};
-		template <typename T>
-		struct HasAllocatorMemberType_vc<T, mse::impl::void_t<decltype(std::declval<typename T::allocator_type>())> > : std::true_type {};
+		template<class T, class EqualTo>
+		struct HasAllocatorMemberType_vc_impl
+		{
+			template<class U, class V>
+			static auto test(U* u) -> decltype(std::declval<typename U::allocator_type>(), std::declval<V>(), bool(true));
+			template<typename, typename>
+			static auto test(...) -> std::false_type;
+
+			static const bool value = std::is_same<bool, decltype(test<T, EqualTo>(0))>::value;
+			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+		};
+		template<class T, class EqualTo = T>
+		struct HasAllocatorMemberType_vc : HasAllocatorMemberType_vc_impl<
+			mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {
+		};
 
 		template<class TF, class _TContainer>
 		struct container_allocator_type_helper {
@@ -3532,10 +3543,20 @@ namespace mse {
 			private:
 				xscope_accessing_fixed_nii_vector_base2(const xscope_accessing_fixed_nii_vector_base2&) = delete;
 
-				template <typename T, typename = void>
-				struct IsSupportedLenderType : std::false_type {};
-				template <typename T>
-				struct IsSupportedLenderType<T, mse::impl::void_t<decltype(T::s_make_xscope_shared_structure_lock_guard(std::declval<T&>()))> > : std::true_type {};
+				template<class T, class EqualTo>
+				struct IsSupportedLenderType_impl
+				{
+					template<class U, class V>
+					static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+					template<typename, typename>
+					static auto test(...) -> std::false_type;
+
+					using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+				};
+				template<class T, class EqualTo = T>
+				struct IsSupportedLenderType : IsSupportedLenderType_impl<
+					mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {
+				};
 
 				static_assert(IsSupportedLenderType<_TLender>::value, "xscope_accessing_fixed_nii_vector_base2<> does not support the given "
 					"pointer to vector argument. This may be due to the underlying vector type not being supported "
@@ -4572,10 +4593,20 @@ namespace mse {
 				private:
 					xslta_accessing_fixed_vector_base2(const xslta_accessing_fixed_vector_base2&) = delete;
 
-					template <typename T, typename = void>
-					struct IsSupportedLenderType : std::false_type {};
-					template <typename T>
-					struct IsSupportedLenderType<T, mse::impl::void_t<decltype(T::s_make_xscope_shared_structure_lock_guard(std::declval<T&>()))> > : std::true_type {};
+					template<class T, class EqualTo>
+					struct IsSupportedLenderType_impl
+					{
+						template<class U, class V>
+						static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+						template<typename, typename>
+						static auto test(...) -> std::false_type;
+
+						using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type;
+					};
+					template<class T, class EqualTo = T>
+					struct IsSupportedLenderType : IsSupportedLenderType_impl<
+						mse::impl::remove_reference_t<T>, mse::impl::remove_reference_t<EqualTo> >::type {
+					};
 
 					static_assert(IsSupportedLenderType<_TLender>::value, "xslta_accessing_fixed_vector_base2<> does not support the given "
 						"pointer to vector argument. This may be due to the underlying vector type not being supported "
