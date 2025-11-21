@@ -5287,7 +5287,7 @@ namespace mse {
 
 			/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 			template<class T2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, _Ty>::value) && (
-				(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
+				(mse::impl::HasXScopeReturnableTagMethod<T2>::value) || (mse::impl::is_potentially_not_xscope<T2>::value)
 				)> MSE_IMPL_EIS >
 			void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
 

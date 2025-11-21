@@ -452,7 +452,7 @@ namespace mse {
 		//void xscope_contains_accessible_scope_addressof_operator_tag() const {}
 		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
 		template<class _Ty2 = std::atomic<_TROy>, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _TROy>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
+			(mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -855,7 +855,7 @@ namespace mse {
 		void xscope_tag() const {}
 		/* This type can be safely used as a function return value if _TROy is also safely returnable. */
 		template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<_Ty2>::Has>()) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
+			(mse::impl::HasXScopeReturnableTagMethod<_Ty2>::value) || (mse::impl::is_potentially_not_xscope<_Ty2>::value)
 			)> MSE_IMPL_EIS >
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 

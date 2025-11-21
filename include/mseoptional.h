@@ -2728,6 +2728,37 @@ namespace mse {
 	// 20.5.8, class bad_optional_access
 	typedef typename mse::us::impl::ns_optional::bad_optional_access_base bad_optional_access;
 
+	namespace us {
+		/* provisional */
+		/* These are traits as described in p2786r13 (https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p2786r13.html#library-traits-for-relocatability-and-replaceability) 
+		that are expected to be introduced in C++29. The values associated with the traits (that will arrive in C++29) will 
+		be determined by the use of associated new keywords in a type's declaration. But since those keywords are not yet 
+		available (at the time of writing in 2025), in the mean time, the values of these traits can be set for a given type 
+		via explicit template specialization. */
+
+		template<typename T>
+		struct is_trivially_relocatable : std::integral_constant<bool, std::is_trivially_move_constructible<T>::value 
+			&& std::is_trivially_move_assignable<T>::value && std::is_trivially_destructible<T>::value> {};
+
+		template<typename T>
+		struct is_replaceable : is_trivially_relocatable<T> {};
+
+		template<typename T>
+		struct is_nothrow_relocatable : std::integral_constant<bool, std::is_nothrow_move_constructible<T>::value || is_trivially_relocatable<T>::value> {};
+	}
+
+	template<typename TOptional>
+	auto take(TOptional& optional1 MSE_ATTR_PARAM_STR("mse::lifetime_label(_[42])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); return_value(42) }") {
+		struct CScopeObj1 {
+			CScopeObj1(TOptional& optional1) : m_optional1(optional1) {}
+			~CScopeObj1() { m_optional1 = {}; }
+			TOptional& m_optional1;
+		};
+		CScopeObj1 raii_obj1{ optional1 };
+
+		typedef typename TOptional::value_type value_t;
+		return value_t{ std::move(optional1.value()) };
+	}
 
 	template <class T>
 	class optional : public mse::us::impl::ns_optional::optional_base2<T, mse::non_thread_safe_shared_mutex, mse::us::impl::ns_optional::optional_base2_not_const_lockable_tag> {
@@ -3160,7 +3191,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
+			(mse::impl::HasXScopeReturnableTagMethod<T2>::value) || (mse::impl::is_potentially_not_xscope<T2>::value)
 			)> MSE_IMPL_EIS >
 		void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
 
@@ -3311,7 +3342,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
+			(mse::impl::HasXScopeReturnableTagMethod<T2>::value) || (mse::impl::is_potentially_not_xscope<T2>::value)
 			)> MSE_IMPL_EIS >
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 
@@ -3448,7 +3479,7 @@ namespace mse {
 
 		/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 		template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value) && (
-			(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
+			(mse::impl::HasXScopeReturnableTagMethod<T2>::value) || (mse::impl::is_potentially_not_xscope<T2>::value)
 			)> MSE_IMPL_EIS >
 			void xscope_returnable_tag() const {} /* Indication that this type is can be used as a function return value. */
 		MSE_DEFAULT_OPERATOR_DELETE_DECLARATION
@@ -3634,6 +3665,15 @@ namespace mse {
 					}
 					_NODISCARD constexpr const T&& operator*() const&& {
 						return std::move((*this).value());
+					}
+
+					template <class _Ty2 = T>
+					void operator=(const _Ty2& src_ref) {
+						contained_optional() = (src_ref);
+					}
+					template <class _Ty2 = T>
+					void operator=(_Ty2&& src_ref) {
+						contained_optional() = (MSE_FWD(src_ref));
 					}
 
 					MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
@@ -4071,6 +4111,15 @@ namespace mse {
 
 		xscope_fixed_optional(const xscope_fixed_optional& src) : base_class(mse::us::impl::as_ref<base_class>(src)) {}
 		//xscope_fixed_optional(xscope_fixed_optional&& src) : base_class(mse::us::impl::as_ref<base_class>(MSE_FWD(src))) {}
+
+		template <class _Ty2 = T>
+		void operator=(const _Ty2& src_ref) {
+			base_class::operator=(src_ref);
+		}
+		template <class _Ty2 = T>
+		void operator=(_Ty2&& src_ref) {
+			base_class::operator=(MSE_FWD(src_ref));
+		}
 
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
 
@@ -4582,6 +4631,15 @@ namespace mse {
 				return std::move((*this).value());
 			}
 
+			template <class _Ty2 = T>
+			void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				contained_optional() = src_ref;
+			}
+			template <class _Ty2 = T>
+			void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				contained_optional() = MSE_FWD(src_ref);
+			}
+
 			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(T);
 			MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
@@ -4669,6 +4727,15 @@ namespace mse {
 				}
 				_NODISCARD constexpr auto& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 					return (*this).value();
+				}
+
+				template <class _Ty2 = _Ty>
+				void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+					unchecked_contained_optional() = (src_ref);
+				}
+				template <class _Ty2 = _Ty>
+				void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+					unchecked_contained_optional() = (MSE_FWD(src_ref));
 				}
 
 				//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(corresponding_xscope_fixed_optional_t);
@@ -4776,6 +4843,15 @@ namespace mse {
 					return base_class::value();
 				}
 
+				template <class _Ty2 = _Ty>
+				void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+					base_class::operator=(src_ref);
+				}
+				template <class _Ty2 = _Ty>
+				void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+					base_class::operator=(MSE_FWD(src_ref));
+				}
+
 			private:
 				xscope_accessing_fixed_optional_base2(const xscope_accessing_fixed_optional_base2&) = delete;
 
@@ -4846,6 +4922,15 @@ namespace mse {
 
 		xscope_accessing_fixed_optional(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr) {}
 
+		template <class _Ty2 = _Ty>
+		void operator=(const _Ty2& src_ref) {
+			base_class::operator=(src_ref);
+		}
+		template <class _Ty2 = _Ty>
+		void operator=(_Ty2&& src_ref) {
+			base_class::operator=(MSE_FWD(src_ref));
+		}
+
 	private:
 		xscope_accessing_fixed_optional(const xscope_accessing_fixed_optional&) = delete;
 	} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
@@ -4891,6 +4976,15 @@ namespace mse {
 			m_src_ref = std::move((*this).contained_optional());
 		}
 
+		template <class _Ty2 = T>
+		void operator=(const _Ty2& src_ref) {
+			base_class::operator=(src_ref);
+		}
+		template <class _Ty2 = T>
+		void operator=(_Ty2&& src_ref) {
+			base_class::operator=(MSE_FWD(src_ref));
+		}
+
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
 
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
@@ -4917,11 +5011,29 @@ namespace mse {
 	struct xscope_borrowing_fixed_optional_base : xscope_accessing_fixed_optional<mse::TXScopeFixedPointer<_TLender>, _TLender, T, true/*_ExclusiveAccess*/> {
 		typedef xscope_accessing_fixed_optional<mse::TXScopeFixedPointer<_TLender>, _TLender, T, true/*_ExclusiveAccess*/> base_class;
 		using base_class::base_class;
+
+		template <class _Ty2 = T>
+		void operator=(const _Ty2& src_ref) {
+			base_class::operator=(src_ref);
+		}
+		template <class _Ty2 = T>
+		void operator=(_Ty2&& src_ref) {
+			base_class::operator=(MSE_FWD(src_ref));
+		}
 	};
 	template <class _TLender, class T>
 	struct xscope_borrowing_fixed_optional_base<_TLender, T, false> : xscope_borrowing_via_move_fixed_optional<_TLender, T> {
 		typedef xscope_borrowing_via_move_fixed_optional<_TLender, T> base_class;
 		using base_class::base_class;
+
+		template <class _Ty2 = T>
+		void operator=(const _Ty2& src_ref) {
+			base_class::operator=(src_ref);
+		}
+		template <class _Ty2 = T>
+		void operator=(_Ty2&& src_ref) {
+			base_class::operator=(MSE_FWD(src_ref));
+		}
 	};
 
 	template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
@@ -4940,6 +5052,15 @@ namespace mse {
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		xscope_borrowing_fixed_optional(_TLender* const src_xs_ptr) : base_class(src_xs_ptr) {}
 #endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+		template <class _Ty2 = T>
+		void operator=(const _Ty2& src_ref) {
+			base_class::operator=(src_ref);
+		}
+		template <class _Ty2 = T>
+		void operator=(_Ty2&& src_ref) {
+			base_class::operator=(MSE_FWD(src_ref));
+		}
 
 		MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
 
@@ -5004,14 +5125,17 @@ namespace mse {
 			operator _Ty() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				return m_bf_container.value();
 			}
-			void operator=(const _Ty& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
+			template <class _Ty2 = _Ty>
+			void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
 				m_bf_container.value() = src_ref;
 			}
-			void operator=(_Ty&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
+			template <class _Ty2 = _Ty>
+			void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
 				m_bf_container.value() = MSE_FWD(src_ref);
 			}
 			void operator=(const _Ty& src_ref) & = delete;
 			void operator=(_Ty&& src_ref) & = delete;
+			template <class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<TXSLTADynamicOptionContainerElementProxyRef, _Ty2>::value)> MSE_IMPL_EIS >
 			void operator=(const TXSLTADynamicOptionContainerElementProxyRef& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
 				m_bf_container.value() = _Ty(src_ref);
 			}
@@ -5165,6 +5289,15 @@ namespace mse {
 						return (*this).value();
 					}
 
+					template <class _Ty2 = _Ty>
+					void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+						unchecked_contained_optional() = src_ref;
+					}
+					template <class _Ty2 = _Ty>
+					void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+						unchecked_contained_optional() = MSE_FWD(src_ref);
+					}
+
 					//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(corresponding_xslta_fixed_optional_t);
 
 				private:
@@ -5269,6 +5402,15 @@ namespace mse {
 						return base_class::value();
 					}
 
+					template <class _Ty2 = _Ty>
+					void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+						base_class::operator=(src_ref);
+					}
+					template <class _Ty2 = _Ty>
+					void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+						base_class::operator=(MSE_FWD(src_ref));
+					}
+
 				private:
 					xslta_accessing_fixed_optional_base2(const xslta_accessing_fixed_optional_base2&) = delete;
 
@@ -5339,6 +5481,15 @@ namespace mse {
 
 			xslta_accessing_fixed_optional(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr) {}
 
+			template <class _Ty2 = value_type>
+			void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::operator=(src_ref);
+			}
+			template <class _Ty2 = value_type>
+			void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::operator=(MSE_FWD(src_ref));
+			}
+
 		private:
 			xslta_accessing_fixed_optional(const xslta_accessing_fixed_optional&) = delete;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
@@ -5386,6 +5537,15 @@ namespace mse {
 				m_src_ref = std::move((*this).contained_optional());
 			}
 
+			template <class _Ty2 = _Ty>
+			void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::operator=(src_ref);
+			}
+			template <class _Ty2 = _Ty>
+			void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::operator=(MSE_FWD(src_ref));
+			}
+
 			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
 
 		private:
@@ -5410,11 +5570,29 @@ namespace mse {
 		struct xslta_borrowing_fixed_optional_base : xslta_accessing_fixed_optional<mse::rsv::TXSLTAPointer<_TLender>, _TLender, T, true/*_ExclusiveAccess*/> {
 			typedef xslta_accessing_fixed_optional<mse::rsv::TXSLTAPointer<_TLender>, _TLender, T, true/*_ExclusiveAccess*/> base_class;
 			using base_class::base_class;
+
+			template <class _Ty2 = T>
+			void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::operator=(src_ref);
+			}
+			template <class _Ty2 = T>
+			void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::operator=(MSE_FWD(src_ref));
+			}
 		};
 		template <class _TLender, class T>
 		struct xslta_borrowing_fixed_optional_base<_TLender, T, false> : xslta_borrowing_via_move_fixed_optional<_TLender, T> {
 			typedef xslta_borrowing_via_move_fixed_optional<_TLender, T> base_class;
 			using base_class::base_class;
+
+			template <class _Ty2 = T>
+			void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::operator=(src_ref);
+			}
+			template <class _Ty2 = T>
+			void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::operator=(MSE_FWD(src_ref));
+			}
 		};
 
 		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
@@ -5435,6 +5613,15 @@ namespace mse {
 #if !defined(MSE_SLTAPOINTER_DISABLED)
 			xslta_borrowing_fixed_optional(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(src_xs_ptr) {}
 #endif // !defined(MSE_SLTAPOINTER_DISABLED)
+
+			template <class _Ty2 = T>
+			void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::operator=(src_ref);
+			}
+			template <class _Ty2 = T>
+			void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				base_class::operator=(MSE_FWD(src_ref));
+			}
 
 			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(T);
 
@@ -5505,15 +5692,18 @@ namespace mse {
 			operator _Ty() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				return m_bf_container.value();
 			}
-			void operator=(const _Ty& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
+			template <class _Ty2 = _Ty>
+			void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
 				m_bf_container.value() = src_ref;
 			}
-			void operator=(_Ty&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
+			template <class _Ty2 = _Ty>
+			void operator=(_Ty2&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
 				m_bf_container.value() = MSE_FWD(src_ref);
 			}
 			void operator=(const _Ty& src_ref) & = delete;
 			void operator=(_Ty&& src_ref) & = delete;
-			void operator=(const TXSLTADynamicOptionalElementProxyRef& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
+			template <class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<TXSLTADynamicOptionalElementProxyRef, _Ty2>::value)> MSE_IMPL_EIS >
+			void operator=(const _Ty2& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
 				m_bf_container.value() = _Ty(src_ref);
 			}
 
@@ -5693,7 +5883,7 @@ namespace mse {
 
 			/* This type can be safely used as a function return value if the element it contains is also safely returnable. */
 			template<class T2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, _Ty>::value) && (
-				(std::integral_constant<bool, mse::impl::HasXScopeReturnableTagMethod<T2>::Has>()) || (mse::impl::is_potentially_not_xscope<T2>::value)
+				(mse::impl::HasXScopeReturnableTagMethod<T2>::value) || (mse::impl::is_potentially_not_xscope<T2>::value)
 				)> MSE_IMPL_EIS >
 			void xscope_returnable_tag() const {} /* Indication that this type can be used as a function return value. */
 
@@ -8141,18 +8331,24 @@ namespace mse {
 
 					auto taken = *std::move(opt2);
 					std::cout << "taken: " << taken << " opt2: " << *opt2 << "size: " << opt2->size() << '\n';
+
+					assert(opt2.has_value());
+					auto reallly_taken = mse::take(opt2);
+					assert(!opt2.has_value());
+					opt2 = reallly_taken;
+					assert(opt2.has_value());
 				}
 				{
 					mse::mstd::optional<int> opt = {};
 
+#if __cpp_exceptions >= 199711
 					MSE_TRY {
 						int n = opt.value();
 					}
 					MSE_CATCH (const std::exception& e) {
-#if __cpp_exceptions >= 199711
 						std::cout << e.what() << '\n';
-#endif // __cpp_exceptions >= 199711
 					}
+#endif // __cpp_exceptions >= 199711
 				}
 				{
 #ifdef MSE_DISABLE_RAW_POINTER_SCOPE_RESTRICTIONS
@@ -8218,6 +8414,12 @@ namespace mse {
 
 					auto taken = *std::move(opt2);
 					std::cout << "taken: " << taken << " opt2: " << *opt2 << "size: " << opt2->size() << '\n';
+
+					assert(opt2.has_value());
+					auto reallly_taken = mse::take(opt2);
+					assert(!opt2.has_value());
+					opt2 = reallly_taken;
+					assert(opt2.has_value());
 				}
 				{
 					mse::xscope_optional<int> opt = {};
@@ -8238,35 +8440,35 @@ namespace mse {
 					int i1 = 3;
 					int i2 = 5;
 					int i3 = 7;
-					auto ilaptr4 = mse::rsv::TXSLTAPointer<int>{ &i2 };
-					auto ilaptr5 = mse::rsv::TXSLTAPointer<int>{ &i1 };
+					auto iltaptr4 = mse::rsv::TXSLTAPointer<int>{ &i2 };
+					auto iltaptr5 = mse::rsv::TXSLTAPointer<int>{ &i1 };
 
-					mse::rsv::xslta_optional<mse::rsv::TXSLTAPointer<int> > maybe_int_xsltaptr3(ilaptr4);
+					mse::rsv::xslta_optional<mse::rsv::TXSLTAPointer<int> > maybe_int_xsltaptr3(iltaptr4);
 
 					/* Even when you want to construct an empty rsv::xslta_optional<>, if the element type has an annotated
 					lifetime, you would still need to provide (a reference to) an initialization element object from which
 					a lower bound lifetime can be inferred. You could just initialize the option with a value, then reset()
 					the rsv::xslta_optional<>. Alternatively, you can pass mse::nullopt as the first constructor parameter,
 					in which case the lower bound lifetime will be inferred from the second (otherwise unused) parameter. */
-					mse::rsv::xslta_optional<mse::rsv::TXSLTAPointer<int> > maybe_int_xsltaptr2(mse::nullopt, ilaptr4);
+					mse::rsv::xslta_optional<mse::rsv::TXSLTAPointer<int> > maybe_int_xsltaptr2(mse::nullopt, iltaptr4);
 					//mse::rsv::xslta_optional<mse::rsv::TXSLTAPointer<int> > maybe_int_xsltaptr;    // scpptool would complain
 					mse::rsv::xslta_optional<int> maybe_int;    // fine, the element type does not have an annotated lifetime
 
-					auto maybe_int_xsltaptr5 = mse::rsv::make_xslta_optional(mse::nullopt, ilaptr4);
-					auto maybe_int_xsltaptr6 = mse::rsv::make_xslta_optional(ilaptr4);
+					auto maybe_int_xsltaptr5 = mse::rsv::make_xslta_optional(mse::nullopt, iltaptr4);
+					auto maybe_int_xsltaptr6 = mse::rsv::make_xslta_optional(iltaptr4);
 					{
 						/* As with rsv::xslta_vector<>, the preferred way of accessing the contents of an rsv::xslta_optional<> 
 						is via an associated rsv::xslta_borrowing_fixed_optional<> (which, while it exists, "borrows" exclusive 
 						access to the contents of the given optional and (efficiently) prevents the element (if any) from being
 						removed). */
 						auto bfmaybe_int_xsltaptr6 = mse::rsv::make_xslta_borrowing_fixed_optional(&maybe_int_xsltaptr6);
-						auto ilaptr26 = bfmaybe_int_xsltaptr6.value();
-						std::swap(ilaptr26, ilaptr4);
+						auto iltaptr26 = bfmaybe_int_xsltaptr6.value();
+						std::swap(iltaptr26, iltaptr4);
 
-						auto ilaptr7 = mse::rsv::TXSLTAPointer<int>{ &i3 };
-						auto ilaptr28 = bfmaybe_int_xsltaptr6.value_or(ilaptr7);
-						//std::swap(ilaptr28, ilaptr4);    // scpptool would complain
-						std::swap(ilaptr7, ilaptr28);
+						auto iltaptr7 = mse::rsv::TXSLTAPointer<int>{ &i3 };
+						auto iltaptr28 = bfmaybe_int_xsltaptr6.value_or(iltaptr7);
+						//std::swap(iltaptr28, iltaptr4);    // scpptool would complain
+						std::swap(iltaptr7, iltaptr28);
 					}
 
 					/* While not the preferred method, rsv::xslta_optional<> does (currently) have limited support for accessing
@@ -8276,9 +8478,9 @@ namespace mse {
 					return a raw reference. They return a "proxy reference" object that (while it exists, prevents the addition
 					or removal of a value and) behaves like a (raw) reference in some situations. For example, like a reference,
 					it can be cast to the element type. */
-					typename decltype(maybe_int_xsltaptr6)::value_type ilaptr6 = (maybe_int_xsltaptr6.value());
-					ilaptr6 = &i2;
-					//ilaptr6 = &i3; // scpptool would complain (because i3 does not live long enough)
+					typename decltype(maybe_int_xsltaptr6)::value_type iltaptr6 = (maybe_int_xsltaptr6.value());
+					iltaptr6 = &i2;
+					//iltaptr6 = &i3; // scpptool would complain (because i3 does not live long enough)
 
 					/* The returned "proxy reference" object also has limited support for assignment operations. */
 					maybe_int_xsltaptr6.value() = &i1;
@@ -8290,7 +8492,7 @@ namespace mse {
 					/* Note again that we've been using a non-const rsv::xslta_optional<>. Perhaps unintuitively, the contents of
 					an rsv::xslta_optional<> cannot be safely accessed via const reference to the optional. */
 					auto const& maybe_int_xsltaptr6_cref1 = maybe_int_xsltaptr6;
-					//typename decltype(maybe_int_xsltaptr6)::value_type ilaptr3b = maybe_int_xsltaptr6_cref1.value();    // scpptool would complain
+					//typename decltype(maybe_int_xsltaptr6)::value_type iltaptr3b = maybe_int_xsltaptr6_cref1.value();    // scpptool would complain
 
 					{
 						/* rsv::xslta_fixed_optional<> is a (lifetime annotated) optional that doesn't support any operations that
@@ -8298,24 +8500,28 @@ namespace mse {
 						auto f_maybe_int_xsltaptr1 = mse::rsv::xslta_fixed_optional<typename decltype(maybe_int_xsltaptr6)::value_type>(maybe_int_xsltaptr6.value());
 					}
 
-
-
 					mse::rsv::xslta_fixed_optional<mse::rsv::TXSLTAPointer<int> > fmaybe_int_xsltaptr;
-					mse::rsv::xslta_fixed_optional<mse::rsv::TXSLTAPointer<int> > fmaybe_int_xsltaptr2(mse::nullopt, ilaptr4);
-					mse::rsv::xslta_fixed_optional<mse::rsv::TXSLTAPointer<int> > fmaybe_int_xsltaptr3(ilaptr4);
+					mse::rsv::xslta_fixed_optional<mse::rsv::TXSLTAPointer<int> > fmaybe_int_xsltaptr2(mse::nullopt, iltaptr4);
+					mse::rsv::xslta_fixed_optional<mse::rsv::TXSLTAPointer<int> > fmaybe_int_xsltaptr3(iltaptr4);
 					mse::rsv::xslta_fixed_optional<int> fmaybe_int;
-					auto fmaybe_int_xsltaptr15 = mse::rsv::make_xslta_fixed_optional(mse::nullopt, ilaptr4);
-					auto fmaybe_int_xsltaptr16 = mse::rsv::make_xslta_fixed_optional(ilaptr4);
-					auto ilaptr46 = fmaybe_int_xsltaptr16.value();
-					std::swap(ilaptr46, ilaptr4);
-					std::swap(ilaptr5, ilaptr46);
-					auto ilaptr47 = fmaybe_int_xsltaptr16.value_or(ilaptr4);
-					std::swap(ilaptr47, ilaptr4);
-					std::swap(ilaptr5, ilaptr47);
-					auto ilaptr49 = mse::rsv::TXSLTAPointer<int>{ &i3 };
-					auto ilaptr48 = fmaybe_int_xsltaptr16.value_or(ilaptr49);
-					std::swap(ilaptr48, ilaptr4);
-					std::swap(ilaptr49, ilaptr48);
+					auto fmaybe_int_xsltaptr15 = mse::rsv::make_xslta_fixed_optional(mse::nullopt, iltaptr4);
+					auto fmaybe_int_xsltaptr16 = mse::rsv::make_xslta_fixed_optional(iltaptr4);
+					auto iltaptr46 = fmaybe_int_xsltaptr16.value();
+					std::swap(iltaptr46, iltaptr4);
+					std::swap(iltaptr5, iltaptr46);
+					auto iltaptr47 = fmaybe_int_xsltaptr16.value_or(iltaptr4);
+					std::swap(iltaptr47, iltaptr4);
+					std::swap(iltaptr5, iltaptr47);
+					auto iltaptr49 = mse::rsv::TXSLTAPointer<int>{ &i3 };
+					auto iltaptr48 = fmaybe_int_xsltaptr16.value_or(iltaptr49);
+					std::swap(iltaptr48, iltaptr4);
+					std::swap(iltaptr49, iltaptr48);
+
+					auto iltaptr50 = mse::take(maybe_int_xsltaptr6);
+					assert(!maybe_int_xsltaptr6.has_value());
+					maybe_int_xsltaptr6 = iltaptr50;
+					assert(maybe_int_xsltaptr6.has_value());
+					int q = 5;
 				}
 
 #endif // MSE_SELF_TESTS
