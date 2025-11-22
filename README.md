@@ -20,12 +20,12 @@ While a "static safety analyzer/enforcer" like the scpptool would be required to
 
 Besides zero-overhead pointers that enforce some of the necessary restrictions that would be imposed by a complete "static safety analyzer/enforcer", the library provides a reference counting pointer that's smaller and faster than `std::shared_ptr<>`, and (non-owning) unrestricted pointers that ensure memory safety via run-time checks. The latter two being not (yet) provided by the Guidelines Support Library, but valuable in the context of having to work around the somewhat [draconian restrictions](https://github.com/duneroadrunner/misc/blob/master/201/8/Jul/implications%20of%20the%20lifetime%20checker%20restrictions.md) imposed by the (eventual completed) lifetime checker.
 
-To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) you're interested in. (An online interactive version of these examples is also [available](https://godbolt.org/z/cPMEE8z7s), but the whole collection is large enough that the build will likely time-out. Often, the documentation for individual library elements will include a link to a more specific interactive example that should build fine.)
+To see the library in action, you can check out some [benchmark code](https://github.com/duneroadrunner/SaferCPlusPlus-BenchmarksGame). There you can compare traditional C++ and (high-performance) SaferCPlusPlus implementations of the same algorithms. Also, the [msetl_example.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example.cpp) and [msetl_example2.cpp](https://github.com/duneroadrunner/SaferCPlusPlus/blob/master/examples/msetl_example/msetl_example2.cpp) files contain usage examples of the library's elements. But at this point, there are a lot of them, so it might be more effective to peruse the documentation first, then search those files for the element(s) you're interested in. (An online interactive version of these examples is also [available](https://godbolt.org/z/vT19d5e9e), but the whole collection is large enough that the build will likely time-out. Often, the documentation for individual library elements will include a link to a more specific interactive example that should build fine.)
 
 Elements in this library are currently based on the C++17 version of their counterpart APIs. (C++14 is still supported.)
 
 #### Supported platforms
-Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 (Ubuntu 24.04.1). Versions of g++ prior to version 5 are not supported. Last tested with Apple clang++ version 12.0.0 (macOS Catalina v10.15.7) on Aug 18, 2021. Apple clang++ is not currently a regular test target. Some (generally "less commonly used") features are not available with Apple clang++ (for example, some uses of `std::tie`). With the microsoft compiler, compiling in "conformance" mode (/permissive-) (which is not the default when using C++17 or lower) is recommended.
+Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 (Ubuntu 24.04.1). Versions of g++ prior to version 5 are not supported. Apple clang++ is not currently a regular test target. With the microsoft compiler, compiling in "conformance" mode (/permissive-) (which is not the default when using C++17 or lower) is recommended.
 
 ### Table of contents
 1. [Overview](#overview)
@@ -3908,7 +3908,7 @@ Analogous to its vector counterpart, [`xscope_fixed_nii_vector<>`](#xscope_fixed
 
 Analogous to its vector counterpart, [`xscope_borrowing_fixed_nii_vector<>`](#xscope_borrowing_fixed_nii_vector), `xscope_borrowing_fixed_optional<>` is like [`xscope_fixed_optional<>`](#xscope_fixed_optional), except that, at construction, "borrows" the contents of a specified (via scope pointer) existing `optional<>`, then, upon destruction "releases" the (possibly modified) contents back to the original owner. Unlike `xscope_borrowing_fixed_nii_vector<>` though, the contained element, if any, is not (necessarily) moved when "borrowed", but equivalently, the "borrowing" object is granted "exclusive access" to the "lending" object for the duration of the borrow.
 
-usage example: ([link to interactive version](https://godbolt.org/z/75b3TrW9e))
+usage example: ([link to interactive version](https://godbolt.org/z/8vTs93Moz))
 
 ```cpp
     #include "mseoptional.h"
@@ -3939,6 +3939,12 @@ usage example: ([link to interactive version](https://godbolt.org/z/75b3TrW9e))
         }
         /* After the xscope_borrowing_fixed_optional<> is gone, we can again access our optional<>. */
         xs_opt1.reset();
+
+        /* Btw, there is a take() function that will return the value stored in the specified optional and leave 
+        the optional empty. */
+        xs_opt1 = mse::mstd::string("ghi");
+        auto str1 = mse::take(xs_opt1);
+        assert(!xs_opt1.has_value());
     }
 ```
 
