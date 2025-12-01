@@ -73,97 +73,40 @@ namespace mse {
 
 	namespace mstd {
 
-#ifdef MSE_MSTDARRAY_DISABLED
-		template<class _Ty, size_t _Size > using array = std::array<_Ty, _Size>;
-
-		template<class _TArray> using xscope_array_const_iterator = typename _TArray::const_iterator;
-		template<class _TArray> using xscope_array_iterator = typename _TArray::iterator;
-
-		template<class _TArray>
-		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeObjFixedConstPointer<_TArray>& owner_ptr) {
-			return (*owner_ptr).cbegin();
-		}
-		template<class _TArray>
-		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeObjFixedPointer<_TArray>& owner_ptr) {
-			return (*owner_ptr).cbegin();
-		}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _TArray>
-		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
-			return (*owner_ptr).cbegin();
-		}
-		template<class _TArray>
-		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
-			return (*owner_ptr).cbegin();
-		}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-
-		template<class _TArray>
-		xscope_array_iterator<_TArray> make_xscope_iterator(const mse::TXScopeObjFixedPointer<_TArray>& owner_ptr) {
-			return (*owner_ptr).begin();
-		}
-#if !defined(MSE_SCOPEPOINTER_DISABLED)
-		template<class _TArray>
-		xscope_array_iterator<_TArray> make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
-			return (*owner_ptr).begin();
-		}
-#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
-	}
-
-	template<class _Ty, size_t _Size>
-	auto xscope_pointer(const typename std::array<_Ty, _Size>::iterator& iter_cref) {
-		return mse::us::unsafe_make_xscope_pointer_to(*iter_cref);
-	}
-	template<class _Ty, size_t _Size>
-	auto xscope_pointer(const typename std::array<_Ty, _Size>::const_iterator& iter_cref) {
-		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
-	}
-	template<class _Ty, size_t _Size>
-	auto xscope_const_pointer(const typename std::array<_Ty, _Size>::iterator& iter_cref) {
-		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
-	}
-	template<class _Ty, size_t _Size>
-	auto xscope_const_pointer(const typename std::array<_Ty, _Size>::const_iterator& iter_cref) {
-		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
-	}
-
-	namespace mstd {
-
-#else /*MSE_MSTDARRAY_DISABLED*/
-
-		class mstdarray_range_error : public std::range_error { public:
+		class mstdarray_range_error : public std::range_error {
+		public:
 			using std::range_error::range_error;
 		};
 
 		template<class _Ty, size_t _Size >
-		class array;
+		class nd_array;
 	}
 }
 
 namespace std {
 	template<size_t _Idx, class _Tz, size_t _Size2>
-	_CONST_FUN _Tz& get(mse::mstd::array<_Tz, _Size2>& _Arr) _NOEXCEPT;
+	_CONST_FUN _Tz& get(mse::mstd::nd_array<_Tz, _Size2>& _Arr) _NOEXCEPT;
 	template<size_t _Idx, class _Tz, size_t _Size2>
-	_CONST_FUN const _Tz& get(const mse::mstd::array<_Tz, _Size2>& _Arr) _NOEXCEPT;
+	_CONST_FUN const _Tz& get(const mse::mstd::nd_array<_Tz, _Size2>& _Arr) _NOEXCEPT;
 	template<size_t _Idx, class _Tz, size_t _Size2>
-	_CONST_FUN _Tz&& get(mse::mstd::array<_Tz, _Size2>&& _Arr) _NOEXCEPT;
+	_CONST_FUN _Tz&& get(mse::mstd::nd_array<_Tz, _Size2>&& _Arr) _NOEXCEPT;
 }
 
 namespace mse {
 	namespace mstd {
 
-		/* Following are some template (iterator) classes that, organizationally, should be members of mstd::array<>. (And they
-		used to be.) However, being a member of mstd::array<> makes them "dependent types", and dependent types do not participate
-		in automatic template parameter type deduction. So we had to haul them here outside of mstd::array<>. */
+		/* Following are some template (iterator) classes that, organizationally, should be members of mstd::nd_array<>. (And they
+		used to be.) However, being a member of mstd::nd_array<> makes them "dependent types", and dependent types do not participate
+		in automatic template parameter type deduction. So we had to haul them here outside of mstd::nd_array<>. */
 
 		template<class _Ty, size_t _Size>
 		class Tarray_xscope_iterator;
 
 		template<class _Ty, size_t _Size>
-		class Tarray_xscope_const_iterator : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeFixedConstPointer<array<_Ty, _Size> > > >
+		class Tarray_xscope_const_iterator : public mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeFixedConstPointer<nd_array<_Ty, _Size> > > >
 			/*, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
 		public:
-			typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeFixedConstPointer<array<_Ty, _Size> > > > base_class;
+			typedef mse::TFriendlyAugmentedRAConstIterator<mse::TXScopeCSSSStrongRAConstIterator<mse::TXScopeFixedConstPointer<nd_array<_Ty, _Size> > > > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tarray_xscope_const_iterator, base_class);
@@ -192,15 +135,15 @@ namespace mse {
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-			friend class array<_Ty, _Size>;
+			friend class nd_array<_Ty, _Size>;
 			template<class _Ty2, size_t _Size2>
 			friend class Tarray_xscope_iterator;
 		};
 		template<class _Ty, size_t _Size>
-		class Tarray_xscope_iterator : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeFixedPointer<array<_Ty, _Size> > > >
+		class Tarray_xscope_iterator : public mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeFixedPointer<nd_array<_Ty, _Size> > > >
 			/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase*/ {
 		public:
-			typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeFixedPointer<array<_Ty, _Size> > > > base_class;
+			typedef mse::TFriendlyAugmentedRAIterator<mse::TXScopeCSSSStrongRAIterator<mse::TXScopeFixedPointer<nd_array<_Ty, _Size> > > > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tarray_xscope_iterator, base_class);
@@ -229,17 +172,214 @@ namespace mse {
 		private:
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
-			friend class array<_Ty, _Size>;
+			friend class nd_array<_Ty, _Size>;
 		};
 
+		template<class _Ty, size_t _Size >
+		class reg_ss_const_iterator_type;
 
 		template<class _Ty, size_t _Size >
-		class array : private mse::impl::TOpaqueWrapper<mse::TRegisteredObj<mse::nii_array<_Ty, _Size> > >, public mse::us::impl::AsyncNotShareableTagBase, public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
+		class reg_ss_iterator_type : public mse::nii_array<_Ty, _Size>::template Tss_iterator_type<mse::TRegisteredPointer<mse::nii_array<_Ty, _Size>>> {
+		public:
+			typedef typename mse::nii_array<_Ty, _Size>::template Tss_iterator_type<mse::TRegisteredPointer<mse::nii_array<_Ty, _Size>>> base_class;
+			MSE_USING(reg_ss_iterator_type, base_class);
+			reg_ss_iterator_type(const base_class& src) : base_class(src) {}
+
+			friend class reg_ss_const_iterator_type<_Ty, _Size>;
+		};
+		template<class _Ty, size_t _Size >
+		class reg_ss_const_iterator_type : public mse::nii_array<_Ty, _Size>::template Tss_const_iterator_type<mse::TRegisteredConstPointer<mse::nii_array<_Ty, _Size>>> {
+		public:
+			typedef typename mse::nii_array<_Ty, _Size>::template Tss_const_iterator_type<mse::TRegisteredConstPointer<mse::nii_array<_Ty, _Size>>> base_class;
+			MSE_USING(reg_ss_const_iterator_type, base_class);
+			reg_ss_const_iterator_type(const base_class& src) : base_class(src) {}
+			reg_ss_const_iterator_type(const reg_ss_iterator_type<_Ty, _Size>& src) : base_class(src) {}
+		};
+
+		template<class _Ty, size_t _Size >
+		class array_iterator;
+
+		template<class _Ty, size_t _Size >
+		class array_const_iterator : public mse::nii_array<_Ty, _Size>::na_const_iterator_base {
+		public:
+			typedef typename mse::nii_array<_Ty, _Size>::na_const_iterator_base base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			array_const_iterator() {}
+			array_const_iterator(const array_const_iterator& src_cref) = default;
+			array_const_iterator(const array_iterator<_Ty, _Size>& src_cref) : m_reg_ss_const_iterator(src_cref.m_reg_ss_iterator) {}
+			~array_const_iterator() {}
+			const reg_ss_const_iterator_type<_Ty, _Size>& nii_array_reg_ss_const_iterator_type() const {
+				//if (!contained_array()_regcptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid array_iterator<_Ty, _Size> - mse::mstd::nd_array<>::array_const_iterator")); }
+				return m_reg_ss_const_iterator;
+			}
+			reg_ss_const_iterator_type<_Ty, _Size>& nii_array_reg_ss_const_iterator_type() {
+				//if (!contained_array()_regcptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid array_iterator<_Ty, _Size> - mse::mstd::nd_array<>::array_const_iterator")); }
+				return m_reg_ss_const_iterator;
+			}
+			const reg_ss_const_iterator_type<_Ty, _Size>& mvssci() const { return nii_array_reg_ss_const_iterator_type(); }
+			reg_ss_const_iterator_type<_Ty, _Size>& mvssci() { return nii_array_reg_ss_const_iterator_type(); }
+
+			void reset() { nii_array_reg_ss_const_iterator_type().reset(); }
+			bool points_to_an_item() const { return nii_array_reg_ss_const_iterator_type().points_to_an_item(); }
+			bool points_to_end_marker() const { return nii_array_reg_ss_const_iterator_type().points_to_end_marker(); }
+			bool points_to_beginning() const { return nii_array_reg_ss_const_iterator_type().points_to_beginning(); }
+			/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+			bool has_next_item_or_end_marker() const { return nii_array_reg_ss_const_iterator_type().has_next_item_or_end_marker(); }
+			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
+			bool has_next() const { return nii_array_reg_ss_const_iterator_type().has_next(); }
+			bool has_previous() const { return nii_array_reg_ss_const_iterator_type().has_previous(); }
+			void set_to_beginning() { nii_array_reg_ss_const_iterator_type().set_to_beginning(); }
+			void set_to_end_marker() { nii_array_reg_ss_const_iterator_type().set_to_end_marker(); }
+			void set_to_next() { nii_array_reg_ss_const_iterator_type().set_to_next(); }
+			void set_to_previous() { nii_array_reg_ss_const_iterator_type().set_to_previous(); }
+			array_const_iterator& operator ++() { nii_array_reg_ss_const_iterator_type().operator ++(); return (*this); }
+			array_const_iterator operator++(int) { array_const_iterator _Tmp = *this; ++*this; return (_Tmp); }
+			array_const_iterator& operator --() { nii_array_reg_ss_const_iterator_type().operator --(); return (*this); }
+			array_const_iterator operator--(int) { array_const_iterator _Tmp = *this; --*this; return (_Tmp); }
+			void advance(typename mse::nii_array<_Ty, _Size>::difference_type n) { nii_array_reg_ss_const_iterator_type().advance(n); }
+			void regress(typename mse::nii_array<_Ty, _Size>::difference_type n) { nii_array_reg_ss_const_iterator_type().regress(n); }
+			array_const_iterator& operator +=(difference_type n) { nii_array_reg_ss_const_iterator_type().operator +=(n); return (*this); }
+			array_const_iterator& operator -=(difference_type n) { nii_array_reg_ss_const_iterator_type().operator -=(n); return (*this); }
+			array_const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			array_const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
+			typename mse::nii_array<_Ty, _Size>::difference_type operator-(const array_const_iterator& _Right_cref) const { return nii_array_reg_ss_const_iterator_type() - (_Right_cref.nii_array_reg_ss_const_iterator_type()); }
+			typename mse::nii_array<_Ty, _Size>::const_reference operator*() const { return nii_array_reg_ss_const_iterator_type().operator*(); }
+			typename mse::nii_array<_Ty, _Size>::const_reference item() const { return operator*(); }
+			typename mse::nii_array<_Ty, _Size>::const_reference previous_item() const { return nii_array_reg_ss_const_iterator_type().previous_item(); }
+			typename mse::nii_array<_Ty, _Size>::const_pointer operator->() const { return nii_array_reg_ss_const_iterator_type().operator->(); }
+			typename mse::nii_array<_Ty, _Size>::const_reference operator[](typename mse::nii_array<_Ty, _Size>::difference_type _Off) const { return nii_array_reg_ss_const_iterator_type()[_Off]; }
+			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(array_const_iterator)
+
+				void set_to_const_item_pointer(const array_const_iterator& _Right_cref) { nii_array_reg_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.nii_array_reg_ss_const_iterator_type()); }
+			msear_size_t position() const { return nii_array_reg_ss_const_iterator_type().position(); }
+			auto target_container_ptr() const -> decltype(nii_array_reg_ss_const_iterator_type().target_container_ptr()) {
+				return nii_array_reg_ss_const_iterator_type().target_container_ptr();
+			}
+			void async_not_shareable_and_not_passable_tag() const {}
+		private:
+			array_const_iterator(mse::TRegisteredConstPointer<mse::nii_array<_Ty, _Size>> nii_array_regcptr) {
+				if (nii_array_regcptr) {
+					m_reg_ss_const_iterator = mse::nii_array<_Ty, _Size>::template ss_cbegin<mse::TRegisteredConstPointer<mse::nii_array<_Ty, _Size>>>(nii_array_regcptr);
+				}
+			}
+			reg_ss_const_iterator_type<_Ty, _Size> m_reg_ss_const_iterator;
+
+			friend class /*_Myt*/nd_array<_Ty, _Size>;
+			friend class array_iterator<_Ty, _Size>;
+			friend /*class*/ Tarray_xscope_const_iterator<_Ty, _Size>;
+		};
+		template<class _Ty, size_t _Size >
+		class array_iterator : public mse::nii_array<_Ty, _Size>::na_iterator_base {
+		public:
+			typedef typename mse::nii_array<_Ty, _Size>::na_iterator_base base_class;
+			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
+
+			array_iterator() {}
+			array_iterator(const array_iterator& src_cref) = default;
+			~array_iterator() {}
+			const reg_ss_iterator_type<_Ty, _Size>& nii_array_reg_ss_iterator_type() const {
+				//if (!contained_array()_regptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid array_iterator - mse::mstd::nd_array<>::array_iterator")); }
+				return m_reg_ss_iterator;
+			}
+			reg_ss_iterator_type<_Ty, _Size>& nii_array_reg_ss_iterator_type() {
+				//if (!contained_array()_regptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid array_iterator - mse::mstd::nd_array<>::array_iterator")); }
+				return m_reg_ss_iterator;
+			}
+			const reg_ss_iterator_type<_Ty, _Size>& mvssi() const { return nii_array_reg_ss_iterator_type(); }
+			reg_ss_iterator_type<_Ty, _Size>& mvssi() { return nii_array_reg_ss_iterator_type(); }
+			/*
+			operator array_const_iterator<_Ty, _Size>() const {
+				auto nii_array_regptr = m_reg_ss_iterator.target_container_ptr();
+				array_const_iterator<_Ty, _Size> retval(nii_array_regptr);
+				if (nii_array_regptr) {
+					retval.nii_array_reg_ss_const_iterator_type().set_to_beginning();
+					retval.nii_array_reg_ss_const_iterator_type().advance(msear_int(nii_array_reg_ss_iterator_type().position()));
+				}
+				return retval;
+			}
+			*/
+
+			typename mse::nii_array<_Ty, _Size>::reference operator*() const { return nii_array_reg_ss_iterator_type().operator*(); }
+			typename mse::nii_array<_Ty, _Size>::reference item() const { return operator*(); }
+			typename mse::nii_array<_Ty, _Size>::reference previous_item() const { return nii_array_reg_ss_iterator_type().previous_item(); }
+			typename mse::nii_array<_Ty, _Size>::pointer operator->() const { return nii_array_reg_ss_iterator_type().operator->(); }
+			typename mse::nii_array<_Ty, _Size>::reference operator[](typename mse::nii_array<_Ty, _Size>::difference_type _Off) const { return nii_array_reg_ss_iterator_type()[_Off]; }
+
+			void reset() { nii_array_reg_ss_iterator_type().reset(); }
+			bool points_to_an_item() const { return nii_array_reg_ss_iterator_type().points_to_an_item(); }
+			bool points_to_end_marker() const { return nii_array_reg_ss_iterator_type().points_to_end_marker(); }
+			bool points_to_beginning() const { return nii_array_reg_ss_iterator_type().points_to_beginning(); }
+			/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
+			bool has_next_item_or_end_marker() const { return nii_array_reg_ss_iterator_type().has_next_item_or_end_marker(); }
+			/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
+			bool has_next() const { return nii_array_reg_ss_iterator_type().has_next(); }
+			bool has_previous() const { return nii_array_reg_ss_iterator_type().has_previous(); }
+			void set_to_beginning() { nii_array_reg_ss_iterator_type().set_to_beginning(); }
+			void set_to_end_marker() { nii_array_reg_ss_iterator_type().set_to_end_marker(); }
+			void set_to_next() { nii_array_reg_ss_iterator_type().set_to_next(); }
+			void set_to_previous() { nii_array_reg_ss_iterator_type().set_to_previous(); }
+			array_iterator& operator ++() { nii_array_reg_ss_iterator_type().operator ++(); return (*this); }
+			array_iterator operator++(int) { array_iterator _Tmp = *this; ++*this; return (_Tmp); }
+			array_iterator& operator --() { nii_array_reg_ss_iterator_type().operator --(); return (*this); }
+			array_iterator operator--(int) { array_iterator _Tmp = *this; --*this; return (_Tmp); }
+			void advance(typename mse::nii_array<_Ty, _Size>::difference_type n) { nii_array_reg_ss_iterator_type().advance(n); }
+			void regress(typename mse::nii_array<_Ty, _Size>::difference_type n) { nii_array_reg_ss_iterator_type().regress(n); }
+			array_iterator& operator +=(difference_type n) { nii_array_reg_ss_iterator_type().operator +=(n); return (*this); }
+			array_iterator& operator -=(difference_type n) { nii_array_reg_ss_iterator_type().operator -=(n); return (*this); }
+			array_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
+			array_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
+			typename mse::nii_array<_Ty, _Size>::difference_type operator-(const array_const_iterator<_Ty, _Size>& _Right_cref) const {
+				return (array_const_iterator<_Ty, _Size>(*this) - _Right_cref);
+			}
+			typedef array_const_iterator<_Ty, _Size> array_const_iterator_t;
+			MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(array_iterator, array_const_iterator_t)
+
+				void set_to_item_pointer(const array_iterator& _Right_cref) { nii_array_reg_ss_iterator_type().set_to_item_pointer(_Right_cref.nii_array_reg_ss_iterator_type()); }
+			msear_size_t position() const { return nii_array_reg_ss_iterator_type().position(); }
+			auto target_container_ptr() const -> decltype(nii_array_reg_ss_iterator_type().target_container_ptr()) {
+				return nii_array_reg_ss_iterator_type().target_container_ptr();
+			}
+			void async_not_shareable_and_not_passable_tag() const {}
+		private:
+			reg_ss_iterator_type<_Ty, _Size> m_reg_ss_iterator;
+
+			friend class /*_Myt*/nd_array<_Ty, _Size>;
+			friend class array_const_iterator<_Ty, _Size>;
+			friend /*class*/ Tarray_xscope_const_iterator<_Ty, _Size>;
+			friend /*class*/ Tarray_xscope_iterator<_Ty, _Size>;
+		};
+	}
+	namespace impl {
+		/* Specialization of the template that identifies "structurally identical" pointer/iterator types that differ only 
+		in the `const`ness of the target object reference. */
+		template <typename _TElement, size_t _Size>
+		struct corresponding_type_with_const_target<mse::mstd::array_iterator<_TElement, _Size> > {
+			using type = mse::mstd::array_const_iterator<_TElement, _Size>;
+		};
+		template <typename _TElement, size_t _Size>
+		struct corresponding_type_with_nonconst_target<mse::mstd::array_const_iterator<_TElement, _Size> > {
+			using type = mse::mstd::array_iterator<_TElement, _Size>;
+		};
+
+		template <typename _TElement, size_t _Size>
+		struct corresponding_type_with_const_target<mse::mstd::Tarray_xscope_iterator<_TElement, _Size> > {
+			using type = mse::mstd::Tarray_xscope_const_iterator<_TElement, _Size>;
+		};
+		template <typename _TElement, size_t _Size>
+		struct corresponding_type_with_nonconst_target<mse::mstd::Tarray_xscope_const_iterator<_TElement, _Size> > {
+			using type = mse::mstd::Tarray_xscope_iterator<_TElement, _Size>;
+		};
+	}
+	namespace mstd {
+
+		template<class _Ty, size_t _Size >
+		class nd_array : private mse::impl::TOpaqueWrapper<mse::TRegisteredObj<mse::nii_array<_Ty, _Size> > >, public mse::us::impl::AsyncNotShareableTagBase, public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
 		public:
 			/* We (privately) inherit the underlying data type rather than make it a data member to ensure it's the "first" component in the structure.*/
 			typedef mse::impl::TOpaqueWrapper<mse::TRegisteredObj<mse::nii_array<_Ty, _Size> > > base_class;
 			typedef mse::TRegisteredObj<mse::nii_array<_Ty, _Size> > _RMA;
-			typedef array _Myt;
+			typedef nd_array _Myt;
 			typedef mse::nii_array<_Ty, _Size> _MA;
 
 			MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(_MA);
@@ -256,14 +396,14 @@ namespace mse {
 			operator std::array<_Ty, _Size>() const& { return as_nii_array(); }
 			operator std::array<_Ty, _Size>()&& { return std::move(as_nii_array()); }
 
-			array() {}
-			array(_MA&& _X) : base_class(MSE_FWD(_X)) {}
-			array(const _MA& _X) : base_class(_X) {}
-			array(_Myt&& _X) : base_class(MSE_FWD(_X).as_nii_array()) {}
-			array(const _Myt& _X) : base_class(_X.as_nii_array()) {}
-			array(std::array<_Ty, _Size>&& _X) : base_class(MSE_FWD(_X)) {}
-			array(const std::array<_Ty, _Size>& _X) : base_class(_X) {}
-			//array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : base_class(_Ilist) {}
+			nd_array() {}
+			nd_array(_MA&& _X) : base_class(MSE_FWD(_X)) {}
+			nd_array(const _MA& _X) : base_class(_X) {}
+			nd_array(_Myt&& _X) : base_class(MSE_FWD(_X).as_nii_array()) {}
+			nd_array(const _Myt& _X) : base_class(_X.as_nii_array()) {}
+			nd_array(std::array<_Ty, _Size>&& _X) : base_class(MSE_FWD(_X)) {}
+			nd_array(const std::array<_Ty, _Size>& _X) : base_class(_X) {}
+			//nd_array(_XSTD initializer_list<typename _MA::base_class::value_type> _Ilist) : base_class(_Ilist) {}
 			static constexpr std::array<_Ty, _Size> std_array_initial_value(std::true_type, _XSTD initializer_list<_Ty> _Ilist) {
 				/* _Ty is default constructible. */
 				assert(_Ilist.size() <= _Size);
@@ -274,11 +414,11 @@ namespace mse {
 				assert(_Ilist.size() == _Size);
 				return mse::us::impl::array_helper::not_default_constructible_array_helper_type<_Ty, _Size>::std_array_initialized_with_range(_Ilist.begin(), _Ilist.end());
 			}
-			constexpr array(_XSTD initializer_list<_Ty> _Ilist) : base_class(_MA{ std_array_initial_value(typename std::is_default_constructible<_Ty>::type(), _Ilist) }) {
+			constexpr nd_array(_XSTD initializer_list<_Ty> _Ilist) : base_class(_MA{ std_array_initial_value(typename std::is_default_constructible<_Ty>::type(), _Ilist) }) {
 				/* std::array<> is an "aggregate type" (basically a POD struct with no base class, constructors or private
 				data members (details here: http://en.cppreference.com/w/cpp/language/aggregate_initialization)). As such,
 				support for construction from initializer list is automatically generated by the compiler. Specifically,
-				aggregate types support "aggregate initialization". But since mstd::array has a member with an explicitly
+				aggregate types support "aggregate initialization". But since mstd::nd_array has a member with an explicitly
 				defined constructor (or at least I think that's why), it is not an aggregate type and therefore doesn't
 				qualify to have support for "aggregate initialization" automatically generated by the compiler. So we try
 				to emulate it. */
@@ -305,184 +445,21 @@ namespace mse {
 			_CONST_FUN typename _MA::const_reference back() const { return contained_array().back(); }
 
 			/* Try to avoid using these whenever possible. */
-			MSE_DEPRECATED value_type *data() _NOEXCEPT {	// return pointer to mutable data array
+			MSE_DEPRECATED value_type* data() _NOEXCEPT {	// return pointer to mutable data nd_array
 				//return contained_array().data();
 				return empty() ? nullptr : std::addressof(front());
 			}
-			MSE_DEPRECATED const value_type *data() const _NOEXCEPT {	// return pointer to nonmutable data array
+			MSE_DEPRECATED const value_type* data() const _NOEXCEPT {	// return pointer to nonmutable data nd_array
 				//return contained_array().data();
 				return empty() ? nullptr : std::addressof(front());
 			}
 
-
-			class reg_ss_iterator_type : public _MA::template Tss_iterator_type<mse::TRegisteredPointer<_MA>> {
-			public:
-				typedef typename _MA::template Tss_iterator_type<mse::TRegisteredPointer<_MA>> base_class;
-				MSE_USING(reg_ss_iterator_type, base_class);
-				reg_ss_iterator_type(const base_class& src) : base_class(src) {}
-
-				friend class reg_ss_const_iterator_type;
-			};
-			class reg_ss_const_iterator_type : public _MA::template Tss_const_iterator_type<mse::TRegisteredConstPointer<_MA>> {
-			public:
-				typedef typename _MA::template Tss_const_iterator_type<mse::TRegisteredConstPointer<_MA>> base_class;
-				MSE_USING(reg_ss_const_iterator_type, base_class);
-				reg_ss_const_iterator_type(const base_class& src) : base_class(src) {}
-				reg_ss_const_iterator_type(const reg_ss_iterator_type& src) : base_class(src) {}
-			};
 
 			typedef Tarray_xscope_const_iterator<_Ty, _Size> xscope_const_iterator;
 			typedef Tarray_xscope_iterator<_Ty, _Size> xscope_iterator;
 
-			class iterator;
-
-			class const_iterator : public _MA::na_const_iterator_base {
-			public:
-				typedef typename _MA::na_const_iterator_base base_class;
-				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-
-				const_iterator() {}
-				const_iterator(const const_iterator& src_cref) = default;
-				const_iterator(const iterator& src_cref) : m_reg_ss_const_iterator(src_cref.m_reg_ss_iterator) {}
-				~const_iterator() {}
-				const reg_ss_const_iterator_type& nii_array_reg_ss_const_iterator_type() const {
-					//if (!contained_array()_regcptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
-					return m_reg_ss_const_iterator;
-				}
-				reg_ss_const_iterator_type& nii_array_reg_ss_const_iterator_type() {
-					//if (!contained_array()_regcptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::const_iterator")); }
-					return m_reg_ss_const_iterator;
-				}
-				const reg_ss_const_iterator_type& mvssci() const { return nii_array_reg_ss_const_iterator_type(); }
-				reg_ss_const_iterator_type& mvssci() { return nii_array_reg_ss_const_iterator_type(); }
-
-				void reset() { nii_array_reg_ss_const_iterator_type().reset(); }
-				bool points_to_an_item() const { return nii_array_reg_ss_const_iterator_type().points_to_an_item(); }
-				bool points_to_end_marker() const { return nii_array_reg_ss_const_iterator_type().points_to_end_marker(); }
-				bool points_to_beginning() const { return nii_array_reg_ss_const_iterator_type().points_to_beginning(); }
-				/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-				bool has_next_item_or_end_marker() const { return nii_array_reg_ss_const_iterator_type().has_next_item_or_end_marker(); }
-				/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-				bool has_next() const { return nii_array_reg_ss_const_iterator_type().has_next(); }
-				bool has_previous() const { return nii_array_reg_ss_const_iterator_type().has_previous(); }
-				void set_to_beginning() { nii_array_reg_ss_const_iterator_type().set_to_beginning(); }
-				void set_to_end_marker() { nii_array_reg_ss_const_iterator_type().set_to_end_marker(); }
-				void set_to_next() { nii_array_reg_ss_const_iterator_type().set_to_next(); }
-				void set_to_previous() { nii_array_reg_ss_const_iterator_type().set_to_previous(); }
-				const_iterator& operator ++() { nii_array_reg_ss_const_iterator_type().operator ++(); return (*this); }
-				const_iterator operator++(int) { const_iterator _Tmp = *this; ++*this; return (_Tmp); }
-				const_iterator& operator --() { nii_array_reg_ss_const_iterator_type().operator --(); return (*this); }
-				const_iterator operator--(int) { const_iterator _Tmp = *this; --*this; return (_Tmp); }
-				void advance(typename _MA::difference_type n) { nii_array_reg_ss_const_iterator_type().advance(n); }
-				void regress(typename _MA::difference_type n) { nii_array_reg_ss_const_iterator_type().regress(n); }
-				const_iterator& operator +=(difference_type n) { nii_array_reg_ss_const_iterator_type().operator +=(n); return (*this); }
-				const_iterator& operator -=(difference_type n) { nii_array_reg_ss_const_iterator_type().operator -=(n); return (*this); }
-				const_iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-				const_iterator operator-(difference_type n) const { return ((*this) + (-n)); }
-				typename _MA::difference_type operator-(const const_iterator& _Right_cref) const { return nii_array_reg_ss_const_iterator_type() - (_Right_cref.nii_array_reg_ss_const_iterator_type()); }
-				typename _MA::const_reference operator*() const { return nii_array_reg_ss_const_iterator_type().operator*(); }
-				typename _MA::const_reference item() const { return operator*(); }
-				typename _MA::const_reference previous_item() const { return nii_array_reg_ss_const_iterator_type().previous_item(); }
-				typename _MA::const_pointer operator->() const { return nii_array_reg_ss_const_iterator_type().operator->(); }
-				typename _MA::const_reference operator[](typename _MA::difference_type _Off) const { return nii_array_reg_ss_const_iterator_type()[_Off]; }
-				MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_GIVEN_SUBTRACTION(const_iterator)
-
-				void set_to_const_item_pointer(const const_iterator& _Right_cref) { nii_array_reg_ss_const_iterator_type().set_to_const_item_pointer(_Right_cref.nii_array_reg_ss_const_iterator_type()); }
-				msear_size_t position() const { return nii_array_reg_ss_const_iterator_type().position(); }
-				auto target_container_ptr() const -> decltype(nii_array_reg_ss_const_iterator_type().target_container_ptr()) {
-					return nii_array_reg_ss_const_iterator_type().target_container_ptr();
-				}
-				void async_not_shareable_and_not_passable_tag() const {}
-			private:
-				const_iterator(mse::TRegisteredConstPointer<_MA> nii_array_regcptr) {
-					if (nii_array_regcptr) {
-						m_reg_ss_const_iterator = _MA::template ss_cbegin<mse::TRegisteredConstPointer<_MA>>(nii_array_regcptr);
-					}
-				}
-				reg_ss_const_iterator_type m_reg_ss_const_iterator;
-
-				friend class /*_Myt*/array<_Ty, _Size>;
-				friend class iterator;
-				friend /*class*/ xscope_const_iterator;
-			};
-			class iterator : public _MA::na_iterator_base {
-			public:
-				typedef typename _MA::na_iterator_base base_class;
-				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
-
-				iterator() {}
-				iterator(const iterator& src_cref) = default;
-				~iterator() {}
-				const reg_ss_iterator_type& nii_array_reg_ss_iterator_type() const {
-					//if (!contained_array()_regptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::iterator")); }
-					return m_reg_ss_iterator;
-				}
-				reg_ss_iterator_type& nii_array_reg_ss_iterator_type() {
-					//if (!contained_array()_regptr) { MSE_THROW(mstdarray_range_error("attempt to use an invalid iterator - mse::mstd::array<>::iterator")); }
-					return m_reg_ss_iterator;
-				}
-				const reg_ss_iterator_type& mvssi() const { return nii_array_reg_ss_iterator_type(); }
-				reg_ss_iterator_type& mvssi() { return nii_array_reg_ss_iterator_type(); }
-				/*
-				operator const_iterator() const {
-					auto nii_array_regptr = m_reg_ss_iterator.target_container_ptr();
-					const_iterator retval(nii_array_regptr);
-					if (nii_array_regptr) {
-						retval.nii_array_reg_ss_const_iterator_type().set_to_beginning();
-						retval.nii_array_reg_ss_const_iterator_type().advance(msear_int(nii_array_reg_ss_iterator_type().position()));
-					}
-					return retval;
-				}
-				*/
-
-				typename _MA::reference operator*() const { return nii_array_reg_ss_iterator_type().operator*(); }
-				typename _MA::reference item() const { return operator*(); }
-				typename _MA::reference previous_item() const { return nii_array_reg_ss_iterator_type().previous_item(); }
-				typename _MA::pointer operator->() const { return nii_array_reg_ss_iterator_type().operator->(); }
-				typename _MA::reference operator[](typename _MA::difference_type _Off) const { return nii_array_reg_ss_iterator_type()[_Off]; }
-
-				void reset() { nii_array_reg_ss_iterator_type().reset(); }
-				bool points_to_an_item() const { return nii_array_reg_ss_iterator_type().points_to_an_item(); }
-				bool points_to_end_marker() const { return nii_array_reg_ss_iterator_type().points_to_end_marker(); }
-				bool points_to_beginning() const { return nii_array_reg_ss_iterator_type().points_to_beginning(); }
-				/* has_next_item_or_end_marker() is just an alias for points_to_an_item(). */
-				bool has_next_item_or_end_marker() const { return nii_array_reg_ss_iterator_type().has_next_item_or_end_marker(); }
-				/* has_next() is just an alias for points_to_an_item() that's familiar to java programmers. */
-				bool has_next() const { return nii_array_reg_ss_iterator_type().has_next(); }
-				bool has_previous() const { return nii_array_reg_ss_iterator_type().has_previous(); }
-				void set_to_beginning() { nii_array_reg_ss_iterator_type().set_to_beginning(); }
-				void set_to_end_marker() { nii_array_reg_ss_iterator_type().set_to_end_marker(); }
-				void set_to_next() { nii_array_reg_ss_iterator_type().set_to_next(); }
-				void set_to_previous() { nii_array_reg_ss_iterator_type().set_to_previous(); }
-				iterator& operator ++() { nii_array_reg_ss_iterator_type().operator ++(); return (*this); }
-				iterator operator++(int) { iterator _Tmp = *this; ++*this; return (_Tmp); }
-				iterator& operator --() { nii_array_reg_ss_iterator_type().operator --(); return (*this); }
-				iterator operator--(int) { iterator _Tmp = *this; --*this; return (_Tmp); }
-				void advance(typename _MA::difference_type n) { nii_array_reg_ss_iterator_type().advance(n); }
-				void regress(typename _MA::difference_type n) { nii_array_reg_ss_iterator_type().regress(n); }
-				iterator& operator +=(difference_type n) { nii_array_reg_ss_iterator_type().operator +=(n); return (*this); }
-				iterator& operator -=(difference_type n) { nii_array_reg_ss_iterator_type().operator -=(n); return (*this); }
-				iterator operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
-				iterator operator-(difference_type n) const { return ((*this) + (-n)); }
-				typename _MA::difference_type operator-(const const_iterator& _Right_cref) const {
-					return (const_iterator(*this) - _Right_cref);
-				}
-				MSE_IMPL_ORDERED_TYPE_OPERATOR_DELEGATING_DECLARATIONS(iterator, const_iterator)
-
-				void set_to_item_pointer(const iterator& _Right_cref) { nii_array_reg_ss_iterator_type().set_to_item_pointer(_Right_cref.nii_array_reg_ss_iterator_type()); }
-				msear_size_t position() const { return nii_array_reg_ss_iterator_type().position(); }
-				auto target_container_ptr() const -> decltype(nii_array_reg_ss_iterator_type().target_container_ptr()) {
-					return nii_array_reg_ss_iterator_type().target_container_ptr();
-				}
-				void async_not_shareable_and_not_passable_tag() const {}
-			private:
-				reg_ss_iterator_type m_reg_ss_iterator;
-
-				friend class /*_Myt*/array<_Ty, _Size>;
-				friend class const_iterator;
-				friend /*class*/ xscope_const_iterator;
-				friend /*class*/ xscope_iterator;
-			};
+			typedef array_const_iterator<_Ty, _Size> const_iterator;
+			typedef array_iterator<_Ty, _Size> iterator;
 
 			iterator begin()
 			{	// return iterator for beginning of mutable sequence
@@ -542,19 +519,19 @@ namespace mse {
 			friend bool operator==(const _Myt& _Left, const _Myt& _Right) { return (_Left.contained_array() == _Right.contained_array()); }
 			MSE_IMPL_ORDERED_TYPE_IMPLIED_OPERATOR_DECLARATIONS_IF_ANY(_Myt)
 #ifndef MSE_HAS_CXX20
-			friend bool operator<(const _Myt& _Left, const _Myt& _Right) { return (_Left.contained_array() < _Right.contained_array()); }
+				friend bool operator<(const _Myt& _Left, const _Myt& _Right) { return (_Left.contained_array() < _Right.contained_array()); }
 #else // !MSE_HAS_CXX20
-			friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) { return (_Left.contained_array() <=> _Right.contained_array()); }
+				friend std::strong_ordering operator<=>(const _Myt& _Left, const _Myt& _Right) { return (_Left.contained_array() <=> _Right.contained_array()); }
 #endif // !MSE_HAS_CXX20
 
 			void async_not_shareable_tag() const {}
-			/* this array should be safely passable iff the element type is safely passable */
+			/* this nd_array should be safely passable iff the element type is safely passable */
 			template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
 				&& (mse::impl::is_marked_as_passable_msemsearray<_Ty2>::value)> MSE_IMPL_EIS >
 			void async_passable_tag() const {}
 
 		private:
-			const _MA& as_nii_array() const & { return contained_array(); }
+			const _MA& as_nii_array() const& { return contained_array(); }
 			//const _MA& as_nii_array() const&& { return contained_array(); }
 			_MA& as_nii_array()& { return contained_array(); }
 			_MA&& as_nii_array()&& { return std::move(contained_array()); }
@@ -565,11 +542,11 @@ namespace mse {
 			friend xscope_iterator;
 
 			template<size_t _Idx, class _Tz, size_t _Size2>
-			friend _CONST_FUN _Tz& std::get(mse::mstd::array<_Tz, _Size2>& _Arr) _NOEXCEPT;
+			friend _CONST_FUN _Tz& std::get(mse::mstd::nd_array<_Tz, _Size2>& _Arr) _NOEXCEPT;
 			template<size_t _Idx, class _Tz, size_t _Size2>
-			friend _CONST_FUN const _Tz& std::get(const mse::mstd::array<_Tz, _Size2>& _Arr) _NOEXCEPT;
+			friend _CONST_FUN const _Tz& std::get(const mse::mstd::nd_array<_Tz, _Size2>& _Arr) _NOEXCEPT;
 			template<size_t _Idx, class _Tz, size_t _Size2>
-			friend _CONST_FUN _Tz&& std::get(mse::mstd::array<_Tz, _Size2>&& _Arr) _NOEXCEPT;
+			friend _CONST_FUN _Tz&& std::get(mse::mstd::nd_array<_Tz, _Size2>&& _Arr) _NOEXCEPT;
 
 			friend void swap(_Myt& a, _Myt& b) { a.swap(b); }
 			friend void swap(_Myt& a, _MA& b) { a.swap(b); }
@@ -584,9 +561,70 @@ namespace mse {
 		/* deduction guides */
 		template<class _First,
 			class... _Rest>
-			array(_First, _Rest...)
-			->array<typename mse::impl::_mse_Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
+		nd_array(_First, _Rest...)
+			-> nd_array<typename mse::impl::_mse_Enforce_same<_First, _Rest...>::type, 1 + sizeof...(_Rest)>;
 #endif /* MSE_HAS_CXX17 */
+
+#ifdef MSE_MSTDARRAY_DISABLED
+		template<class _Ty, size_t _Size > using array = std::array<_Ty, _Size>;
+
+		template<class _TArray> using xscope_array_const_iterator = typename _TArray::const_iterator;
+		template<class _TArray> using xscope_array_iterator = typename _TArray::iterator;
+
+		template<class _TArray>
+		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeObjFixedConstPointer<_TArray>& owner_ptr) {
+			return (*owner_ptr).cbegin();
+		}
+		template<class _TArray>
+		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeObjFixedPointer<_TArray>& owner_ptr) {
+			return (*owner_ptr).cbegin();
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _TArray>
+		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeFixedConstPointer<_TArray>& owner_ptr) {
+			return (*owner_ptr).cbegin();
+		}
+		template<class _TArray>
+		xscope_array_const_iterator<_TArray> make_xscope_const_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+			return (*owner_ptr).cbegin();
+		}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+
+		template<class _TArray>
+		xscope_array_iterator<_TArray> make_xscope_iterator(const mse::TXScopeObjFixedPointer<_TArray>& owner_ptr) {
+			return (*owner_ptr).begin();
+		}
+#if !defined(MSE_SCOPEPOINTER_DISABLED)
+		template<class _TArray>
+		xscope_array_iterator<_TArray> make_xscope_iterator(const mse::TXScopeFixedPointer<_TArray>& owner_ptr) {
+			return (*owner_ptr).begin();
+		}
+#endif // !defined(MSE_SCOPEPOINTER_DISABLED)
+	}
+
+	template<class _Ty, size_t _Size>
+	auto xscope_pointer(const typename std::array<_Ty, _Size>::iterator& iter_cref) {
+		return mse::us::unsafe_make_xscope_pointer_to(*iter_cref);
+	}
+	template<class _Ty, size_t _Size>
+	auto xscope_pointer(const typename std::array<_Ty, _Size>::const_iterator& iter_cref) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
+	}
+	template<class _Ty, size_t _Size>
+	auto xscope_const_pointer(const typename std::array<_Ty, _Size>::iterator& iter_cref) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
+	}
+	template<class _Ty, size_t _Size>
+	auto xscope_const_pointer(const typename std::array<_Ty, _Size>::const_iterator& iter_cref) {
+		return mse::us::unsafe_make_xscope_const_pointer_to(*iter_cref);
+	}
+
+	namespace mstd {
+
+#else /*MSE_MSTDARRAY_DISABLED*/
+
+		template<class _Ty, size_t _Size >
+		using array = nd_array<_Ty, _Size>;
 
 		template<class _TArray> using xscope_array_const_iterator = typename _TArray::xscope_const_iterator;
 		template<class _TArray> using xscope_array_iterator = typename _TArray::xscope_iterator;
@@ -631,15 +669,15 @@ namespace std {
 #endif /*__clang__*/
 
 	template<class _Ty, size_t _Size>
-	struct tuple_size<mse::mstd::array<_Ty, _Size> >
+	struct tuple_size<mse::mstd::nd_array<_Ty, _Size> >
 		: integral_constant<size_t, _Size>
-	{	// struct to determine number of elements in array
+	{	// struct to determine number of elements in nd_array
 	};
 
 	template<size_t _Idx, class _Ty, size_t _Size>
-	struct tuple_element<_Idx, mse::mstd::array<_Ty, _Size> >
-	{	// struct to determine type of element _Idx in array
-		static_assert(_Idx < _Size, "array index out of bounds");
+	struct tuple_element<_Idx, mse::mstd::nd_array<_Ty, _Size> >
+	{	// struct to determine type of element _Idx in nd_array
+		static_assert(_Idx < _Size, "nd_array index out of bounds");
 
 		typedef _Ty type;
 	};
@@ -648,49 +686,49 @@ namespace std {
 #pragma clang diagnostic pop
 #endif /*__clang__*/
 
-	// TUPLE INTERFACE TO array
+	// TUPLE INTERFACE TO nd_array
 	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN _Ty& get(mse::mstd::array<_Ty, _Size>& _Arr) _NOEXCEPT
-	{	// return element at _Idx in array _Arr
-		static_assert(_Idx < _Size, "array index out of bounds");
+	_CONST_FUN _Ty& get(mse::mstd::nd_array<_Ty, _Size>& _Arr) _NOEXCEPT
+	{	// return element at _Idx in nd_array _Arr
+		static_assert(_Idx < _Size, "nd_array index out of bounds");
 		return (std::get<_Idx>(_Arr.contained_array()));
 	}
 	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN const _Ty& get(const mse::mstd::array<_Ty, _Size>& _Arr) _NOEXCEPT
-	{	// return element at _Idx in array _Arr
-		static_assert(_Idx < _Size, "array index out of bounds");
+	_CONST_FUN const _Ty& get(const mse::mstd::nd_array<_Ty, _Size>& _Arr) _NOEXCEPT
+	{	// return element at _Idx in nd_array _Arr
+		static_assert(_Idx < _Size, "nd_array index out of bounds");
 		return (std::get<_Idx>(_Arr.contained_array()));
 	}
 	template<size_t _Idx, class _Ty, size_t _Size>
-	_CONST_FUN _Ty&& get(mse::mstd::array<_Ty, _Size>&& _Arr) _NOEXCEPT
-	{	// return element at _Idx in array _Arr
-		static_assert(_Idx < _Size, "array index out of bounds");
+	_CONST_FUN _Ty&& get(mse::mstd::nd_array<_Ty, _Size>&& _Arr) _NOEXCEPT
+	{	// return element at _Idx in nd_array _Arr
+		static_assert(_Idx < _Size, "nd_array index out of bounds");
 		return (_STD move(std::get<_Idx>(_Arr.contained_array())));
 	}
 
 	template<class _Ty, size_t _Size>
-	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	void swap(mse::mstd::nd_array<_Ty, _Size>& _Left, mse::mstd::nd_array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
 	template<class _Ty, size_t _Size/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	void swap(mse::mstd::nd_array<_Ty, _Size>& _Left, mse::nii_array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
 	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::mstd::array<_Ty, _Size>& _Left, mse::us::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
+	void swap(mse::mstd::nd_array<_Ty, _Size>& _Left, mse::us::msearray<_Ty, _Size, _TStateMutex>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
 	{	// swap arrays
 		return (_Left.swap(_Right));
 	}
 
 	template<class _Ty, size_t _Size/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::nii_array<_Ty, _Size>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	void swap(mse::nii_array<_Ty, _Size>& _Left, mse::mstd::nd_array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
 	}
 	template<class _Ty, size_t _Size, class _TStateMutex = mse::default_state_mutex/*, class = enable_if_t<_Size == 0 || _Is_swappable<_Ty>::value>*/>
-	void swap(mse::us::msearray<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
+	void swap(mse::us::msearray<_Ty, _Size, _TStateMutex>& _Left, mse::mstd::nd_array<_Ty, _Size>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Right.swap(_Left)))
 	{	// swap arrays
 		return (_Right.swap(_Left));
 	}

@@ -1395,6 +1395,7 @@ namespace mse {
 					return (diff <=> 0); /* that's the right order, right? */
 				}
 #endif // !MSE_HAS_CXX20
+				virtual optional1<std::type_info const*> typeid_if_available() const { return {}; }
 
 				virtual optional1<_Ty const*> debug_start_of_sequence_cptr_if_available() const { return {}; }
 				virtual optional1<size_t> debug_iterator_index_if_available() const { return {}; }
@@ -1403,6 +1404,7 @@ namespace mse {
 				typedef mse::impl::conditional_t<mse::impl::is_complete_type<_Ty>::value, std::span<_Ty const>, _Ty const*> span1_t;
 				virtual optional1<span1_t> debug_sequence_span_if_available() const { return {}; }
 #endif // MSE_HAS_CXX20
+				virtual optional1<mse::us::impl::ns_any::any> as_a_wrapped_TCommonizedRandomAccessConstIterator_if_available() const { return {}; }
 			};
 
 			/* Note: This class needs to be maintained as structurally identical to its const counterpart (below) as there may
@@ -1430,6 +1432,24 @@ namespace mse {
 				}
 				void operator +=(difference_type x) override { m_random_access_iterator += x; }
 				difference_type operator-(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) const override {
+					std::string lhs_type_name;
+					std::string rhs_type_name;
+					if (false) {
+						/* Just some type info for debugging. */
+						auto lhs_maybe_type_info_cptr = (*this).typeid_if_available();
+						if (lhs_maybe_type_info_cptr.has_value()) {
+							auto type_info_cptr = lhs_maybe_type_info_cptr.value();
+							assert(type_info_cptr);
+							lhs_type_name = type_info_cptr->name();
+						}
+						auto rhs_maybe_type_info_cptr = _Right_cref.typeid_if_available();
+						if (rhs_maybe_type_info_cptr.has_value()) {
+							auto type_info_cptr = rhs_maybe_type_info_cptr.value();
+							assert(type_info_cptr);
+							rhs_type_name = type_info_cptr->name();
+						}
+					}
+
 					const TCommonizedRandomAccessIterator* crai_ptr = dynamic_cast<const TCommonizedRandomAccessIterator*>(&_Right_cref);
 
 					if (!crai_ptr) {
@@ -1493,6 +1513,7 @@ namespace mse {
 					const _TRandomAccessIterator1& _Right_cref_m_random_access_iterator_cref = (*crai_ptr).m_random_access_iterator;
 					return (m_random_access_iterator == _Right_cref_m_random_access_iterator_cref);
 				}
+				virtual optional1<std::type_info const*> typeid_if_available() const override { return &typeid(*this); }
 
 				auto debug_begin_iter_if_available_helper2(std::true_type) const {
 					typedef decltype(mse::make_begin_iterator(m_random_access_iterator.target_container_ptr())) iter_t;
@@ -1586,6 +1607,7 @@ namespace mse {
 					return debug_sequence_span_if_available_helper1(typename mse::impl::is_complete_type<_Ty>::type());
 				}
 #endif // MSE_HAS_CXX20
+				optional1<mse::us::impl::ns_any::any> as_a_wrapped_TCommonizedRandomAccessConstIterator_if_available() const override;
 
 				_TRandomAccessIterator1 m_random_access_iterator;
 
@@ -1627,6 +1649,7 @@ namespace mse {
 					return (diff <=> 0); /* that's the right order, right? */
 				}
 #endif // !MSE_HAS_CXX20
+				virtual optional1<std::type_info const*> typeid_if_available() const { return {}; }
 
 				virtual optional1<_Ty const*> debug_start_of_sequence_cptr_if_available() const { return {}; }
 				virtual optional1<size_t> debug_iterator_index_if_available() const { return {}; }
@@ -1635,6 +1658,9 @@ namespace mse {
 				typedef mse::impl::conditional_t<mse::impl::is_complete_type<_Ty>::value, std::span<_Ty const>, _Ty const*> span1_t;
 				virtual optional1<span1_t> debug_sequence_span_if_available() const { return {}; }
 #endif // MSE_HAS_CXX20
+				/* This is here just because TCommonizedRandomAccessIterator<> has it and we need to maintain this class as "structurally equivalent" 
+				as there may be some `reinterpret_cast<>`s between the two. */
+				virtual optional1<mse::us::impl::ns_any::any> as_a_wrapped_TCommonizedRandomAccessConstIterator_if_available() const { return {}; }
 			};
 
 			/* Note: This class needs to be maintained as structurally identical to its non-const counterpart (above) as there may
@@ -1662,6 +1688,24 @@ namespace mse {
 				}
 				void operator +=(difference_type x) override { m_random_access_const_iterator += x; }
 				difference_type operator-(const TCommonRandomAccessConstIteratorInterface<_Ty>& _Right_cref) const override {
+					std::string lhs_type_name;
+					std::string rhs_type_name;
+					if (false) {
+						/* Just some type info for debugging. */
+						auto lhs_maybe_type_info_cptr = (*this).typeid_if_available();
+						if (lhs_maybe_type_info_cptr.has_value()) {
+							auto type_info_cptr = lhs_maybe_type_info_cptr.value();
+							assert(type_info_cptr);
+							lhs_type_name = type_info_cptr->name();
+						}
+						auto rhs_maybe_type_info_cptr = _Right_cref.typeid_if_available();
+						if (rhs_maybe_type_info_cptr.has_value()) {
+							auto type_info_cptr = rhs_maybe_type_info_cptr.value();
+							assert(type_info_cptr);
+							rhs_type_name = type_info_cptr->name();
+						}
+					}
+
 					const TCommonizedRandomAccessConstIterator* craci_ptr = dynamic_cast<const TCommonizedRandomAccessConstIterator*>(&_Right_cref);
 
 					if (!craci_ptr) {
@@ -1680,16 +1724,10 @@ namespace mse {
 							} \
 						}
 
+						MSE_IMPL_TCRACI_TRY_DYNAMIC_CAST(mse::impl::remove_const_t<_Ty>, typename mse::impl::corresponding_type_with_const_target<_TRandomAccessConstIterator1>::type);
+						MSE_IMPL_TCRACI_TRY_DYNAMIC_CAST(mse::impl::remove_const_t<_Ty>, typename mse::impl::corresponding_type_with_nonconst_target<_TRandomAccessConstIterator1>::type);
 						MSE_IMPL_TCRACI_TRY_DYNAMIC_CAST(const _Ty, typename mse::impl::corresponding_type_with_const_target<_TRandomAccessConstIterator1>::type);
 						MSE_IMPL_TCRACI_TRY_DYNAMIC_CAST(const _Ty, typename mse::impl::corresponding_type_with_nonconst_target<_TRandomAccessConstIterator1>::type);
-#if !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
-						MSE_IF_CONSTEXPR(!std::is_const<mse::impl::target_type<typename mse::impl::corresponding_type_with_nonconst_target<_TRandomAccessConstIterator1>::type> >::value) {
-							/* We needed to verify that the type given by mse::impl::corresponding_type_with_nonconst_target<> does in fact have a non-const
-							target type (as mse::impl::corresponding_type_with_nonconst_target<> does not recognize all iterator types). */
-
-							MSE_IMPL_TCRACI_TRY_DYNAMIC_CAST(mse::impl::remove_const_t<_Ty>, typename mse::impl::corresponding_type_with_nonconst_target<_TRandomAccessConstIterator1>::type);
-						}
-#endif // !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 					}
 
 					if (!craci_ptr) {
@@ -1706,16 +1744,10 @@ namespace mse {
 						qualification of the target object type, in which case it should be safe to just reinterpret_cast<> the right argument
 						to match the `const`ness of the left argument. */
 
+						MSE_IMPL_TCRACI_TRY_DYNAMIC_CAST(mse::impl::remove_const_t<_Ty>, typename mse::impl::corresponding_type_with_const_target<_TRandomAccessConstIterator1>::type);
+						MSE_IMPL_TCRACI_TRY_DYNAMIC_CAST(mse::impl::remove_const_t<_Ty>, typename mse::impl::corresponding_type_with_nonconst_target<_TRandomAccessConstIterator1>::type);
 						MSE_IMPL_TCRACI_TRY_DYNAMIC_CAST(const _Ty, typename mse::impl::corresponding_type_with_const_target<_TRandomAccessConstIterator1>::type);
 						MSE_IMPL_TCRACI_TRY_DYNAMIC_CAST(const _Ty, typename mse::impl::corresponding_type_with_nonconst_target<_TRandomAccessConstIterator1>::type);
-#if !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
-						MSE_IF_CONSTEXPR(!std::is_const<mse::impl::target_type<typename mse::impl::corresponding_type_with_nonconst_target<_TRandomAccessConstIterator1>::type> >::value) {
-							/* We needed to verify that the type given by mse::impl::corresponding_type_with_nonconst_target<> does in fact have a non-const
-							target type (as mse::impl::corresponding_type_with_nonconst_target<> does not recognize all iterator types). */
-
-							MSE_IMPL_TCRACI_TRY_DYNAMIC_CAST(mse::impl::remove_const_t<_Ty>, typename mse::impl::corresponding_type_with_nonconst_target<_TRandomAccessConstIterator1>::type);
-						}
-#endif // !(defined(_MSC_VER) && !defined(MSE_HAS_CXX17))
 					}
 
 					if (!craci_ptr) {
@@ -1725,6 +1757,7 @@ namespace mse {
 					const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*craci_ptr).m_random_access_const_iterator;
 					return (m_random_access_const_iterator == _Right_cref_m_random_access_const_iterator_cref);
 				}
+				virtual optional1<std::type_info const*> typeid_if_available() const override { return &typeid(*this); }
 
 				auto debug_begin_iter_if_available_helper2(std::true_type) const {
 					typedef decltype(mse::make_begin_iterator(m_random_access_const_iterator.target_container_ptr())) iter_t;
@@ -1818,9 +1851,22 @@ namespace mse {
 					return debug_sequence_span_if_available_helper1(typename mse::impl::is_complete_type<_Ty>::type());
 				}
 #endif // MSE_HAS_CXX20
+				/* This is here just because TCommonizedRandomAccessIterator<> has it and we need to maintain this class as "structurally equivalent"
+				as there may be some `reinterpret_cast<>`s between the two. */
+				optional1<mse::us::impl::ns_any::any> as_a_wrapped_TCommonizedRandomAccessConstIterator_if_available() const override { return mse::us::impl::ns_any::any(*this); }
 
 				_TRandomAccessConstIterator1 m_random_access_const_iterator;
+
+				template <typename T, typename = void>
+				struct IsDynamicCastable : std::false_type {};
+				template <typename T>
+				struct IsDynamicCastable<T, mse::impl::void_t<decltype(dynamic_cast<const TCommonizedRandomAccessConstIterator<mse::impl::remove_const_t<_Ty>, T>*>(&std::declval<const TCommonRandomAccessConstIteratorInterface<_Ty>&>()))> > : std::true_type {};
 			};
+
+			template <typename _Ty, typename _TRandomAccessIterator1>
+			optional1<mse::us::impl::ns_any::any> TCommonizedRandomAccessIterator<_Ty, _TRandomAccessIterator1>::as_a_wrapped_TCommonizedRandomAccessConstIterator_if_available() const {
+				return mse::us::impl::ns_any::any(TCommonizedRandomAccessConstIterator<_Ty, _TRandomAccessIterator1>(m_random_access_iterator));
+			}
 
 			template <typename _Ty>
 			class TAnyRandomAccessConstIteratorBase;
@@ -2070,7 +2116,20 @@ namespace mse {
 				typedef TAnyRandomAccessConstIteratorBase _Myt;
 
 				TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessConstIteratorBase& src) : m_any_random_access_const_iterator(src.m_any_random_access_const_iterator) {}
-				TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessIteratorBase< _Ty>& src) : m_any_random_access_const_iterator(src.m_any_random_access_iterator) {}
+				TAnyRandomAccessConstIteratorBase(const TAnyRandomAccessIteratorBase< _Ty>& src) : m_any_random_access_const_iterator([&]() {
+						/* The value stored in src.m_any_random_access_iterator should be a TCommonizedRandomAccessIterator<>, but the values we store in 
+						m_any_random_access_const_iterator need ot be TCommonizedRandomAccessConstIterator<>s, so we'll request 
+						src.m_any_random_access_iterator to provide the converted value we need. */
+						auto common_ra_iter_interface_cptr = static_cast<const TCommonRandomAccessIteratorInterface<_Ty>*>(src.m_any_random_access_iterator.storage_address());
+						if (common_ra_iter_interface_cptr) {
+							auto maybe_any1 = common_ra_iter_interface_cptr->as_a_wrapped_TCommonizedRandomAccessConstIterator_if_available();
+							if (maybe_any1.has_value()) {
+								return maybe_any1.value();
+							}
+						}
+						assert(false);
+						return src.m_any_random_access_iterator; 
+					}()) {}
 				TAnyRandomAccessConstIteratorBase(const _Ty arr[]) : m_any_random_access_const_iterator(TCommonizedRandomAccessConstIterator<const _Ty, const _Ty*>(arr)) {}
 
 				template <typename _TRandomAccessConstIterator1, MSE_IMPL_EIP mse::impl::enable_if_t<
@@ -2280,7 +2339,11 @@ namespace mse {
 					MSE_IF_DEBUG(m_stale_debug_values = updated_debug_values();)
 				}
 
-				mse::us::impl::ns_any::any m_any_random_access_const_iterator = mse::TRAIterator<mse::TRefCountingPointer<std::array<const _Ty, 0> > >(mse::TRefCountingPointer<std::array<const _Ty, 0> >(), 0);
+				mse::us::impl::ns_any::any m_any_random_access_const_iterator = []() { 
+						assert(false);
+						auto default_iter_value = mse::TRAIterator<mse::TRefCountingPointer<std::array<const _Ty, 0> > >(mse::TRefCountingPointer<std::array<const _Ty, 0> >(), 0);
+						return TCommonizedRandomAccessConstIterator<const _Ty, decltype(default_iter_value)>(default_iter_value);
+					}();
 
 				MSE_IMPL_MEMBER_GETTER_DECLARATIONS(m_any_random_access_const_iterator, contained_any);
 

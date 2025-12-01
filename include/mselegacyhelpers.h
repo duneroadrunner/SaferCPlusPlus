@@ -2061,9 +2061,9 @@ namespace mse {
 		}
 
 		template <typename _udTy, size_t _Size>
-		class TNativeArrayReplacement : public mse::mstd::array<impl::const_preserving_decay_t<_udTy>, _Size> {
+		class TNativeArrayReplacement : public mse::mstd::nd_array<impl::const_preserving_decay_t<_udTy>, _Size> {
 		public:
-			typedef mse::mstd::array<impl::const_preserving_decay_t<_udTy>, _Size> base_class;
+			typedef mse::mstd::nd_array<impl::const_preserving_decay_t<_udTy>, _Size> base_class;
 			typedef impl::const_preserving_decay_t<_udTy> _Ty;
 			using base_class::base_class;
 
@@ -2088,12 +2088,12 @@ namespace mse {
 			explicit operator mse::TXScopeAnyRandomAccessIterator<_Ty>() { return base_class::begin(); }
 			operator mse::TAnyRandomAccessConstIterator<_Ty>() const { return base_class::cbegin(); }
 			explicit operator mse::TXScopeAnyRandomAccessConstIterator<_Ty>() const { return base_class::cbegin(); }
-			operator typename mse::mstd::array<_Ty, _Size>::iterator() {
+			operator typename mse::mstd::nd_array<_Ty, _Size>::iterator() {
 				return base_class::begin();
 			}
 			template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
-				&& (!std::is_same<typename mse::mstd::array<_Ty2, _Size>::const_iterator, typename mse::mstd::array<_Ty2, _Size>::iterator>::value)> MSE_IMPL_EIS >
-			operator typename mse::mstd::array<_Ty, _Size>::const_iterator() const {
+				&& (!std::is_same<typename mse::mstd::nd_array<_Ty2, _Size>::const_iterator, typename mse::mstd::nd_array<_Ty2, _Size>::iterator>::value)> MSE_IMPL_EIS >
+			operator typename mse::mstd::nd_array<_Ty, _Size>::const_iterator() const {
 				return base_class::cbegin();
 			}
 			template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
@@ -2115,7 +2115,7 @@ namespace mse {
 			typename base_class::const_iterator operator+(typename base_class::difference_type n) const { return base_class::cbegin() + n; }
 			typename base_class::const_iterator operator-(typename base_class::difference_type n) const { return base_class::cbegin() - n; }
 			template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
-				&& (!std::is_same<typename mse::mstd::array<_Ty2, _Size>::const_iterator, typename mse::mstd::array<_Ty2, _Size>::iterator>::value)> MSE_IMPL_EIS >
+				&& (!std::is_same<typename mse::mstd::nd_array<_Ty2, _Size>::const_iterator, typename mse::mstd::nd_array<_Ty2, _Size>::iterator>::value)> MSE_IMPL_EIS >
 			typename base_class::difference_type operator-(const typename base_class::const_iterator& _Right_cref) const { return base_class::cbegin() - _Right_cref; }
 
 			typename base_class::const_reference operator*() const { return (*this).at(0); }
@@ -2131,7 +2131,14 @@ namespace mse {
 		};
 
 #define MSE_UNSAFE_LH_LARGE_FIXED_ARRAY_INITIALIZER_HELPER(element_type, size)  std::array<element_type, size>
+	}
 
+	template <typename _udTy, size_t _Size>
+	auto container_size(const mse::lh::TNativeArrayReplacement<_udTy, _Size>& native_array_replacement) {
+		return native_array_replacement.size();
+	}
+
+	namespace lh {
 		namespace impl {
 			template <class _Ty>
 			struct lh_decay : std::decay<_Ty> {};
@@ -6255,7 +6262,14 @@ namespace mse {
 					int q = 5;
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
+				{
+					mse::lh::TNativeArrayReplacement<char, 10> buffer;
+					mse::lh::TLHNullableAnyRandomAccessIterator<char>  p = buffer;
 
+					bool b1 = (p + 3 <= buffer + mse::container_size(buffer));
+					bool b2 = (p <= buffer);
+					int q = 5;
+				}
 #endif // MSE_SELF_TESTS
 			}
 		};

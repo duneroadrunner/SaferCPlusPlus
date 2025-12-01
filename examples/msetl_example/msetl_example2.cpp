@@ -926,6 +926,12 @@ void msetl_example2() {
 			}
 			/* After the xscope_borrowing_fixed_optional<> is gone, we can again access our optional<>. */
 			xs_opt1.reset();
+
+			/* Btw, there is a take() function that will return the value stored in the specified optional and leave 
+			the optional empty. */
+			xs_opt1 = mse::mstd::string("ghi");
+			auto str1 = mse::take(xs_opt1);
+			assert(!xs_opt1.has_value());
 		}
 #endif // !EXCLUDE_DUE_TO_MSVC2019_INTELLISENSE_BUGS1
 		{

@@ -1774,23 +1774,32 @@ namespace mse {
 
 	namespace impl {
 		template<class _TArray>
-		auto container_size_helper2(std::true_type, const _TArray& native_array) {
+		auto container_size_helper3(std::true_type, const _TArray& native_array) {
 			return native_array_size_msemsearray(native_array);
 		}
 		template<class _TArray>
-		auto container_size_helper2(std::false_type, const _TArray& container) {
+		auto container_size_helper3(std::false_type, const _TArray& container) {
 			return container.size();
 		}
 
 		template<class _TArrayPointer>
-		auto container_size_helper(std::true_type, const _TArrayPointer& owner_ptr) {
+		auto container_size_helper2(std::false_type, const _TArrayPointer& owner_ptr) {
 			typedef mse::impl::remove_reference_t<decltype(*owner_ptr)> _TArray;
-			return container_size_helper2(typename mse::impl::IsNativeArray_msemsearray<_TArray>::type(), *owner_ptr);
+			return container_size_helper3(typename mse::impl::IsNativeArray_msemsearray<_TArray>::type(), *owner_ptr);
+		}
+		template<class _TArray>
+		auto container_size_helper2(std::true_type, const _TArray& native_array) {
+			return native_array_size_msemsearray(native_array);
+		}
+
+		template<class _TArrayPointer>
+		auto container_size_helper(std::true_type, const _TArrayPointer& owner_ptr) {
+			return container_size_helper2(typename mse::impl::IsNativeArray_msemsearray<_TArrayPointer>::type(), owner_ptr);
 		}
 		template<class _TArray>
 		auto container_size_helper(std::false_type, const _TArray& container) {
 			/* The parameter doesn't seem to be a pointer. */
-			return container_size_helper2(typename mse::impl::IsNativeArray_msemsearray<_TArray>::type(), container);
+			return container.size();
 		}
 	}
 	template<class _TArrayPointer>
