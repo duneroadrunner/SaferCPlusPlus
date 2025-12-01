@@ -2846,14 +2846,13 @@ namespace mse {
 			return ptr;
 		}
 		template<class _TDynArrayIter>
-		_TDynArrayIter allocate(_TDynArrayIter& ptr, size_t num_bytes) {
+		void allocate(_TDynArrayIter& ptr, size_t num_bytes) {
 			MSE_TRY{
 				impl::allocate_helper1(typename impl::IsSupportedByAllocateOverloaded<_TDynArrayIter>::type(), ptr, num_bytes);
 			}
 			MSE_CATCH_ANY{
-				return _TDynArrayIter();
+				ptr = _TDynArrayIter();
 			}
-			return ptr;
 		}
 		template<class _TDynArrayIter>
 		void free(_TDynArrayIter& ptr) {
@@ -5836,7 +5835,7 @@ namespace mse {
 					citer11 = iter10;
 					iter10 = citer11;
 
-					mse::TRegisteredObj<mse::lh::TStrongVectorIterator<char> > sv_iter_reg1 = mse::lh::allocate(sv_iter_reg1, 4);
+					mse::TRegisteredObj<mse::lh::TStrongVectorIterator<char> > sv_iter_reg1 = mse::lh::allocate_dyn_array1<mse::lh::TStrongVectorIterator<char> >(4 * sizeof(char));
 					mse::lh::strcpy(sv_iter_reg1, "314");
 					mse::lh::TStrongVectorIterator<char> sv_iter2 = sv_iter_reg1;
 					auto val2 = mse::lh::strtoll(sv_iter_reg1, nullptr, 10);
