@@ -2846,13 +2846,14 @@ namespace mse {
 			return ptr;
 		}
 		template<class _TDynArrayIter>
-		void allocate(_TDynArrayIter& ptr, size_t num_bytes) {
+		_TDynArrayIter allocate(_TDynArrayIter& ptr, size_t num_bytes) {
 			MSE_TRY{
 				impl::allocate_helper1(typename impl::IsSupportedByAllocateOverloaded<_TDynArrayIter>::type(), ptr, num_bytes);
 			}
 			MSE_CATCH_ANY{
-				ptr = _TDynArrayIter();
+				return _TDynArrayIter();
 			}
+			return ptr;
 		}
 		template<class _TDynArrayIter>
 		void free(_TDynArrayIter& ptr) {
