@@ -145,8 +145,8 @@
 #define MSE_LH_SUPPRESS_CHECK_IN_DECLSCOPE
 #endif // !MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 
-#define MSE_LH_IF_ENABLED(x)
-#define MSE_LH_IF_DISABLED(x) x
+#define MSE_LH_IF_ENABLED(...)
+#define MSE_LH_IF_DISABLED(...) __VA_ARGS__
 
 #else /*MSE_LEGACYHELPERS_DISABLED*/
 
@@ -246,8 +246,8 @@ MSE_LH_POINTER_TYPE doesn't. (Including raw pointers.) */
 #endif // !MSE_LH_SUPPRESS_CHECK_IN_XSCOPE
 
 
-#define MSE_LH_IF_ENABLED(x) x
-#define MSE_LH_IF_DISABLED(x)
+#define MSE_LH_IF_ENABLED(...) __VA_ARGS__
+#define MSE_LH_IF_DISABLED(...)
 
 namespace mse {
 	typedef intptr_t lh_ssize_t;
@@ -2139,6 +2139,26 @@ namespace mse {
 	}
 
 	namespace lh {
+		template <typename _Ty>
+		struct corresponding_native_array {};
+
+		template <typename _Ty, size_t _Size>
+		struct corresponding_native_array<_Ty[_Size]> {
+			typedef _Ty type[_Size];
+		};
+
+		template <typename _Ty, size_t _Size>
+		struct corresponding_native_array<TNativeArrayReplacement<_Ty, _Size> > {
+			typedef _Ty type[_Size];
+		};
+		template <typename _Ty, size_t _Size>
+		struct corresponding_native_array<const TNativeArrayReplacement<_Ty, _Size> > {
+			typedef const _Ty type[_Size];
+		};
+
+		template <typename _Ty>
+		using corresponding_native_array_t = typename corresponding_native_array<mse::impl::remove_reference_t<_Ty> >::type;
+
 		namespace impl {
 			template <class _Ty>
 			struct lh_decay : std::decay<_Ty> {};
