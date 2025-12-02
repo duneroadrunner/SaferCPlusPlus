@@ -2140,24 +2140,26 @@ namespace mse {
 
 	namespace lh {
 		template <typename _Ty>
-		struct corresponding_native_array {};
+		struct adjusted_for_sizeof {
+			typedef _Ty type;
+		};
 
 		template <typename _Ty, size_t _Size>
-		struct corresponding_native_array<_Ty[_Size]> {
+		struct adjusted_for_sizeof<_Ty[_Size]> {
 			typedef _Ty type[_Size];
 		};
 
 		template <typename _Ty, size_t _Size>
-		struct corresponding_native_array<TNativeArrayReplacement<_Ty, _Size> > {
+		struct adjusted_for_sizeof<TNativeArrayReplacement<_Ty, _Size> > {
 			typedef _Ty type[_Size];
 		};
 		template <typename _Ty, size_t _Size>
-		struct corresponding_native_array<const TNativeArrayReplacement<_Ty, _Size> > {
+		struct adjusted_for_sizeof<const TNativeArrayReplacement<_Ty, _Size> > {
 			typedef const _Ty type[_Size];
 		};
 
 		template <typename _Ty>
-		using corresponding_native_array_t = typename corresponding_native_array<mse::impl::remove_reference_t<_Ty> >::type;
+		using adjusted_for_sizeof_t = typename adjusted_for_sizeof<mse::impl::remove_reference_t<_Ty> >::type;
 
 		namespace impl {
 			template <class _Ty>
