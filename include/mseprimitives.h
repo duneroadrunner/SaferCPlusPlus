@@ -221,7 +221,16 @@ namespace mse {
 		CNDBool& operator=(const CNDBool &x) { note_value_assignment(); m_val = x.m_val; return (*this); }
 
 		// Constructors from primitive boolean types
-		CNDBool(bool   x) { note_value_assignment(); m_val = x; }
+		CNDBool(bool x) { 
+			note_value_assignment();
+#ifndef NDEBUG
+			if (!((true == x) || (false == x))) {
+				MSE_THROW(primitives_range_error("error - Attempt to initialize with a bool value that is neither (exactly) true nor false. (Presumably uninitialized?) - CNDBool(bool x)"));
+			}
+#endif // !NDEBUG
+
+			(!x) ? m_val = false : m_val = true;
+		}
 
 		// Casts to primitive boolean types
 		operator bool() const { assert_initialized(); return m_val; }
