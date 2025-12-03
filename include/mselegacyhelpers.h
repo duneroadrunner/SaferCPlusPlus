@@ -5279,14 +5279,14 @@ namespace mse {
 			(otherwise unused) second (`mse::lh::TNativeFunctionPointerReplacement<>`) parameter. */
 			template< typename TWrappee, typename TWrapperRet, typename... TArgs>
 			auto unsafe_make_fn_wrapper(const TWrappee& wrappee, mse::lh::TNativeFunctionPointerReplacement<TWrapperRet(TArgs...)>) {
-				auto retval = [wrappee](TArgs... args) { return TWrapperRet(impl::ns_fn_wrapper::casted_retval<TWrapperRet>(wrappee(impl::ns_fn_wrapper::casted_arg(args)...))); };
+				auto retval = [wrappee](TArgs... args) -> TWrapperRet { return TWrapperRet(impl::ns_fn_wrapper::casted_retval<TWrapperRet>(wrappee(impl::ns_fn_wrapper::casted_arg(args)...))); };
 				return retval;
 			}
 
 			/* Overload for functions that return void. */
 			template< typename TWrappee, typename... TArgs>
 			auto unsafe_make_fn_wrapper(const TWrappee& wrappee, mse::lh::TNativeFunctionPointerReplacement<void(TArgs...)>) {
-				auto retval = [wrappee](TArgs... args) { wrappee(impl::ns_fn_wrapper::casted_arg(args)...); };
+				auto retval = [wrappee](TArgs... args) -> void { wrappee(impl::ns_fn_wrapper::casted_arg(args)...); };
 				return retval;
 			}
 
@@ -5356,7 +5356,7 @@ namespace mse {
 					tl_first_run = false;
 					tl_wrappee_fnptr1 = wrappee_fnptr;
 
-					auto retval = [](TArgs... args) noexcept {
+					auto retval = [](TArgs... args) noexcept -> TWrapperRet {
 						thread_local TWrappeeFnPtr tl_wrappee_fnptr2 = tl_wrappee_fnptr1;
 						return TWrapperRet(ns_raw_fn_wrapper::casted_retval<TWrapperRet>(tl_wrappee_fnptr2(ns_raw_fn_wrapper::casted_arg(args)...)));
 						};
@@ -5377,7 +5377,7 @@ namespace mse {
 					tl_first_run = false;
 					tl_wrappee_fnptr1 = wrappee_fnptr;
 
-					auto retval = [](TArgs... args) noexcept {
+					auto retval = [](TArgs... args) noexcept -> void {
 						thread_local TWrappeeFnPtr tl_wrappee_fnptr2 = tl_wrappee_fnptr1;
 						tl_wrappee_fnptr2(ns_raw_fn_wrapper::casted_arg(args)...);
 						};
