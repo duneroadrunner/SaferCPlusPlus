@@ -2158,6 +2158,10 @@ namespace mse {
 			typedef const _Ty type[_Size];
 		};
 
+		/* This template type is meant to be used wrap and adjust the type argument when using the `sizeof` operator. Specifically, 
+		it maps `TNativeArrayReplacement<>`s to their corresponding native array so that 
+		`sizeof(adjusted_for_sizeof_t<TNativeArrayReplacement<> >)` will return the size of the contents of the 
+		`TNativeArrayReplacement<>` rather the size of the container itself. */
 		template <typename _Ty>
 		using adjusted_for_sizeof_t = typename adjusted_for_sizeof<mse::impl::remove_reference_t<_Ty> >::type;
 
@@ -4841,10 +4845,18 @@ namespace mse {
 			}
 			template<typename _Ty>
 			_Ty unsafe_cast(const mse::lh::void_star_replacement& x) {
+				auto maybe_Ty = mse::lh::impl::maybe_any_cast_of_explicitly_castable_any<_Ty>(x);
+				if (maybe_Ty.has_value()) {
+					return maybe_Ty.value();
+				}
 				return unsafe_cast<_Ty>(const_cast<void*>(x.m_shadow_void_const_ptr));
 			}
 			template<typename _Ty>
 			_Ty unsafe_cast(const mse::lh::const_void_star_replacement& x) {
+				auto maybe_Ty = mse::lh::impl::maybe_any_cast_of_explicitly_castable_any<_Ty>(x);
+				if (maybe_Ty.has_value()) {
+					return maybe_Ty.value();
+				}
 				return unsafe_cast<_Ty>(const_cast<void const*>(x.m_shadow_void_const_ptr));
 			}
 			namespace impl {
