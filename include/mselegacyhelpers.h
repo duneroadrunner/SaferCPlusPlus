@@ -4880,17 +4880,20 @@ namespace mse {
 			template<typename _Ty>
 			auto make_raw_pointer_from(_Ty const& ptr) {
 				static const bool b1 = (std::is_base_of<mse::lh::void_star_replacement, _Ty>::value || std::is_base_of<mse::lh::const_void_star_replacement, _Ty>::value);
-				return impl::make_raw_pointer_from_helper1(typename std::integral_constant<bool, b1>::type(), ptr);
+				return impl::make_raw_pointer_from_helper1(typename std::integral_constant<bool, b1>::type(), mse::lh::impl::as_lh_decayed(ptr));
 			}
 			template<typename _Ty>
 			auto make_raw_pointer_from(_Ty& ptr) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr))) {
 				/* Note that, for example, in the case of mse::lh::TNativeArrayReplacement<>, its "operator*()" and "operator*() const"
-				return different types. (Specifically, they return types that differ by a const qualifier.) */
-				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
+				return different types. (Specifically, they return types that differ by a const qualifier.) This is reflected in the 
+				return value of lh::impl::as_lh_decayed() */
+				static const bool b1 = (std::is_base_of<mse::lh::void_star_replacement, _Ty>::value || std::is_base_of<mse::lh::const_void_star_replacement, _Ty>::value);
+				return impl::make_raw_pointer_from_helper1(typename std::integral_constant<bool, b1>::type(), mse::lh::impl::as_lh_decayed(ptr));
 			}
 			template<typename _Ty>
 			auto make_raw_pointer_from(_Ty&& ptr) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr))) {
-				return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(MSE_FWD(ptr));
+				static const bool b1 = (std::is_base_of<mse::lh::void_star_replacement, _Ty>::value || std::is_base_of<mse::lh::const_void_star_replacement, _Ty>::value);
+				return impl::make_raw_pointer_from_helper1(typename std::integral_constant<bool, b1>::type(), mse::lh::impl::as_lh_decayed(MSE_FWD(ptr)));
 			}
 
 			/* An iterator pointing into a container of (other) iterators can't be directly converted to a raw pointer iterator
