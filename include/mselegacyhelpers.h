@@ -801,10 +801,17 @@ namespace mse {
 	}
 	namespace us {
 		namespace lh {
-			template <typename _Tx = void, typename _Ty = void>
-			auto unsafe_make_lh_nullable_any_pointer_from(_Ty* ptr) {
-				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, _Ty, _Tx> _Tx2;
-				return mse::lh::TLHNullableAnyPointer<_Tx2>(mse::us::TSaferPtrForLegacy<_Tx2>(ptr));
+			namespace impl {
+				template <typename _Tx = void, typename _Ty = void>
+				auto unsafe_make_lh_nullable_any_pointer_from_helper1(std::false_type, _Ty* ptr) {
+					typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, _Ty, _Tx> _Tx2;
+					return mse::lh::TLHNullableAnyPointer<_Tx2>(mse::us::TSaferPtrForLegacy<_Tx2>(ptr));
+				}
+				template <typename _Tx = void, typename _Ty = void>
+				auto unsafe_make_lh_nullable_any_pointer_from_helper1(std::true_type, _Ty* ptr) {
+					typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, _Ty, _Tx> _Tx2;
+					return mse::lh::TLHNullableAnyPointer<_Tx2>(mse::us::TSaferPtrForLegacy<_Tx2>(ptr));
+				}
 			}
 			template <typename _Tx = void, typename _Ty = void>
 			auto unsafe_make_lh_nullable_any_pointer_from(const _Ty& ptr) {
@@ -822,6 +829,11 @@ namespace mse {
 			auto unsafe_make_lh_nullable_any_pointer_from(_Ty&& ptr) {
 				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, mse::impl::target_type<_Ty>, _Tx> _Tx2;
 				return mse::lh::TLHNullableAnyPointer<_Tx2>(MSE_FWD(ptr));
+			}
+			template <typename _Tx = void, typename _Ty = void>
+			auto unsafe_make_lh_nullable_any_pointer_from(_Ty* ptr) {
+				typedef mse::impl::conditional_t<std::is_same<_Tx, void>::value, _Ty, _Tx> _Tx2;
+				return mse::lh::TLHNullableAnyPointer<_Tx2>(mse::us::TSaferPtrForLegacy<_Tx2>(ptr));
 			}
 		}
 	}
@@ -4693,6 +4705,12 @@ namespace mse {
 	}
 	namespace us {
 		namespace lh {
+			inline auto unsafe_make_lh_nullable_any_pointer_from(void* ptr) {
+				return mse::lh::void_star_replacement(ptr);
+			}
+			inline auto unsafe_make_lh_nullable_any_pointer_from(void const* ptr) {
+				return mse::lh::const_void_star_replacement(ptr);
+			}
 
 			/* "C-style" (unsafe) casts can convert a native pointer to a native pointer to an incompatible type. It cannot
 			convert an object that is not a native pointer(/reference) to an object of incompatible type. The "safe"
