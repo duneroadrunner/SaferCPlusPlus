@@ -3184,15 +3184,15 @@ namespace mse {
 				}
 
 				_Ty& operator*() const {
-					if (m_is_null) { MSE_THROW(std::logic_error("attempting to derference a null value  - TNullableAnyRandomAccessIteratorBase")); }
+					if (m_is_null) { MSE_THROW(std::logic_error("attempting to dereference a null value  - TNullableAnyRandomAccessIteratorBase")); }
 					return *m_iter;
 				}
 				_Ty* operator->() const {
-					if (m_is_null) { MSE_THROW(std::logic_error("attempting to derference a null value  - TNullableAnyRandomAccessIteratorBase")); }
+					if (m_is_null) { MSE_THROW(std::logic_error("attempting to dereference a null value  - TNullableAnyRandomAccessIteratorBase")); }
 					return m_iter.operator->();
 				}
 				reference operator[](difference_type _Off) const {
-					if (m_is_null) { MSE_THROW(std::logic_error("attempting to derference a null value  - TNullableAnyRandomAccessIteratorBase")); }
+					if (m_is_null) { MSE_THROW(std::logic_error("attempting to dereference a null value  - TNullableAnyRandomAccessIteratorBase")); }
 					return m_iter.operator[](_Off);
 				}
 				void operator +=(difference_type x) {
