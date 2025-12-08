@@ -101,6 +101,7 @@
 #define MSE_LH_STRCMP(destination, source) strcmp(destination, source)
 #define MSE_LH_STRNCMP(destination, source, count) strncmp(destination, source, count)
 #define MSE_LH_STRCHR(iter, ch) strchr(iter, ch)
+#define MSE_LH_STRRCHR(iter, ch) strrchr(iter, ch)
 #define MSE_LH_STRTOL(str, pointer_to_end_iterator, base) strtol(str, (char **)pointer_to_end_iterator, base)
 #define MSE_LH_STRTOUL(str, pointer_to_end_iterator, base) strtoul(str, (char **)pointer_to_end_iterator, base)
 #define MSE_LH_STRTOLL(str, pointer_to_end_iterator, base) strtoll(str, (char **)pointer_to_end_iterator, base)
@@ -200,6 +201,7 @@ otherwise more flexible) MSE_LH_ARRAY_ITERATOR_TYPE doesn't. */
 #define MSE_LH_STRCMP(destination, source) mse::lh::strcmp(destination, source)
 #define MSE_LH_STRNCMP(destination, source, count) mse::lh::strncmp(destination, source, count)
 #define MSE_LH_STRCHR(iter, ch) mse::lh::strchr(iter, ch)
+#define MSE_LH_STRRCHR(iter, ch) mse::lh::strrchr(iter, ch)
 #define MSE_LH_STRTOL(str, pointer_to_end_iterator, base) mse::lh::strtol(str, pointer_to_end_iterator, base)
 #define MSE_LH_STRTOUL(str, pointer_to_end_iterator, base) mse::lh::strtoul(str, pointer_to_end_iterator, base)
 #define MSE_LH_STRTOLL(str, pointer_to_end_iterator, base) mse::lh::strtoll(str, pointer_to_end_iterator, base)
@@ -3781,12 +3783,14 @@ namespace mse {
 					if (!iter) {
 						return nullptr;
 					}
-					const auto in_rawptr = (const char *)std::addressof(*iter);
-					auto res_rawptr = (const char*)(::memchr(in_rawptr, ch, count));
-					if (!res_rawptr) {
-						return nullptr;
+					const char ch2 = (char)ch;
+					auto iter2 = iter;
+					for (size_t i = 0; count > i; i += 1, ++iter2) {
+						if (ch2 == *iter2) {
+							return iter2;
+						}
 					}
-					return iter + (res_rawptr - in_rawptr);
+					return nullptr;
 				}
 
 				template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(mse::impl::target_or_given_default_type<_TCharIter, long int>))> MSE_IMPL_EIS >
@@ -3822,12 +3826,71 @@ namespace mse {
 		template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(mse::impl::target_or_given_default_type<_TCharIter, long int>))
 			|| std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value || std::is_base_of<mse::lh::const_void_star_replacement, _TCharIter>::value> MSE_IMPL_EIS >
 		auto strchr(const _TCharIter& iter, int ch) {
-			return memchr(iter, ch, strlen(iter));
+			return memchr(iter, ch, 1 + strlen(iter));
 		}
 		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::strchr(). */
 		template <class _TElement, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(_TElement))> MSE_IMPL_EIS >
 		auto strchr(_TElement* iter, int ch) {
-			return memchr(iter, ch, strlen(iter));
+			return memchr(iter, ch, 1 + strlen(iter));
+		}
+
+		namespace impl {
+			namespace ns_memrchr {
+				template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(mse::impl::target_or_given_default_type<_TCharIter, long int>))> MSE_IMPL_EIS >
+				mse::lh::TLHNullableAnyRandomAccessIterator<mse::impl::target_or_void_type<_TCharIter> > memrchr_helper3(const _TCharIter& iter, int ch, size_t count) {
+					if ((!iter) || (1 > count)) {
+						return nullptr;
+					}
+					const char ch2 = (char)ch;
+					auto iter2 = iter + (count - 1);
+					for (size_t i = 0; count > i; i += 1, --iter2) {
+						if (ch2 == *iter2) {
+							return iter2;
+						}
+					}
+					return nullptr;
+				}
+
+				template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(mse::impl::target_or_given_default_type<_TCharIter, long int>))> MSE_IMPL_EIS >
+				auto memrchr_helper2(std::false_type, const _TCharIter& iter, int ch, size_t count) {
+					return memrchr_helper3(iter, ch, count);
+				}
+				template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value || std::is_base_of<mse::lh::const_void_star_replacement, _TCharIter>::value> MSE_IMPL_EIS >
+				auto memrchr_helper2(std::true_type, const _TCharIter& iter, int ch, size_t count) {
+					typedef mse::impl::conditional_t<std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value, char, const char> target_type1;
+					return memrchr_helper3((mse::lh::TLHNullableAnyRandomAccessIterator<target_type1>)iter, ch, count);
+				}
+			}
+		}
+		/* Memory safe approximation of memrchr(). Which seems not to actually be a thing in the standard library, but anyway 
+		it's used by strrchr(), which is a thing in the standard library. */
+		template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(mse::impl::target_or_given_default_type<_TCharIter, long int>))
+			|| std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value || std::is_base_of<mse::lh::const_void_star_replacement, _TCharIter>::value> MSE_IMPL_EIS >
+		auto memrchr(const _TCharIter& iter, int ch, size_t count) {
+			return impl::ns_memrchr::memrchr_helper2(typename std::integral_constant<bool, std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value || std::is_base_of<mse::lh::const_void_star_replacement, _TCharIter>::value>::type(), iter, ch, count);
+		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memrchr(). */
+		template <class _TElement, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(_TElement))> MSE_IMPL_EIS >
+		auto memrchr(_TElement* iter, int ch, size_t count) {
+			return impl::ns_memrchr::memrchr_helper2(std::false_type(), iter, ch, count);
+		}
+		/* And similarly, his overload is to allow native array replacements to decay to a (safe) iterator. */
+		template<class _udTy, size_t _Size, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(_udTy))> MSE_IMPL_EIS >
+		auto memrchr(TNativeArrayReplacement<_udTy, _Size>& nar, int ch, size_t count) {
+			typedef impl::const_preserving_decay_t<_udTy> _Ty;
+			mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> iter = nar;
+			return memrchr(iter, ch, count);
+		}
+		/* Memory safe approximation of strrchr(). */
+		template <class _TCharIter, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(mse::impl::target_or_given_default_type<_TCharIter, long int>))
+			|| std::is_base_of<mse::lh::void_star_replacement, _TCharIter>::value || std::is_base_of<mse::lh::const_void_star_replacement, _TCharIter>::value> MSE_IMPL_EIS >
+		auto strrchr(const _TCharIter& iter, int ch) {
+			return memrchr(iter, ch, 1 + strlen(iter));
+		}
+		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::strrchr(). */
+		template <class _TElement, MSE_IMPL_EIP mse::impl::enable_if_t<(sizeof(char) == sizeof(_TElement))> MSE_IMPL_EIS >
+		auto strrchr(_TElement* iter, int ch) {
+			return memrchr(iter, ch, 1 + strlen(iter));
 		}
 
 		template<typename TPointerToCharBuffer, typename TPointerToSize_t, MSE_IMPL_EIP mse::impl::enable_if_t<(mse::impl::IsDereferenceable_pb<TPointerToCharBuffer>::value) || (mse::impl::IsDereferenceable_pb<TPointerToSize_t>::value)> MSE_IMPL_EIS >
@@ -6438,6 +6501,12 @@ namespace mse {
 						printf("Found '%c' starting at '%s'\n", target, mse::us::lh::make_raw_pointer_from(result2));
 						++result2; // Increment result, otherwise we'll find target at the same location
 					}
+				}
+				{
+					mse::lh::TLHNullableAnyRandomAccessIterator<const char> szSomeFileName = "foo/bar/foobar.txt";
+					auto pLastSlash = mse::lh::strrchr(szSomeFileName, '/');
+					auto pszBaseName = pLastSlash ? pLastSlash + 1 : szSomeFileName;
+					std::cout << "Base Name: " << mse::us::lh::make_raw_pointer_from(pszBaseName) << " \n";
 				}
 				{
 					struct CB {
