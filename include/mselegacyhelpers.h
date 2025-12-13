@@ -5029,27 +5029,54 @@ namespace mse {
 				namespace ns_unsafe_cast {
 
 					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper14(std::false_type, const _Ty2& x) {
+						return (_Ty const&)(x);
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper14(std::true_type, const _Ty2& x) {
+						return _Ty((mse::impl::target_type<_Ty>*)((void*)(x)));
+					}
+
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper13(std::false_type, const _Ty2& x) {
+						/* If void* is constructible from the argument or the argument is of an integral type, then we'll cast the argument 
+						to a void* as an intermediate step. */
+						return unsafe_cast_helper14<_Ty>(typename mse::impl::disjunction<std::is_constructible<void*, _Ty2>, std::is_integral<_Ty2> >::type(), x);
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper13(std::true_type, const _Ty2& x) {
+						return _Ty((mse::impl::target_type<_Ty>*)std::addressof(*x));
+					}
+
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper12(std::true_type, const _Ty2& x) {
+						if (x) {
+							return unsafe_cast_helper13<_Ty>(typename mse::impl::IsDereferenceable_pb<_Ty2>::type(), x);
+						}
+						return _Ty((mse::impl::target_type<_Ty>*)nullptr);
+					}
+					template<typename _Ty, typename _Ty2>
+					_Ty unsafe_cast_helper12(std::false_type, const _Ty2& x) {
+						return unsafe_cast_helper13<_Ty>(typename mse::impl::IsDereferenceable_pb<_Ty2>::type(), x);
+					}
+
+					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper11(std::false_type, const _Ty2& x) {
 						return (_Ty const&)(x);
 					}
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper11(std::true_type, const _Ty2& x) {
-						/* So both _Ty and _Ty2 are dereferenceable, and _Ty is constructible from a raw pointer. So rather than hard/reinterpret cast 
-						from the parameter, of type _Ty2, to (presumably incompatible type) _Ty, it might be less dangerous to construct a raw pointer 
-						to the parameter's target object, hard cast that raw pointer to a raw pointer that targets the same type as _Ty does, then 
-						construct a _Ty object from that raw pointer. */
-						if (x) {
-							return _Ty((mse::impl::target_type<_Ty>*)std::addressof(*x));
-						}
-						return _Ty((mse::impl::target_type<_Ty>*)nullptr);
+						/* _Ty is not constructible from _Ty2, but seems to be constructible from a raw pointer. So, if _Ty2 is amenable to 
+						conversion to a raw pointer, then rather than hard/reinterpret cast from the parameter, of type _Ty2, to (presumably 
+						incompatible type) _Ty, it might be less dangerous to convert the parameter to a raw pointer, then hard cast that 
+						raw pointer to a raw pointer that targets the same type as _Ty does (or void), then construct a _Ty object from that 
+						raw pointer. */
+						return unsafe_cast_helper12<_Ty>(typename mse::impl::IsNullable_msemsearray<_Ty2>::type(), x);
 					}
 
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper10(std::false_type, const _Ty2& x) {
-						return unsafe_cast_helper11<_Ty>(typename mse::impl::conjunction<
-							mse::impl::IsNullable_msemsearray<_Ty2>, mse::impl::IsDereferenceable_pb<_Ty2>, mse::impl::IsDereferenceable_pb<_Ty>
-							, std::is_constructible<_Ty, mse::impl::target_or_void_type<_Ty>*> 
-						>::type(), x);
+						return unsafe_cast_helper11<_Ty>(typename std::is_constructible<_Ty, mse::impl::target_or_void_type<_Ty>*>::type(), x);
 					}
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper10(std::true_type, const _Ty2& x) {
