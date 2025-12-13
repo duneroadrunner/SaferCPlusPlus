@@ -757,16 +757,29 @@ namespace mse {
 
 	/* template specializations */
 
+#define MSE_NDCREGISTERED_IMPL_OBJ_INHERIT_ADDRESSOF_OPERATOR(class_name, specified_type) \
+	TNDCRegisteredNotNullPointer<specified_type> operator&() { \
+		return base_class::operator&(); \
+	} \
+	TNDCRegisteredNotNullConstPointer<specified_type> operator&() const { \
+		return base_class::operator&(); \
+	} \
+	TNDCRegisteredNotNullPointer<specified_type> mse_cregistered_nnptr() { return base_class::mse_cregistered_nnptr(); } \
+	TNDCRegisteredNotNullConstPointer<specified_type> mse_cregistered_nnptr() const { return base_class::mse_cregistered_nnptr(); } \
+	TNDCRegisteredFixedPointer<specified_type> mse_cregistered_fptr() { return base_class::mse_cregistered_fptr(); } \
+	TNDCRegisteredFixedConstPointer<specified_type> mse_cregistered_fptr() const { return base_class::mse_cregistered_fptr(); }
+
 #define MSE_NDCREGISTERED_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name) \
 		auto& operator=(class_name&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); } \
 		auto& operator=(const class_name& _X) { base_class::operator=(_X); return (*this); } \
 		template<class _Ty2> auto& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); } \
 		template<class _Ty2> auto& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
-#define MSE_NDCREGISTERED_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(class_name) \
+#define MSE_NDCREGISTERED_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(class_name, specified_type) \
 		class_name(const class_name&) = default; \
 		class_name(class_name&&) = default; \
-		MSE_NDCREGISTERED_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name);
+		MSE_NDCREGISTERED_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name); \
+		MSE_NDCREGISTERED_IMPL_OBJ_INHERIT_ADDRESSOF_OPERATOR(class_name, specified_type);
 
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 #define MSE_NDCREGISTERED_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name) \
@@ -784,7 +797,7 @@ namespace mse {
 		public: \
 			typedef TNDCRegisteredObj<mapped_type> base_class; \
 			MSE_USING(TNDCRegisteredObj, base_class); \
-			MSE_NDCREGISTERED_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TNDCRegisteredObj); \
+			MSE_NDCREGISTERED_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TNDCRegisteredObj, specified_type); \
 		private: \
 			MSE_NDCREGISTERED_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(TNDCRegisteredObj); \
 		};
@@ -795,36 +808,45 @@ namespace mse {
 		public: \
 			typedef TNDCRegisteredPointer<mapped_type> base_class; \
 			MSE_USING(TNDCRegisteredPointer, base_class); \
+			TNDCRegisteredPointer(const TNDCRegisteredPointer&) = default; \
 		}; \
 		template<typename _Ty> \
 		class TNDCRegisteredConstPointer<specified_type> : public TNDCRegisteredConstPointer<mapped_type> { \
 		public: \
 			typedef TNDCRegisteredConstPointer<mapped_type> base_class; \
 			MSE_USING(TNDCRegisteredConstPointer, base_class); \
+			TNDCRegisteredConstPointer(const TNDCRegisteredConstPointer&) = default; \
+			TNDCRegisteredConstPointer(const TNDCRegisteredPointer<_Ty>& src_cref) : base_class(src_cref) {} \
 		}; \
 		template<typename _Ty> \
 		class TNDCRegisteredNotNullPointer<specified_type> : public TNDCRegisteredNotNullPointer<mapped_type> { \
 		public: \
 			typedef TNDCRegisteredNotNullPointer<mapped_type> base_class; \
 			MSE_USING(TNDCRegisteredNotNullPointer, base_class); \
+			TNDCRegisteredNotNullPointer(const TNDCRegisteredNotNullPointer&) = default; \
 		}; \
 		template<typename _Ty> \
 		class TNDCRegisteredNotNullConstPointer<specified_type> : public TNDCRegisteredNotNullConstPointer<mapped_type> { \
 		public: \
 			typedef TNDCRegisteredNotNullConstPointer<mapped_type> base_class; \
 			MSE_USING(TNDCRegisteredNotNullConstPointer, base_class); \
+			TNDCRegisteredNotNullConstPointer(const TNDCRegisteredNotNullConstPointer&) = default; \
+			TNDCRegisteredNotNullConstPointer(const TNDCRegisteredNotNullPointer<_Ty>& src_cref) : base_class(src_cref) {} \
 		}; \
 		template<typename _Ty> \
 		class TNDCRegisteredFixedPointer<specified_type> : public TNDCRegisteredFixedPointer<mapped_type> { \
 		public: \
 			typedef TNDCRegisteredFixedPointer<mapped_type> base_class; \
 			MSE_USING(TNDCRegisteredFixedPointer, base_class); \
+			TNDCRegisteredFixedPointer(const TNDCRegisteredFixedPointer&) = default; \
 		}; \
 		template<typename _Ty> \
 		class TNDCRegisteredFixedConstPointer<specified_type> : public TNDCRegisteredFixedConstPointer<mapped_type> { \
 		public: \
 			typedef TNDCRegisteredFixedConstPointer<mapped_type> base_class; \
 			MSE_USING(TNDCRegisteredFixedConstPointer, base_class); \
+			TNDCRegisteredFixedConstPointer(const TNDCRegisteredFixedConstPointer&) = default; \
+			TNDCRegisteredFixedConstPointer(const TNDCRegisteredFixedPointer<_Ty>& src_cref) : base_class(src_cref) {} \
 		};
 
 #define MSE_NDCREGISTERED_IMPL_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
@@ -842,6 +864,7 @@ namespace mse {
 		public: \
 			typedef TNDCRegisteredObj<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDCRegisteredObj, base_class); \
+			MSE_NDCREGISTERED_IMPL_OBJ_INHERIT_ADDRESSOF_OPERATOR(TNDCRegisteredObj, arithmetic_type); \
 		};
 
 #define MSE_NDCREGISTERED_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
@@ -850,36 +873,45 @@ namespace mse {
 		public: \
 			typedef TNDCRegisteredPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDCRegisteredPointer, base_class); \
+			TNDCRegisteredPointer(const TNDCRegisteredPointer&) = default; \
 		}; \
 		template<> \
 		class TNDCRegisteredConstPointer<arithmetic_type> : public TNDCRegisteredConstPointer<template_wrapper<arithmetic_type>> { \
 		public: \
 			typedef TNDCRegisteredConstPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDCRegisteredConstPointer, base_class); \
+			TNDCRegisteredConstPointer(const TNDCRegisteredConstPointer&) = default; \
+			TNDCRegisteredConstPointer(const TNDCRegisteredPointer<arithmetic_type>& src_cref) : base_class(src_cref) {} \
 		}; \
 		template<> \
 		class TNDCRegisteredNotNullPointer<arithmetic_type> : public TNDCRegisteredNotNullPointer<template_wrapper<arithmetic_type>> { \
 		public: \
 			typedef TNDCRegisteredNotNullPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDCRegisteredNotNullPointer, base_class); \
+			TNDCRegisteredNotNullPointer(const TNDCRegisteredNotNullPointer&) = default; \
 		}; \
 		template<> \
 		class TNDCRegisteredNotNullConstPointer<arithmetic_type> : public TNDCRegisteredNotNullConstPointer<template_wrapper<arithmetic_type>> { \
 		public: \
 			typedef TNDCRegisteredNotNullConstPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDCRegisteredNotNullConstPointer, base_class); \
+			TNDCRegisteredNotNullConstPointer(const TNDCRegisteredNotNullConstPointer&) = default; \
+			TNDCRegisteredNotNullConstPointer(const TNDCRegisteredNotNullPointer<arithmetic_type>& src_cref) : base_class(src_cref) {} \
 		}; \
 		template<> \
 		class TNDCRegisteredFixedPointer<arithmetic_type> : public TNDCRegisteredFixedPointer<template_wrapper<arithmetic_type>> { \
 		public: \
 			typedef TNDCRegisteredFixedPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDCRegisteredFixedPointer, base_class); \
+			TNDCRegisteredFixedPointer(const TNDCRegisteredFixedPointer&) = default; \
 		}; \
 		template<> \
 		class TNDCRegisteredFixedConstPointer<arithmetic_type> : public TNDCRegisteredFixedConstPointer<template_wrapper<arithmetic_type>> { \
 		public: \
 			typedef TNDCRegisteredFixedConstPointer<template_wrapper<arithmetic_type>> base_class; \
 			MSE_USING(TNDCRegisteredFixedConstPointer, base_class); \
+			TNDCRegisteredFixedConstPointer(const TNDCRegisteredFixedConstPointer&) = default; \
+			TNDCRegisteredFixedConstPointer(const TNDCRegisteredFixedPointer<arithmetic_type>& src_cref) : base_class(src_cref) {} \
 		};
 
 #define MSE_NDCREGISTERED_IMPL_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \

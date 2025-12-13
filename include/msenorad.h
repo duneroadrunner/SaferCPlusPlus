@@ -803,16 +803,29 @@ namespace mse {
 
 			/* template specializations */
 
+#define MSE_GNORAD_IMPL_OBJ_INHERIT_ADDRESSOF_OPERATOR(class_name, specified_type) \
+	TGNoradNotNullPointer<specified_type, _TRefCounter> operator&() { \
+		return base_class::operator&(); \
+	} \
+	TGNoradNotNullConstPointer<specified_type, _TRefCounter> operator&() const { \
+		return base_class::operator&(); \
+	} \
+	TGNoradNotNullPointer<specified_type, _TRefCounter> mse_norad_nnptr() { return base_class::mse_norad_nnptr(); } \
+	TGNoradNotNullConstPointer<specified_type, _TRefCounter> mse_norad_nnptr() const { return base_class::mse_norad_nnptr(); } \
+	TGNoradFixedPointer<specified_type, _TRefCounter> mse_norad_fptr() { return base_class::mse_norad_fptr(); } \
+	TGNoradFixedConstPointer<specified_type, _TRefCounter> mse_norad_fptr() const { return base_class::mse_norad_fptr(); }
+
 #define MSE_GNORAD_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name) \
 		auto& operator=(class_name&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); } \
 		auto& operator=(const class_name& _X) { base_class::operator=(_X); return (*this); } \
 		template<class _Ty2> auto& operator=(_Ty2&& _X) { base_class::operator=(MSE_FWD(_X)); return (*this); } \
 		template<class _Ty2> auto& operator=(const _Ty2& _X) { base_class::operator=(_X); return (*this); }
 
-#define MSE_GNORAD_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(class_name) \
+#define MSE_GNORAD_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(class_name, specified_type) \
 		class_name(const class_name&) = default; \
 		class_name(class_name&&) = default; \
-		MSE_GNORAD_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name);
+		MSE_GNORAD_IMPL_OBJ_INHERIT_ASSIGNMENT_OPERATOR(class_name); \
+		MSE_GNORAD_IMPL_OBJ_INHERIT_ADDRESSOF_OPERATOR(class_name, specified_type);
 
 #if !defined(MSE_SOME_POINTER_TYPE_IS_DISABLED)
 #define MSE_GNORAD_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(class_name) \
@@ -830,7 +843,7 @@ namespace mse {
 		public: \
 			typedef TGNoradObj<mapped_type, _TRefCounter> base_class; \
 			MSE_USING(TGNoradObj, base_class); \
-			MSE_GNORAD_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TGNoradObj); \
+			MSE_GNORAD_IMPL_OBJ_SPECIALIZATION_DEFINITIONS1(TGNoradObj, specified_type); \
 		private: \
 			MSE_GNORAD_IMPL_OBJ_NATIVE_POINTER_PRIVATE_CONSTRUCTORS1(TGNoradObj); \
 		};
@@ -841,36 +854,45 @@ namespace mse {
 		public: \
 			typedef TGNoradPointer<mapped_type, _TRefCounter> base_class; \
 			MSE_USING(TGNoradPointer, base_class); \
+			TGNoradPointer(const TGNoradPointer&) = default; \
 		}; \
 		template<typename _Ty, typename _TRefCounter> \
 		class TGNoradConstPointer<specified_type, _TRefCounter> : public TGNoradConstPointer<mapped_type, _TRefCounter> { \
 		public: \
 			typedef TGNoradConstPointer<mapped_type, _TRefCounter> base_class; \
 			MSE_USING(TGNoradConstPointer, base_class); \
+			TGNoradConstPointer(const TGNoradConstPointer&) = default; \
+			TGNoradConstPointer(const TGNoradPointer<_Ty, _TRefCounter>& src_cref) : base_class(src_cref) {} \
 		}; \
 		template<typename _Ty, typename _TRefCounter> \
 		class TGNoradNotNullPointer<specified_type, _TRefCounter> : public TGNoradNotNullPointer<mapped_type, _TRefCounter> { \
 		public: \
 			typedef TGNoradNotNullPointer<mapped_type, _TRefCounter> base_class; \
 			MSE_USING(TGNoradNotNullPointer, base_class); \
+			TGNoradNotNullPointer(const TGNoradNotNullPointer&) = default; \
 		}; \
 		template<typename _Ty, typename _TRefCounter> \
 		class TGNoradNotNullConstPointer<specified_type, _TRefCounter> : public TGNoradNotNullConstPointer<mapped_type, _TRefCounter> { \
 		public: \
 			typedef TGNoradNotNullConstPointer<mapped_type, _TRefCounter> base_class; \
 			MSE_USING(TGNoradNotNullConstPointer, base_class); \
+			TGNoradNotNullConstPointer(const TGNoradNotNullConstPointer&) = default; \
+			TGNoradNotNullConstPointer(const TGNoradNotNullPointer<_Ty, _TRefCounter>& src_cref) : base_class(src_cref) {} \
 		}; \
 		template<typename _Ty, typename _TRefCounter> \
 		class TGNoradFixedPointer<specified_type, _TRefCounter> : public TGNoradFixedPointer<mapped_type, _TRefCounter> { \
 		public: \
 			typedef TGNoradFixedPointer<mapped_type, _TRefCounter> base_class; \
 			MSE_USING(TGNoradFixedPointer, base_class); \
+			TGNoradFixedPointer(const TGNoradFixedPointer&) = default; \
 		}; \
 		template<typename _Ty, typename _TRefCounter> \
 		class TGNoradFixedConstPointer<specified_type, _TRefCounter> : public TGNoradFixedConstPointer<mapped_type, _TRefCounter> { \
 		public: \
 			typedef TGNoradFixedConstPointer<mapped_type, _TRefCounter> base_class; \
 			MSE_USING(TGNoradFixedConstPointer, base_class); \
+			TGNoradFixedConstPointer(const TGNoradFixedConstPointer&) = default; \
+			TGNoradFixedConstPointer(const TGNoradFixedPointer<_Ty, _TRefCounter>& src_cref) : base_class(src_cref) {} \
 		};
 
 #define MSE_GNORAD_IMPL_NATIVE_POINTER_SPECIALIZATION(specified_type, mapped_type) \
@@ -888,6 +910,7 @@ namespace mse {
 		public: \
 			typedef TGNoradObj<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradObj, base_class); \
+			MSE_GNORAD_IMPL_OBJ_INHERIT_ADDRESSOF_OPERATOR(TGNoradObj, arithmetic_type); \
 		};
 
 #define MSE_GNORAD_IMPL_PTR_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
@@ -896,36 +919,45 @@ namespace mse {
 		public: \
 			typedef TGNoradPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradPointer, base_class); \
+			TGNoradPointer(const TGNoradPointer&) = default; \
 		}; \
 		template<typename _TRefCounter> \
 		class TGNoradConstPointer<arithmetic_type, _TRefCounter> : public TGNoradConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
 			typedef TGNoradConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradConstPointer, base_class); \
+			TGNoradConstPointer(const TGNoradConstPointer&) = default; \
+			TGNoradConstPointer(const TGNoradPointer<arithmetic_type>& src_cref) : base_class(src_cref) {} \
 		}; \
 		template<typename _TRefCounter> \
 		class TGNoradNotNullPointer<arithmetic_type, _TRefCounter> : public TGNoradNotNullPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
 			typedef TGNoradNotNullPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradNotNullPointer, base_class); \
+			TGNoradNotNullPointer(const TGNoradNotNullPointer&) = default; \
 		}; \
 		template<typename _TRefCounter> \
 		class TGNoradNotNullConstPointer<arithmetic_type, _TRefCounter> : public TGNoradNotNullConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
 			typedef TGNoradNotNullConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradNotNullConstPointer, base_class); \
+			TGNoradNotNullConstPointer(const TGNoradNotNullConstPointer&) = default; \
+			TGNoradNotNullConstPointer(const TGNoradNotNullPointer<arithmetic_type>& src_cref) : base_class(src_cref) {} \
 		}; \
 		template<typename _TRefCounter> \
 		class TGNoradFixedPointer<arithmetic_type, _TRefCounter> : public TGNoradFixedPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
 			typedef TGNoradFixedPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradFixedPointer, base_class); \
+			TGNoradFixedPointer(const TGNoradFixedPointer&) = default; \
 		}; \
 		template<typename _TRefCounter> \
 		class TGNoradFixedConstPointer<arithmetic_type, _TRefCounter> : public TGNoradFixedConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> { \
 		public: \
 			typedef TGNoradFixedConstPointer<template_wrapper<arithmetic_type>, _TRefCounter> base_class; \
 			MSE_USING(TGNoradFixedConstPointer, base_class); \
+			TGNoradFixedConstPointer(const TGNoradFixedConstPointer&) = default; \
+			TGNoradFixedConstPointer(const TGNoradFixedPointer<arithmetic_type>& src_cref) : base_class(src_cref) {} \
 		};
 
 #define MSE_GNORAD_IMPL_ARITHMETIC_SPECIALIZATION(arithmetic_type, template_wrapper) \
