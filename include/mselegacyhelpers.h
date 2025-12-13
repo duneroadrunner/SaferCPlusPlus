@@ -5387,6 +5387,25 @@ namespace mse {
 
 						if (m_returned_converted_ptr) {
 							if (*m_returned_converted_ptr) {
+								if (m_maybe_sviter_aptr.has_value() && (!m_returned_converted_pointee_ptr) && (*m_returned_converted_ptr)) {
+									/* So what seems to have happened is that when this object was cast to a raw pointer to raw pointer (i.e. T**), that 
+									casted value was a (non-null) pointer to a null pointer. But the target of that (non-null) pointer is no longer a 
+									null pointer (i.e. it is now a non-null pointer). The problem is that in this case, the target type of the "safe" 
+									(smart) pointer-to-iterator that we are trying to update (to reflect this change to corresponding the pointee pointer 
+									(from null to non-null)), is a "strong vector iterator" (i.e. an lh::TSrongVectorIterator<>), and we have no way of 
+									validly representing this new non-null pointer value as a (safe) "strong vector iterator. 
+									If the original pointee pointer value was not null, then we could just assume that the original value and the new 
+									value are addresses pointing to items in the same buffer, and we could just increment/decrement the strong vector 
+									iterator to reflect the difference between the original pointee pointer value and the new value. But since the 
+									original pointee value was a null pointer, doing that here wouldn't be valid. 
+									The new pointee pointer value could be a newly (and unsafely) allocated buffer that simply can't be represented by 
+									strong vector iterator. Unlike strong vector iterators, lh::TLHNullableAnyRandomAccessIterator<>s, for example, can 
+									represent a pointer to an item in an (unsafely) allocated buffer. So to avoid this error, one could consider changing 
+									the type of the strong vector iterator to a lh::TLHNullableAnyRandomAccessIterator<>. */
+									MSE_THROW(std::logic_error("Unable to reflect the changes made to the pointee of the cast result raw pointer (from null pointer to non-null pointer value)"
+										" back to the pointee (of \"strong vector iterator\" type) of the given (presumably smart) pointer-to-iterator. - us::lh::TXScopePointerToRawPointersStore<>::destructor_helper1<>()"));
+									int q = 3;
+								}
 								const auto ptr_diff1 = ((*m_returned_converted_ptr) - m_returned_converted_pointee_ptr);
 								(*iter_ptr) += ptr_diff1;
 							}
