@@ -1012,6 +1012,10 @@ namespace mse {
 				typedef void type;
 			};
 
+			enum class EAllowNarrowingCasts {
+				Yes, No
+			};
+
 			/* todo: make distinct xscope and non-xscope versions */
 			class explicitly_castable_any : public mse::us::impl::ns_any::any {
 			public:
@@ -1045,17 +1049,19 @@ namespace mse {
 					MSE_THROW(mse::us::impl::ns_any::bad_any_cast());
 					return {};
 				}
-				template<class T1, class T2>
+				template<class T1, EAllowNarrowingCasts AllowNarrowingCasts = EAllowNarrowingCasts::No, class T2 = void>
 				static T1 convert(const T2& x) {
 					//static const bool b1 = std::is_convertible<T2, T1>::value;
 					static const bool b1a = std::is_constructible<T1, T2 const&>::value;
-					static const bool b1b = std::is_pointer<T1>::value && (std::is_same<T2, void*>::value || std::is_same<T2, void const*>::value);
+					static const bool b1b = (std::is_pointer<T1>::value || std::is_same<uintptr_t, T1>::value || std::is_same<intptr_t, T1>::value) 
+						&& (std::is_same<T2, void*>::value || std::is_same<T2, void const*>::value);
 					static const bool b1 = (b1a || b1b);
 					static const bool b2 = std::is_arithmetic<T1>::value;
 					static const bool b3 = std::is_arithmetic<T2>::value;
+					static const bool b3b = std::is_arithmetic<T2>::value || (std::is_same<T2, void*>::value || std::is_same<T2, void const*>::value);
 					static const bool b4 = (sizeof(T1) >= sizeof(T2));
-					static const bool b5 = (((!b2) && (!b3)) || (b2 && b3 && b4)); /* This is to exclude implicit support of narrowing casts. */
-					static const bool b6 = b1 && b5;
+					static const bool b5 = (((!b2) && (!b3)) || (b2 && b3b && b4)); /* This is to exclude implicit support of narrowing casts. */
+					static const bool b6 = b1 && (b5 || (EAllowNarrowingCasts::Yes == AllowNarrowingCasts));
 					return convert_helper1<T1>(typename std::integral_constant<bool, b6>::type(), x).value();
 				}
 
@@ -1075,7 +1081,7 @@ namespace mse {
 					{ \
 						auto ptr = mse::us::impl::ns_any::any_cast<type1>(ptr1); \
 						if (ptr) { \
-							return convert<T1>(*ptr); \
+							return convert<T1, AllowNarrowingCasts>(*ptr); \
 						} \
 					}
 
@@ -1098,7 +1104,7 @@ namespace mse {
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_ARITHMETIC_CAST_ATTEMPT_HELPER1(type1, not_used_template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(type1)
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_WRAPPED_ARITHMETIC_CAST_ATTEMPT(type1, template_wrapper) MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(template_wrapper<type1>)
 
-				template<class T1, class T2>
+				template<class T1, EAllowNarrowingCasts AllowNarrowingCasts = EAllowNarrowingCasts::No, class T2 = void>
 				static my_optional<T1> conversion_operator_helper2(T2* ptr1) {
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(T1);
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT2(std::nullptr_t);
@@ -1115,16 +1121,16 @@ namespace mse {
 					MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_CAST_ATTEMPT4(mse::CNDSize_t);
 					*/
 
-					auto maybe_retval = conversion_operator_helper3<T1>(typename mse::impl::IsDereferenceable_pb<T1>::type(), ptr1);
+					auto maybe_retval = conversion_operator_helper3<T1, AllowNarrowingCasts>(typename mse::impl::IsDereferenceable_pb<T1>::type(), ptr1);
 					if (maybe_retval.has_value()) {
 						return std::move(maybe_retval.value());
 					}
 					return {};
 				}
 
-				template<class T1, class T2>
+				template<class T1, EAllowNarrowingCasts AllowNarrowingCasts = EAllowNarrowingCasts::No, class T2 = void>
 				static my_optional<T1> conversion_operator_helper3(std::true_type, T2* ptr1);
-				template<class T1, class T2>
+				template<class T1, EAllowNarrowingCasts AllowNarrowingCasts = EAllowNarrowingCasts::No, class T2 = void>
 				static my_optional<T1> conversion_operator_helper3(std::false_type, T2* ptr1) {
 					auto casted_ptr = mse::us::impl::ns_any::any_cast<T1>(&mse::us::impl::as_ref<base_class>(*ptr1));
 					if (casted_ptr) {
@@ -1133,18 +1139,18 @@ namespace mse {
 					return {};
 				}
 
-				template<class T1, class T2>
+				template<class T1, EAllowNarrowingCasts AllowNarrowingCasts = EAllowNarrowingCasts::No, class T2 = void>
 				static my_optional<T1> conversion_operator_helper4(std::true_type, T2* ptr1);
-				template<class T1, class T2>
+				template<class T1, EAllowNarrowingCasts AllowNarrowingCasts = EAllowNarrowingCasts::No, class T2 = void>
 				static my_optional<T1> conversion_operator_helper4(std::false_type, T2* ptr1) { return {}; }
 
 				template <typename _Ty2>
 				friend class mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase;
 			};
 
-			template<typename ValueType, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
+			template<typename ValueType, EAllowNarrowingCasts AllowNarrowingCasts = EAllowNarrowingCasts::No, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
 			inline retval_t maybe_any_cast_of_explicitly_castable_any(const explicitly_castable_any& operand) {
-				auto maybe_casted = explicitly_castable_any::conversion_operator_helper2<ValueType>(&operand);
+				auto maybe_casted = explicitly_castable_any::conversion_operator_helper2<ValueType, AllowNarrowingCasts>(&operand);
 				if (maybe_casted.has_value()) {
 					return std::move(maybe_casted.value());
 				}
@@ -4238,7 +4244,7 @@ namespace mse {
 				typedef const void* type;
 			};
 
-			template<class T1, class T2>
+			template<class T1, EAllowNarrowingCasts AllowNarrowingCasts/* = EAllowNarrowingCasts::No*/, class T2/* = void*/>
 			explicitly_castable_any::my_optional<T1> explicitly_castable_any::conversion_operator_helper4(std::true_type, T2* ptr1) {
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES2(MACRO_FUNCTION, pointee_type) \
 				MACRO_FUNCTION(typename NDNoradPointerWrapped<pointee_type>::type); \
@@ -4256,7 +4262,7 @@ namespace mse {
 				return {};
 			}
 
-			template<class T1, class T2>
+			template<class T1, EAllowNarrowingCasts AllowNarrowingCasts/* = EAllowNarrowingCasts::No*/, class T2/* = void*/>
 			/*static*/ explicitly_castable_any::my_optional<T1> explicitly_castable_any::conversion_operator_helper3(std::true_type, T2 * ptr1) {
 
 #define MSE_IMPL_LH_EXPLICITLY_CASTABLE_ANY_APPLY_MACRO_FUNCTION_TO_CANDIDATE_POINTER_TYPES(MACRO_FUNCTION, pointee_type) \
@@ -4275,7 +4281,7 @@ namespace mse {
 				}
 
 				{
-					auto maybe_retval = conversion_operator_helper4<T1>(typename mse::impl::is_complete_type<pointee_t>::type(), ptr1);
+					auto maybe_retval = conversion_operator_helper4<T1, AllowNarrowingCasts>(typename mse::impl::is_complete_type<pointee_t>::type(), ptr1);
 					if (maybe_retval.has_value()) {
 						return maybe_retval;
 					}
@@ -5197,7 +5203,7 @@ namespace mse {
 			}
 			template<typename _Ty>
 			_Ty unsafe_cast(const mse::lh::void_star_replacement& x) {
-				auto maybe_Ty = mse::lh::impl::maybe_any_cast_of_explicitly_castable_any<_Ty>(x);
+				auto maybe_Ty = mse::lh::impl::maybe_any_cast_of_explicitly_castable_any<_Ty, mse::lh::impl::EAllowNarrowingCasts::Yes>(x);
 				if (maybe_Ty.has_value()) {
 					return maybe_Ty.value();
 				}
@@ -5205,7 +5211,7 @@ namespace mse {
 			}
 			template<typename _Ty>
 			_Ty unsafe_cast(const mse::lh::const_void_star_replacement& x) {
-				auto maybe_Ty = mse::lh::impl::maybe_any_cast_of_explicitly_castable_any<_Ty>(x);
+				auto maybe_Ty = mse::lh::impl::maybe_any_cast_of_explicitly_castable_any<_Ty, mse::lh::impl::EAllowNarrowingCasts::Yes>(x);
 				if (maybe_Ty.has_value()) {
 					return maybe_Ty.value();
 				}
