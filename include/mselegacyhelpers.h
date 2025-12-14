@@ -1157,6 +1157,10 @@ namespace mse {
 				return {};
 			}
 		}
+
+		template <typename _Ty> class TXScopeLHNullableAnyRandomAccessIterator;
+		template <typename _Ty> class TLHNullableAnyRandomAccessIterator;
+
 		namespace us {
 			namespace impl {
 				template <typename _Ty>
@@ -1503,7 +1507,7 @@ namespace mse {
 
 					MSE_IMPL_ANY_CONTAINED_ANY_FRIEND_DECLARATIONS1;
 
-					template <typename _Ty2> friend class TXScopeLHNullableAnyRandomAccessIterator;
+					template <typename _Ty2> friend class mse::lh::TXScopeLHNullableAnyRandomAccessIterator;
 					template <typename _Ty2> friend class TLHNullableAnyRandomAccessIteratorBase;
 
 					template<typename ValueType2, typename _Ty2, typename retval_t2>
@@ -4461,8 +4465,21 @@ namespace mse {
 
 		private:
 			template<class T>
-			T operator_T_helper2(std::true_type) const {
+			T operator_T_helper3(std::true_type) const {
 				return T(*this);
+			}
+			template<class T>
+			T operator_T_helper3(std::false_type) const {
+				/* T should be either `void *` or `const void *` here. */
+				return T(m_shadow_void_const_ptr);
+			}
+
+			template<class T>
+			T operator_T_helper2(std::true_type) const {
+				return operator_T_helper3<T>(typename std::integral_constant<bool,
+					std::is_same<void_star_star_replacement, mse::impl::remove_reference_t<T> >::value
+					|| std::is_same<const_void_star_replacement, mse::impl::remove_reference_t<T> >::value
+				>::type());
 			}
 			template<class T>
 			T operator_T_helper2(std::false_type) const {
@@ -4478,7 +4495,12 @@ namespace mse {
 			template<class T>
 			T operator_T_helper1(std::false_type) const {
 				//return operator_T_helper2<T>(typename std::is_base_of<base_class, mse::impl::remove_reference_t<T> >::type());
-				return operator_T_helper2<T>(typename std::is_same<void_star_star_replacement, mse::impl::remove_reference_t<T> >::type());
+				return operator_T_helper2<T>(typename std::integral_constant<bool, 
+						std::is_same<void_star_star_replacement, mse::impl::remove_reference_t<T> >::value 
+						|| std::is_same<const_void_star_replacement, mse::impl::remove_reference_t<T> >::value
+						|| std::is_same<void *, mse::impl::remove_reference_t<T> >::value
+						|| std::is_same<const void*, mse::impl::remove_reference_t<T> >::value
+				>::type());
 			}
 
 			bool m_is_nullptr = true;
@@ -4654,14 +4676,39 @@ namespace mse {
 			}
 
 			template<class T>
+			T operator_T_helper3(std::true_type) const {
+				return T(*this);
+			}
+			template<class T>
+			T operator_T_helper3(std::false_type) const {
+				/* T should be `const void *` here. */
+				return T(m_shadow_void_const_ptr);
+			}
+
+			template<class T>
+			T operator_T_helper2(std::true_type) const {
+				return operator_T_helper3<T>(typename std::integral_constant<bool,
+					std::is_same<const_void_star_replacement, mse::impl::remove_reference_t<T> >::value
+				>::type());
+			}
+			template<class T>
+			T operator_T_helper2(std::false_type) const {
+				//return base_class::operator T();
+				const base_class& bc_cref = *this;
+				return bc_cref.operator T();
+			}
+
+			template<class T>
 			T operator_T_helper1(std::true_type) const {
 				return (uintptr_t)m_shadow_void_const_ptr;
 			}
 			template<class T>
 			T operator_T_helper1(std::false_type) const {
-				//return base_class::operator T();
-				const base_class& bc_cref = *this;
-				return bc_cref.operator T();
+				//return operator_T_helper2<T>(typename std::is_base_of<base_class, mse::impl::remove_reference_t<T> >::type());
+				return operator_T_helper2<T>(typename std::integral_constant<bool,
+					std::is_same<const_void_star_replacement, mse::impl::remove_reference_t<T> >::value
+					|| std::is_same<const void*, mse::impl::remove_reference_t<T> >::value
+				>::type());
 			}
 
 			bool m_is_nullptr = true;
@@ -5188,12 +5235,12 @@ namespace mse {
 				return impl::ns_unsafe_cast::unsafe_cast_helper2<_Ty>(typename mse::impl::is_instantiation_of<_Ty, smart_pointer>::type(), x); \
 			}
 
-			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyRandomAccessIterator)
-				MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyRandomAccessIterator)
-				MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyPointer)
-				MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyPointer)
+			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyRandomAccessIterator);
+			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyRandomAccessIterator);
+			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TLHNullableAnyPointer);
+			MSE_LH_IMPL_UNSAFE_CAST_OVERLOAD(mse::lh::TXScopeLHNullableAnyPointer);
 
-				template<typename _Ty, typename _Ty2, size_t _Size>
+			template<typename _Ty, typename _Ty2, size_t _Size>
 			_Ty unsafe_cast(mse::lh::TNativeArrayReplacement<_Ty2, _Size>& x) {
 				return unsafe_cast<_Ty>(mse::lh::TLHNullableAnyRandomAccessIterator<_Ty2>(x));
 			}
@@ -5218,6 +5265,47 @@ namespace mse {
 				return unsafe_cast<_Ty>(const_cast<void const*>(x.m_shadow_void_const_ptr));
 			}
 			namespace impl {
+				template<typename _Ty>
+				auto make_raw_pointer_from_helper3(std::true_type, _Ty const& iter) -> decltype(unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*iter)))>(iter)) {
+					/* The iterator apparently has a target_container_ptr() member function and an operator[]. We can use them 
+					to "safely" obtain a corresponding raw pointer for the iterator, even when the iterator is an "end()" 
+					iterator or otherwise doesn't target a valid object. */
+					auto container_ptr = iter.target_container_ptr();
+					if (!container_ptr) {
+						return nullptr;
+					}
+					const auto size = mse::container_size(*container_ptr);
+					if (1 > size) {
+						return nullptr;
+					}
+					return std::addressof((*(iter.target_container_ptr()))[0]) + iter.position();
+				}
+				template<typename _Ty>
+				auto make_raw_pointer_from_helper3(std::false_type, mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<_Ty> const& iter) -> decltype(unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*iter)))>(iter)) {
+					{
+						auto maybe_iter2 = mse::lh::us::impl::maybe_any_cast<mse::lh::TStrongVectorIterator<_Ty>>(iter);
+						if (maybe_iter2.has_value()) {
+							auto& iter2_ref = maybe_iter2.value();
+							return make_raw_pointer_from_helper3(std::true_type(), iter2_ref);
+						}
+					}
+					return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*iter)))>(iter);
+				}
+				template<typename _Ty>
+				auto make_raw_pointer_from_helper3(std::false_type, mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> const& iter) {
+					typedef typename mse::impl::remove_reference_t<decltype(iter)>::base_class  iter_base_class_t;
+					return make_raw_pointer_from_helper3(std::false_type(), mse::us::impl::as_ref<iter_base_class_t>(iter));
+				}
+				template<typename _Ty>
+				auto make_raw_pointer_from_helper3(std::false_type, mse::lh::TXScopeLHNullableAnyRandomAccessIterator<_Ty> const& iter) {
+					typedef typename mse::impl::remove_reference_t<decltype(iter)>::base_class  iter_base_class_t;
+					return make_raw_pointer_from_helper3(std::false_type(), mse::us::impl::as_ref<iter_base_class_t>(iter));
+				}
+				template<typename _Ty>
+				auto make_raw_pointer_from_helper3(std::false_type, _Ty const& ptr) {
+					return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
+				}
+
 				inline auto make_raw_pointer_from_helper2(std::true_type, mse::lh::void_star_replacement const& vsr) -> void* {
 					return unsafe_cast<void*>(vsr);
 				}
@@ -5226,8 +5314,8 @@ namespace mse {
 				}
 
 				template<typename _Ty>
-				auto make_raw_pointer_from_helper1(std::false_type, _Ty const& ptr)/* -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))*/ {
-					return unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*ptr)))>(ptr);
+				auto make_raw_pointer_from_helper1(std::false_type, _Ty const& ptr) {
+					return make_raw_pointer_from_helper3(typename std::integral_constant<bool, mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_Ty>::value && mse::lh::impl::HasOrInheritsSubscriptOperator<_Ty>::value>::type(), ptr);
 				}
 				template<typename _Ty>
 				auto make_raw_pointer_from_helper1(std::true_type, _Ty const& ptr) {
@@ -5374,6 +5462,29 @@ namespace mse {
 					}
 				}
 
+				template<typename TIter, typename _Ty2>
+				void assign_raw_pointer_value_to_iterator(std::true_type, TIter& iter, _Ty2* raw_pointer) {
+					iter = raw_pointer;
+					//iter = mse::us::lh::unsafe_make_lh_nullable_any_random_access_iterator_from(raw_pointer);
+				}
+				template<typename TIter, typename _Ty2>
+				void assign_raw_pointer_value_to_iterator(std::false_type, TIter& iter, _Ty2* raw_pointer) {
+					/* Apparently the iterator doesn't support assignment of raw pointer values. */
+					MSE_THROW(std::logic_error(" - us::lh::TXScopePointerToRawPointersStore<>::assign_raw_pointer_value_to_iterator<>()"));
+					assert(false);
+				}
+				template<typename TPtr, typename _Ty2>
+				void assign_raw_pointer_value_to_pointer(std::true_type, TPtr& ptr, _Ty2* raw_pointer) {
+					ptr = raw_pointer;
+					//ptr = mse::us::lh::unsafe_make_lh_nullable_any_pointer_from(raw_pointer);
+				}
+				template<typename TPtr, typename _Ty2>
+				void assign_raw_pointer_value_to_pointer(std::false_type, TPtr& ptr, _Ty2* raw_pointer) {
+					/* Apparently the pointer doesn't support assignment of raw pointer values. */
+					MSE_THROW(std::logic_error("Unable to reflect the changes made to the pointee of the cast result raw pointer (from null pointer to non-null pointer value)"
+						" back to the pointee of the given (presumably smart) pointer-to-pointer. - us::lh::TXScopePointerToRawPointersStore<>::assign_raw_pointer_value_to_pointer<>()"));
+				}
+
 				template<typename TIter>
 				void destructor_helper1(TIter iter_ptr) {
 					if (iter_ptr) {
@@ -5387,27 +5498,42 @@ namespace mse {
 
 						if (m_returned_converted_ptr) {
 							if (*m_returned_converted_ptr) {
-								if (m_maybe_sviter_aptr.has_value() && (!m_returned_converted_pointee_ptr) && (*m_returned_converted_ptr)) {
-									/* So what seems to have happened is that when this object was cast to a raw pointer to raw pointer (i.e. T**), that 
-									casted value was a (non-null) pointer to a null pointer. But the target of that (non-null) pointer is no longer a 
-									null pointer (i.e. it is now a non-null pointer). The problem is that in this case, the target type of the "safe" 
-									(smart) pointer-to-iterator that we are trying to update (to reflect this change to corresponding the pointee pointer 
-									(from null to non-null)), is a "strong vector iterator" (i.e. an lh::TSrongVectorIterator<>), and we have no way of 
-									validly representing this new non-null pointer value as a (safe) "strong vector iterator. 
-									If the original pointee pointer value was not null, then we could just assume that the original value and the new 
-									value are addresses pointing to items in the same buffer, and we could just increment/decrement the strong vector 
-									iterator to reflect the difference between the original pointee pointer value and the new value. But since the 
-									original pointee value was a null pointer, doing that here wouldn't be valid. 
-									The new pointee pointer value could be a newly (and unsafely) allocated buffer that simply can't be represented by 
-									strong vector iterator. Unlike strong vector iterators, lh::TLHNullableAnyRandomAccessIterator<>s, for example, can 
-									represent a pointer to an item in an (unsafely) allocated buffer. So to avoid this error, one could consider changing 
-									the type of the strong vector iterator to a lh::TLHNullableAnyRandomAccessIterator<>. */
-									MSE_THROW(std::logic_error("Unable to reflect the changes made to the pointee of the cast result raw pointer (from null pointer to non-null pointer value)"
-										" back to the pointee (of \"strong vector iterator\" type) of the given (presumably smart) pointer-to-iterator. - us::lh::TXScopePointerToRawPointersStore<>::destructor_helper1<>()"));
-									int q = 3;
+								if ((!m_returned_converted_pointee_ptr) && (*m_returned_converted_ptr)) {
+									if (m_maybe_sviter_aptr.has_value()) {
+										/* So what seems to have happened is that when this object was cast to a raw pointer to raw pointer (i.e. T**), that
+										casted value was a (non-null) pointer to a null pointer. But the target of that (non-null) pointer is no longer a
+										null pointer (i.e. it is now a non-null pointer). The problem is that in this case, the target type of the "safe"
+										(smart) pointer-to-iterator that we are trying to update (to reflect this change to corresponding the pointee pointer
+										(from null to non-null)), is a "strong vector iterator" (i.e. an lh::TSrongVectorIterator<>), and we have no way of
+										validly representing this new non-null pointer value as a (safe) "strong vector iterator.
+										If the original pointee pointer value was not null, then we could just assume that the original value and the new
+										value are addresses pointing to items in the same buffer, and we could just increment/decrement the strong vector
+										iterator to reflect the difference between the original pointee pointer value and the new value. But since the
+										original pointee value was a null pointer, doing that here wouldn't be valid.
+										The new pointee pointer value could be a newly (and unsafely) allocated buffer that simply can't be represented by
+										strong vector iterator. Unlike strong vector iterators, lh::TLHNullableAnyRandomAccessIterator<>s, for example, can
+										represent a pointer to an item in an (unsafely) allocated buffer. So to avoid this error, one could consider changing
+										the type of the strong vector iterator to a lh::TLHNullableAnyRandomAccessIterator<>. */
+										MSE_THROW(std::logic_error("Unable to reflect the changes made to the pointee of the cast result raw pointer (from null pointer to non-null pointer value)"
+											" back to the pointee (of \"strong vector iterator\" type) of the given (presumably smart) pointer-to-iterator. - us::lh::TXScopePointerToRawPointersStore<>::destructor_helper1<>()"));
+										int q = 3;
+									}
+									else {
+										/* The pointee pointer iterator was originally null and now it seems to be non-null. But here we don't have any information 
+										about the provenance of this non-null pointer value. So we basically have no choice but to (unsafely) assign the raw 
+										pointer value to the (presumably smart) iterator. */
+										assign_raw_pointer_value_to_iterator(typename std::is_assignable<decltype(*iter_ptr), decltype(*m_returned_converted_ptr)>::type(), *iter_ptr, *m_returned_converted_ptr);
+									}
 								}
-								const auto ptr_diff1 = ((*m_returned_converted_ptr) - m_returned_converted_pointee_ptr);
-								(*iter_ptr) += ptr_diff1;
+								else {
+									/* Here we'll assume that the current (non-null) pointee pointer (iterator) value and the its original (non-null) value 
+									target items in the same buffer. (It's certainly possible that the value didn't change at all.) So to reflect the change 
+									in value of the (raw) pointer pointee we supplied back to the (presumably smart) iterator we were given, we'll just 
+									calculate the difference between the current and original (raw) pointer pointee values and increment the given 
+									(presumably smart) iterator by that amount. */
+									const auto ptr_diff1 = ((*m_returned_converted_ptr) - m_returned_converted_pointee_ptr);
+									(*iter_ptr) += ptr_diff1;
+								}
 							}
 						}
 					}
@@ -5426,7 +5552,15 @@ namespace mse {
 						if (m_returned_converted_ptr) {
 							if (*m_returned_converted_ptr) {
 								if ((*m_returned_converted_ptr) != m_returned_converted_pointee_ptr) {
-									(*ptr_ptr) = *m_returned_converted_ptr;
+									if (!(*m_returned_converted_ptr)) {
+										(*ptr_ptr) = nullptr;
+									}
+									else {
+										/* The value of the pointee pointer seems to have changed. But here we don't have any information about the provenance 
+										of this (non-null) pointer value. So we basically have no choice but to (unsafely) assign the raw pointer value to the 
+										(presumably smart) pointer. */
+										assign_raw_pointer_value_to_pointer(typename std::is_assignable<decltype(*ptr_ptr), decltype(*m_returned_converted_ptr)>::type(), *ptr_ptr, *m_returned_converted_ptr);
+									}
 								}
 							}
 						}
