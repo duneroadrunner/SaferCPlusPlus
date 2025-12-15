@@ -1160,9 +1160,16 @@ namespace mse {
 
 		template <typename _Ty> class TXScopeLHNullableAnyRandomAccessIterator;
 		template <typename _Ty> class TLHNullableAnyRandomAccessIterator;
+		template <typename _Ty> class TStrongVectorIterator;
 
 		namespace us {
 			namespace impl {
+				template <typename _Ty>
+				class TLHNullableAnyRandomAccessIteratorBase;
+
+				template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
+				inline retval_t maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& operand);
+
 				template <typename _Ty>
 				class TLHNullableAnyRandomAccessIteratorBase {
 				public:
@@ -1228,6 +1235,55 @@ namespace mse {
 					TLHNullableAnyRandomAccessIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 					TLHNullableAnyRandomAccessIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
 					difference_type operator-(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& _Right_cref) const {
+						auto const& _Left_cref = *this;
+
+						auto maybe_lhs_sviter = maybe_any_cast<mse::lh::TStrongVectorIterator<const _Ty>>(mse::us::impl::as_ref<_Myt>(_Left_cref));
+						if (maybe_lhs_sviter.has_value()) {
+							auto& sviter_ref = maybe_lhs_sviter.value();
+
+							/* The lhs contained iterator is a TStrongVectorIterator<>. We're going to do special case handling to
+							support the comparison of TStrongVectorIterator<>s and raw pointers (or anything from which an equivalent
+							raw pointer can be derived). */
+							const auto lhs_rawptr = mse::us::lh::make_raw_pointer_from(sviter_ref);
+							const auto rhs_rawptr = mse::us::lh::make_raw_pointer_from(_Right_cref);
+							if (!rhs_rawptr) {
+								if (!lhs_rawptr) {
+									return (lhs_rawptr - rhs_rawptr);
+								}
+							}
+							else {
+								if (lhs_rawptr) {
+									const auto container_ptr = sviter_ref.target_container_ptr();
+									if (container_ptr) {
+										const auto vsize = mse::container_size(*container_ptr);
+										if (1 <= vsize) {
+											const auto begin_raw_ptr = std::addressof((*container_ptr)[0]);
+											const auto end_raw_ptr = begin_raw_ptr + vsize;
+											if ((begin_raw_ptr <= rhs_rawptr) && (end_raw_ptr >= rhs_rawptr)) {
+												/* The rhs_rawptr seems to refer to the same container as the lhs. So comparison of the lhs_rawptr and
+												rhs_rawptr should be valid, right? */
+												return (lhs_rawptr - rhs_rawptr);
+											}
+										}
+									}
+								}
+							}
+						}
+						else {
+							/* The `const` in the next line is commented out because "Microsoft Compiler Version 19.50.35719 for x64"
+							complains for some reason. clang++ and g++ are fine with it. */
+							auto maybe_lhs_rawptr = maybe_any_cast<_Ty /*const*/ *>(mse::us::impl::as_ref<_Myt>(_Left_cref));
+							if (maybe_lhs_rawptr.has_value()) {
+								auto lhs_rawptr = maybe_lhs_rawptr.value();
+
+								/* The lhs contained iterator seems to be a raw pointer. Hmm, this fact arguably means that we are already
+								in an unsafe situation, so comparing it to a raw pointer equivalent of the rhs presumably wouldn't make the
+								situation any worse? */
+								const auto rhs_rawptr = mse::us::lh::make_raw_pointer_from(_Right_cref);
+								return (lhs_rawptr - rhs_rawptr);
+							}
+						}
+
 						return ((*this).contained_iter() - _Right_cref.contained_iter());
 					}
 
@@ -1279,6 +1335,54 @@ namespace mse {
 							|| (mse::impl::first_is_or_is_subclass_of_any<TRHSIterator_ecwapt, _Myt, mse::us::impl::TNullableAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessIteratorBase<_Ty>, mse::us::impl::TAnyRandomAccessConstIteratorBase<_Ty> >::value))
 					> MSE_IMPL_EIS >
 					friend std::strong_ordering operator<=>(const TLHSIterator_ecwapt& _Left_cref, const TRHSIterator_ecwapt& _Right_cref) {
+
+						auto maybe_lhs_sviter = maybe_any_cast<mse::lh::TStrongVectorIterator<const _Ty>>(mse::us::impl::as_ref<_Myt>(_Left_cref));
+						if (maybe_lhs_sviter.has_value()) {
+							auto& sviter_ref = maybe_lhs_sviter.value();
+
+							/* The lhs contained iterator is a TStrongVectorIterator<>. We're going to do special case handling to
+							support the comparison of TStrongVectorIterator<>s and raw pointers (or anything from which an equivalent
+							raw pointer can be derived). */
+							const auto lhs_rawptr = mse::us::lh::make_raw_pointer_from(sviter_ref);
+							const auto rhs_rawptr = mse::us::lh::make_raw_pointer_from(_Right_cref);
+							if (!rhs_rawptr) {
+								if (!lhs_rawptr) {
+									return (lhs_rawptr <=> rhs_rawptr);
+								}
+							}
+							else {
+								if (lhs_rawptr) {
+									const auto container_ptr = sviter_ref.target_container_ptr();
+									if (container_ptr) {
+										const auto vsize = mse::container_size(*container_ptr);
+										if (1 <= vsize) {
+											const auto begin_raw_ptr = std::addressof((*container_ptr)[0]);
+											const auto end_raw_ptr = begin_raw_ptr + vsize;
+											if ((begin_raw_ptr <= rhs_rawptr) && (end_raw_ptr >= rhs_rawptr)) {
+												/* The rhs_rawptr seems to refer to the same container as the lhs. So comparison of the lhs_rawptr and
+												rhs_rawptr should be valid, right? */
+												return (lhs_rawptr <=> rhs_rawptr);
+											}
+										}
+									}
+								}
+							}
+						}
+						else {
+							/* The `const` in the next line is commented out because "Microsoft Compiler Version 19.50.35719 for x64"
+							complains for some reason. clang++ and g++ are fine with it. */
+							auto maybe_lhs_rawptr = maybe_any_cast<_Ty /*const*/*>(mse::us::impl::as_ref<_Myt>(_Left_cref));
+							if (maybe_lhs_rawptr.has_value()) {
+								auto lhs_rawptr = maybe_lhs_rawptr.value();
+
+								/* The lhs contained iterator seems to be a raw pointer. Hmm, this fact arguably means that we are already
+								in an unsafe situation, so comparing it to a raw pointer equivalent of the rhs presumably wouldn't make the
+								situation any worse? */
+								const auto rhs_rawptr = mse::us::lh::make_raw_pointer_from(_Right_cref);
+								return (lhs_rawptr <=> rhs_rawptr);
+							}
+						}
+
 						return (mse::us::impl::as_ref<_Myt>(_Left_cref).contained_iter() <=> _Right_cref);
 					}
 
@@ -1514,7 +1618,7 @@ namespace mse {
 					friend inline retval_t2 maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty2>& operand);
 				};
 
-				template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
+				template<typename ValueType, typename _Ty, typename retval_t/* = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type*/>
 				inline retval_t maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& operand) {
 					/* We need to obtain the "any" object that actually stores the value. In this case, that object is "buried" within layers
 					of base classes and member fields, so it's going to take a few operations to get to it. */
