@@ -242,7 +242,9 @@ namespace mse {
 #ifdef MSE_DISABLE_SOO_EXTENSIONS1
 #define MSE_IMPL_ANY_SOO_SIZE_FACTOR	1
 #else // MSE_DISABLE_SOO_EXTENSIONS1
+#ifndef MSE_IMPL_ANY_SOO_SIZE_FACTOR
 #define MSE_IMPL_ANY_SOO_SIZE_FACTOR	4
+#endif // !defined(MSE_IMPL_ANY_SOO_SIZE_FACTOR)
 #endif // MSE_DISABLE_SOO_EXTENSIONS1
 
 						using stack_storage_t = typename any_aligned_storage<MSE_IMPL_ANY_SOO_SIZE_FACTOR * 2 * sizeof(void*), std::alignment_of<void*>::value>::type;
