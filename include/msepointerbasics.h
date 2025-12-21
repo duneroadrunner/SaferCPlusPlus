@@ -334,6 +334,10 @@ namespace mse {
 #endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
 
 	namespace impl {
+
+		template<class... Bases>
+		struct options_t : Bases... { };
+
 		/* We just duplicate these aliases from the standard library because they weren't available pre-C++14. */
 		template <bool _Test, class _Ty = void> using enable_if_t = typename std::enable_if<_Test, _Ty>::type;
 		template <bool _Test, class _Ty1, class _Ty2> using conditional_t = typename std::conditional<_Test, _Ty1, _Ty2>::type;

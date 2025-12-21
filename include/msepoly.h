@@ -1360,6 +1360,33 @@ namespace mse {
 
 	namespace us {
 		namespace impl {
+			template <typename T, typename = void>
+			struct HasMemberArrowOperator : std::false_type {};
+			template <typename T>
+			struct HasMemberArrowOperator<T, mse::impl::void_t<decltype(std::declval<T>().operator->())> > : std::true_type {};
+
+			template<typename T>
+			auto effective_operator_arrow_helper1(std::false_type, T& ptr) {
+				return std::addressof(*ptr);
+			}
+			template<typename T>
+			auto effective_operator_arrow_helper1(std::true_type, T& ptr) {
+				return ptr.operator->();
+			}
+
+			/* For some "unsafe" pointer/iterator types, effective_operator_arrow() can help to obtain a corresponding 
+			raw pointer value, in some cases without dereferencing the pointer/iterator. This might be useful, for 
+			example, in situations where you want to do a comparison with an (unsafe) "opaque" end iterator (pointing 
+			to one-past-the-end). */
+			template<typename T>
+			auto effective_operator_arrow(T& ptr) {
+				return effective_operator_arrow_helper1(typename HasMemberArrowOperator<T>::type(), ptr);
+			}
+			template<typename T>
+			auto effective_operator_arrow(T* ptr) {
+				return ptr;
+			}
+
 			template <typename _Ty> using TRandomAccessIteratorStdBase = mse::impl::random_access_iterator_base<_Ty>;
 			template <typename _Ty> using TRandomAccessConstIteratorStdBase = mse::impl::random_access_const_iterator_base<_Ty>;
 
@@ -1481,7 +1508,16 @@ namespace mse {
 					}
 
 					if (!crai_ptr) {
-						MSE_THROW(std::logic_error("attempt to subtract or compare iterators of different (underlying) types - operator-() - TCommonizedRandomAccessIterator"));
+						//MSE_THROW(std::logic_error("attempt to subtract or compare iterators of different (underlying) types - operator-() - TCommonizedRandomAccessIterator"));
+
+						const auto lhs_rawptr = effective_operator_arrow(*this);
+						const auto rhs_rawptr = effective_operator_arrow(_Right_cref);
+						if ((lhs_rawptr && rhs_rawptr) || ((!lhs_rawptr) && (!rhs_rawptr))) {
+							return (lhs_rawptr - rhs_rawptr);
+						}
+						else {
+							MSE_THROW(std::logic_error("Attempt to subtract or subtract from a nullptr value - difference_type operator-(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) - TCommonizedRandomAccessIterator"));
+						}
 					}
 					const _TRandomAccessIterator1& _Right_cref_m_random_access_iterator_cref = (*crai_ptr).m_random_access_iterator;
 					return m_random_access_iterator - _Right_cref_m_random_access_iterator_cref;
@@ -1731,7 +1767,16 @@ namespace mse {
 					}
 
 					if (!craci_ptr) {
-						MSE_THROW(std::logic_error("attempt to subtract or compare iterators of different (underlying) types - operator-() - TCommonizedRandomAccessConstIterator"));
+						//MSE_THROW(std::logic_error("attempt to subtract or compare iterators of different (underlying) types - operator-() - TCommonizedRandomAccessConstIterator"));
+
+						const auto lhs_rawptr = effective_operator_arrow(*this);
+						const auto rhs_rawptr = effective_operator_arrow(_Right_cref);
+						if ((lhs_rawptr && rhs_rawptr) || ((!lhs_rawptr) && (!rhs_rawptr))) {
+							return (lhs_rawptr - rhs_rawptr);
+						}
+						else {
+							MSE_THROW(std::logic_error("Attempt to subtract or subtract from a nullptr value - difference_type operator-(const TCommonRandomAccessIteratorInterface<_Ty>& _Right_cref) - TCommonizedRandomAccessIterator"));
+						}
 					}
 					const _TRandomAccessConstIterator1& _Right_cref_m_random_access_const_iterator_cref = (*craci_ptr).m_random_access_const_iterator;
 					return m_random_access_const_iterator - _Right_cref_m_random_access_const_iterator_cref;

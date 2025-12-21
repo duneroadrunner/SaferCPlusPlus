@@ -1170,6 +1170,11 @@ namespace mse {
 				template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type >
 				inline retval_t maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& operand);
 
+				template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type>
+				inline retval_t maybe_any_cast(const mse::us::impl::TAnyPointerBaseV1<_Ty>& operand);
+				template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type>
+				inline retval_t maybe_any_cast(const mse::us::impl::TAnyConstPointerBaseV1<_Ty>& operand);
+
 				template <typename _Ty>
 				class TLHNullableAnyRandomAccessIteratorBase {
 				public:
@@ -1234,53 +1239,64 @@ namespace mse {
 
 					TLHNullableAnyRandomAccessIteratorBase operator+(difference_type n) const { auto retval = (*this); retval += n; return retval; }
 					TLHNullableAnyRandomAccessIteratorBase operator-(difference_type n) const { return ((*this) + (-n)); }
+
 					difference_type operator-(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& _Right_cref) const {
 						auto const& _Left_cref = *this;
 
-						auto maybe_lhs_sviter = maybe_any_cast<mse::lh::TStrongVectorIterator<const _Ty>>(mse::us::impl::as_ref<_Myt>(_Left_cref));
-						if (maybe_lhs_sviter.has_value()) {
-							auto& sviter_ref = maybe_lhs_sviter.value();
+						mse::us::impl::optional1<_Ty const*> maybe_rhs_rawptr;
+						auto maybe_rhs_rawptr2 = maybe_any_cast<_Ty const*>(_Right_cref);
+						if (maybe_rhs_rawptr2.has_value()) {
+							maybe_rhs_rawptr = maybe_rhs_rawptr2.value();
+						}
+						else {
+							auto maybe_rhs_rawptr2 = maybe_any_cast<_Ty*>(_Right_cref);
+							if (maybe_rhs_rawptr2.has_value()) {
+								maybe_rhs_rawptr = maybe_rhs_rawptr2.value();
+							}
+						}
+						if (maybe_rhs_rawptr.has_value()) {
+							const auto rhs_rawptr = maybe_rhs_rawptr.value();
+							/* The rhs contained iterator seems to be a raw pointer. */
+							/* Presumably this is a result of some iteraction with unsafe/legacy code. So, to maximize interop 
+							compatibility with (legacy) raw pointers, we can just obtain a corresponding raw pointer of the 
+							(potentially non-raw pointer) lhs contained iterator and just do raw pointer arithmetic. The fact 
+							that the rhs contained iterator is a raw pointer means that we are already in an "unsafe" situation, 
+							so presumably performing some raw pointer arithmetic wouldn't make the situation particularly more 
+							"unsafe". */
 
-							/* The lhs contained iterator is a TStrongVectorIterator<>. We're going to do special case handling to
-							support the comparison of TStrongVectorIterator<>s and raw pointers (or anything from which an equivalent
-							raw pointer can be derived). */
-							const auto lhs_rawptr = mse::us::lh::make_raw_pointer_from(sviter_ref);
-							const auto rhs_rawptr = mse::us::lh::make_raw_pointer_from(_Right_cref);
-							if (!rhs_rawptr) {
-								if (!lhs_rawptr) {
-									return (lhs_rawptr - rhs_rawptr);
-								}
+							const auto lhs_rawptr = mse::us::lh::make_raw_pointer_from(_Left_cref);
+							if ((rhs_rawptr && lhs_rawptr) || ((!rhs_rawptr) && (!lhs_rawptr))) {
+								typedef mse::impl::target_or_void_type<decltype(lhs_rawptr)> lhs_target_t;
+								return (lhs_rawptr - ((lhs_target_t const*)rhs_rawptr));
 							}
 							else {
-								if (lhs_rawptr) {
-									const auto container_ptr = sviter_ref.target_container_ptr();
-									if (container_ptr) {
-										const auto vsize = mse::container_size(*container_ptr);
-										if (1 <= vsize) {
-											const auto begin_raw_ptr = std::addressof((*container_ptr)[0]);
-											const auto end_raw_ptr = begin_raw_ptr + vsize;
-											if ((begin_raw_ptr <= rhs_rawptr) && (end_raw_ptr >= rhs_rawptr)) {
-												/* The rhs_rawptr seems to refer to the same container as the lhs. So comparison of the lhs_rawptr and
-												rhs_rawptr should be valid, right? */
-												return (lhs_rawptr - rhs_rawptr);
-											}
-										}
-									}
-								}
+								MSE_THROW(std::logic_error("Attempt to subtract or subtract from a nullptr value - difference_type operator-(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& _Right_cref) - TLHNullableAnyRandomAccessIteratorBase"));
 							}
 						}
 						else {
-							/* The `const` in the next line is commented out because "Microsoft Compiler Version 19.50.35719 for x64"
-							complains for some reason. clang++ and g++ are fine with it. */
-							auto maybe_lhs_rawptr = maybe_any_cast<_Ty /*const*/ *>(mse::us::impl::as_ref<_Myt>(_Left_cref));
+							mse::us::impl::optional1<_Ty const*> maybe_lhs_rawptr;
+							auto maybe_lhs_rawptr2 = maybe_any_cast<_Ty const*>(_Left_cref);
+							if (maybe_lhs_rawptr2.has_value()) {
+								maybe_lhs_rawptr = maybe_lhs_rawptr2.value();
+							}
+							else {
+								auto maybe_lhs_rawptr2 = maybe_any_cast<_Ty*>(_Left_cref);
+								if (maybe_lhs_rawptr2.has_value()) {
+									maybe_lhs_rawptr = maybe_lhs_rawptr2.value();
+								}
+							}
 							if (maybe_lhs_rawptr.has_value()) {
-								auto lhs_rawptr = maybe_lhs_rawptr.value();
+								const auto lhs_rawptr = maybe_lhs_rawptr.value();
+								/* The lhs contained iterator seems to be a raw pointer. */
 
-								/* The lhs contained iterator seems to be a raw pointer. Hmm, this fact arguably means that we are already
-								in an unsafe situation, so comparing it to a raw pointer equivalent of the rhs presumably wouldn't make the
-								situation any worse? */
 								const auto rhs_rawptr = mse::us::lh::make_raw_pointer_from(_Right_cref);
-								return (lhs_rawptr - rhs_rawptr);
+								if ((lhs_rawptr && rhs_rawptr) || ((!lhs_rawptr) && (!rhs_rawptr))) {
+									typedef mse::impl::target_or_void_type<decltype(rhs_rawptr)> rhs_target_t;
+									return (((rhs_target_t const*)lhs_rawptr) - rhs_rawptr);
+								}
+								else {
+									MSE_THROW(std::logic_error("Attempt to subtract or subtract from a nullptr value - difference_type operator-(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& _Right_cref) - TLHNullableAnyRandomAccessIteratorBase"));
+								}
 							}
 						}
 
@@ -1336,50 +1352,36 @@ namespace mse {
 					> MSE_IMPL_EIS >
 					friend std::strong_ordering operator<=>(const TLHSIterator_ecwapt& _Left_cref, const TRHSIterator_ecwapt& _Right_cref) {
 
-						auto maybe_lhs_sviter = maybe_any_cast<mse::lh::TStrongVectorIterator<const _Ty>>(mse::us::impl::as_ref<_Myt>(_Left_cref));
-						if (maybe_lhs_sviter.has_value()) {
-							auto& sviter_ref = maybe_lhs_sviter.value();
-
-							/* The lhs contained iterator is a TStrongVectorIterator<>. We're going to do special case handling to
-							support the comparison of TStrongVectorIterator<>s and raw pointers (or anything from which an equivalent
-							raw pointer can be derived). */
-							const auto lhs_rawptr = mse::us::lh::make_raw_pointer_from(sviter_ref);
-							const auto rhs_rawptr = mse::us::lh::make_raw_pointer_from(_Right_cref);
-							if (!rhs_rawptr) {
-								if (!lhs_rawptr) {
-									return (lhs_rawptr <=> rhs_rawptr);
-								}
+						{
+							mse::us::impl::optional1<_Ty const*> maybe_lhs_rawptr;
+							auto maybe_lhs_rawptr2 = maybe_any_cast<_Ty const*>(_Left_cref);
+							if (maybe_lhs_rawptr2.has_value()) {
+								maybe_lhs_rawptr = maybe_lhs_rawptr2.value();
 							}
 							else {
-								if (lhs_rawptr) {
-									const auto container_ptr = sviter_ref.target_container_ptr();
-									if (container_ptr) {
-										const auto vsize = mse::container_size(*container_ptr);
-										if (1 <= vsize) {
-											const auto begin_raw_ptr = std::addressof((*container_ptr)[0]);
-											const auto end_raw_ptr = begin_raw_ptr + vsize;
-											if ((begin_raw_ptr <= rhs_rawptr) && (end_raw_ptr >= rhs_rawptr)) {
-												/* The rhs_rawptr seems to refer to the same container as the lhs. So comparison of the lhs_rawptr and
-												rhs_rawptr should be valid, right? */
-												return (lhs_rawptr <=> rhs_rawptr);
-											}
-										}
-									}
+								auto maybe_lhs_rawptr2 = maybe_any_cast<_Ty*>(_Left_cref);
+								if (maybe_lhs_rawptr2.has_value()) {
+									maybe_lhs_rawptr = maybe_lhs_rawptr2.value();
 								}
 							}
-						}
-						else {
-							/* The `const` in the next line is commented out because "Microsoft Compiler Version 19.50.35719 for x64"
-							complains for some reason. clang++ and g++ are fine with it. */
-							auto maybe_lhs_rawptr = maybe_any_cast<_Ty /*const*/*>(mse::us::impl::as_ref<_Myt>(_Left_cref));
 							if (maybe_lhs_rawptr.has_value()) {
-								auto lhs_rawptr = maybe_lhs_rawptr.value();
+								const auto lhs_rawptr = maybe_lhs_rawptr.value();
+								/* The lhs contained iterator seems to be a raw pointer. */
+								/* Presumably this is a result of some iteraction with unsafe/legacy code. So, to maximize interop
+								compatibility with (legacy) raw pointers, we can just obtain a corresponding raw pointer of the
+								(potentially non-raw pointer) rhs contained iterator and just do raw pointer comparison. The fact
+								that the lhs contained iterator is a raw pointer means that we are already in an "unsafe" situation,
+								so presumably performing some raw pointer comparison wouldn't make the situation particularly more
+								"unsafe". */
 
-								/* The lhs contained iterator seems to be a raw pointer. Hmm, this fact arguably means that we are already
-								in an unsafe situation, so comparing it to a raw pointer equivalent of the rhs presumably wouldn't make the
-								situation any worse? */
 								const auto rhs_rawptr = mse::us::lh::make_raw_pointer_from(_Right_cref);
-								return (lhs_rawptr <=> rhs_rawptr);
+								if ((lhs_rawptr && rhs_rawptr) || ((!lhs_rawptr) && (!rhs_rawptr))) {
+									typedef mse::impl::target_or_void_type<decltype(rhs_rawptr)> rhs_target_t;
+									return (((rhs_target_t const*)lhs_rawptr) <=> rhs_rawptr);
+								}
+								else {
+									MSE_THROW(std::logic_error("Attempt of an ordered compare of a nullptr value - std::strong_ordering operator<=>() - TLHNullableAnyRandomAccessIteratorBase"));
+								}
 							}
 						}
 
@@ -1406,15 +1408,13 @@ namespace mse {
 									/* If both sides are null, we'll treat the values as equivalent? */
 									return true;
 								}
+							} else if (!bool(_Left_cref)) {
+								null_and_not_null_flag = true;
 							}
- else if (!bool(_Left_cref)) {
-	 null_and_not_null_flag = true;
+						} else MSE_IF_CONSTEXPR(mse::impl::IsExplicitlyCastableToBool_pb<TRHSIterator_ecwapt>::value) {
+							if (!bool(_Right_cref)) {
+								null_and_not_null_flag = true;
 							}
-						}
- else MSE_IF_CONSTEXPR(mse::impl::IsExplicitlyCastableToBool_pb<TRHSIterator_ecwapt>::value) {
-	 if (!bool(_Right_cref)) {
-		 null_and_not_null_flag = true;
-	 }
 						}
 						if (null_and_not_null_flag) {
 							return false;
@@ -1580,8 +1580,11 @@ namespace mse {
 						return constructor_helper2(res1_t(), random_access_iterator);
 					}
 					template <typename _TPointer1>
-					static auto constructor_helper1(std::false_type, const _TPointer1& pointer1) {
+					static auto constructor_helper1(std::false_type, const _TPointer1& pointer1) -> mse::lh::TLHNullableAnyRandomAccessIterator<_Ty> {
 						/* For legacy compatibility we're going to support interpreting pointers as iterators to an array of size 1. */
+						if (mse::impl::evaluates_to_false(pointer1)) {
+							return {};
+						}
 						auto lh_any_pointer1 = TLHNullableAnyPointer<_Ty>(pointer1);
 						/* mse::nii_array<_Ty, 1> has been designed to be "bit identical" to std::array<_Ty, 1> which should be
 						"bit identical" to _Ty[1] which should be "bit identical" to _Ty, so it should be safe reinterpret a
@@ -1616,19 +1619,12 @@ namespace mse {
 
 					template<typename ValueType2, typename _Ty2, typename retval_t2>
 					friend inline retval_t2 maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty2>& operand);
+					template<typename ValueType2, typename _Ty2, typename retval_t2>
+					friend inline retval_t2 maybe_any_cast_helper1(std::true_type, const TLHNullableAnyRandomAccessIteratorBase<_Ty2>& operand);
 				};
 
-				template<typename ValueType, typename _Ty, typename retval_t/* = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type*/>
-				inline retval_t maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& operand) {
-					/* We need to obtain the "any" object that actually stores the value. In this case, that object is "buried" within layers
-					of base classes and member fields, so it's going to take a few operations to get to it. */
-					auto nullable_any_ra_iter_base1 = operand.m_iter;
-					if (!nullable_any_ra_iter_base1) {
-						return retval_t{};
-					}
-					auto nullable_any_ra_iter1 = mse::TNullableAnyRandomAccessIterator<_Ty>(std::move(nullable_any_ra_iter_base1));
-					auto any_ra_iter1 = mse::not_null_from_nullable(nullable_any_ra_iter1);
-					auto any1 = mse::us::impl::ns_any::contained_any(any_ra_iter1);
+				template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type>
+				inline retval_t maybe_any_cast_helper2(const mse::us::impl::ns_any::any& any1) {
 
 #define MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT1(target_type, type1) \
 					{ \
@@ -1669,6 +1665,43 @@ namespace mse {
 					MSE_IMPL_LH_MAYBE_ANYCAST_CAST_ATTEMPT5(T1);
 
 					return retval_t{};
+				}
+				template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type>
+				inline retval_t maybe_any_cast_helper1(std::true_type, const TLHNullableAnyRandomAccessIteratorBase<_Ty>& operand) {
+					/* We need to obtain the "any" object that actually stores the value. In this case, that object is "buried" within layers
+					of base classes and member fields, so it's going to take a few operations to get to it. */
+					auto nullable_any_ra_iter_base1 = operand.m_iter;
+					if (!nullable_any_ra_iter_base1) {
+						return retval_t{};
+					}
+					auto nullable_any_ra_iter1 = mse::TNullableAnyRandomAccessIterator<_Ty>(std::move(nullable_any_ra_iter_base1));
+					auto any_ra_iter1 = mse::not_null_from_nullable(nullable_any_ra_iter1);
+					auto any1 = mse::us::impl::ns_any::contained_any(any_ra_iter1);
+					return maybe_any_cast_helper2<ValueType, _Ty, retval_t>(any1);
+				}
+				template<typename ValueType, typename _Ty, typename retval_t = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type>
+				inline retval_t maybe_any_cast_helper1(std::false_type, const TLHNullableAnyRandomAccessIteratorBase<_Ty>& operand) {
+					return retval_t{};
+				}
+
+				template<typename ValueType, typename _Ty, typename retval_t/* = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type*/>
+				inline retval_t maybe_any_cast(const TLHNullableAnyRandomAccessIteratorBase<_Ty>& operand) {
+					/* First we determine if the candidate type to be cast to has a valid target type that preserves const correctness. */
+					struct invalid_target_t {};
+					typedef mse::impl::target_or_given_default_type<ValueType, invalid_target_t> ValueTargetType;
+					static const bool b1 = (!std::is_same<invalid_target_t, ValueTargetType>::value) && ((!std::is_const<ValueTargetType>::value) || std::is_const<_Ty>::value);
+					return maybe_any_cast_helper1<ValueType, _Ty, retval_t>(typename std::integral_constant<bool, b1>::type(), operand);
+				}
+
+				template<typename ValueType, typename _Ty, typename retval_t/* = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type*/>
+				inline retval_t maybe_any_cast(const mse::us::impl::TAnyPointerBaseV1<_Ty>& operand) {
+					auto any1 = mse::us::impl::ns_any::contained_any(operand);
+					return maybe_any_cast_helper2<ValueType, _Ty, retval_t>(any1);
+				}
+				template<typename ValueType, typename _Ty, typename retval_t/* = typename std::conditional<mse::impl::is_xscope<ValueType>::value, mse::xscope_fixed_optional<ValueType>, mse::fixed_optional<ValueType> >::type*/>
+				inline retval_t maybe_any_cast(const mse::us::impl::TAnyConstPointerBaseV1<_Ty>& operand) {
+					auto any1 = mse::us::impl::ns_any::contained_any(operand);
+					return maybe_any_cast_helper2<ValueType, _Ty, retval_t>(any1);
 				}
 			}
 		}
@@ -3167,6 +3200,7 @@ namespace mse {
 					generate a whole bunch of guesses. */
 
 					typedef mse::impl::target_type<_TIter2> element_t;
+					typedef mse::us::impl::base_type_t<element_t> element_base_t;
 					auto& ecany_ref = mse::us::impl::as_ref<const mse::lh::impl::explicitly_castable_any>(destination);
 
 #define MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT1(type1) \
@@ -3195,9 +3229,16 @@ namespace mse {
 						MACRO_FUNCTION(type1_ptr_t); \
 					}
 
-					MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT2(element_t, MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT1);
-					MSE_IF_CONSTEXPR(!std::is_const<element_t>::value) {
-						//MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT1);
+#define MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT3(type1) \
+					MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT2(type1, MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT1); \
+					MSE_IF_CONSTEXPR(!std::is_const<type1>::value) { \
+						/* MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT1); */ \
+					}
+
+					MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT3(element_t);
+
+					MSE_IF_CONSTEXPR(!std::is_same<element_base_t, element_t>::value) {
+						MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT3(element_base_t);
 					}
 
 					MSE_THROW(std::logic_error("could not determine the type represented by the (presumably lh::void_star_replacement) argument - lh::impl::us::memcpy_helper2()"));
@@ -3218,6 +3259,7 @@ namespace mse {
 					generate a whole bunch of guesses. */
 
 					typedef mse::impl::target_type<_TIter> element_t;
+					typedef mse::us::impl::base_type_t<element_t> element_base_t;
 					auto& ecany_ref = mse::us::impl::as_ref<const mse::lh::impl::explicitly_castable_any>(source);
 
 #define MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1(type1) \
@@ -3230,9 +3272,16 @@ namespace mse {
 
 #define MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(type1, MACRO_FUNCTION) MSE_IMPL_LH_MEMCPY_HELPER3_ANY_CAST_ATTEMPT2(type1, MACRO_FUNCTION)
 
-					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(element_t, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
-					MSE_IF_CONSTEXPR(!std::is_const<element_t>::value) {
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1);
+#define MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT3(type1) \
+					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(type1, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1); \
+					MSE_IF_CONSTEXPR(!std::is_const<type1>::value) { \
+						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<type1>::type, MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT1); \
+					}
+
+					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT3(element_t);
+
+					MSE_IF_CONSTEXPR(!std::is_same<element_base_t, element_t>::value) {
+						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT3(element_base_t);
 					}
 
 					MSE_THROW(std::logic_error("could not determine the type represented by the (presumably lh::void_star_replacement) argument - lh::impl::us::memcpy_helper2()"));
@@ -3304,6 +3353,7 @@ namespace mse {
 					generate a whole bunch of guesses. */
 
 					typedef mse::impl::target_type<_TPointer> element_t;
+					typedef mse::us::impl::base_type_t<element_t> element_base_t;
 					auto& ecany_ref = mse::us::impl::as_ref<const mse::lh::impl::explicitly_castable_any>(source2);
 
 #define MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1(type1) \
@@ -3314,9 +3364,16 @@ namespace mse {
 						} \
 					}
 
-					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(element_t, MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1);
-					MSE_IF_CONSTEXPR(!std::is_const<element_t>::value) {
-						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<element_t>::type, MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1);
+#define MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT3(type1) \
+					MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(type1, MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1); \
+					MSE_IF_CONSTEXPR(!std::is_const<type1>::value) { \
+						MSE_IMPL_LH_MEMCPY_HELPER2_ANY_CAST_ATTEMPT2(typename std::add_const<type1>::type, MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT1); \
+					}
+
+					MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT3(element_t);
+
+					MSE_IF_CONSTEXPR(!std::is_same<element_base_t, element_t>::value) {
+						MSE_IMPL_LH_MEMCMP_HELPER2_ANY_CAST_ATTEMPT3(element_base_t);
 					}
 
 					MSE_THROW(std::logic_error("could not determine the type represented by the (presumably lh::void_star_replacement) argument - lh::impl::us::memcmp_helper4()"));
@@ -5175,6 +5232,15 @@ namespace mse {
 		};
 	}
 	namespace us {
+		namespace impl {
+			/* some overloads for effective_operator_arrow() defined in msepoly.h */
+			inline auto effective_operator_arrow(mse::lh::void_star_replacement const& vsr) {
+				return (void*)vsr;
+			}
+			inline auto effective_operator_arrow(mse::lh::const_void_star_replacement const& cvsr) {
+				return (void const*)cvsr;
+			}
+		}
 		namespace lh {
 			/* "C-style" (unsafe) casts can convert a native pointer to a native pointer to an incompatible type. It cannot
 			convert an object that is not a native pointer(/reference) to an object of incompatible type. The "safe"
@@ -5202,7 +5268,7 @@ namespace mse {
 					}
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper13(std::true_type, const _Ty2& x) {
-						return _Ty((mse::impl::target_type<_Ty>*)std::addressof(*x));
+						return _Ty((mse::impl::target_type<_Ty>*)mse::us::impl::effective_operator_arrow(x));
 					}
 
 					template<typename _Ty, typename _Ty2>
@@ -5256,7 +5322,7 @@ namespace mse {
 					}
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper8(std::true_type, const _Ty2& x) {
-						return (_Ty)(std::addressof(*x));
+						return (_Ty)(mse::us::impl::effective_operator_arrow(x));
 					}
 
 					template<typename _Ty, typename _Ty2>
@@ -5283,7 +5349,7 @@ namespace mse {
 						{
 							return nullptr;
 						}
-						return (_Ty)(std::addressof(*x));
+						return (_Ty)(mse::us::impl::effective_operator_arrow(x));
 					}
 					template<typename _Ty, typename _Ty2>
 					_Ty unsafe_cast_helper5(std::true_type, const _Ty2& x) {
@@ -5370,9 +5436,10 @@ namespace mse {
 			}
 			namespace impl {
 				template<typename _Ty>
-				auto make_raw_pointer_from_helper3(std::true_type, _Ty const& iter) -> decltype(unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*iter)))>(iter)) {
-					/* The iterator apparently has a target_container_ptr() member function and an operator[]. We can use them 
-					to "safely" obtain a corresponding raw pointer for the iterator, even when the iterator is an "end()" 
+				auto make_raw_pointer_from_helper3(std::true_type, _Ty const& iter) -> decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*iter))) {
+					typedef decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*iter))) return_t;
+					/* The iterator apparently has a target_container_ptr() member function and an operator[]. We can use them
+					to "safely" obtain a corresponding raw pointer for the iterator, even when the iterator is an "end()"
 					iterator or otherwise doesn't target a valid object. */
 					auto container_ptr = iter.target_container_ptr();
 					if (!container_ptr) {
@@ -5382,7 +5449,7 @@ namespace mse {
 					if (1 > size) {
 						return nullptr;
 					}
-					return std::addressof((*(iter.target_container_ptr()))[0]) + iter.position();
+					return (return_t)(std::addressof((*(iter.target_container_ptr()))[0]) + iter.position());
 				}
 				template<typename _Ty>
 				auto make_raw_pointer_from_helper3(std::false_type, mse::lh::us::impl::TLHNullableAnyRandomAccessIteratorBase<_Ty> const& iter) -> decltype(unsafe_cast<decltype(std::addressof(mse::us::impl::base_type_raw_reference_to(*iter)))>(iter)) {
@@ -6942,6 +7009,12 @@ namespace mse {
 					auto p4 = (mse::lh::TLHNullableAnyRandomAccessIterator<char>)(*(mse::lh::void_star_star_replacement)vsr1);
 					auto ch4 = *p4;
 
+					int q = 5;
+				}
+				{
+					auto ul1_reg = mse::make_registered((unsigned long)(7));
+					auto cvsr1 = mse::lh::const_void_star_replacement(&ul1_reg);
+					mse::lh::memcpy(&ul1_reg, cvsr1, sizeof(ul1_reg));
 					int q = 5;
 				}
 #endif // !MSE_SAFER_SUBSTITUTES_DISABLED
