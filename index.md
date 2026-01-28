@@ -35,8 +35,7 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
     1. [SaferCPlusPlus versus Clang/LLVM Sanitizers](#safercplusplus-versus-clangllvm-sanitizers)
     2. [SaferCPlusPlus versus Rust](#safercplusplus-versus-rust)
 5. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
-6. <details>
-    <summary>Registered pointers</summary>
+6. Registered pointers
     1. [Overview](#registered-pointers)
     2. [TRegisteredPointer](#tregisteredpointer)
         1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
@@ -44,28 +43,20 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
         3. [TRegisteredRefWrapper](#tregisteredrefwrapper)
     3. [TCRegisteredPointer](#tcregisteredpointer)
     4. [TNDRegisteredPointer, TNDCRegisteredPointer](#tndregisteredpointer-tndcregisteredpointer)
-    </details>
-7. <details>
-    <summary>Norad pointers</summary>
+7. Norad pointers
     1. [Overview](#norad-pointers)
     2. [TNoradPointer](#tnoradpointer)
-    </details>
 8. [Simple benchmarks](#simple-benchmarks)
-9. <details>
-    <summary>Reference counting pointers</summary>
+9. Reference counting pointers
     1. [Overview](#reference-counting-pointers)
     2. [TRefCountingPointer](#trefcountingpointer)
         1. [TRefCountingNotNullPointer](#trefcountingnotnullpointer)
         2. [TRefCountingFixedPointer](#trefcountingfixedpointer)
     3. [Using registered pointers as weak pointers](#using-registered-pointers-as-weak-pointers-with-reference-counting-pointers)
-    </details>
-10. <details>
-    <summary>Single owner pointer</summary>
+10. Single owner pointer
     1. [Overview](#single-owner-pointer)
     2. [TSingleOwnerPointer](#tsingleownerpointer)
-    </details>
-11. <details>
-    <summary>Scope pointers</summary>
+11. Scope pointers
     1. [Overview](#scope-pointers)
     2. [TXScopeFixedPointer](#txscopefixedpointer)
     3. [TXScopeOwnerPointer](#txscopeownerpointer)
@@ -79,7 +70,6 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
     11. [Conformance helpers](#conformance-helpers)
         1. [return_value()](#return_value)
         2. [TMemberObj](#tmemberobj)
-    </details>
 12. [make_pointer_to_member_v2()](#make_pointer_to_member_v2)
 13. [Poly pointers](#poly-pointers)
     1. [TXScopePolyPointer](#txscopepolypointer)
@@ -87,9 +77,7 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
     3. [TAnyPointer](#txscopeanypointer-tanypointer)
 14. [pointer_to()](#pointer_to)
 15. [Safely passing parameters by reference](#safely-passing-parameters-by-reference)
-16. <details>
-    <summary>Multithreading</summary>
-
+16. Multithreading
     1. [Overview](#multithreading)
     2. [TAsyncPassableObj](#tasyncpassableobj)
     3. [thread](#thread)
@@ -117,34 +105,25 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
         1. [static immutables](#static-immutables)
         2. [static atomics](#static-atomics)
         3. [static access controlled objects and access requesters](#static-access-controlled-objects-and-access-requesters)
-    </details>
 17. [Primitives](#primitives)
     1. [CInt, CSize_t and CBool](#cint-csize_t-and-cbool)
     2. [CNDInt, CNDSize_t and CNDBool](#cndint-cndsize_t-and-cndbool)
     3. [Quarantined types](#quarantined-types)
-18. <details>
-    <summary>Arrays</summary>
-
+18. Arrays
     1. [Overview](#arrays)
     2. [mstd::array](#mstdarray)
     3. [nii_array](#nii_array)
     4. [xscope_nii_array](#xscope_nii_array)
     5. [xscope_iterator](#xscope_iterator)
-    </details>
-19. <details>
-    <summary>Vectors</summary>
-
+19. Vectors
     1. [Overview](#vectors)
     2. [mstd::vector](#mstdvector)
     3. [nii_vector](#nii_vector)
     4. [fixed_nii_vector](#fixed_nii_vector)
     5. [xscope_borrowing_fixed_nii_vector](#xscope_borrowing_fixed_nii_vector)
     6. [ivector](#ivector)
-    </details>
 20. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
-21. <details>
-    <summary>Strings</summary>
-
+21. Strings
     1. [Overview](#strings)
     2. [mstd::string](#mstdstring)
     3. [nii_string](#nii_string)
@@ -153,10 +132,7 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
     6. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
     7. [mstd::string_view](#string_view)
     8. [nrp_string_view](#nrp_string_view)
-    </details>
-22. <details>
-    <summary>Poly Iterators and Sections</summary>
-
+22. Poly Iterators and Sections
     1. [Overview](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
     2. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
     3. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
@@ -164,32 +140,22 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
     5. [TAnyNRPStringSection](#txscopeanynrpstringsection-txscopeanynrpstringconstsection-tanynrpstringsection-tanynrpstringconstsection)
     6. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
     7. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
-    </details>
-23. <details>
-    <summary>Optionals</summary>
-
+23. Optionals
     1. [Overview](#optionals)
     2. [mstd::optional](#mstdoptional)
     3. [optional](#optional)
     4. [fixed_optional](#fixed_optional)
     5. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
-    </details>
-24. <details>
-    <summary>Anys</summary>
-
+24. Anys
     1. [Overview](#anys)
     2. [mstd::any](#mstdany)
     3. [any](#any)
     4. [fixed_any](#fixed_any)
     5. [xscope_borrowing_fixed_any](#xscope_borrowing_fixed_any)
-    </details>
-25. <details>
-    <summary>Tuples</summary>
-
+25. Tuples
     1. [Overview](#tuples)
     2. [mstd::tuple](#tuple)
     3. [xscope_tuple](#xscope_tuple)
-    </details>
 26. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
     2. [find_if_ptr()](#find_if_ptr)
