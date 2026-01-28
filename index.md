@@ -39,18 +39,18 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
     <summary>Registered pointers</summary>
 
     1. [Overview](#registered-pointers)
-    1. [TRegisteredPointer](#tregisteredpointer)
+    2. [TRegisteredPointer](#tregisteredpointer)
         1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
         2. [TRegisteredFixedPointer](#tregisteredfixedpointer)
         3. [TRegisteredRefWrapper](#tregisteredrefwrapper)
-    2. [TCRegisteredPointer](#tcregisteredpointer)
-    3. [TNDRegisteredPointer, TNDCRegisteredPointer](#tndregisteredpointer-tndcregisteredpointer)
+    3. [TCRegisteredPointer](#tcregisteredpointer)
+    4. [TNDRegisteredPointer, TNDCRegisteredPointer](#tndregisteredpointer-tndcregisteredpointer)
     </details>
 7. <details>
     <summary>Norad pointers</summary>
 
     1. [Overview](#norad-pointers)
-    1. [TNoradPointer](#tnoradpointer)
+    2. [TNoradPointer](#tnoradpointer)
     </details>
 8. [Simple benchmarks](#simple-benchmarks)
 9. <details>
@@ -66,22 +66,22 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
     <summary>Single owner pointer</summary>
 
     1. [Overview](#single-owner-pointer)
-    1. [TSingleOwnerPointer](#tsingleownerpointer)
+    2. [TSingleOwnerPointer](#tsingleownerpointer)
     </details>
 11. <details>
     <summary>Scope pointers</summary>
 
     1. [Overview](#scope-pointers)
-    1. [TXScopeFixedPointer](#txscopefixedpointer)
-    2. [TXScopeOwnerPointer](#txscopeownerpointer)
-    3. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
-    4. [make_xscope_borrowing_strong_pointer_store()](#make_xscope_borrowing_strong_pointer_store)
-    5. [TRegisteredProxyPointer](#tregisteredproxypointer)
-    6. [TNoradProxyPointer](#tnoradproxypointer)
-    7. [xscope_chosen()](#xscope_chosen)
-    8. [as_a_returnable_fparam()](#as_a_returnable_fparam)
-    9. [as_an_fparam()](#as_an_fparam)
-    10. [Conformance helpers](#conformance-helpers)
+    2. [TXScopeFixedPointer](#txscopefixedpointer)
+    3. [TXScopeOwnerPointer](#txscopeownerpointer)
+    4. [make_xscope_strong_pointer_store()](#make_xscope_strong_pointer_store)
+    5. [make_xscope_borrowing_strong_pointer_store()](#make_xscope_borrowing_strong_pointer_store)
+    6. [TRegisteredProxyPointer](#tregisteredproxypointer)
+    7. [TNoradProxyPointer](#tnoradproxypointer)
+    8. [xscope_chosen()](#xscope_chosen)
+    9. [as_a_returnable_fparam()](#as_a_returnable_fparam)
+    10. [as_an_fparam()](#as_an_fparam)
+    11. [Conformance helpers](#conformance-helpers)
         1. [return_value()](#return_value)
         2. [TMemberObj](#tmemberobj)
     </details>
@@ -96,10 +96,10 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
     <summary>Multithreading</summary>
 
     1. [Overview](#multithreading)
-    1. [TAsyncPassableObj](#tasyncpassableobj)
-    2. [thread](#thread)
-    3. [async()](#async)
-    4. [Asynchronously shared objects](#asynchronously-shared-objects)
+    2. [TAsyncPassableObj](#tasyncpassableobj)
+    3. [thread](#thread)
+    4. [async()](#async)
+    5. [Asynchronously shared objects](#asynchronously-shared-objects)
         1. [TAsyncShareableObj](#tasyncshareableobj)
         2. [TAsyncShareableAndPassableObj](#tasyncshareableandpassableobj)
         3. [TAsyncSharedV2ReadWriteAccessRequester](#tasyncsharedv2readwriteaccessrequester)
@@ -107,7 +107,7 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
         5. [TAsyncSharedV2ImmutableFixedPointer](#tasyncsharedv2immutablefixedpointer)
         6. [TAsyncSharedV2AtomicFixedPointer](#tasyncsharedv2atomicfixedpointer)
         7. [TAsyncRASectionSplitter](#tasyncrasectionsplitter)
-    5. [Scope threads](#scope-threads)
+    6. [Scope threads](#scope-threads)
         1. [access controlled objects](#access-controlled-objects)
         2. [xscope_thread_carrier](#xscope_thread_carrier)
         3. [xscope_future_carrier](#xscope_future_carrier)
@@ -118,7 +118,7 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
         8. [exclusive writer objects](#exclusive-writer-objects)
         9. [scope atomics](#scope-atomics)
         10. [TXScopeACORASectionSplitter and TXScopeAsyncACORASectionSplitter](#txscopeacorasectionsplitter-and-txscopeasyncacorasectionsplitter)
-    6. [static and global variables](#static-and-global-variables)
+    7. [static and global variables](#static-and-global-variables)
         1. [static immutables](#static-immutables)
         2. [static atomics](#static-atomics)
         3. [static access controlled objects and access requesters](#static-access-controlled-objects-and-access-requesters)
@@ -131,69 +131,69 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
     <summary>Arrays</summary>
 
     1. [Overview](#arrays)
-    1. [mstd::array](#mstdarray)
-    2. [nii_array](#nii_array)
-    3. [xscope_nii_array](#xscope_nii_array)
-    4. [xscope_iterator](#xscope_iterator)
+    2. [mstd::array](#mstdarray)
+    3. [nii_array](#nii_array)
+    4. [xscope_nii_array](#xscope_nii_array)
+    5. [xscope_iterator](#xscope_iterator)
     </details>
 19. <details>
     <summary>Vectors</summary>
 
     1. [Overview](#vectors)
-    1. [mstd::vector](#mstdvector)
-    2. [nii_vector](#nii_vector)
-    3. [fixed_nii_vector](#fixed_nii_vector)
-    4. [xscope_borrowing_fixed_nii_vector](#xscope_borrowing_fixed_nii_vector)
-    5. [ivector](#ivector)
+    2. [mstd::vector](#mstdvector)
+    3. [nii_vector](#nii_vector)
+    4. [fixed_nii_vector](#fixed_nii_vector)
+    5. [xscope_borrowing_fixed_nii_vector](#xscope_borrowing_fixed_nii_vector)
+    6. [ivector](#ivector)
     </details>
 20. [TRandomAccessSection](#txscoperandomaccesssection-txscoperandomaccessconstsection-trandomaccesssection-trandomaccessconstsection)
 21. <details>
     <summary>Strings</summary>
 
     1. [Overview](#strings)
-    1. [mstd::string](#mstdstring)
-    2. [nii_string](#nii_string)
-    3. [xscope_borrowing_fixed_nii_basic_string](#xscope_borrowing_fixed_nii_basic_string)
-    4. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
-    5. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
-    6. [mstd::string_view](#string_view)
-    7. [nrp_string_view](#nrp_string_view)
+    2. [mstd::string](#mstdstring)
+    3. [nii_string](#nii_string)
+    4. [xscope_borrowing_fixed_nii_basic_string](#xscope_borrowing_fixed_nii_basic_string)
+    5. [TStringSection](#txscopestringsection-txscopestringconstsection-tstringsection-tstringconstsection)
+    6. [TNRPStringSection](#txscopenrpstringsection-txscopenrpstringconstsection-tnrpstringsection-tnrpstringconstsection)
+    7. [mstd::string_view](#string_view)
+    8. [nrp_string_view](#nrp_string_view)
     </details>
 22. <details>
     <summary>Poly Iterators and Sections</summary>
 
     1. [Overview](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
-    1. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
-    2. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
-    3. [TAnyStringSection](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection)
-    4. [TAnyNRPStringSection](#txscopeanynrpstringsection-txscopeanynrpstringconstsection-tanynrpstringsection-tanynrpstringconstsection)
-    5. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
-    6. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
+    2. [TAnyRandomAccessIterator](#txscopeanyrandomaccessiterator-txscopeanyrandomaccessconstiterator-tanyrandomaccessiterator-tanyrandomaccessconstiterator)
+    3. [TAnyRandomAccessSection](#txscopeanyrandomaccesssection-txscopeanyrandomaccessconstsection-tanyrandomaccesssection-tanyrandomaccessconstsection)
+    4. [TAnyStringSection](#txscopeanystringsection-txscopeanystringconstsection-tanystringsection-tanystringconstsection)
+    5. [TAnyNRPStringSection](#txscopeanynrpstringsection-txscopeanynrpstringconstsection-tanynrpstringsection-tanynrpstringconstsection)
+    6. [TXScopeCSSSXSTERandomAccessIterator and TXScopeCSSSXSTERandomAccessSection](#txscopecsssxsterandomaccessiterator-and-txscopecsssxsterandomaccesssection)
+    7. [TXScopeCSSSXSTEStringSection](#txscopecsssxstestringsection-txscopecsssxstenrpstringsection)
     </details>
 23. <details>
     <summary>Optionals</summary>
 
     1. [Overview](#optionals)
-    1. [mstd::optional](#mstdoptional)
-    2. [optional](#optional)
-    3. [fixed_optional](#fixed_optional)
-    4. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
+    2. [mstd::optional](#mstdoptional)
+    3. [optional](#optional)
+    4. [fixed_optional](#fixed_optional)
+    5. [xscope_borrowing_fixed_optional](#xscope_borrowing_fixed_optional)
     </details>
 24. <details>
     <summary>Anys</summary>
 
     1. [Overview](#anys)
-    1. [mstd::any](#mstdany)
-    2. [any](#any)
-    3. [fixed_any](#fixed_any)
-    4. [xscope_borrowing_fixed_any](#xscope_borrowing_fixed_any)
+    2. [mstd::any](#mstdany)
+    3. [any](#any)
+    4. [fixed_any](#fixed_any)
+    5. [xscope_borrowing_fixed_any](#xscope_borrowing_fixed_any)
     </details>
 25. <details>
     <summary>Tuples</summary>
 
     1. [Overview](#tuples)
-    1. [mstd::tuple](#tuple)
-    2. [xscope_tuple](#xscope_tuple)
+    2. [mstd::tuple](#tuple)
+    3. [xscope_tuple](#xscope_tuple)
     </details>
 26. [Algorithms](#algorithms)
     1. [for_each_ptr()](#for_each_ptr)
