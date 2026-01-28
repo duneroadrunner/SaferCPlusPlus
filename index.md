@@ -37,7 +37,6 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
 5. [Getting started on safening existing code](#getting-started-on-safening-existing-code)
 6. <details>
     <summary>Registered pointers</summary>
-
     1. [Overview](#registered-pointers)
     2. [TRegisteredPointer](#tregisteredpointer)
         1. [TRegisteredNotNullPointer](#tregisterednotnullpointer)
@@ -48,29 +47,25 @@ Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 
     </details>
 7. <details>
     <summary>Norad pointers</summary>
-
     1. [Overview](#norad-pointers)
     2. [TNoradPointer](#tnoradpointer)
     </details>
 8. [Simple benchmarks](#simple-benchmarks)
 9. <details>
     <summary>Reference counting pointers</summary>
-
     1. [Overview](#reference-counting-pointers)
-    1. [TRefCountingPointer](#trefcountingpointer)
+    2. [TRefCountingPointer](#trefcountingpointer)
         1. [TRefCountingNotNullPointer](#trefcountingnotnullpointer)
         2. [TRefCountingFixedPointer](#trefcountingfixedpointer)
-    2. [Using registered pointers as weak pointers](#using-registered-pointers-as-weak-pointers-with-reference-counting-pointers)
+    3. [Using registered pointers as weak pointers](#using-registered-pointers-as-weak-pointers-with-reference-counting-pointers)
     </details>
 10. <details>
     <summary>Single owner pointer</summary>
-
     1. [Overview](#single-owner-pointer)
     2. [TSingleOwnerPointer](#tsingleownerpointer)
     </details>
 11. <details>
     <summary>Scope pointers</summary>
-
     1. [Overview](#scope-pointers)
     2. [TXScopeFixedPointer](#txscopefixedpointer)
     3. [TXScopeOwnerPointer](#txscopeownerpointer)
