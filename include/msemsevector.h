@@ -4710,10 +4710,10 @@ namespace mse {
 #endif // 0
 			TXSLTADynamicRAContainerElementProxyRef(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"), size_t index = 0) : m_bf_container(src_xs_ptr), m_index(index) {}
 
-
-			operator _Ty() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+			operator _Ty() const && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				return m_bf_container[m_index];
 			}
+			operator _Ty() const& = delete;
 			void operator=(const _Ty& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) && {
 				m_bf_container[m_index] = src_ref;
 			}
@@ -4722,9 +4722,12 @@ namespace mse {
 			}
 			void operator=(const _Ty& src_ref)& = delete;
 			void operator=(_Ty&& src_ref)& = delete;
-			void operator=(const TXSLTADynamicRAContainerElementProxyRef& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
-				m_bf_container[m_index] = _Ty(src_ref);
+
+			void operator=(TXSLTADynamicRAContainerElementProxyRef&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))&& {
+				m_bf_container[m_index] = _Ty(MSE_FWD(src_ref));
 			}
+			void operator=(TXSLTADynamicRAContainerElementProxyRef&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) & = delete;
+			void operator=(const TXSLTADynamicRAContainerElementProxyRef& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) = delete;
 
 		private:
 			TAccessingFixed m_bf_container MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
@@ -4754,10 +4757,10 @@ namespace mse {
 #endif // 0
 			TXSLTADynamicRAContainerElementProxyConstRef(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"), size_t index = 0) : m_bf_container(src_xs_ptr), m_index(index) {}
 
-
-			operator _Ty() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+			operator _Ty() const && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				return m_bf_container[m_index];
 			}
+			operator _Ty() const& = delete;
 			template<typename _Ty2>
 			void operator=(const _Ty2& src_ref) = delete;
 

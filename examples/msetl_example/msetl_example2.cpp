@@ -4,9 +4,9 @@
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef EXCLUDE_MSETL_EXAMPLE2
-
 #include "msetl_example_defs.h"
+
+#ifndef EXCLUDE_MSETL_EXAMPLE2
 
 #include "msetl_example2.h"
 #include "mseregistered.h"

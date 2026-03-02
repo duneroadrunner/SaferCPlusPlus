@@ -857,10 +857,39 @@ namespace mse {
 			class XScopeTagBase { public: void xscope_tag() const {} };
 			typedef XScopeTagBase XSLTATagBase;
 
-			/* Note that objects not derived from ReferenceableByScopePointerTagBase might still be targeted by a scope pointer via
-			make_pointer_to_member_v2(). */
+			/* `ReferenceableByScopePointerTagBase` is meant to be used by (library) types as an (empty) base class to indicate 
+			that they support operations that yield a scope pointer to the object, or one of its components or "possessions". 
+			For example, wrapping a type in a `TXScopeObj<>` (transparent) template wrapper would add an (overloaded) `&` 
+			("addressof") operator that returns a scope pointer. So the `TXScopeObj<>` wrapper will include a 
+			`ReferenceableByScopePointerTagBase` base class (if the wrapped type does already have a 
+			`ReferenceableByScopePointerTagBase` base class.)
+
+			This indicator predates static lifetime safety enforcers like scpptool, and is used to, as much as possible, 
+			enforce static ("zero-overhead") lifetime safety via the type system.
+
+			The idea is that objects that might have a scope pointer targeting them must live to the end of the scope in which 
+			they are declared. So for example a dynamic owning container, like an `xscope_optional<>`, that holds an object that 
+			might be a scope pointer target cannot support any operation (like (re)assignment) that could arbitrarily end the 
+			lifetime of the contained object. So the operations that a dynamic owning container, like an `xscope_optional<>`, 
+			might support would vary depending on whether the contained object could be the target of a scope pointer (as 
+			indicated by the presence of a `ReferenceableByScopePointerTagBase` (empty) base class.
+
+			Note that objects not derived from ReferenceableByScopePointerTagBase might still be targeted by a scope pointer via
+			`make_pointer_to_member_v2()`. In that particular case, `make_pointer_to_member_v2()` uses the existence of a scope 
+			pointer targeting the containing/parent class/struct object to infer that the member field is also safe as a scope 
+			pointer target even if its type does not have a `ReferenceableByScopePointerTagBase` base class indicating such. */
 			class ReferenceableByScopePointerTagBase {};
 
+			/* `ContainsNonOwningScopeReferenceTagBase` is meant to be used by (library) types as an (empty) base class to 
+			indicate that it may contain (or itself be) a scope pointer. 
+
+			This indicator predates static lifetime safety enforcers like scpptool, and is used to, as much as possible,
+			enforce static ("zero-overhead") lifetime safety via the type system.
+
+			The idea is that it is not, in the general case, safe to assign the value of a scope pointer to another object 
+			as that object may outlive the target of the pointer value, resulting in a "dangling" pointer value. Static 
+			lifetime safety enforcers like scpptool, can more precisely identify the cases where a pointer value might 
+			become dangling without need to rely on type system indicators like this one. */
 			class ContainsNonOwningScopeReferenceTagBase {};
 			class XScopeContainsNonOwningScopeReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase, public XScopeTagBase {};
 			typedef XScopeContainsNonOwningScopeReferenceTagBase XSLTAContainsNonOwningScopeReferenceTagBase;

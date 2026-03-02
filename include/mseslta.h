@@ -112,7 +112,15 @@ this_class& operator=(this_class&& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime
 namespace mse {
 	namespace us {
 		namespace impl {
+			/* I don't think that using `ReferenceableBySLTAPointerTagBase` as a more specfic version of 
+			`ReferenceableByScopePointerTagBase` actually provides any additional functional value as the safety of 
+			"XSLTA" (i.e. "lifetime annotated") types are enforced by a static analyzer like scpptool, which doesn't 
+			rely on type system indicators like this one. But we use it anyway out of some notion of "consistency". */
 			class ReferenceableBySLTAPointerTagBase : public ReferenceableByScopePointerTagBase {};
+			/* I don't think that using `ContainsNonOwningSLTAReferenceTagBase` as a more specfic version of
+			`ContainsNonOwningScopeReferenceTagBase` actually provides any additional functional value as the safety of
+			"XSLTA" (i.e. "lifetime annotated") types are enforced by a static analyzer like scpptool, which doesn't
+			rely on type system indicators like this one. But we use it anyway out of some notion of "consistency". */
 			class ContainsNonOwningSLTAReferenceTagBase : public ContainsNonOwningScopeReferenceTagBase {};
 			class XSLTAContainsNonOwningSLTAReferenceTagBase : public ContainsNonOwningSLTAReferenceTagBase, public XSLTATagBase {};
 		}
@@ -120,6 +128,34 @@ namespace mse {
 
 	namespace rsv {
 		namespace impl {
+
+			template<class _Ty, typename T3>
+			struct ReferenceableBySLTAPointerTagBase_inherited_from_or_placeholder {
+				typedef mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ReferenceableBySLTAPointerTagBase, _Ty, T3> t1;
+				typedef mse::impl::conditional_t<std::is_same<t1, mse::us::impl::ReferenceableBySLTAPointerTagBase>::value
+					, mse::us::impl::ReferenceableBySLTAPointerTagBase
+					, mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ReferenceableByScopePointerTagBase, _Ty, T3> >
+					type;
+			};
+
+			template<class _Ty, typename T3>
+			struct ContainsNonOwningSLTAReferenceTagBase_inherited_from_or_placeholder {
+				typedef mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningSLTAReferenceTagBase, _Ty, T3> t1;
+				typedef mse::impl::conditional_t<std::is_same<t1, mse::us::impl::ContainsNonOwningSLTAReferenceTagBase>::value
+					, mse::us::impl::ContainsNonOwningSLTAReferenceTagBase
+					, mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, T3> >
+					type;
+			};
+
+#define MSE_INHERIT_XSLTA_TAG_BASE_SET_FROM(class2, class3) \
+	public mse::rsv::impl::ReferenceableBySLTAPointerTagBase_inherited_from_or_placeholder<class2, class3> \
+	, public mse::rsv::impl::ContainsNonOwningSLTAReferenceTagBase_inherited_from_or_placeholder<class2, class3>
+
+#define MSE_INHERIT_COMMON_XSLTA_POINTER_TAG_BASE_SET_FROM(class2, class3) \
+	MSE_INHERIT_XSLTA_TAG_BASE_SET_FROM(class2, class3) \
+	, MSE_INHERIT_COMMON_POINTER_TAG_BASE_SET_FROM(class2, class3)
+
+#define MSE_INHERIT_COMMON_XSLTA_OBJ_TAG_BASE_SET_FROM(class2, class3) MSE_INHERIT_COMMON_XSLTA_POINTER_TAG_BASE_SET_FROM(class2, class3)
 
 			template<typename _Ty> using is_potentially_xslta = mse::impl::is_potentially_xscope<_Ty>;
 			template<typename _Ty> using is_potentially_not_xslta = mse::impl::is_potentially_not_xscope<_Ty>;
@@ -359,9 +395,8 @@ namespace mse {
 		TXSLTAOwnerPointer takes an rvalue expression of the object type. */
 		template<typename _Ty>
 		class TXSLTAOwnerPointer : public mse::us::impl::XSLTATagBase, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase
-			, mse::us::impl::ReferenceableBySLTAPointerTagBase
-			, mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, TXSLTAOwnerPointer<_Ty> >
-			, mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningSLTAReferenceTagBase, _Ty, TXSLTAOwnerPointer<_Ty> >
+			, public mse::us::impl::ReferenceableBySLTAPointerTagBase
+			, public mse::rsv::impl::ContainsNonOwningSLTAReferenceTagBase_inherited_from_or_placeholder<_Ty, TXSLTAOwnerPointer<_Ty> >
 		{
 		public:
 			TXSLTAOwnerPointer(TXSLTAOwnerPointer&& src_ref) = default;

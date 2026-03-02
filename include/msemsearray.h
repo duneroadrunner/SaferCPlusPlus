@@ -5279,8 +5279,8 @@ namespace mse {
 		/* xslta_array<> is the slta version of nii_array<> (which unlike nii_array<>, can hold slta objects). */
 		template<class _Ty, size_t _Size>
 		class xslta_array : public mse::rsv::us::impl::xslta_array_base<_Ty, _Size, container_adjusted_default_state_mutex<_Ty> >, public mse::us::impl::XSLTATagBase
-			, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ReferenceableBySLTAPointerTagBase, _Ty, xslta_array<_Ty, _Size> >
-			, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningSLTAReferenceTagBase, _Ty, xslta_array<_Ty, _Size> >
+			, public mse::rsv::impl::ReferenceableBySLTAPointerTagBase_inherited_from_or_placeholder<_Ty, xslta_array<_Ty, _Size> >
+			, public mse::rsv::impl::ContainsNonOwningSLTAReferenceTagBase_inherited_from_or_placeholder<_Ty, xslta_array<_Ty, _Size> >
 		{
 		public:
 			typedef mse::rsv::us::impl::xslta_array_base<_Ty, _Size, container_adjusted_default_state_mutex<_Ty> > base_class;
