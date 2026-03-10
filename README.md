@@ -843,7 +843,7 @@ usage example:
 ```
 
 ### TXScopeOwnerPointer
-`TXScopeOwnerPointer<>` is kind of like an `std::unique_ptr<>` whose use is restricted by the rules of scope objects. So, it must live to the end of the scope in which it is declared (i.e. basically be declared as a non-static local (or `thread_local` variable)) and can only be used as a member of objects which are themselves scope objects. You can use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Unlike `std::unique_ptr<>`s, you may not use `std::move()` with `TXScopeOwnerPointer<>`s. If you're not using a conformance helper tool like [scpptool](https://github.com/duneroadrunner/scpptool) to enforce this, you can disable `TXScopeOwnerPointer<>`'s move constructor by defining the `MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY` preprocessor symbol.
+`TXScopeOwnerPointer<>` is kind of like a `const std::unique_ptr<>` that cannot be null and whose use is restricted by the rules of scope objects. So, it must live to the end of the scope in which it is declared (i.e. basically be declared as a non-static local (or `thread_local` variable)) and can only be used as a member of objects which are themselves scope objects. You can use it when you want to give scope lifetime to objects that are too large to be declared directly on the stack. Unlike `std::unique_ptr<>`s, you may not use `std::move()` with `TXScopeOwnerPointer<>`s.
 
 Instead of its constructor taking a native pointer pointing to an already allocated object, it allocates the object itself and forwards its construction arguments to the object's constructor. You may also use `mse::make_xscope_owner<>()` to create a `TXScopeOwnerPointer<>` in a manner akin to `std::make_unique<>()`.
 
