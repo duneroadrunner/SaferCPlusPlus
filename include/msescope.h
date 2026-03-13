@@ -2973,7 +2973,11 @@ namespace mse {
 			, mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, _Ty, TXScopeOwnerPointer<_Ty> >
 		{
 		public:
+#if defined(MSE_HAS_CXX17) || defined(MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY)
+			TXScopeOwnerPointer(TXScopeOwnerPointer&& src_ref) = delete;
+#else // defined(MSE_HAS_CXX17) || defined(MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY)
 			TXScopeOwnerPointer(TXScopeOwnerPointer&& src_ref) = default;
+#endif // defined(MSE_HAS_CXX17) || defined(MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY)
 
 			template <class... Args>
 			TXScopeOwnerPointer(Args&&... args) {
@@ -3027,14 +3031,11 @@ namespace mse {
 			void constructor_helper2(std::true_type, _TSoleArg&& sole_arg) {
 				/* The sole parameter is derived from, or of this type, so we're going to consider the constructor
 				a move constructor. */
-#ifdef MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY
-				/* You would probably only consider defining MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY for extra safety if for
-				some reason you couldn't rely on the availability of a tool (like scpptool) to statically enforce the safety of
-				these moves. */
-#ifdef MSE_HAS_CXX17
-				static_assert(false, "The MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY preprocessor symbol is defined, which prohibits the use of TXScopeOwnerPointer<>'s move constructor. ");
-#endif // MSE_HAS_CXX17
-#endif // MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY
+
+#if defined(MSE_HAS_CXX17) || defined(MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY)
+				static_assert(false, "Use of TXScopeOwnerPointer<>'s move constructor is not permitted. ");
+#endif // defined(MSE_HAS_CXX17) || defined(MSE_RESTRICT_TXSCOPEOWNERPOINTER_MOVABILITY)
+
 				m_ptr = MSE_FWD(sole_arg.m_ptr);
 			}
 			template <class _TSoleArg>
@@ -4096,6 +4097,8 @@ namespace mse {
 
 					mse::TXScopeOwnerPointer<int> int_scpoptr(11);
 					auto int_scpptr = &*int_scpoptr;
+
+					mse::TXScopeOwnerPointer<int> int_scpoptr3 = mse::make_xscope_owner<int>(17);
 				}
 
 				{

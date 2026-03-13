@@ -12,6 +12,7 @@
 #ifndef MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 #include "msescope.h"
 #include "mseslta.h"
+#include "mseoptional.h"
 #endif // !MSE_REFCOUNTING_NO_XSCOPE_DEPENDENCE
 #include <memory>
 #include <utility>
@@ -53,9 +54,14 @@
 #define _NOEXCEPT
 #endif /*_NOEXCEPT*/
 
-#ifndef _CONSTEXPR23
-#define _CONSTEXPR23
-#endif /*_CONSTEXPR23*/
+#ifndef MSE_CONSTEXPR23
+	#ifdef MSE_HAS_CXX23
+		#define MSE_CONSTEXPR23 constexpr
+	#else // MSE_HAS_CXX23
+		#define MSE_CONSTEXPR23
+	#endif // MSE_HAS_CXX23
+#endif // !MSE_CONSTEXPR23
+
 
 
 namespace mse {
@@ -146,6 +152,7 @@ namespace mse {
 	template <class X>
 	class TRefCountingPointer : public mse::us::impl::RefCStrongPointerTagBase {
 	public:
+		using element_type = X;
 		TRefCountingPointer() : m_ref_with_target_obj_ptr(nullptr) {}
 		TRefCountingPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr) {}
 		~TRefCountingPointer() {
@@ -318,6 +325,7 @@ namespace mse {
 	template<typename _Ty>
 	class TRefCountingNotNullPointer : public mse::us::impl::RefCStrongPointerTagBase, public mse::us::impl::NeverNullTagBase {
 	public:
+		using element_type = _Ty;
 		TRefCountingNotNullPointer(const TRefCountingNotNullPointer& src_cref) : m_rcptr(src_cref.m_rcptr) {
 			if (!(src_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullPointer")); }
 		}
@@ -369,7 +377,7 @@ namespace mse {
 
 		/* If you want to use this constructor, use not_null_from_nullable() instead. */
 		TRefCountingNotNullPointer(const TRefCountingPointer<_Ty>& src_cref) : m_rcptr(src_cref) {
-			*src_cref; // to ensure that src_cref points to a valid target
+			if (!m_rcptr) { MSE_THROW(refcounting_null_dereference_error("attempt to construct a 'not null' pointer from a null pointer value - mse::TRefCountingNotNullPointer")); }
 		}
 		_Ty* unchecked_get() const {
 			return m_rcptr.unchecked_get();
@@ -441,6 +449,7 @@ namespace mse {
 	template <class X>
 	class TRefCountingConstPointer : public mse::us::impl::RefCStrongPointerTagBase {
 	public:
+		using element_type = X;
 		TRefCountingConstPointer() : m_ref_with_target_obj_ptr(nullptr) {}
 		TRefCountingConstPointer(std::nullptr_t) : m_ref_with_target_obj_ptr(nullptr) {}
 		~TRefCountingConstPointer() {
@@ -616,6 +625,7 @@ namespace mse {
 	template<typename _Ty>
 	class TRefCountingNotNullConstPointer : public mse::us::impl::RefCStrongPointerTagBase, public mse::us::impl::NeverNullTagBase {
 	public:
+		using element_type = _Ty;
 		TRefCountingNotNullConstPointer(const TRefCountingNotNullConstPointer& src_cref) : m_rcptr(src_cref.m_rcptr) {
 			if (!(src_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TRefCountingNotNullConstPointer<> that's in a partially destructed (or constructed?) state - mse::TRefCountingNotNullConstPointer")); }
 		}
@@ -820,75 +830,75 @@ namespace mse {
 #ifdef MSEPOINTERBASICS_H
 #if !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_pointer_to_member_v2(const TRefCountingPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_pointer_to_member_v2(const TRefCountingPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedPointer<_TTarget, TRefCountingPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_pointer_to_member_v2(const TRefCountingConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_pointer_to_member_v2(const TRefCountingConstPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_const_pointer_to_member_v2(const TRefCountingPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_const_pointer_to_member_v2(const TRefCountingPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_const_pointer_to_member_v2(const TRefCountingConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_const_pointer_to_member_v2(const TRefCountingConstPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_pointer_to_member_v2(const TRefCountingNotNullPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_pointer_to_member_v2(const TRefCountingNotNullPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedPointer<_TTarget, TRefCountingNotNullPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_pointer_to_member_v2(const TRefCountingNotNullConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_pointer_to_member_v2(const TRefCountingNotNullConstPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingNotNullConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_const_pointer_to_member_v2(const TRefCountingNotNullPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_const_pointer_to_member_v2(const TRefCountingNotNullPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingNotNullPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_const_pointer_to_member_v2(const TRefCountingNotNullConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_const_pointer_to_member_v2(const TRefCountingNotNullConstPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingNotNullConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_pointer_to_member_v2(const TRefCountingFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_pointer_to_member_v2(const TRefCountingFixedPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedPointer<_TTarget, TRefCountingFixedPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_pointer_to_member_v2(const TRefCountingFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_pointer_to_member_v2(const TRefCountingFixedConstPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingFixedConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_const_pointer_to_member_v2(const TRefCountingFixedPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_const_pointer_to_member_v2(const TRefCountingFixedPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingFixedPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_const_pointer_to_member_v2(const TRefCountingFixedConstPointer<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_const_pointer_to_member_v2(const TRefCountingFixedConstPointer<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, TRefCountingFixedConstPointer<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
@@ -896,22 +906,22 @@ namespace mse {
 #endif // !defined(MSE_REFCOUNTINGPOINTER_DISABLED)
 
 	template<class _TTargetType, class _Ty>
-	us::TStrongFixedPointer<_TTargetType, std::shared_ptr<_Ty>> make_pointer_to_member(_TTargetType& target, const std::shared_ptr<_Ty> &lease_pointer) {
+	us::TStrongFixedPointer<_TTargetType, std::shared_ptr<_Ty>> make_pointer_to_member(_TTargetType& target, const std::shared_ptr<_Ty>& lease_pointer) {
 		return us::TStrongFixedPointer<_TTargetType, std::shared_ptr<_Ty>>::make(target, lease_pointer);
 	}
 	template<class _TTargetType, class _Ty>
-	us::TStrongFixedConstPointer<_TTargetType, std::shared_ptr<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const std::shared_ptr<_Ty> &lease_pointer) {
+	us::TStrongFixedConstPointer<_TTargetType, std::shared_ptr<_Ty>> make_const_pointer_to_member(const _TTargetType& target, const std::shared_ptr<_Ty>& lease_pointer) {
 		return us::TStrongFixedConstPointer<_TTargetType, std::shared_ptr<_Ty>>::make(target, lease_pointer);
 	}
 
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_pointer_to_member_v2(const std::shared_ptr<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_pointer_to_member_v2(const std::shared_ptr<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedPointer<_TTarget, std::shared_ptr<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
 	}
 	template<class _Ty, class _TMemberObjectPointer>
-	auto make_const_pointer_to_member_v2(const std::shared_ptr<_Ty> &lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
+	auto make_const_pointer_to_member_v2(const std::shared_ptr<_Ty>& lease_pointer, const _TMemberObjectPointer& member_object_ptr) {
 		typedef mse::impl::remove_reference_t<decltype((*lease_pointer).*member_object_ptr)> _TTarget;
 		mse::impl::make_pointer_to_member_v2_checks_pb(lease_pointer, member_object_ptr);
 		return us::TStrongFixedConstPointer<_TTarget, std::shared_ptr<_Ty>>::make((*lease_pointer).*member_object_ptr, lease_pointer);
@@ -989,7 +999,7 @@ namespace mse {
 #endif // 0
 			TXSLTADynamicStrongPointerElementProxyRef(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : m_accessing_fixed(src_xs_ptr) {}
 
-			operator _Ty() const && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+			operator _Ty() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				return m_accessing_fixed.operator *();
 			}
 			operator _Ty() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") = delete;
@@ -1034,7 +1044,7 @@ namespace mse {
 #endif // 0
 			TXSLTADynamicStrongPointerElementProxyConstRef(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : m_accessing_fixed(src_xs_ptr) {}
 
-			operator _Ty() const && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+			operator _Ty() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				return m_accessing_fixed.operator *();
 			}
 			operator _Ty() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") = delete;
@@ -1045,7 +1055,7 @@ namespace mse {
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
-		template<class TElementProxyRef, class _TLender, class _Ty = typename _TLender::value_type>
+		template<class TElementProxyRef, class _TLender, class _Ty = typename _TLender::element_type>
 		class TXSLTADynamicStrongPointerElementProxyPtr : public mse::us::impl::XSLTATagBase {
 		public:
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
@@ -1071,7 +1081,7 @@ namespace mse {
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 
-		template<class TElementProxyConstRef, class _TLender, class _Ty = typename _TLender::value_type>
+		template<class TElementProxyConstRef, class _TLender, class _Ty = typename _TLender::element_type>
 		class TXSLTADynamicStrongPointerElementProxyConstPtr : public mse::us::impl::XSLTATagBase {
 		public:
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
@@ -1103,12 +1113,12 @@ namespace mse {
 
 		template<typename _Ty> TXSLTARefCountingNotNullPointer<_Ty> not_null_from_nullable(const TXSLTARefCountingPointer<_Ty>& src);
 
-		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = typename _TLender::value_type, bool _ExclusiveAccess = false
+		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = typename _TLender::element_type, bool _ExclusiveAccess = false
 			, MSE_IMPL_EIP mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_mserefcounting<_TLender>::value*/)> MSE_IMPL_EIS >
 		class xslta_accessing_fixed_owning_pointer {
 		public:
 			typedef xslta_accessing_fixed_owning_pointer _Myt;
-			typedef typename _TLender::value_type value_type;
+			typedef typename _TLender::element_type element_type;
 
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			xslta_accessing_fixed_owning_pointer(xslta_accessing_fixed_owning_pointer&&) = delete;
@@ -1144,8 +1154,8 @@ namespace mse {
 		xslta_accessing_fixed_owning_pointer(_TPointerToLender) -> xslta_accessing_fixed_owning_pointer<_TPointerToLender>;
 #endif /* MSE_HAS_CXX17 */
 
-		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = typename _TLender::value_type
-		, MSE_IMPL_EIP mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_mserefcounting<_TLender>::value*/)> MSE_IMPL_EIS >
+		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = typename _TLender::element_type
+			, MSE_IMPL_EIP mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_mserefcounting<_TLender>::value*/)> MSE_IMPL_EIS >
 		auto make_xslta_accessing_fixed_owning_pointer(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
@@ -1153,11 +1163,11 @@ namespace mse {
 			return xslta_accessing_fixed_owning_pointer<_TPointerToLender, _TLender, _Ty>(src_xs_ptr);
 		}
 
-		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::element_type>
 		class xslta_borrowing_fixed_owning_pointer : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
 		public:
 			typedef xslta_borrowing_fixed_owning_pointer _Myt;
-			typedef typename _TLender::value_type value_type;
+			typedef typename _TLender::element_type element_type;
 
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			xslta_borrowing_fixed_owning_pointer(xslta_borrowing_fixed_owning_pointer&&) = delete;
@@ -1195,7 +1205,7 @@ namespace mse {
 			_TLender m_borrowed;
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
-		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::element_type>
 		using xl_bf_owning_pointer = xslta_borrowing_fixed_owning_pointer<_TLender, T>; /* provisional shorter alias */
 
 #ifdef MSE_HAS_CXX17
@@ -1204,7 +1214,7 @@ namespace mse {
 		xslta_borrowing_fixed_owning_pointer(mse::rsv::TXSLTAPointer<_TLender>) -> xslta_borrowing_fixed_owning_pointer<_TLender>;
 #endif /* MSE_HAS_CXX17 */
 
-		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::element_type>
 		auto make_xslta_borrowing_fixed_owning_pointer(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
@@ -1212,7 +1222,7 @@ namespace mse {
 			return xslta_borrowing_fixed_owning_pointer<_TLender, _Ty>(src_xs_ptr);
 		}
 		/* provisional shorter alias */
-		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::element_type>
 		auto make_xl_bf_owning_pointer(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
@@ -1220,7 +1230,7 @@ namespace mse {
 			return make_xslta_borrowing_fixed_owning_pointer<_TLender, _Ty>(src_xs_ptr);
 		}
 #if !defined(MSE_SLTAPOINTER_DISABLED)
-		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::element_type>
 		auto make_xslta_borrowing_fixed_owning_pointer(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
@@ -1228,7 +1238,7 @@ namespace mse {
 			return xslta_borrowing_fixed_owning_pointer<_TLender, _Ty>(src_xs_ptr);
 		}
 		/* provisional shorter alias */
-		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::element_type>
 		auto make_xl_bf_owning_pointer(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
@@ -1237,14 +1247,14 @@ namespace mse {
 		}
 #endif // !defined(MSE_SLTAPOINTER_DISABLED)
 
-		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::value_type >
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
 		using TXSLTARefCountingPointerElementProxyRef = mse::rsv::TXSLTADynamicStrongPointerElementProxyRef<mse::rsv::xslta_accessing_fixed_owning_pointer<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty>;
-		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::value_type >
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
 		using TXSLTARefCountingPointerElementProxyConstRef = mse::rsv::TXSLTADynamicStrongPointerElementProxyConstRef<mse::rsv::xslta_accessing_fixed_owning_pointer<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty>;
 
-		template<class TElementProxyRef, class _TLender, class _Ty = typename _TLender::value_type>
+		template<class TElementProxyRef, class _TLender, class _Ty = typename _TLender::element_type>
 		using TXSLTARefCountingPointerElementProxyPtr = TXSLTADynamicStrongPointerElementProxyPtr<TElementProxyRef, _TLender, _Ty>;
-		template<class TElementProxyConstRef, class _TLender, class _Ty = typename _TLender::value_type>
+		template<class TElementProxyConstRef, class _TLender, class _Ty = typename _TLender::element_type>
 		using TXSLTARefCountingPointerElementProxyConstPtr = TXSLTADynamicStrongPointerElementProxyConstPtr<TElementProxyConstRef, _TLender, _Ty>;
 
 		/* TXSLTARefCountingPointer behaves somewhat like an std::shared_ptr. */
@@ -1253,7 +1263,7 @@ namespace mse {
 			, MSE_INHERIT_XSLTA_TAG_BASE_SET_FROM(X, TXSLTARefCountingPointer<X>)
 		{
 		public:
-			typedef X value_type;
+			typedef X element_type;
 			typedef TXSLTARefCountingPointer _Myt;
 			/* If an initialization value is not given, any lifetimes will be "deduced" to be a (minimum) default value. */
 			TXSLTARefCountingPointer() : m_ref_with_target_obj_ptr(nullptr) {}
@@ -1401,7 +1411,7 @@ namespace mse {
 
 			MSE_IF_DEBUG(X const* m_debug_target_obj_cptr = nullptr;)
 
-			template <class Y> friend class TXSLTARefCountingPointer;
+				template <class Y> friend class TXSLTARefCountingPointer;
 			template <class Y> friend class TXSLTARefCountingNotNullPointer;
 			template<class _TPointerToLender, class _TLender, class _Ty2, bool _ExclusiveAccess, MSE_IMPL_EI_FORWARD_DECL(mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_mserefcounting<_TLender>::value*/)>)>
 			friend class xslta_accessing_fixed_owning_pointer;
@@ -1416,11 +1426,11 @@ namespace mse {
 		/* For now we're just defining xslta_accessing_fixed_owning_not_null_pointer<> to be an alias of
 		xslta_accessing_fixed_owning_pointer<>. We could save a theoretical null pointer check by using a distinct
 		implementation, but it probably wouldn't make much difference. */
-		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = typename _TLender::value_type, bool _ExclusiveAccess = false
+		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = typename _TLender::element_type, bool _ExclusiveAccess = false
 			, MSE_IMPL_EIP mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_mserefcounting<_TLender>::value*/)> MSE_IMPL_EIS >
 		using xslta_accessing_fixed_owning_not_null_pointer = xslta_accessing_fixed_owning_pointer<_TPointerToLender, _TLender, _Ty, _ExclusiveAccess>;
 
-		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = typename _TLender::value_type
+		template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = typename _TLender::element_type
 			, MSE_IMPL_EIP mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_mserefcounting<_TLender>::value*/)> MSE_IMPL_EIS >
 		auto make_xslta_accessing_fixed_owning_not_null_pointer(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
@@ -1432,12 +1442,12 @@ namespace mse {
 		/* For now we're just defining xslta_borrowing_fixed_owning_not_null_pointer<> to be an alias of
 		xslta_borrowing_fixed_owning_pointer<>. We could save a theoretical null pointer check by using a distinct
 		implementation, but I'm guessing that in practice it probably wouldn't make much difference. */
-		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::element_type>
 		using xslta_borrowing_fixed_owning_not_null_pointer = xslta_borrowing_fixed_owning_pointer<_TLender, T>;
-		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::element_type>
 		using xl_bf_owning_not_null_pointer = xslta_borrowing_fixed_owning_not_null_pointer<_TLender, T>; /* provisional shorter alias */
 
-		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::element_type>
 		auto make_xslta_borrowing_fixed_owning_not_null_pointer(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
@@ -1445,7 +1455,7 @@ namespace mse {
 			return xslta_borrowing_fixed_owning_not_null_pointer<_TLender, _Ty>(src_xs_ptr);
 		}
 		/* provisional shorter alias */
-		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::value_type>
+		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::element_type>
 		auto make_xl_bf_owning_not_null_pointer(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
@@ -1453,14 +1463,14 @@ namespace mse {
 			return make_xslta_borrowing_fixed_owning_not_null_pointer<_TLender, _Ty>(src_xs_ptr);
 		}
 
-		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::value_type >
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
 		using TXSLTARefCountingNotNullPointerElementProxyRef = mse::rsv::TXSLTADynamicStrongPointerElementProxyRef<mse::rsv::xslta_accessing_fixed_owning_pointer<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty>;
-		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::value_type >
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
 		using TXSLTARefCountingNotNullPointerElementProxyConstRef = mse::rsv::TXSLTADynamicStrongPointerElementProxyConstRef<mse::rsv::xslta_accessing_fixed_owning_pointer<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty>;
 
-		template<class TElementProxyRef, class _TLender, class _Ty = typename _TLender::value_type>
+		template<class TElementProxyRef, class _TLender, class _Ty = typename _TLender::element_type>
 		using TXSLTARefCountingNotNullPointerElementProxyPtr = TXSLTADynamicStrongPointerElementProxyPtr<TElementProxyRef, _TLender, _Ty>;
-		template<class TElementProxyConstRef, class _TLender, class _Ty = typename _TLender::value_type>
+		template<class TElementProxyConstRef, class _TLender, class _Ty = typename _TLender::element_type>
 		using TXSLTARefCountingNotNullPointerElementProxyConstPtr = TXSLTADynamicStrongPointerElementProxyConstPtr<TElementProxyConstRef, _TLender, _Ty>;
 
 		template<typename _Ty>
@@ -1468,7 +1478,7 @@ namespace mse {
 			, MSE_INHERIT_XSLTA_TAG_BASE_SET_FROM(_Ty, TXSLTARefCountingNotNullPointer<_Ty>)
 		{
 		public:
-			typedef _Ty value_type;
+			typedef _Ty element_type;
 			typedef TXSLTARefCountingNotNullPointer _Myt;
 			TXSLTARefCountingNotNullPointer(const TXSLTARefCountingNotNullPointer& src_cref) : m_rcptr(src_cref.m_rcptr) {
 				if (!(src_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TXSLTARefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::TXSLTARefCountingNotNullPointer")); }
@@ -1508,15 +1518,16 @@ namespace mse {
 			}
 
 		private:
-			explicit TXSLTARefCountingNotNullPointer(_Ty&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) 
-				: m_rcptr(MSE_FWD(src_ref)) {}
+			explicit TXSLTARefCountingNotNullPointer(_Ty&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])"))
+				: m_rcptr(MSE_FWD(src_ref)) {
+			}
 
 			/* If you want to use this constructor, use not_null_from_nullable() instead. */
-			TXSLTARefCountingNotNullPointer(const TXSLTARefCountingPointer<_Ty>& src_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : m_rcptr(src_cref) {
-				*src_cref; // to ensure that src_cref points to a valid target
+			explicit TXSLTARefCountingNotNullPointer(const TXSLTARefCountingPointer<_Ty>& src_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) : m_rcptr(src_cref) {
+				if (!m_rcptr) { MSE_THROW(refcounting_null_dereference_error("attempt to construct a 'not null' pointer from a null pointer value - mse::TXSLTARefCountingNotNullPointer")); }
 			}
-			TXSLTARefCountingNotNullPointer(TXSLTARefCountingPointer<_Ty>&& src_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) : m_rcptr(MSE_FWD(src_cref)) {
-				*m_rcptr; // to ensure that m_rcptr points to a valid target
+			explicit TXSLTARefCountingNotNullPointer(TXSLTARefCountingPointer<_Ty>&& src_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) : m_rcptr(MSE_FWD(src_cref)) {
+				if (!m_rcptr) { MSE_THROW(refcounting_null_dereference_error("attempt to construct a 'not null' pointer from a null pointer value - mse::TXSLTARefCountingNotNullPointer")); }
 			}
 			_Ty* unchecked_get() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return m_rcptr.unchecked_get();
@@ -1546,14 +1557,14 @@ namespace mse {
 		template <class X> TXSLTARefCountingPointer<X>::TXSLTARefCountingPointer(const TXSLTARefCountingNotNullPointer<X>& r) : TXSLTARefCountingPointer(r.m_rcptr) {}
 		template <class X> TXSLTARefCountingPointer<X>::TXSLTARefCountingPointer(TXSLTARefCountingNotNullPointer<X>&& r) : TXSLTARefCountingPointer(MSE_FWD(r.m_rcptr)) {}
 
-		/* TXSLTARefCountingFixedPointer cannot be retargeted or constructed without a target. (This implementation 
-		that publicly inherits from TXSLTARefCountingNotNullPointer<> is just a placeholder implementation that 
+		/* TXSLTARefCountingFixedPointer cannot be retargeted or constructed without a target. (This implementation
+		that publicly inherits from TXSLTARefCountingNotNullPointer<> is just a placeholder implementation that
 		doesn't fully prevent its claimed invariant from being violated.) */
 		template<typename _Ty>
 		class TXSLTARefCountingFixedPointer : public TXSLTARefCountingNotNullPointer<_Ty> {
 		public:
 			typedef TXSLTARefCountingNotNullPointer<_Ty> base_class;
-			typedef _Ty value_type;
+			typedef _Ty element_type;
 			typedef TXSLTARefCountingFixedPointer _Myt;
 			TXSLTARefCountingFixedPointer(const TXSLTARefCountingFixedPointer& src_cref) : TXSLTARefCountingNotNullPointer<_Ty>(src_cref) {}
 			TXSLTARefCountingFixedPointer(const TXSLTARefCountingNotNullPointer<_Ty>& src_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) : TXSLTARefCountingNotNullPointer<_Ty>(src_cref) {}
@@ -1594,10 +1605,51 @@ namespace mse {
 		}
 
 		template<typename _Ty>
-		TXSLTARefCountingNotNullPointer<_Ty> not_null_from_nullable(const TXSLTARefCountingPointer<_Ty>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_11$); labels(alias_11$); return_value(alias_11$) }") {
+		TXSLTARefCountingNotNullPointer<_Ty> not_null_from_nullable(const TXSLTARefCountingPointer<_Ty>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_11$); labels(alias_11$); return_value(alias_11$) }") {
 			return src;
 		}
 	}
+}
+
+namespace std {
+	template<class _Ty>
+	struct hash<mse::rsv::TXSLTARefCountingPointer<_Ty> > {	// hash functor
+		typedef mse::rsv::TXSLTARefCountingPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::rsv::TXSLTARefCountingPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty*>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::rsv::TXSLTARefCountingNotNullPointer<_Ty> > {	// hash functor
+		typedef mse::rsv::TXSLTARefCountingNotNullPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::rsv::TXSLTARefCountingNotNullPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty*>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::rsv::TXSLTARefCountingFixedPointer<_Ty> > {	// hash functor
+		typedef mse::rsv::TXSLTARefCountingFixedPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::rsv::TXSLTARefCountingFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty*>()(ptr1));
+		}
+	};
+}
+namespace mse {
 
 #endif // MSESLTA_H_
 
@@ -1628,67 +1680,67 @@ namespace mse {
 
 		constexpr TSingleOwnerPointer(std::nullptr_t) noexcept {}
 
-		_CONSTEXPR23 TSingleOwnerPointer& operator=(std::nullptr_t) noexcept {
+		MSE_CONSTEXPR23 TSingleOwnerPointer& operator=(std::nullptr_t) noexcept {
 			m_uq_ptr = nullptr;
 			return *this;
 		}
 
-		_CONSTEXPR23 TSingleOwnerPointer(TSingleOwnerPointer&& _Right) noexcept
+		MSE_CONSTEXPR23 TSingleOwnerPointer(TSingleOwnerPointer const& _Right) = delete;
+		MSE_CONSTEXPR23 TSingleOwnerPointer(TSingleOwnerPointer&& _Right) noexcept
 			: m_uq_ptr(MSE_FWD(_Right).m_uq_ptr) {}
 
 		template <class _Ty2,
 			MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<std::unique_ptr<_Ty2>, std::unique_ptr<_Ty> >::value> MSE_IMPL_EIS >
-		_CONSTEXPR23 TSingleOwnerPointer(TSingleOwnerPointer<_Ty2>&& _Right) noexcept
+		MSE_CONSTEXPR23 TSingleOwnerPointer(TSingleOwnerPointer<_Ty2>&& _Right) noexcept
 			: m_uq_ptr(MSE_FWD(_Right).m_uq_ptr) {}
 
-		_CONSTEXPR23 TSingleOwnerPointer& operator=(TSingleOwnerPointer&& _Right) noexcept {
+		MSE_CONSTEXPR23 TSingleOwnerPointer& operator=(TSingleOwnerPointer&& _Right) noexcept {
 			m_uq_ptr = MSE_FWD(_Right).m_uq_ptr;
 			return *this;
 		}
 
-		_CONSTEXPR23 void swap(TSingleOwnerPointer& _Right) noexcept {
+		TSingleOwnerPointer& operator=(const TSingleOwnerPointer&) = delete;
+
+		MSE_CONSTEXPR23 void swap(TSingleOwnerPointer& _Right) noexcept {
 			m_uq_ptr.swap(_Right.m_uq_ptr);
 		}
 
-		_NODISCARD _CONSTEXPR23 typename std::add_lvalue_reference<_Ty>::type operator*() const /*noexcept(noexcept(*_STD declval<pointer>()))*/ {
+		_NODISCARD MSE_CONSTEXPR23 typename std::add_lvalue_reference<_Ty>::type operator*() const /*noexcept(noexcept(*_STD declval<pointer>()))*/ {
 			if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::TSingleOwnerPointer")); }
 			return *m_uq_ptr;
 		}
 
-		_NODISCARD _CONSTEXPR23 pointer operator->() const /*noexcept*/ {
+		_NODISCARD MSE_CONSTEXPR23 pointer operator->() const /*noexcept*/ {
 			if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::TSingleOwnerPointer")); }
 			return std::addressof(*m_uq_ptr);
 		}
 
 		/*
-		_NODISCARD _CONSTEXPR23 pointer get() const noexcept {
+		_NODISCARD MSE_CONSTEXPR23 pointer get() const noexcept {
 			return std::addressof(*m_uq_ptr);
 		}
 		*/
 
-		_CONSTEXPR23 explicit operator bool() const noexcept {
+		MSE_CONSTEXPR23 explicit operator bool() const noexcept {
 			return static_cast<bool>(m_uq_ptr);
 		}
 
-		_CONSTEXPR23 /*pointer*/ void release() noexcept {
+		MSE_CONSTEXPR23 /*pointer*/ void release() noexcept {
 			return m_uq_ptr.release();
 		}
 
-		_CONSTEXPR23 void reset(/*pointer _Ptr = nullptr*/) noexcept {
+		MSE_CONSTEXPR23 void reset(/*pointer _Ptr = nullptr*/) noexcept {
 			m_uq_ptr.reset();
 		}
 
 		template <class... Args>
-		static TSingleOwnerPointer make(Args&&... args) {
+		MSE_CONSTEXPR23 static TSingleOwnerPointer make(Args&&... args) {
 			return TSingleOwnerPointer(uq_contruct_tag{}, std::make_unique<_Ty>(std::forward<Args>(args)...));
 		}
 
-		TSingleOwnerPointer(const TSingleOwnerPointer&) = delete;
-		TSingleOwnerPointer& operator=(const TSingleOwnerPointer&) = delete;
-
 	private:
 		struct uq_contruct_tag {};
-		TSingleOwnerPointer(uq_contruct_tag, std::unique_ptr<_Ty>&& uq_ptr) : m_uq_ptr(MSE_FWD(uq_ptr)) {}
+		MSE_CONSTEXPR23 TSingleOwnerPointer(uq_contruct_tag, std::unique_ptr<_Ty>&& uq_ptr) : m_uq_ptr(MSE_FWD(uq_ptr)) {}
 
 		template <class /*, class*/ >
 		friend class TSingleOwnerPointer;
@@ -1699,15 +1751,17 @@ namespace mse {
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(std::unique_ptr);
 
 	template <class _Ty, class... _Types>
-	_CONSTEXPR23 TSingleOwnerPointer<_Ty> make_single_owner(_Types&&... _Args) { // make a TSingleOwnerPointer
+	MSE_CONSTEXPR23 TSingleOwnerPointer<_Ty> make_single_owner(_Types&&... _Args) { // make a TSingleOwnerPointer
 		return TSingleOwnerPointer<_Ty>::make(std::forward<_Types>(_Args)...);
 	}
 
+#if 0
 	template <class _Ty>
-	_CONSTEXPR23 TSingleOwnerPointer<_Ty> make_unique_for_overwrite() {
+	MSE_CONSTEXPR23 TSingleOwnerPointer<_Ty> make_unique_for_overwrite() {
 		/* don't know if this implementation is exactly correct, but probably good enough for now */
 		return TSingleOwnerPointer<_Ty>::make(_Ty{});
 	}
+#endif // 0
 }
 
 namespace std {
@@ -1726,6 +1780,262 @@ namespace std {
 }
 
 namespace mse {
+	namespace rsv {
+
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
+		using TXSLTASingleOwnerPointerElementProxyRef = mse::rsv::TXSLTADynamicStrongPointerElementProxyRef<mse::rsv::xslta_borrowing_fixed_owning_pointer<_TLender, _Ty>, _TPointer, _TLender, _Ty>;
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
+		using TXSLTASingleOwnerPointerElementProxyConstRef = mse::rsv::TXSLTADynamicStrongPointerElementProxyConstRef<mse::rsv::xslta_borrowing_fixed_owning_pointer<_TLender, _Ty>, _TPointer, _TLender, _Ty>;
+
+		template<class TElementProxyRef, class _TLender, class _Ty = typename _TLender::element_type>
+		using TXSLTASingleOwnerPointerElementProxyPtr = TXSLTADynamicStrongPointerElementProxyPtr<TElementProxyRef, _TLender, _Ty>;
+		template<class TElementProxyConstRef, class _TLender, class _Ty = typename _TLender::element_type>
+		using TXSLTASingleOwnerPointerElementProxyConstPtr = TXSLTADynamicStrongPointerElementProxyConstPtr<TElementProxyConstRef, _TLender, _Ty>;
+
+		template<typename _Ty>
+		class TXSLTASingleOwnerFixedPointer;
+
+		/* TXSLTASingleOwnerPointer behaves somewhat like an std::shared_ptr. */
+		template <class X>
+		class TXSLTASingleOwnerPointer : public mse::us::impl::XSLTATagBase, public mse::us::impl::SingleOwnerStrongPointerTagBase
+			, MSE_INHERIT_XSLTA_TAG_BASE_SET_FROM(X, TXSLTASingleOwnerPointer<X>)
+		{
+		public:
+			typedef X element_type;
+			typedef TXSLTASingleOwnerPointer _Myt;
+			/* If an initialization value is not given, any lifetimes will be "deduced" to be a (minimum) default value. */
+			constexpr TXSLTASingleOwnerPointer() noexcept {}
+			constexpr TXSLTASingleOwnerPointer(std::nullptr_t) noexcept {}
+			/* Constructs a null single_owner pointer, uses the second argument only to deduce lifetime. */
+			constexpr TXSLTASingleOwnerPointer(std::nullptr_t, const X& MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept {}
+
+			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer(X&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) {
+				m_uq_ptr = std::make_unique<X>(std::forward<X>(src_ref));
+				MSE_IF_DEBUG(m_debug_target_obj_cptr = get();)
+			}
+
+			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer(X const& src_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) {
+				m_uq_ptr = std::make_unique<X>(src_cref);
+				MSE_IF_DEBUG(m_debug_target_obj_cptr = get();)
+			}
+
+			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer& operator=(std::nullptr_t) noexcept {
+				m_uq_ptr = nullptr;
+				return *this;
+			}
+
+			TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer const& r) = delete;
+			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer&& r)
+				: m_uq_ptr(std::move(r.m_uq_ptr)) {}
+
+			/*
+			template <class _Ty2,
+				MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<std::unique_ptr<_Ty2>, std::unique_ptr<X> >::value> MSE_IMPL_EIS >
+			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer<_Ty2>&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept
+				: m_uq_ptr(MSE_FWD(_Right).m_uq_ptr) {
+			}
+			*/
+
+			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer& operator=(TXSLTASingleOwnerPointer const& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") = delete;
+
+			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer& operator=(TXSLTASingleOwnerPointer&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				m_uq_ptr = MSE_FWD(_Right).m_uq_ptr;
+				return *this;
+			}
+
+			MSE_CONSTEXPR23 auto operator*() & MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::TXSLTASingleOwnerPointer")); }
+				return TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, X>(mse::rsv::xslta_ptr_to(*this));
+			}
+			MSE_CONSTEXPR23 auto operator*() && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::TXSLTASingleOwnerPointer")); }
+				return TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, X>(mse::rsv::xslta_ptr_to(*this));
+			}
+			MSE_CONSTEXPR23 auto operator->() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::TXSLTASingleOwnerPointer")); }
+				typedef TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, X> TProxyRef;
+				typedef TXSLTASingleOwnerPointerElementProxyPtr<TProxyRef, typename TProxyRef::lender_type, typename TProxyRef::element_type> TElementProxyPtr;
+				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*this));
+				//X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
+				//return x_ptr;
+			}
+
+
+			MSE_CONSTEXPR23 explicit operator bool() const noexcept { return nullptr != get(); }
+			MSE_CONSTEXPR23 void reset() { (*this) = TXSLTASingleOwnerPointer<X>(nullptr); }
+			MSE_CONSTEXPR23 bool operator==(const TXSLTASingleOwnerPointer& r) const {
+				return get() == r.get();
+			}
+			MSE_CONSTEXPR23 bool operator!=(const TXSLTASingleOwnerPointer& r) const {
+				return get() != r.get();
+			}
+
+			MSE_CONSTEXPR23 static TXSLTASingleOwnerPointer make(X&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(X, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
+				return TXSLTASingleOwnerPointer(std::forward<X>(src_ref));
+			}
+			MSE_CONSTEXPR23 static TXSLTASingleOwnerPointer make(std::nullptr_t, const X& src_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(X, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
+				return TXSLTASingleOwnerPointer(nullptr, src_cref);
+			}
+
+		private:
+			struct uq_contruct_tag {};
+			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer(uq_contruct_tag, std::unique_ptr<X>&& uq_ptr) : m_uq_ptr(MSE_FWD(uq_ptr)) {}
+
+			MSE_CONSTEXPR23 X* get() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return m_uq_ptr.get();
+			}
+			MSE_CONSTEXPR23 X* unchecked_get() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return m_uq_ptr.get();
+			}
+
+			std::unique_ptr<X> m_uq_ptr;
+
+			MSE_IF_DEBUG(X const* m_debug_target_obj_cptr = nullptr;)
+
+			template <class Y> friend class TXSLTASingleOwnerPointer;
+			template<class _TPointerToLender, class _TLender, class _Ty2, bool _ExclusiveAccess, MSE_IMPL_EI_FORWARD_DECL(mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_msesingle_owner<_TLender>::value*/)>)>
+			friend class xslta_accessing_fixed_owning_pointer;
+			template <class _TLender, class T2>
+			friend class xslta_borrowing_fixed_owning_pointer;
+			template<typename _Ty2>
+			friend class TXSLTASingleOwnerFixedPointer;
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(X, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTASingleOwnerPointer);
+
+	namespace rsv {
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
+		using TXSLTASingleOwnerFixedPointerElementProxyRef = mse::rsv::TXSLTADynamicStrongPointerElementProxyRef<mse::rsv::xslta_accessing_fixed_owning_pointer<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty>;
+		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
+		using TXSLTASingleOwnerFixedPointerElementProxyConstRef = mse::rsv::TXSLTADynamicStrongPointerElementProxyConstRef<mse::rsv::xslta_accessing_fixed_owning_pointer<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty>;
+
+		template<class TElementProxyRef, class _TLender, class _Ty = typename _TLender::element_type>
+		using TXSLTASingleOwnerFixedPointerElementProxyPtr = TXSLTADynamicStrongPointerElementProxyPtr<TElementProxyRef, _TLender, _Ty>;
+		template<class TElementProxyConstRef, class _TLender, class _Ty = typename _TLender::element_type>
+		using TXSLTASingleOwnerFixedPointerElementProxyConstPtr = TXSLTADynamicStrongPointerElementProxyConstPtr<TElementProxyConstRef, _TLender, _Ty>;
+
+		/* TXSLTASingleOwnerFixedPointer cannot be retargeted or constructed without a target (i.e. it does not support having a null value). */
+		template<typename _Ty>
+		class TXSLTASingleOwnerFixedPointer : public mse::us::impl::XSLTATagBase, public mse::us::impl::RefCStrongPointerTagBase, public mse::us::impl::NeverNullTagBase
+			, MSE_INHERIT_XSLTA_TAG_BASE_SET_FROM(_Ty, TXSLTASingleOwnerFixedPointer<_Ty>)
+		{
+		public:
+			typedef _Ty element_type;
+			typedef TXSLTASingleOwnerFixedPointer _Myt;
+
+			MSE_CONSTEXPR23 explicit TXSLTASingleOwnerFixedPointer(_Ty&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])"))
+				: m_soptr(MSE_FWD(src_ref)) {
+			}
+
+			MSE_CONSTEXPR23 explicit operator bool() const { return true; }
+			TXSLTASingleOwnerFixedPointer<_Ty>& operator=(const TXSLTASingleOwnerFixedPointer<_Ty>& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") = delete;
+			MSE_CONSTEXPR23 bool operator==(const TXSLTASingleOwnerFixedPointer& r) const { return m_soptr == r.m_soptr; }
+			MSE_CONSTEXPR23 bool operator!=(const TXSLTASingleOwnerFixedPointer& r) const { return !((*this) == r); }
+
+			MSE_CONSTEXPR23 auto& operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				assert(this->get());
+				return *(this->get());
+			}
+			MSE_CONSTEXPR23 auto& operator*() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				assert(this->get());
+				return *(this->get());
+			}
+			MSE_CONSTEXPR23 auto* operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				assert(this->get());
+				return this->get();
+			}
+
+			MSE_CONSTEXPR23 static TXSLTASingleOwnerFixedPointer make(_Ty&& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
+				return TXSLTASingleOwnerFixedPointer(std::forward<_Ty>(src_ref));
+			}
+
+		private:
+			TXSLTASingleOwnerFixedPointer(const TXSLTASingleOwnerFixedPointer& src_cref) = delete;
+			TXSLTASingleOwnerFixedPointer(TXSLTASingleOwnerFixedPointer&& src_ref) : m_soptr(std::move(src_ref.m_soptr)) {}
+
+			TXSLTASingleOwnerFixedPointer(TXSLTASingleOwnerPointer<_Ty> const& r) = delete;
+			MSE_CONSTEXPR23 TXSLTASingleOwnerFixedPointer(TXSLTASingleOwnerPointer<_Ty>&& r)
+				: m_soptr(std::move(r)) {
+				if (!m_soptr) { MSE_THROW(single_owner_null_dereference_error("attempt to construct a 'not null' 'fixed' pointer from a null pointer value - mse::TXSLTASingleOwnerFixedPointer")); }
+			}
+
+			MSE_CONSTEXPR23 _Ty* unchecked_get() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return m_soptr.unchecked_get();
+			}
+			MSE_CONSTEXPR23 _Ty* get() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				return unchecked_get();
+			}
+
+			TXSLTASingleOwnerPointer<_Ty> m_soptr;
+
+			template <class Y> friend class TXSLTASingleOwnerPointer;
+			template <class Y> friend class TXSLTASingleOwnerFixedPointer;
+			template<typename _Ty2>
+			friend TXSLTASingleOwnerFixedPointer<_Ty2> not_null_from_nullable(TXSLTASingleOwnerPointer<_Ty2>&& src);
+			template<class _TPointerToLender, class _TLender, class _Ty2, bool _ExclusiveAccess, MSE_IMPL_EI_FORWARD_DECL(mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_msesingle_owner<_TLender>::value*/)>)>
+			friend class xslta_accessing_fixed_owning_pointer;
+			template <class _TLender, class T2>
+			friend class xslta_borrowing_fixed_owning_pointer;
+		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+	}
+	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTASingleOwnerFixedPointer);
+
+	namespace rsv {
+#ifdef MSE_HAS_CXX17
+
+		template <class X>
+		TXSLTASingleOwnerFixedPointer<X> make_xslta_fixed_single_owner(X x MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_12$)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(X, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
+			return TXSLTASingleOwnerFixedPointer<X>::make(std::move(x));
+		}
+
+#endif // MSE_HAS_CXX17
+
+		template <class X>
+		TXSLTASingleOwnerPointer<X> make_xslta_nullable_single_owner(X x MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_12$)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(X, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
+			return TXSLTASingleOwnerPointer<X>::make(std::move(x));
+		}
+		template <class X>
+		TXSLTASingleOwnerPointer<X> make_xslta_nullable_single_owner(std::nullptr_t, const X& x MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_12$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(X, alias_12$); labels(alias_12$); return_value(alias_12$) }") {
+			return TXSLTASingleOwnerPointer<X>::make(nullptr, x);
+		}
+
+		template<typename _Ty>
+		TXSLTASingleOwnerFixedPointer<_Ty> not_null_from_nullable(TXSLTASingleOwnerPointer<_Ty>&& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_11$); labels(alias_11$); return_value(alias_11$) }") {
+			return MSE_FWD(src);
+		}
+	}
+}
+
+namespace std {
+	template<class _Ty>
+	struct hash<mse::rsv::TXSLTASingleOwnerPointer<_Ty> > {	// hash functor
+		typedef mse::rsv::TXSLTASingleOwnerPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::rsv::TXSLTASingleOwnerPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty*>()(ptr1));
+		}
+	};
+	template<class _Ty>
+	struct hash<mse::rsv::TXSLTASingleOwnerFixedPointer<_Ty> > {	// hash functor
+		typedef mse::rsv::TXSLTASingleOwnerFixedPointer<_Ty> argument_type;
+		typedef size_t result_type;
+		size_t operator()(const mse::rsv::TXSLTASingleOwnerFixedPointer<_Ty>& _Keyval) const _NOEXCEPT {
+			const _Ty* ptr1 = nullptr;
+			if (_Keyval) {
+				ptr1 = std::addressof(*_Keyval);
+			}
+			return (hash<const _Ty*>()(ptr1));
+		}
+	};
+}
+namespace mse {
+
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -2015,7 +2325,7 @@ namespace mse {
 				return a raw reference. They return a "proxy reference" object that (while it exists, prevents the deallocation 
 				of the target object and) behaves like a (raw) reference in some situations. For example, like a reference,
 				it can be cast to the element type. */
-				typename decltype(int_xlptr_xlrefcptr6)::value_type iltaptr6 = (*int_xlptr_xlrefcptr6);
+				typename decltype(int_xlptr_xlrefcptr6)::element_type iltaptr6 = (*int_xlptr_xlrefcptr6);
 				iltaptr6 = &i2;
 				//iltaptr6 = &i3; // scpptool would complain (because i3 does not live long enough)
 
@@ -2027,19 +2337,18 @@ namespace mse {
 				not as (lvalue) declared variables or stored objects. */
 
 				auto const& int_xlptr_xlrefcptr6_cref1 = int_xlptr_xlrefcptr6;
-				typename decltype(int_xlptr_xlrefcptr6)::value_type iltaptr3b = *int_xlptr_xlrefcptr6_cref1;
+				typename decltype(int_xlptr_xlrefcptr6)::element_type iltaptr3b = *int_xlptr_xlrefcptr6_cref1;
 
-				{
-					/* rsv::TXSLTARefCountingFixedPointer<> is a (lifetime annotated) refcounting pointer that doesn't support any operations that
-					would change which object is being targeted/owned (subsequent to initialization). (Basically a "const rsv::TXSLTARefCountingNotNullPointer<>".) */
-					auto f_int_xlptr_xlrefcptr1 = mse::rsv::TXSLTARefCountingFixedPointer<mse::rsv::TXSLTAPointer<int> >(mse::rsv::make_xslta_refcounting<mse::rsv::TXSLTAPointer<int> >(*int_xlptr_xlrefcptr6));
-				}
-
+				/* rsv::TXSLTARefCountingFixedPointer<> is a (lifetime annotated) refcounting pointer that doesn't support 
+				any operations that would change which object is being targeted/owned (subsequent to initialization). (Basically 
+				a "const rsv::TXSLTARefCountingNotNullPointer<>".) Because the owned target object is fixed, its dereference 
+				operators just return raw references, so unlike its "dynamic" counterparts, there's no need to involve a 
+				"borrowing fixed owning pointer". */
 				mse::rsv::TXSLTARefCountingFixedPointer<mse::rsv::TXSLTAPointer<int> > fint_xlptr_xlrefcptr2 = mse::rsv::make_xslta_refcounting<mse::rsv::TXSLTAPointer<int> >(iltaptr4);
 				auto fint_xlptr_xlrefcptr16 = mse::rsv::TXSLTARefCountingFixedPointer<mse::rsv::TXSLTAPointer<int> >(mse::rsv::make_xslta_refcounting<mse::rsv::TXSLTAPointer<int> >(iltaptr4));
-				auto iltaptr16 = *fint_xlptr_xlrefcptr16;
-				std::swap(iltaptr16, iltaptr4);
-				std::swap(iltaptr5, iltaptr16);
+				auto& iltaptr16_ref = *fint_xlptr_xlrefcptr16;
+				std::swap(iltaptr16_ref, iltaptr4);
+				std::swap(iltaptr5, iltaptr16_ref);
 
 				{
 					int i21 = 11;
@@ -2053,6 +2362,22 @@ namespace mse {
 					auto int_xlrefcptr21 = mse::rsv::make_xslta_nullable_refcounting(i21);
 					int_xlrefcptr = int_xlrefcptr21;    // but this is fine because the element type does not have an annotated lifetime
 					int_xlrefcptr21 = int_xlrefcptr;
+
+
+					auto refc_ptr2 = mse::rsv::make_xslta_nullable_refcounting(mse::rsv::TXSLTAPointer<int>{ &i2 });
+
+					{
+						auto const& refc_ptr2_cref = refc_ptr2;
+
+						/* Obtaining an rsv::xslta_borrowing_fixed_owning_pointer<> requires a non-const pointer to the lending owning pointer.
+						When only a const pointer is available we can instead use rsv::xslta_accessing_fixed_owning_pointer<> for supported owning_pointer types. */
+						auto af_refc_ptr2a = mse::rsv::make_xslta_accessing_fixed_owning_pointer(&refc_ptr2_cref);
+						// or
+						//auto af_refc_ptr2a = mse::rsv::xslta_accessing_fixed_owning_pointer(&refc_ptr2_cref);
+
+						auto& elem_ref1 = *af_refc_ptr2a;
+						int i4 = *elem_ref1;
+					}
 				}
 				int q = 5;
 			}
@@ -2158,6 +2483,82 @@ namespace mse {
 				std::cout << enough << " bottles of beer on the wall...\n";
 			} // destroys all the beers
 
+			{
+				int i1 = 3;
+				int i2 = 5;
+				int i3 = 7;
+				auto iltaptr4 = mse::rsv::TXSLTAPointer<int>{ &i2 };
+				auto iltaptr5 = mse::rsv::TXSLTAPointer<int>{ &i1 };
+
+				mse::rsv::TXSLTASingleOwnerPointer<mse::rsv::TXSLTAPointer<int> > int_xlptr_xlsoptr3 = mse::rsv::make_xslta_nullable_single_owner(iltaptr4);
+
+				/* Even when you want to construct a null rsv::TXSLTASingleOwnerPointer<>, if the element type has an annotated
+				lifetime, you would still need to provide (a reference to) an initialization element object from which
+				a lower bound lifetime can be inferred. You could just initialize the single_owner pointer with a value, then reset()
+				the rsv::TXSLTASingleOwnerPointer<>. Alternatively, you can pass nullptr as the first constructor parameter,
+				and a second (otherwise unused) parameter from which the lower bound lifetime will be inferred. */
+				mse::rsv::TXSLTASingleOwnerPointer<mse::rsv::TXSLTAPointer<int> > int_xlptr_xlsoptr2(nullptr, iltaptr4);
+				//mse::rsv::TXSLTASingleOwnerPointer<mse::rsv::TXSLTAPointer<int> > int_xlptr_xlsoptr;    // scpptool would complain
+				mse::rsv::TXSLTASingleOwnerPointer<int> int_xlsoptr;    // fine, the element type does not have an annotated lifetime
+
+				auto int_xlptr_xlsoptr5 = mse::rsv::make_xslta_nullable_single_owner(nullptr, iltaptr4);
+				auto int_xlptr_xlsoptr6 = mse::rsv::make_xslta_nullable_single_owner(iltaptr4);
+				{
+					/* As with rsv::xslta_optional<>, the preferred way of accessing the (owned) target of an rsv::TXSLTASingleOwnerPointer<>
+					is via an associated rsv::xslta_borrowing_fixed_owning_pointer<> (which, while it exists, "borrows" exclusive
+					access to the (pointer) value of the given owning pointer and prevents it from being reset() or replaced in a way that
+					might result in the deallocation of the owned target object. */
+					auto bfint_xlptr_xlsoptr6 = mse::rsv::make_xslta_borrowing_fixed_owning_pointer(&int_xlptr_xlsoptr6);
+					auto& iltaptr26_ref = *bfint_xlptr_xlsoptr6;
+					std::swap(iltaptr26_ref, iltaptr4);
+				}
+
+				/* While not the preferred method, rsv::TXSLTASingleOwnerPointer<> does (currently) have limited support for accessing
+				its owned target object (pseudo-)directly. */
+
+				/* As with rsv::xslta_optional<>, rsv::TXSLTASingleOwnerPointer<>'s dereference methods and operators do not
+				return a raw reference. They return a "proxy reference" object that (while it exists, prevents the deallocation
+				of the target object and) behaves like a (raw) reference in some situations. For example, like a reference,
+				it can be cast to the element type. */
+				typename decltype(int_xlptr_xlsoptr6)::element_type iltaptr6 = (*int_xlptr_xlsoptr6);
+				iltaptr6 = &i2;
+				//iltaptr6 = &i3; // scpptool would complain (because i3 does not live long enough)
+
+				/* The returned "proxy reference" object also has limited support for assignment operations. */
+				*int_xlptr_xlsoptr6 = &i1;
+				//*int_xlptr_xlsoptr6 = &i3;    // scpptool would complain (because i3 does not live long enough)
+
+				/* Note that these returned "proxy reference" objects are designed to be used as temporary (rvalue) objects,
+				not as (lvalue) declared variables or stored objects. */
+
+#ifdef MSE_HAS_CXX17
+
+				/* rsv::TXSLTASingleOwnerFixedPointer<> is a (lifetime annotated) single_owner pointer that doesn't support
+				any operations that would change which object is being targeted/owned (subsequent to initialization). Because
+				the owned target object is fixed, its dereference operators just return raw references, so unlike its "dynamic"
+				counterpart, there's no need to involve a "borrowing fixed owning pointer". */
+				auto fint_xlptr_xlsoptr16 = mse::rsv::make_xslta_fixed_single_owner<mse::rsv::TXSLTAPointer<int> >(iltaptr4);
+				auto& iltaptr16_ref = *fint_xlptr_xlsoptr16;
+				std::swap(iltaptr16_ref, iltaptr4);
+				std::swap(iltaptr5, iltaptr16_ref);
+
+#endif // MSE_HAS_CXX17
+
+				{
+					int i21 = 11;
+					auto iltaptr21 = mse::rsv::TXSLTAPointer<int>{ &i21 };
+					auto int_xlptr_xlsoptr21 = mse::rsv::make_xslta_nullable_single_owner(iltaptr21);
+					//int_xlptr_xlsoptr6 = int_xlptr_xlsoptr21; /* scpptool would complain */
+					/* because the lifetime associated with int_xlptr_xlsoptr21's lifetime restriction is shorter than that
+					of int_xlptr_xlsoptr6 */
+					int_xlptr_xlsoptr21 = std::move(int_xlptr_xlsoptr6); // which means the reverse assignment is safe and permitted
+
+					auto int_xlsoptr21 = mse::rsv::make_xslta_nullable_single_owner(i21);
+					int_xlsoptr = std::move(int_xlsoptr21);    // but this is fine because the element type does not have an annotated lifetime
+					int_xlsoptr21 = std::move(int_xlsoptr);
+				}
+				int q = 5;
+			}
 #endif // MSE_SELF_TESTS
 		}
 	};

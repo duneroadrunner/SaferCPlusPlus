@@ -5914,6 +5914,14 @@ namespace mse {
 			return xslta_optional<typename std::decay<T>::type>(constexpr_forward<T>(v));
 		}
 
+		template <class T>
+		constexpr xslta_optional<typename std::decay<T>::type> make_xslta_optional(T const& v MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(T, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
+		{
+			return xslta_optional<typename std::decay<T>::type>(v);
+		}
+
 		/* Constructs an empty container, uses the second argument only to deduce lifetime. */
 		template <class T>
 		constexpr xslta_optional<typename std::decay<T>::type> make_xslta_optional(nullopt_t, const T& src_ref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
