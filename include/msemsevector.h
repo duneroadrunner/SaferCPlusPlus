@@ -4413,9 +4413,16 @@ namespace mse {
 				class xslta_accessing_fixed_vector_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
 				public:
 					typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
-					typedef mse::impl::target_type<_TPointerToLender> unchecked_contained_vector_t;
-
 					typedef xslta_accessing_fixed_vector_base _Myt;
+
+					template <typename T, typename = void>
+					struct HasUncheckedContainedVector : std::false_type {};
+					template <typename T>
+					struct HasUncheckedContainedVector<T, mse::impl::void_t<decltype(std::declval<T>().unchecked_contained_vector())> > : std::true_type {};
+
+					typedef mse::impl::conditional_t<HasUncheckedContainedVector<_TLender>::value
+						, mse::impl::remove_reference_t<decltype(std::declval<_TLender>().unchecked_contained_vector())>
+						, _TLender> unchecked_contained_vector_t;
 
 					//typedef typename unchecked_contained_vector_t::allocator_type allocator_type;
 					typedef typename unchecked_contained_vector_t::value_type value_type;
@@ -4425,12 +4432,6 @@ namespace mse {
 					typedef typename std::conditional<std::is_const<_TLender>::value, const_pointer, typename unchecked_contained_vector_t::pointer>::type pointer;
 					typedef typename unchecked_contained_vector_t::const_reference const_reference;
 					typedef typename std::conditional<std::is_const<_TLender>::value, const_reference, typename unchecked_contained_vector_t::reference>::type reference;
-
-					typedef typename unchecked_contained_vector_t::const_iterator const_iterator;
-					typedef typename std::conditional<std::is_const<_TLender>::value, const_iterator, typename unchecked_contained_vector_t::iterator>::type iterator;
-
-					typedef typename unchecked_contained_vector_t::const_reverse_iterator const_reverse_iterator;
-					typedef typename std::conditional<std::is_const<_TLender>::value, const_reverse_iterator, typename unchecked_contained_vector_t::reverse_iterator>::type reverse_iterator;
 
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 					xslta_accessing_fixed_vector_base(xslta_accessing_fixed_vector_base&&) = delete;
@@ -4484,17 +4485,57 @@ namespace mse {
 						return contained_vector().max_size();
 					}
 
+					typedef TXSLTACSSSXSRAConstIterator<unchecked_contained_vector_t> xslta_const_iterator;
+					typedef TXSLTACSSSXSRAIterator<unchecked_contained_vector_t> xslta_iterator;
+					typedef xslta_const_iterator const_iterator;
+					typedef xslta_iterator iterator;
+					typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+					typedef std::reverse_iterator<iterator> reverse_iterator;
+
+					iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<unchecked_contained_vector_t>(std::addressof(unchecked_contained_vector())), 0/*index*/);
+					}
+					const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return cbegin();
+					}
+					const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<unchecked_contained_vector_t>(std::addressof(unchecked_contained_vector())), 0/*index*/);
+					}
+					iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<unchecked_contained_vector_t>(std::addressof(unchecked_contained_vector())), 0/*index*/) + (*this).size();
+					}
+					const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return cend();
+					}
+					const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<unchecked_contained_vector_t>(std::addressof(unchecked_contained_vector())), 0/*index*/) + (*this).size();
+					}
+
+					reverse_iterator rbegin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return end();
+					}
+					const_reverse_iterator rbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return crbegin();
+					}
+					const_reverse_iterator crbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return cend();
+					}
+					reverse_iterator rend() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return begin();
+					}
+					const_reverse_iterator rend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return crend();
+					}
+					const_reverse_iterator crend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
+						return cbegin();
+					}
+
 					//MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(corresponding_xslta_fixed_vector_t);
 
 				private:
 					xslta_accessing_fixed_vector_base(const xslta_accessing_fixed_vector_base&) = delete;
 
 					auto& contained_vector() const { return (*m_src_ptr); }
-
-					template <typename T, typename = void>
-					struct HasUncheckedContainedVector : std::false_type {};
-					template <typename T>
-					struct HasUncheckedContainedVector<T, mse::impl::void_t<decltype(std::declval<T>().unchecked_contained_vector())> > : std::true_type {};
 
 					/*
 					template<class HasUncheckedContainedVector_t>
@@ -7823,6 +7864,23 @@ namespace mse {
 					could resize the vector or move its contents (subsequent to initialization). It can be initialized from 
 					an rsv::xslta_vector<>. */
 					auto f_vec1 = mse::rsv::xslta_fixed_vector<typename decltype(vec2)::value_type>(vec2);
+				}
+
+				{
+					auto bf_vec2a = mse::rsv::make_xslta_borrowing_fixed_vector(&vec2);
+
+					for (auto& item_ref : bf_vec2a) {
+						mse::rsv::TXSLTAPointer<int> int_xlptr1 = item_ref;
+						int q = 5;
+					}
+				}
+				{
+					auto af_vec2a = mse::rsv::make_xslta_accessing_fixed_vector(&vec2);
+
+					for (auto& item_ref : af_vec2a) {
+						mse::rsv::TXSLTAPointer<int> int_xlptr1 = item_ref;
+						int q = 5;
+					}
 				}
 			}
 #endif // MSE_SELF_TESTS
