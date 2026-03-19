@@ -213,7 +213,7 @@ namespace mse {
 		}
 		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 		TRefCountingPointer& operator=(const TRefCountingPointer<Y>& r) {
-			if (this != &r) {
+			if (((void const*)this) != ((void const*)std::addressof(r))) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
 				MSE_IF_DEBUG(m_debug_target_obj_cptr = get();)
@@ -518,7 +518,7 @@ namespace mse {
 		}
 		template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 		TRefCountingConstPointer& operator=(const TRefCountingConstPointer<Y>& r) {
-			if (this != &r) {
+			if (((void const*)this) != ((void const*)std::addressof(r))) {
 				auto_release keep(m_ref_with_target_obj_ptr);
 				acquire(r.m_ref_with_target_obj_ptr);
 				MSE_IF_DEBUG(m_debug_target_obj_cptr = get();)
@@ -1132,12 +1132,12 @@ namespace mse {
 
 			auto& operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				auto ptr = m_rfc_ptr.get();
-				if (!ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TXSLTARefCountingPointer")); }
+				if (!ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				return *ptr;
 			}
 			auto operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				auto ptr = m_rfc_ptr.get();
-				if (!ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TXSLTARefCountingPointer")); }
+				if (!ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				return ptr;
 			}
 
@@ -1188,12 +1188,12 @@ namespace mse {
 
 			auto& operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				auto ptr = m_borrowed.get();
-				if (!ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TXSLTARefCountingPointer")); }
+				if (!ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				return *ptr;
 			}
 			auto operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				auto ptr = m_borrowed.get();
-				if (!ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TXSLTARefCountingPointer")); }
+				if (!ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				return ptr;
 			}
 
@@ -1318,6 +1318,17 @@ namespace mse {
 			signature, the templated one must come first. This is a limitation of the current implementation of Visual C++."
 			*/
 			template <class Y> friend class TXSLTARefCountingPointer;
+
+			/* The lifetime annotation on the parameter of this constructor is premised on the assumption that the 
+			lifetimes of type X are the same as, and correspond directly to, the lifetimes of descendant class Y. 
+			At the time of authoring we didn't seem to have a practical way of ensuring the validity of this 
+			assumption. Todo: add a way to do so. */
+			template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
+			TXSLTARefCountingPointer(const TXSLTARefCountingPointer<Y>& r MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				acquire(r.m_ref_with_target_obj_ptr);
+				MSE_IF_DEBUG(m_debug_target_obj_cptr = get();)
+			}
+
 			template <class Y> bool operator==(const TXSLTARefCountingPointer<Y>& r) const { return get() == r.get(); }
 			template <class Y> bool operator!=(const TXSLTARefCountingPointer<Y>& r) const { return !((*this) == r); }
 			template <class Y> bool operator==(const TXSLTARefCountingNotNullPointer<Y>& r) const { return get() == r.get(); }
@@ -1325,15 +1336,15 @@ namespace mse {
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
 			auto operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
-				if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TXSLTARefCountingPointer")); }
+				if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				return TXSLTARefCountingPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, X>(mse::rsv::xslta_ptr_to(*this));
 			}
 			auto operator*() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
-				if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TXSLTARefCountingPointer")); }
+				if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				return TXSLTARefCountingPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, X>(mse::rsv::xslta_ptr_to(*this));
 			}
 			auto operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
-				if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TXSLTARefCountingPointer")); }
+				if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				typedef TXSLTARefCountingPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, X> TProxyRef;
 				typedef TXSLTARefCountingPointerElementProxyPtr<TProxyRef, typename TProxyRef::lender_type, typename TProxyRef::element_type> TElementProxyPtr;
 				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*this));
@@ -1481,12 +1492,21 @@ namespace mse {
 			typedef _Ty element_type;
 			typedef TXSLTARefCountingNotNullPointer _Myt;
 			TXSLTARefCountingNotNullPointer(const TXSLTARefCountingNotNullPointer& src_cref) : m_rcptr(src_cref.m_rcptr) {
-				if (!(src_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TXSLTARefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::TXSLTARefCountingNotNullPointer")); }
+				if (!(src_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TXSLTARefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::rsv::TXSLTARefCountingNotNullPointer")); }
+			}
+
+			/* The lifetime annotation on the parameter of this constructor is premised on the assumption that the 
+			lifetimes of type _Ty are the same as, and correspond directly to, the lifetimes of descendant class Y. 
+			At the time of authoring we didn't seem to have a practical way of ensuring the validity of this 
+			assumption. Todo: add a way to do so. */
+			template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<_Ty, Y>::value> MSE_IMPL_EIS >
+			TXSLTARefCountingNotNullPointer(const TXSLTARefCountingNotNullPointer<Y>& r MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : m_rcptr(r.m_rcptr) {
+				if (!(r.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TXSLTARefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::rsv::TXSLTARefCountingNotNullPointer")); }
 			}
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXSLTARefCountingNotNullPointer() {}
 			explicit operator bool() const { return true; }
 			TXSLTARefCountingNotNullPointer<_Ty>& operator=(const TXSLTARefCountingNotNullPointer<_Ty>& _Right_cref MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				if (!(_Right_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TXSLTARefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::TXSLTARefCountingNotNullPointer")); }
+				if (!(_Right_cref.m_rcptr)) { MSE_THROW(std::logic_error("attempt to copy a TXSLTARefCountingNotNullPointer<> that's in a partially destructed (or constructed?) state - mse::rsv::TXSLTARefCountingNotNullPointer")); }
 				m_rcptr = (_Right_cref.m_rcptr);
 				return (*this);
 			}
@@ -1504,7 +1524,7 @@ namespace mse {
 				return TXSLTARefCountingNotNullPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(m_rcptr)), decltype(m_rcptr), _Ty>(mse::rsv::xslta_ptr_to(m_rcptr));
 			}
 			auto operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
-				//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::TXSLTARefCountingPointer")); }
+				//if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				typedef TXSLTARefCountingNotNullPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(m_rcptr)), decltype(m_rcptr), _Ty> TProxyRef;
 				typedef TXSLTARefCountingNotNullPointerElementProxyPtr<TProxyRef, typename TProxyRef::lender_type, typename TProxyRef::element_type> TElementProxyPtr;
 				return TElementProxyPtr(mse::rsv::xslta_ptr_to(m_rcptr));
@@ -1524,10 +1544,10 @@ namespace mse {
 
 			/* If you want to use this constructor, use not_null_from_nullable() instead. */
 			explicit TXSLTARefCountingNotNullPointer(const TXSLTARefCountingPointer<_Ty>& src_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) : m_rcptr(src_cref) {
-				if (!m_rcptr) { MSE_THROW(refcounting_null_dereference_error("attempt to construct a 'not null' pointer from a null pointer value - mse::TXSLTARefCountingNotNullPointer")); }
+				if (!m_rcptr) { MSE_THROW(refcounting_null_dereference_error("attempt to construct a 'not null' pointer from a null pointer value - mse::rsv::TXSLTARefCountingNotNullPointer")); }
 			}
 			explicit TXSLTARefCountingNotNullPointer(TXSLTARefCountingPointer<_Ty>&& src_cref MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) : m_rcptr(MSE_FWD(src_cref)) {
-				if (!m_rcptr) { MSE_THROW(refcounting_null_dereference_error("attempt to construct a 'not null' pointer from a null pointer value - mse::TXSLTARefCountingNotNullPointer")); }
+				if (!m_rcptr) { MSE_THROW(refcounting_null_dereference_error("attempt to construct a 'not null' pointer from a null pointer value - mse::rsv::TXSLTARefCountingNotNullPointer")); }
 			}
 			_Ty* unchecked_get() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
 				return m_rcptr.unchecked_get();
@@ -1828,13 +1848,16 @@ namespace mse {
 			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer&& r)
 				: m_uq_ptr(std::move(r.m_uq_ptr)) {}
 
-			/*
-			template <class _Ty2,
-				MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<std::unique_ptr<_Ty2>, std::unique_ptr<X> >::value> MSE_IMPL_EIS >
+			/* The lifetime annotation on the parameter of this constructor is premised on the assumption that the
+			lifetimes of type X are the same as, and correspond directly to, the lifetimes of convertible class _Ty2.
+			At the time of authoring we didn't seem to have a practical way of ensuring the validity of this
+			assumption. Todo: add a way to do so. */
+			template <class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<std::unique_ptr<_Ty2>, std::unique_ptr<X> >::value> MSE_IMPL_EIS >
 			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer<_Ty2>&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept
 				: m_uq_ptr(MSE_FWD(_Right).m_uq_ptr) {
 			}
-			*/
+			template <class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<std::unique_ptr<_Ty2>, std::unique_ptr<X> >::value> MSE_IMPL_EIS >
+			TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer<_Ty2> const& _Right) = delete;
 
 			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer& operator=(TXSLTASingleOwnerPointer const& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") = delete;
 
@@ -1844,15 +1867,15 @@ namespace mse {
 			}
 
 			MSE_CONSTEXPR23 auto operator*() & MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
-				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::TXSLTASingleOwnerPointer")); }
+				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTASingleOwnerPointer")); }
 				return TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, X>(mse::rsv::xslta_ptr_to(*this));
 			}
 			MSE_CONSTEXPR23 auto operator*() && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
-				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::TXSLTASingleOwnerPointer")); }
+				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTASingleOwnerPointer")); }
 				return TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, X>(mse::rsv::xslta_ptr_to(*this));
 			}
 			MSE_CONSTEXPR23 auto operator->() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
-				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::TXSLTASingleOwnerPointer")); }
+				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTASingleOwnerPointer")); }
 				typedef TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, X> TProxyRef;
 				typedef TXSLTASingleOwnerPointerElementProxyPtr<TProxyRef, typename TProxyRef::lender_type, typename TProxyRef::element_type> TElementProxyPtr;
 				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*this));
@@ -1957,7 +1980,7 @@ namespace mse {
 			TXSLTASingleOwnerFixedPointer(TXSLTASingleOwnerPointer<_Ty> const& r) = delete;
 			MSE_CONSTEXPR23 TXSLTASingleOwnerFixedPointer(TXSLTASingleOwnerPointer<_Ty>&& r)
 				: m_soptr(std::move(r)) {
-				if (!m_soptr) { MSE_THROW(single_owner_null_dereference_error("attempt to construct a 'not null' 'fixed' pointer from a null pointer value - mse::TXSLTASingleOwnerFixedPointer")); }
+				if (!m_soptr) { MSE_THROW(single_owner_null_dereference_error("attempt to construct a 'not null' 'fixed' pointer from a null pointer value - mse::rsv::TXSLTASingleOwnerFixedPointer")); }
 			}
 
 			MSE_CONSTEXPR23 _Ty* unchecked_get() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
@@ -2377,6 +2400,27 @@ namespace mse {
 
 						auto& elem_ref1 = *af_refc_ptr2a;
 						int i4 = *elem_ref1;
+					}
+
+					{
+						//typedef mse::rsv::TXSLTAPointer<int> A;
+						class A {
+						public:
+							A(mse::rsv::TXSLTAPointer<int> const& src MSE_ATTR_PARAM_STR("mse::lifetime_label(_[42])")) : m_ptr(src) {}
+							mse::rsv::TXSLTAPointer<int> m_ptr;
+						} MSE_ATTR_STR("mse::lifetime_label(42)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(42)");
+
+						class D : public A {
+						public:
+							typedef A base_class;
+							D(A const& src MSE_ATTR_PARAM_STR("mse::lifetime_label(_[42])")) : base_class(src) {}
+						} MSE_ATTR_STR("mse::lifetime_label(42)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(42)");
+
+						auto D_refcounting_ptr1 = mse::rsv::make_xslta_nullable_refcounting<D>(A{ iltaptr4 });
+						auto A_refcounting_ptr1 = mse::rsv::make_xslta_nullable_refcounting<A>(iltaptr4);
+						A_refcounting_ptr1 = D_refcounting_ptr1;
+						A a1 = *D_refcounting_ptr1;
+						mse::rsv::TXSLTAPointer<int> int_xlptr11 = a1.m_ptr;
 					}
 				}
 				int q = 5;
