@@ -1126,7 +1126,8 @@ namespace mse {
 			xslta_accessing_fixed_owning_pointer(xslta_accessing_fixed_owning_pointer&&) = default;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
-			xslta_accessing_fixed_owning_pointer(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : m_rfc_ptr(*src_xs_ptr) {}
+			xslta_accessing_fixed_owning_pointer(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : m_rfc_ptr(*src_xs_ptr)
+				MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) {}
 
 			explicit operator bool() const { return bool(m_rfc_ptr); }
 
@@ -1144,6 +1145,7 @@ namespace mse {
 		private:
 			xslta_accessing_fixed_owning_pointer(const xslta_accessing_fixed_owning_pointer&) = delete;
 			_TLender m_rfc_ptr;
+			MSE_IF_DEBUG(mse::us::impl::CDebugSharedAccessGuard<_TLender> m_debug_access_guard;)
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
@@ -1176,9 +1178,11 @@ namespace mse {
 			xslta_borrowing_fixed_owning_pointer(xslta_borrowing_fixed_owning_pointer&& src MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) = default;
 #define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-			xslta_borrowing_fixed_owning_pointer(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_src_ref(*src_xs_ptr), m_borrowed(std::move(*src_xs_ptr)) {}
+			xslta_borrowing_fixed_owning_pointer(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_src_ref(*src_xs_ptr), m_borrowed(std::move(*src_xs_ptr))
+				MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) {}
 #if !defined(MSE_SLTAPOINTER_DISABLED)
-			xslta_borrowing_fixed_owning_pointer(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_src_ref(*src_xs_ptr), m_borrowed(std::move(*src_xs_ptr)) {}
+			xslta_borrowing_fixed_owning_pointer(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_src_ref(*src_xs_ptr), m_borrowed(std::move(*src_xs_ptr))
+				MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) {}
 #endif // !defined(MSE_SLTAPOINTER_DISABLED)
 			~xslta_borrowing_fixed_owning_pointer() {
 				m_src_ref = std::move(m_borrowed);
@@ -1203,6 +1207,7 @@ namespace mse {
 			xslta_borrowing_fixed_owning_pointer(const xslta_borrowing_fixed_owning_pointer&) = delete;
 			_TLender& m_src_ref;
 			_TLender m_borrowed;
+			MSE_IF_DEBUG(mse::us::impl::CDebugExclusiveAccessGuard<_TLender> m_debug_access_guard;)
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
 		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::element_type>
@@ -1279,13 +1284,15 @@ namespace mse {
 				MSE_IF_DEBUG(m_debug_target_obj_cptr = nullptr;)
 			}
 			TXSLTARefCountingPointer(const TXSLTARefCountingPointer& r) {
+				MSE_IF_DEBUG(mse::us::impl::CDebugSharedAccessGuard<_Myt>{ r }; /* will throw if r is (exclusively) borrowed */)
 				acquire(r.m_ref_with_target_obj_ptr);
 				MSE_IF_DEBUG(m_debug_target_obj_cptr = get();)
 			}
 			TXSLTARefCountingPointer(TXSLTARefCountingPointer&& r) {
+				MSE_IF_DEBUG(mse::us::impl::CDebugSharedAccessGuard<_Myt>{ r }; /* will throw if r is (exclusively) borrowed */)
 				m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
 				MSE_IF_DEBUG(m_debug_target_obj_cptr = get();)
-					r.m_ref_with_target_obj_ptr = nullptr;
+				r.m_ref_with_target_obj_ptr = nullptr;
 				MSE_IF_DEBUG(r.m_debug_target_obj_cptr = nullptr;)
 			}
 			TXSLTARefCountingPointer(const TXSLTARefCountingNotNullPointer<X>& r);
@@ -1420,18 +1427,21 @@ namespace mse {
 
 			CRefCounter* m_ref_with_target_obj_ptr;
 
+			MSE_IF_DEBUG(mutable mse::non_thread_safe_shared_mutex m_debug_access_mutex;)
 			MSE_IF_DEBUG(X const* m_debug_target_obj_cptr = nullptr;)
 
-				template <class Y> friend class TXSLTARefCountingPointer;
+			template <class Y> friend class TXSLTARefCountingPointer;
 			template <class Y> friend class TXSLTARefCountingNotNullPointer;
 			template<class _TPointerToLender, class _TLender, class _Ty2, bool _ExclusiveAccess, MSE_IMPL_EI_FORWARD_DECL(mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_mserefcounting<_TLender>::value*/)>)>
 			friend class xslta_accessing_fixed_owning_pointer;
 			template <class _TLender, class T2>
 			friend class xslta_borrowing_fixed_owning_pointer;
+			template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(X, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 	}
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTARefCountingPointer);
+	MSE_IMPL_CDEBUGACCESSGUARD_SPECIALIZATION_WITH_ONE_TEMPLATE_ARG1(mse::rsv::TXSLTARefCountingPointer);
 
 	namespace rsv {
 		/* For now we're just defining xslta_accessing_fixed_owning_not_null_pointer<> to be an alias of
@@ -1567,10 +1577,30 @@ namespace mse {
 			friend class xslta_accessing_fixed_owning_pointer;
 			template <class _TLender, class T2>
 			friend class xslta_borrowing_fixed_owning_pointer;
+			template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 	}
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTARefCountingNotNullPointer);
+	namespace us {
+		namespace impl {
+#ifndef NDEBUG
+			/* template specialization for mse::rsv::TXSLTARefCountingNotNullPointer<> */
+			template<class _Ty, bool IsExclusive>
+			class CDebugAccessGuard<mse::rsv::TXSLTARefCountingNotNullPointer<_Ty>, IsExclusive> {
+			public:
+				typedef mse::rsv::TXSLTARefCountingNotNullPointer<_Ty> _TLender;
+				typedef mse::rsv::TXSLTARefCountingPointer<_Ty> base_pointer;
+
+				CDebugAccessGuard(mse::rsv::TXSLTARefCountingNotNullPointer<_Ty> const& lender_cref)
+					: m_base_debug_access_guard(lender_cref.m_rcptr) {
+				}
+
+				CDebugAccessGuard<base_pointer, IsExclusive> m_base_debug_access_guard;
+			};
+#endif // !NDEBUG
+		}
+	}
 
 	namespace rsv {
 
@@ -1846,7 +1876,9 @@ namespace mse {
 
 			TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer const& r) = delete;
 			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer&& r)
-				: m_uq_ptr(std::move(r.m_uq_ptr)) {}
+				: m_uq_ptr(std::move(r.m_uq_ptr)) {
+				MSE_IF_DEBUG(mse::us::impl::CDebugExclusiveAccessGuard<_Myt>{ r }; /* will throw if r is borrowed */)
+			}
 
 			/* The lifetime annotation on the parameter of this constructor is premised on the assumption that the
 			lifetimes of type X are the same as, and correspond directly to, the lifetimes of convertible class _Ty2.
@@ -1913,6 +1945,7 @@ namespace mse {
 
 			std::unique_ptr<X> m_uq_ptr;
 
+			MSE_IF_DEBUG(mutable mse::non_thread_safe_shared_mutex m_debug_access_mutex;)
 			MSE_IF_DEBUG(X const* m_debug_target_obj_cptr = nullptr;)
 
 			template <class Y> friend class TXSLTASingleOwnerPointer;
@@ -1922,10 +1955,12 @@ namespace mse {
 			friend class xslta_borrowing_fixed_owning_pointer;
 			template<typename _Ty2>
 			friend class TXSLTASingleOwnerFixedPointer;
+			template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(X, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 	}
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTASingleOwnerPointer);
+	MSE_IMPL_CDEBUGACCESSGUARD_SPECIALIZATION_WITH_ONE_TEMPLATE_ARG1(mse::rsv::TXSLTASingleOwnerPointer);
 
 	namespace rsv {
 		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
@@ -2421,6 +2456,14 @@ namespace mse {
 						A_refcounting_ptr1 = D_refcounting_ptr1;
 						A a1 = *D_refcounting_ptr1;
 						mse::rsv::TXSLTAPointer<int> int_xlptr11 = a1.m_ptr;
+					}
+				}
+				{
+					auto int_xlptr_xlrefcnnptr2 = mse::rsv::make_xslta_refcounting<mse::rsv::TXSLTAPointer<int> >(iltaptr4);
+					{
+						auto bfint_xlptr_xlrefcnnptr2 = mse::rsv::make_xslta_borrowing_fixed_owning_pointer(&int_xlptr_xlrefcnnptr2);
+						auto iltaptr26 = *bfint_xlptr_xlrefcnnptr2;
+						std::swap(iltaptr26, iltaptr4);
 					}
 				}
 				int q = 5;

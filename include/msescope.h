@@ -3730,6 +3730,64 @@ namespace mse {
 	};
 
 
+	namespace us {
+		namespace impl {
+			/* This template class is meant to be specialized. Each specialization is meant to lock a debug mutex 
+			in the associated object upon construction, and unlock it upon destruction. The motivating use case 
+			is to detect "use-while-exclusively-borrowed" at run-time in debug builds. */
+			template<typename _TLender, bool IsExclusive>
+			class CDebugAccessGuard {
+			public:
+				CDebugAccessGuard(_TLender const& lender_cref) {}
+			};
+			template<typename _TLender>
+			class CDebugExclusiveAccessGuard : public CDebugAccessGuard<_TLender, true/*IsExclusive*/> {
+			public:
+				typedef CDebugAccessGuard<_TLender, true/*IsExclusive*/> base_class;
+				CDebugExclusiveAccessGuard(_TLender const& lender_cref) : base_class(lender_cref) {}
+			};
+			template<typename _TLender>
+			class CDebugSharedAccessGuard : public CDebugAccessGuard<_TLender, false/*IsExclusive*/> {
+			public:
+				typedef CDebugAccessGuard<_TLender, false/*IsExclusive*/> base_class;
+				CDebugSharedAccessGuard(_TLender const& lender_cref) : base_class(lender_cref) {}
+			};
+		}
+	}
+
+#ifndef NDEBUG
+#define MSE_IMPL_CDEBUGACCESSGUARD_SPECIALIZATION_WITH_ONE_TEMPLATE_ARG1(class_name) \
+	namespace us { \
+		namespace impl { \
+			/* template specialization for class_name<> */ \
+			template<class X, bool IsExclusive> \
+			class CDebugAccessGuard<class_name<X>, IsExclusive> { \
+			public: \
+				typedef class_name<X> _TLender; \
+				CDebugAccessGuard(class_name<X> const& lender_cref) \
+					: m_src_xs_cptr(std::addressof(lender_cref)) { \
+					MSE_IF_CONSTEXPR(IsExclusive) { \
+						MSE_IF_DEBUG(lender_cref.m_debug_access_mutex.lock();) \
+					} else { \
+						MSE_IF_DEBUG(lender_cref.m_debug_access_mutex.lock_shared();) \
+					} \
+				} \
+				~CDebugAccessGuard() { \
+					MSE_IF_CONSTEXPR(IsExclusive) { \
+						MSE_IF_DEBUG(m_src_xs_cptr->m_debug_access_mutex.unlock();) \
+					} else { \
+						MSE_IF_DEBUG(m_src_xs_cptr->m_debug_access_mutex.unlock_shared();) \
+					} \
+				} \
+				_TLender const* m_src_xs_cptr = nullptr; \
+			}; \
+		} \
+	}
+#else // !NDEBUG
+#define MSE_IMPL_CDEBUGACCESSGUARD_SPECIALIZATION_WITH_ONE_TEMPLATE_ARG1(class_name)
+#endif // !NDEBUG
+
+
 	namespace impl {
 		namespace ns_xscope_borrowing_strong_pointer_store {
 
