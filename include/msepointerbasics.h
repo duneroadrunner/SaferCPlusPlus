@@ -1442,14 +1442,47 @@ namespace mse {
 #define MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_LABEL_(__LINE__)
 #endif // (defined(__GNUC__) || defined(_MSC_VER))
 
-
-
 #define MSE_SUPPRESS_CHECK_IN_DECLSCOPE \
 		MSE_MAYBE_UNUSED static void MSE_IMPL_SUPPRESS_CHECK_IN_DECLSCOPE_UNIQUE_NAME() {}
 	}
 
 #endif // !MSE_SUPPRESS_CHECK_IN_XSCOPE
 
+
+	namespace us {
+		namespace impl {
+
+			/* These functions are intended to be overloaded for specific transparent template wrappers. */
+			/* Todo: the missing overloads. */
+			template<typename _Ty>
+			auto const& ref_without_outer_transparent_wrapper_if_any(_Ty const& src) {
+				return src;
+			}
+			template<typename _Ty>
+			auto&& ref_without_outer_transparent_wrapper_if_any(_Ty&& src) {
+				return MSE_FWD(src);
+			}
+
+			template<typename _Ty>
+			auto const& ref_without_outer_transparent_wrappers_if_any(_Ty const& src) {
+				MSE_IF_CONSTEXPR(std::is_same<mse::impl::remove_reference_t<decltype(src)>, mse::impl::remove_reference_t<decltype(ref_without_outer_transparent_wrapper_if_any(src))> >::value) {
+					return src;
+				}
+				return ref_without_outer_transparent_wrappers_if_any(ref_without_outer_transparent_wrapper_if_any(src));
+			}
+			template<typename _Ty>
+			auto&& ref_without_outer_transparent_wrappers_if_any(_Ty&& src) {
+				MSE_IF_CONSTEXPR(std::is_same<mse::impl::remove_reference_t<decltype(src)>, mse::impl::remove_reference_t<decltype(ref_without_outer_transparent_wrapper_if_any(MSE_FWD(src)))> >::value) {
+					return MSE_FWD(src);
+				}
+				return ref_without_outer_transparent_wrappers_if_any(ref_without_outer_transparent_wrapper_if_any(MSE_FWD(src)));
+			}
+		}
+	}
+	namespace impl {
+		template<typename _Ty>
+		using without_outer_transparent_wrappers_if_any_t = mse::impl::remove_reference_t<decltype(mse::us::impl::ref_without_outer_transparent_wrappers_if_any(std::declval<_Ty>()))>;
+	}
 
 	namespace us {
 		namespace impl {

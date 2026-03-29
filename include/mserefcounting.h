@@ -1127,7 +1127,7 @@ namespace mse {
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
 			xslta_accessing_fixed_owning_pointer(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : m_rfc_ptr(*src_xs_ptr)
-				MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) {}
+				MSE_IF_DEBUG(, m_xs_structure_lock_guard(sl_make_xscope_shared_structure_lock_guard(*src_xs_ptr)) ) {}
 
 			explicit operator bool() const { return bool(m_rfc_ptr); }
 
@@ -1145,7 +1145,26 @@ namespace mse {
 		private:
 			xslta_accessing_fixed_owning_pointer(const xslta_accessing_fixed_owning_pointer&) = delete;
 			_TLender m_rfc_ptr;
-			MSE_IF_DEBUG(mse::us::impl::CDebugSharedAccessGuard<_TLender> m_debug_access_guard;)
+
+#if !defined(NDEBUG)
+			/* In debug mode we will grab a shared lock on the lending pointer if the pointer provides such a lock. */
+			template<class _TLender2 = _TLender>
+			static auto sl_make_xscope_shared_structure_lock_guard_helper1(std::true_type, _TLender2& src) { return _TLender2::s_make_xscope_shared_structure_lock_guard(src); }
+
+			/* If the lending pointer doesn't support being locked then we'll just use a dummy lock guard. */
+			struct dummy_xscope_shared_structure_lock_guard_t {};
+			template<class _TLender2 = _TLender>
+			static auto sl_make_xscope_shared_structure_lock_guard_helper1(std::false_type, _TLender2& src) { return dummy_xscope_shared_structure_lock_guard_t{}; }
+
+			template<class _TLender2 = _TLender>
+			static auto sl_make_xscope_shared_structure_lock_guard(_TLender2& src) {
+				return sl_make_xscope_shared_structure_lock_guard_helper1(typename mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender2>::type{}, src);
+			}
+
+			typedef decltype(sl_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
+			xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
+
+#endif // !defined(NDEBUG)
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
@@ -1178,25 +1197,22 @@ namespace mse {
 			xslta_borrowing_fixed_owning_pointer(xslta_borrowing_fixed_owning_pointer&& src MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])")) = default;
 #define MSE_IMPL_BORROWING_FIXED_OPTIONAL_CONSTRUCT_SRC_REF m_src_ptr(std::addressof(*src_xs_ptr))
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-			xslta_borrowing_fixed_owning_pointer(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_src_ref(*src_xs_ptr), m_borrowed(std::move(*src_xs_ptr))
-				MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) {}
+			xslta_borrowing_fixed_owning_pointer(mse::rsv::TXSLTAPointer<_TLender> const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_obj1(*src_xs_ptr)
+				MSE_IF_DEBUG(, m_xs_structure_lock_guard(sl_make_xscope_exclusive_structure_lock_guard(*src_xs_ptr))) {}
 #if !defined(MSE_SLTAPOINTER_DISABLED)
-			xslta_borrowing_fixed_owning_pointer(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_src_ref(*src_xs_ptr), m_borrowed(std::move(*src_xs_ptr))
-				MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) {}
+			xslta_borrowing_fixed_owning_pointer(_TLender* const src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : m_obj1(*src_xs_ptr)
+				MSE_IF_DEBUG(, m_xs_structure_lock_guard(sl_make_xscope_exclusive_structure_lock_guard(*src_xs_ptr))) {}
 #endif // !defined(MSE_SLTAPOINTER_DISABLED)
-			~xslta_borrowing_fixed_owning_pointer() {
-				m_src_ref = std::move(m_borrowed);
-			}
 
-			explicit operator bool() const { return bool(m_borrowed); }
+			explicit operator bool() const { return bool(m_obj1.m_borrowed); }
 
 			auto& operator*() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				auto ptr = m_borrowed.get();
+				auto ptr = m_obj1.m_borrowed.get();
 				if (!ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				return *ptr;
 			}
 			auto operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				auto ptr = m_borrowed.get();
+				auto ptr = m_obj1.m_borrowed.get();
 				if (!ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				return ptr;
 			}
@@ -1205,9 +1221,43 @@ namespace mse {
 
 		private:
 			xslta_borrowing_fixed_owning_pointer(const xslta_borrowing_fixed_owning_pointer&) = delete;
-			_TLender& m_src_ref;
-			_TLender m_borrowed;
-			MSE_IF_DEBUG(mse::us::impl::CDebugExclusiveAccessGuard<_TLender> m_debug_access_guard;)
+
+			/* We put everything into a "subobject" member because we need the destructor to execute after the (debug) 
+			lock object member has been destroyed already. */
+			struct CObj1 {
+				CObj1(_TLender& src_ref) : m_src_ref(src_ref), m_borrowed(std::move(src_ref)) {}
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				CObj1(CObj1&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				CObj1(CObj1&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				~CObj1() {
+					m_src_ref = std::move(m_borrowed);
+				}
+				_TLender& m_src_ref;
+				_TLender m_borrowed;
+			};
+			CObj1 m_obj1;
+
+#if !defined(NDEBUG)
+			/* In debug mode we will grab an exclusive lock on the lending pointer if the pointer provides such a lock. */
+			template<class _TLender2 = _TLender>
+			static auto sl_make_xscope_exclusive_structure_lock_guard_helper1(std::true_type, _TLender2& src) { return _TLender2::s_make_xscope_exclusive_structure_lock_guard(src); }
+
+			/* If the lending pointer doesn't support being locked then we'll just use a dummy lock guard. */
+			struct dummy_xscope_exclusive_structure_lock_guard_t {};
+			template<class _TLender2 = _TLender>
+			static auto sl_make_xscope_exclusive_structure_lock_guard_helper1(std::false_type, _TLender2& src) { return dummy_xscope_exclusive_structure_lock_guard_t{}; }
+
+			template<class _TLender2 = _TLender>
+			static auto sl_make_xscope_exclusive_structure_lock_guard(_TLender2& src) {
+				return sl_make_xscope_exclusive_structure_lock_guard_helper1(typename mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction<_TLender2>::type{}, src);
+			}
+
+			typedef decltype(sl_make_xscope_exclusive_structure_lock_guard(std::declval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
+			xscope_exclusive_structure_lock_guard_t m_xs_structure_lock_guard;
+
+#endif // !defined(NDEBUG)
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
 
 		template <class _TLender, class T = typename mse::impl::remove_reference_t<_TLender>::element_type>
@@ -1284,12 +1334,12 @@ namespace mse {
 				MSE_IF_DEBUG(m_debug_target_obj_cptr = nullptr;)
 			}
 			TXSLTARefCountingPointer(const TXSLTARefCountingPointer& r) {
-				MSE_IF_DEBUG(mse::us::impl::CDebugSharedAccessGuard<_Myt>{ r }; /* will throw if r is (exclusively) borrowed */)
+				MSE_IF_DEBUG(r.assert_access_is_unlocked();)
 				acquire(r.m_ref_with_target_obj_ptr);
 				MSE_IF_DEBUG(m_debug_target_obj_cptr = get();)
 			}
 			TXSLTARefCountingPointer(TXSLTARefCountingPointer&& r) {
-				MSE_IF_DEBUG(mse::us::impl::CDebugSharedAccessGuard<_Myt>{ r }; /* will throw if r is (exclusively) borrowed */)
+				MSE_IF_DEBUG(r.assert_access_is_unlocked();)
 				m_ref_with_target_obj_ptr = r.m_ref_with_target_obj_ptr;
 				MSE_IF_DEBUG(m_debug_target_obj_cptr = get();)
 				r.m_ref_with_target_obj_ptr = nullptr;
@@ -1297,10 +1347,11 @@ namespace mse {
 			}
 			TXSLTARefCountingPointer(const TXSLTARefCountingNotNullPointer<X>& r);
 			TXSLTARefCountingPointer(TXSLTARefCountingNotNullPointer<X>&& r);
-			explicit operator bool() const { return nullptr != get(); }
-			void reset() { (*this) = TXSLTARefCountingPointer<X>(nullptr); }
-			MSE_DEPRECATED void clear() { (*this) = TXSLTARefCountingPointer<X>(nullptr); }
+			explicit operator bool() const { MSE_IF_DEBUG(assert_access_is_unlocked();) return nullptr != get(); }
+			void reset() { MSE_IF_DEBUG(assert_access_is_unlocked();) (*this) = TXSLTARefCountingPointer<X>(nullptr); }
+			MSE_DEPRECATED void clear() { MSE_IF_DEBUG(assert_access_is_unlocked();) (*this) = TXSLTARefCountingPointer<X>(nullptr); }
 			TXSLTARefCountingPointer& operator=(const TXSLTARefCountingPointer& r MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				if (this != &r) {
 					auto_release keep(m_ref_with_target_obj_ptr);
 					acquire(r.m_ref_with_target_obj_ptr);
@@ -1309,13 +1360,13 @@ namespace mse {
 				return *this;
 			}
 			MSE_DEPRECATED bool operator<(const TXSLTARefCountingPointer& r) const {
-				return get() < r.get();
+				MSE_IF_DEBUG(assert_access_is_unlocked();) return get() < r.get();
 			}
 			bool operator==(const TXSLTARefCountingPointer& r) const {
-				return get() == r.get();
+				MSE_IF_DEBUG(assert_access_is_unlocked();) return get() == r.get();
 			}
 			bool operator!=(const TXSLTARefCountingPointer& r) const {
-				return get() != r.get();
+				MSE_IF_DEBUG(assert_access_is_unlocked();) return get() != r.get();
 			}
 
 #ifndef MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
@@ -1332,25 +1383,29 @@ namespace mse {
 			assumption. Todo: add a way to do so. */
 			template <class Y, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<X, Y>::value> MSE_IMPL_EIS >
 			TXSLTARefCountingPointer(const TXSLTARefCountingPointer<Y>& r MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				acquire(r.m_ref_with_target_obj_ptr);
 				MSE_IF_DEBUG(m_debug_target_obj_cptr = get();)
 			}
 
-			template <class Y> bool operator==(const TXSLTARefCountingPointer<Y>& r) const { return get() == r.get(); }
-			template <class Y> bool operator!=(const TXSLTARefCountingPointer<Y>& r) const { return !((*this) == r); }
-			template <class Y> bool operator==(const TXSLTARefCountingNotNullPointer<Y>& r) const { return get() == r.get(); }
-			template <class Y> bool operator!=(const TXSLTARefCountingNotNullPointer<Y>& r) const { return !((*this) == r); }
+			template <class Y> bool operator==(const TXSLTARefCountingPointer<Y>& r) const { MSE_IF_DEBUG(assert_access_is_unlocked();) return get() == r.get(); }
+			template <class Y> bool operator!=(const TXSLTARefCountingPointer<Y>& r) const { MSE_IF_DEBUG(assert_access_is_unlocked();) return !((*this) == r); }
+			template <class Y> bool operator==(const TXSLTARefCountingNotNullPointer<Y>& r) const { MSE_IF_DEBUG(assert_access_is_unlocked();) return get() == r.get(); }
+			template <class Y> bool operator!=(const TXSLTARefCountingNotNullPointer<Y>& r) const { MSE_IF_DEBUG(assert_access_is_unlocked();) return !((*this) == r); }
 #endif // !MSE_REFCOUNTINGPOINTER_DISABLE_MEMBER_TEMPLATES
 
 			auto operator*() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				return TXSLTARefCountingPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, X>(mse::rsv::xslta_ptr_to(*this));
 			}
 			auto operator*() const&& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				return TXSLTARefCountingPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, X>(mse::rsv::xslta_ptr_to(*this));
 			}
 			auto operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
 				typedef TXSLTARefCountingPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, X> TProxyRef;
 				typedef TXSLTARefCountingPointerElementProxyPtr<TProxyRef, typename TProxyRef::lender_type, typename TProxyRef::element_type> TElementProxyPtr;
@@ -1359,6 +1414,7 @@ namespace mse {
 				//return x_ptr;
 			}
 			bool unique() const {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				return (m_ref_with_target_obj_ptr ? (m_ref_with_target_obj_ptr->use_count() == 1) : true);
 			}
 
@@ -1430,13 +1486,54 @@ namespace mse {
 			MSE_IF_DEBUG(mutable mse::non_thread_safe_shared_mutex m_debug_access_mutex;)
 			MSE_IF_DEBUG(X const* m_debug_target_obj_cptr = nullptr;)
 
+#if !defined(NDEBUG)
+
+			/* In debug mode we'll provide facilities for locking access to the pointer while it's being borrowed. */
+			typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt> xscope_shared_structure_lock_guard_t;
+			static auto s_make_xscope_shared_structure_lock_guard(_Myt const& src_ref) -> xscope_shared_structure_lock_guard_t {
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_shared_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(src_ref));
+			}
+			//typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt> xscope_shared_const_structure_lock_guard_t;
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<_Myt, true/*LockAccessToOriginal*/> xscope_exclusive_structure_lock_guard_t;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			typedef mse::us::impl::Txscope_shared_structure_lock_guard<_Myt> xscope_exclusive_structure_lock_guard_t;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			static auto s_make_xscope_exclusive_structure_lock_guard(_Myt& src_ref) -> xscope_exclusive_structure_lock_guard_t {
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_exclusive_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(src_ref));
+			}
+
+			auto access_lock() { m_access_mutex.lock(); m_access_is_prohibited = true; }
+			auto access_unlock() { m_access_mutex.unlock(); m_access_is_prohibited = false; }
+			auto assert_access_is_unlocked() const {
+				if (m_access_is_prohibited) {
+					MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+				}
+			}
+
+			/* Other owning types in the library provide separate facilities for locking the "structure" of the owned 
+			contents and for locking "access" to the owned contents. For consistency we use the "common locking 
+			framework", but this owning pointer only uses access locking, so we'll just use a "dummy" structure change 
+			mutex when the common framework calls for one. */
+			mutable dummy_recursive_shared_timed_mutex m_structure_change_mutex;
+
+			/* These shouldn't need to be atomic as this class is not eligible to be shared among threads anyway. */
+			bool m_access_is_prohibited = false;
+			mse::non_thread_safe_mutex m_access_mutex;
+
+			friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
+			friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
+			template<class TDynamicContainer, bool LockAccessToOriginal> friend class mse::us::impl::Txscope_exclusive_structure_lock_guard;
+			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl;
+			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction_impl;
+#endif // !defined(NDEBUG)
+				
 			template <class Y> friend class TXSLTARefCountingPointer;
 			template <class Y> friend class TXSLTARefCountingNotNullPointer;
 			template<class _TPointerToLender, class _TLender, class _Ty2, bool _ExclusiveAccess, MSE_IMPL_EI_FORWARD_DECL(mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_mserefcounting<_TLender>::value*/)>)>
 			friend class xslta_accessing_fixed_owning_pointer;
 			template <class _TLender, class T2>
 			friend class xslta_borrowing_fixed_owning_pointer;
-			template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(X, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 	}
@@ -1483,6 +1580,23 @@ namespace mse {
 		{
 			return make_xslta_borrowing_fixed_owning_not_null_pointer<_TLender, _Ty>(src_xs_ptr);
 		}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
+		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::element_type>
+		auto make_xslta_borrowing_fixed_owning_not_null_pointer(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+		{
+			return xslta_borrowing_fixed_owning_not_null_pointer<_TLender, _Ty>(src_xs_ptr);
+		}
+		/* provisional shorter alias */
+		template<class _TLender, class _Ty = typename mse::impl::remove_reference_t<_TLender>::element_type>
+		auto make_xl_bf_owning_not_null_pointer(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
+			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
+		{
+			return make_xslta_borrowing_fixed_owning_not_null_pointer<_TLender, _Ty>(src_xs_ptr);
+		}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
 
 		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
 		using TXSLTARefCountingNotNullPointerElementProxyRef = mse::rsv::TXSLTADynamicStrongPointerElementProxyRef<mse::rsv::xslta_accessing_fixed_owning_pointer<_TPointer, _TLender, _Ty>, _TPointer, _TLender, _Ty>;
@@ -1568,6 +1682,29 @@ namespace mse {
 
 			TXSLTARefCountingPointer<_Ty> m_rcptr;
 
+#if !defined(NDEBUG)
+
+			/* In debug mode we'll provide facilities for locking access to the pointer while it's being borrowed. */
+			typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<TXSLTARefCountingPointer<_Ty> > xscope_shared_structure_lock_guard_t;
+			static auto s_make_xscope_shared_structure_lock_guard(_Myt const& src_ref) -> xscope_shared_structure_lock_guard_t {
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return TXSLTARefCountingPointer<_Ty>::s_make_xscope_shared_structure_lock_guard(src_ref.m_rcptr);
+			}
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<TXSLTARefCountingPointer<_Ty>, true/*LockAccessToOriginal*/> xscope_exclusive_structure_lock_guard_t;
+			static auto s_make_xscope_exclusive_structure_lock_guard(_Myt& src_ref) -> xscope_exclusive_structure_lock_guard_t {
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return TXSLTARefCountingPointer<_Ty>::s_make_xscope_exclusive_structure_lock_guard(src_ref.m_rcptr);
+			}
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<TXSLTARefCountingPointer<_Ty>> xscope_exclusive_structure_lock_guard_t;
+			static auto s_make_xscope_exclusive_structure_lock_guard(_Myt& src_ref) -> xscope_exclusive_structure_lock_guard_t {
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return TXSLTARefCountingPointer<_Ty>::s_make_xscope_shared_structure_lock_guard(src_ref.m_rcptr);
+			}
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl;
+			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction_impl;
+#endif // !defined(NDEBUG)
+
 			template <class Y> friend class TXSLTARefCountingPointer;
 			template <class Y> friend class TXSLTARefCountingNotNullPointer;
 			template <class Y> friend class TXSLTARefCountingFixedPointer;
@@ -1577,30 +1714,10 @@ namespace mse {
 			friend class xslta_accessing_fixed_owning_pointer;
 			template <class _TLender, class T2>
 			friend class xslta_borrowing_fixed_owning_pointer;
-			template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 	}
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTARefCountingNotNullPointer);
-	namespace us {
-		namespace impl {
-#ifndef NDEBUG
-			/* template specialization for mse::rsv::TXSLTARefCountingNotNullPointer<> */
-			template<class _Ty, bool IsExclusive>
-			class CDebugAccessGuard<mse::rsv::TXSLTARefCountingNotNullPointer<_Ty>, IsExclusive> {
-			public:
-				typedef mse::rsv::TXSLTARefCountingNotNullPointer<_Ty> _TLender;
-				typedef mse::rsv::TXSLTARefCountingPointer<_Ty> base_pointer;
-
-				CDebugAccessGuard(mse::rsv::TXSLTARefCountingNotNullPointer<_Ty> const& lender_cref)
-					: m_base_debug_access_guard(lender_cref.m_rcptr) {
-				}
-
-				CDebugAccessGuard<base_pointer, IsExclusive> m_base_debug_access_guard;
-			};
-#endif // !NDEBUG
-		}
-	}
 
 	namespace rsv {
 
@@ -1876,9 +1993,7 @@ namespace mse {
 
 			TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer const& r) = delete;
 			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer&& r)
-				: m_uq_ptr(std::move(r.m_uq_ptr)) {
-				MSE_IF_DEBUG(mse::us::impl::CDebugExclusiveAccessGuard<_Myt>{ r }; /* will throw if r is borrowed */)
-			}
+				: m_uq_ptr((MSE_IF_DEBUG(r.assert_access_is_unlocked(),) std::move(r.m_uq_ptr))) {}
 
 			/* The lifetime annotation on the parameter of this constructor is premised on the assumption that the
 			lifetimes of type X are the same as, and correspond directly to, the lifetimes of convertible class _Ty2.
@@ -1886,7 +2001,7 @@ namespace mse {
 			assumption. Todo: add a way to do so. */
 			template <class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<std::unique_ptr<_Ty2>, std::unique_ptr<X> >::value> MSE_IMPL_EIS >
 			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer<_Ty2>&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) noexcept
-				: m_uq_ptr(MSE_FWD(_Right).m_uq_ptr) {
+				: m_uq_ptr((MSE_IF_DEBUG(_Right.assert_access_is_unlocked(),) MSE_FWD(_Right).m_uq_ptr)) {
 			}
 			template <class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_convertible<std::unique_ptr<_Ty2>, std::unique_ptr<X> >::value> MSE_IMPL_EIS >
 			TXSLTASingleOwnerPointer(TXSLTASingleOwnerPointer<_Ty2> const& _Right) = delete;
@@ -1894,19 +2009,24 @@ namespace mse {
 			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer& operator=(TXSLTASingleOwnerPointer const& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") = delete;
 
 			MSE_CONSTEXPR23 TXSLTASingleOwnerPointer& operator=(TXSLTASingleOwnerPointer&& _Right MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[alias_11$])")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+				MSE_IF_DEBUG(_Right.assert_access_is_unlocked();)
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				m_uq_ptr = MSE_FWD(_Right).m_uq_ptr;
 				return *this;
 			}
 
 			MSE_CONSTEXPR23 auto operator*() & MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTASingleOwnerPointer")); }
 				return TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, X>(mse::rsv::xslta_ptr_to(*this));
 			}
 			MSE_CONSTEXPR23 auto operator*() && MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTASingleOwnerPointer")); }
 				return TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(*this)), _Myt, X>(mse::rsv::xslta_ptr_to(*this));
 			}
 			MSE_CONSTEXPR23 auto operator->() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTASingleOwnerPointer")); }
 				typedef TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, X> TProxyRef;
 				typedef TXSLTASingleOwnerPointerElementProxyPtr<TProxyRef, typename TProxyRef::lender_type, typename TProxyRef::element_type> TElementProxyPtr;
@@ -1916,12 +2036,14 @@ namespace mse {
 			}
 
 
-			MSE_CONSTEXPR23 explicit operator bool() const noexcept { return nullptr != get(); }
-			MSE_CONSTEXPR23 void reset() { (*this) = TXSLTASingleOwnerPointer<X>(nullptr); }
+			MSE_CONSTEXPR23 explicit operator bool() const noexcept { MSE_IF_DEBUG(assert_access_is_unlocked();) return nullptr != get(); }
+			MSE_CONSTEXPR23 void reset() { MSE_IF_DEBUG(assert_access_is_unlocked();) (*this) = TXSLTASingleOwnerPointer<X>(nullptr); }
 			MSE_CONSTEXPR23 bool operator==(const TXSLTASingleOwnerPointer& r) const {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				return get() == r.get();
 			}
 			MSE_CONSTEXPR23 bool operator!=(const TXSLTASingleOwnerPointer& r) const {
+				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				return get() != r.get();
 			}
 
@@ -1948,6 +2070,48 @@ namespace mse {
 			MSE_IF_DEBUG(mutable mse::non_thread_safe_shared_mutex m_debug_access_mutex;)
 			MSE_IF_DEBUG(X const* m_debug_target_obj_cptr = nullptr;)
 
+#if !defined(NDEBUG)
+
+			/* In debug mode we'll provide facilities for locking access to the pointer while it's being borrowed. */
+			typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt> xscope_shared_structure_lock_guard_t;
+			static auto s_make_xscope_shared_structure_lock_guard(_Myt const& src_ref) -> xscope_shared_structure_lock_guard_t {
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_shared_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(src_ref));
+			}
+			//typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt> xscope_shared_const_structure_lock_guard_t;
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<_Myt, true/*LockAccessToOriginal*/> xscope_exclusive_structure_lock_guard_t;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			typedef mse::us::impl::Txscope_shared_structure_lock_guard<_Myt> xscope_exclusive_structure_lock_guard_t;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			static auto s_make_xscope_exclusive_structure_lock_guard(_Myt& src_ref) -> xscope_exclusive_structure_lock_guard_t {
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_exclusive_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(src_ref));
+			}
+
+			auto access_lock() { m_access_mutex.lock(); m_access_is_prohibited = true; }
+			auto access_unlock() { m_access_mutex.unlock(); m_access_is_prohibited = false; }
+			auto assert_access_is_unlocked() const {
+				if (m_access_is_prohibited) {
+					MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+				}
+			}
+
+			/* Other owning types in the library provide separate facilities for locking the "structure" of the owned
+			contents and for locking "access" to the owned contents. For consistency we use the "common locking
+			framework", but this owning pointer only uses access locking, so we'll just use a "dummy" structure change
+			mutex when the common framework calls for one. */
+			mutable dummy_recursive_shared_timed_mutex m_structure_change_mutex;
+
+			/* These shouldn't need to be atomic as this class is not eligible to be shared among threads anyway. */
+			bool m_access_is_prohibited = false;
+			mse::non_thread_safe_mutex m_access_mutex;
+
+			template<class TDynamicContainer, bool LockAccessToOriginal> friend class mse::us::impl::Txscope_exclusive_structure_lock_guard;
+			friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
+			friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
+			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl;
+			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction_impl;
+#endif // !defined(NDEBUG)
+
 			template <class Y> friend class TXSLTASingleOwnerPointer;
 			template<class _TPointerToLender, class _TLender, class _Ty2, bool _ExclusiveAccess, MSE_IMPL_EI_FORWARD_DECL(mse::impl::enable_if_t<(true/*mse::impl::HasOrInheritsGetMethod_msesingle_owner<_TLender>::value*/)>)>
 			friend class xslta_accessing_fixed_owning_pointer;
@@ -1955,7 +2119,6 @@ namespace mse {
 			friend class xslta_borrowing_fixed_owning_pointer;
 			template<typename _Ty2>
 			friend class TXSLTASingleOwnerFixedPointer;
-			template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(X, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 	}
@@ -2466,6 +2629,24 @@ namespace mse {
 						std::swap(iltaptr26, iltaptr4);
 					}
 				}
+				{
+					auto ptr1 = mse::rsv::make_xslta_nullable_refcounting(int{ 3 });
+					auto b1 = mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction<decltype(ptr1)>::value;
+					{
+						auto bf_own_ptr1 = mse::rsv::make_xslta_borrowing_fixed_owning_not_null_pointer(&ptr1);
+					}
+					auto af_own_ptr1 = mse::rsv::make_xslta_accessing_fixed_owning_not_null_pointer(&ptr1);
+					auto ptr2 = ptr1;
+				}
+				{
+					auto ptr1 = mse::rsv::make_xslta_refcounting(int{ 3 });
+					auto b1 = mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction<decltype(ptr1)>::value;
+					{
+						auto bf_own_ptr1 = mse::rsv::make_xslta_borrowing_fixed_owning_not_null_pointer(&ptr1);
+					}
+					auto af_own_ptr1 = mse::rsv::make_xslta_accessing_fixed_owning_not_null_pointer(&ptr1);
+					auto ptr2 = ptr1;
+				}
 				int q = 5;
 			}
 #endif // MSE_SELF_TESTS
@@ -2643,6 +2824,14 @@ namespace mse {
 					auto int_xlsoptr21 = mse::rsv::make_xslta_nullable_single_owner(i21);
 					int_xlsoptr = std::move(int_xlsoptr21);    // but this is fine because the element type does not have an annotated lifetime
 					int_xlsoptr21 = std::move(int_xlsoptr);
+				}
+				{
+					auto ptr1 = mse::rsv::make_xslta_nullable_single_owner(int{ 3 });
+					auto b1 = mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction<decltype(ptr1)>::value;
+					{
+						auto bf_own_ptr1 = mse::rsv::make_xslta_borrowing_fixed_owning_not_null_pointer(&ptr1);
+					}
+					auto ptr2 = std::move(ptr1);
 				}
 				int q = 5;
 			}

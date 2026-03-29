@@ -1264,6 +1264,20 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 	}
 
+	namespace us {
+		namespace impl {
+			/* These functions are intended to be overloaded for specific transparent template wrappers. */
+			template<typename _Ty>
+			auto const& without_outer_transparent_wrapper_if_any(TXScopeObj<_Ty> const& src) {
+				return mse::us::impl::as_ref<_Ty const&>(src);
+			}
+			template<typename _Ty>
+			auto without_outer_transparent_wrapper_if_any(TXScopeObj<_Ty>&& src) {
+				return std::forward<_Ty>(src);
+			}
+		}
+	}
+
 	template<typename _Ty>
 	auto xscope_fptr_to(_Ty&& _X) {
 		return _X.mse_xscope_fptr();
