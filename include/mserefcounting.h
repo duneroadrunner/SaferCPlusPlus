@@ -1503,12 +1503,14 @@ namespace mse {
 				MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_exclusive_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(src_ref));
 			}
 
-			auto access_lock() { m_access_mutex.lock(); m_access_is_prohibited = true; }
-			auto access_unlock() { m_access_mutex.unlock(); m_access_is_prohibited = false; }
+			auto access_lock() { MSE_IF_DEBUG(m_access_mutex.lock(); m_access_is_prohibited = true;) }
+			auto access_unlock() { MSE_IF_DEBUG(m_access_mutex.unlock(); m_access_is_prohibited = false;) }
 			auto assert_access_is_unlocked() const {
+#if !defined(NDEBUG)
 				if (m_access_is_prohibited) {
 					MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
 				}
+#endif // !defined(NDEBUG)
 			}
 
 			/* Other owning types in the library provide separate facilities for locking the "structure" of the owned 
@@ -1517,9 +1519,13 @@ namespace mse {
 			mutex when the common framework calls for one. */
 			mutable dummy_recursive_shared_timed_mutex m_structure_change_mutex;
 
+#if !defined(NDEBUG)
+			/* While a "structure lock" is used to prevent deallocation or relocation of any of the contents, an "access lock"
+			is used to prevent any access whatsoever. This is generally used to catch "use-while-borrowed" bugs (in debug builds). */
 			/* These shouldn't need to be atomic as this class is not eligible to be shared among threads anyway. */
 			bool m_access_is_prohibited = false;
 			mse::non_thread_safe_mutex m_access_mutex;
+#endif // !defined(NDEBUG)
 
 			friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 			friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
@@ -2087,12 +2093,14 @@ namespace mse {
 				MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_exclusive_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(src_ref));
 			}
 
-			auto access_lock() { m_access_mutex.lock(); m_access_is_prohibited = true; }
-			auto access_unlock() { m_access_mutex.unlock(); m_access_is_prohibited = false; }
+			auto access_lock() { MSE_IF_DEBUG(m_access_mutex.lock(); m_access_is_prohibited = true;) }
+			auto access_unlock() { MSE_IF_DEBUG(m_access_mutex.unlock(); m_access_is_prohibited = false;) }
 			auto assert_access_is_unlocked() const {
+#if !defined(NDEBUG)
 				if (m_access_is_prohibited) {
 					MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
 				}
+#endif // !defined(NDEBUG)
 			}
 
 			/* Other owning types in the library provide separate facilities for locking the "structure" of the owned
@@ -2101,9 +2109,13 @@ namespace mse {
 			mutex when the common framework calls for one. */
 			mutable dummy_recursive_shared_timed_mutex m_structure_change_mutex;
 
+#if !defined(NDEBUG)
+			/* While a "structure lock" is used to prevent deallocation or relocation of any of the contents, an "access lock"
+			is used to prevent any access whatsoever. This is generally used to catch "use-while-borrowed" bugs (in debug builds). */
 			/* These shouldn't need to be atomic as this class is not eligible to be shared among threads anyway. */
 			bool m_access_is_prohibited = false;
 			mse::non_thread_safe_mutex m_access_mutex;
+#endif // !defined(NDEBUG)
 
 			template<class TDynamicContainer, bool LockAccessToOriginal> friend class mse::us::impl::Txscope_exclusive_structure_lock_guard;
 			friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;

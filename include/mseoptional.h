@@ -928,7 +928,7 @@ namespace mse {
 			/* The existence of an Txscope_exclusive_structure_lock_guard<> indicates that the container's (owned) contents 
 			are bing exclusively borrowed and that use of the container interface is generally invalid at this point. */
 
-			template<class TDynamicContainer, bool LockAccessToOriginal>
+			template<class TDynamicContainer, bool LockAccessToOriginal = true>
 			class Txscope_exclusive_structure_lock_guard : public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase
 				, public mse::us::impl::StrongPointerAsyncNotShareableAndNotPassableTagBase, public mse::us::impl::StructureLockTagBase {
 			public:
@@ -2276,7 +2276,7 @@ namespace mse {
 					typedef mse::impl::TOpaqueWrapper<optional_base1<T> > base_class;
 					typedef optional_base1<T> _MO;
 
-				private:
+				protected:
 					const _MO& contained_optional() const& { assert_access_is_unlocked(); return base_class::value(); }
 					const _MO&& contained_optional() const&& { assert_access_is_unlocked(); return base_class::value(); }
 					_MO& contained_optional()& { assert_access_is_unlocked(); return base_class::value(); }
@@ -2476,8 +2476,8 @@ namespace mse {
 					auto structure_change_lock() const { m_structure_change_mutex.lock(); }
 					auto structure_change_unlock() const { m_structure_change_mutex.unlock(); }
 
-					auto access_lock() { m_access_mutex.lock(); m_access_is_prohibited = true; }
-					auto access_unlock() { m_access_mutex.unlock(); m_access_is_prohibited = false; }
+					auto access_lock() { MSE_IF_DEBUG(m_access_mutex.lock(); m_access_is_prohibited = true;) }
+					auto access_unlock() { MSE_IF_DEBUG(m_access_mutex.unlock(); m_access_is_prohibited = false;) }
 					auto assert_access_is_unlocked() const {
 #if !defined(NDEBUG)
 						if (m_access_is_prohibited) {
@@ -2486,12 +2486,19 @@ namespace mse {
 #endif // !defined(NDEBUG)
 					}
 
+					/* The "mutability" of m_structure_change_mutex is not actually required or utilized by this class, and thus
+					doesn't compromise the safety of sharing this class among asynchronous threads. The mutability is utilized by
+					derived (friend) classes (that will identify themselves as not safely shareable). */
 					mutable _TStateMutex m_structure_change_mutex;
 
+#if !defined(NDEBUG)
+					/* While a "structure lock" is used to prevent deallocation or relocation of any of the contents, an "access lock" 
+					is used to prevent any access whatsoever. This is generally used to catch "use-while-borrowed" bugs (in debug builds). */
 					/* These shouldn't need to be atomic as any changes made to them should be done under the
 					protection of the m_structure_change_mutex, which may be atomic. */
 					bool m_access_is_prohibited = false;
 					mse::non_thread_safe_mutex m_access_mutex;
+#endif // !defined(NDEBUG)
 
 					friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 					friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
@@ -3320,14 +3327,13 @@ namespace mse {
 		}
 		//typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<base_class> xscope_shared_const_structure_lock_guard_t;
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-		typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<base_class, !(mse::impl::should_structure_lock_rather_than_move_on_borrow<_Myt>::value)> xscope_exclusive_structure_lock_guard_t;
+		typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
 #else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 		typedef mse::us::impl::Txscope_shared_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 		static auto s_make_xscope_exclusive_structure_lock_guard(_Myt& vec_ref) -> xscope_exclusive_structure_lock_guard_t {
 			MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_exclusive_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(vec_ref));
 		}
-
 
 		friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 		friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
@@ -6126,7 +6132,7 @@ namespace mse {
 			}
 			//typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<base_class> xscope_shared_const_structure_lock_guard_t;
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-			typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<base_class, !(mse::impl::should_structure_lock_rather_than_move_on_borrow<_Myt>::value)> xscope_exclusive_structure_lock_guard_t;
+			typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
 #else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			typedef mse::us::impl::Txscope_shared_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
@@ -8812,6 +8818,15 @@ namespace mse {
 					}
 					auto af_opt1 = mse::rsv::make_xslta_accessing_fixed_optional(&opt1);
 					Big big3 = *af_opt1;
+				}
+				{
+#ifdef MSE_HAS_CXX17
+					auto opt1 = mse::make_xscope(std::optional(int{ 3 }));
+					{
+						auto bf_opt1 = mse::make_xscope_borrowing_fixed_optional(&opt1);
+						int i2 = *bf_opt1;
+					}
+#endif /* MSE_HAS_CXX17 */
 				}
 
 #endif // MSE_SELF_TESTS

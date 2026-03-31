@@ -1904,8 +1904,8 @@ namespace mse {
 				auto structure_change_lock() const { m_structure_change_mutex.lock(); }
 				auto structure_change_unlock() const { m_structure_change_mutex.unlock(); }
 
-				auto access_lock() { m_access_mutex.lock(); m_access_is_prohibited = true; }
-				auto access_unlock() { m_access_mutex.unlock(); m_access_is_prohibited = false; }
+				auto access_lock() { MSE_IF_DEBUG(m_access_mutex.lock(); m_access_is_prohibited = true;) }
+				auto access_unlock() { MSE_IF_DEBUG(m_access_mutex.unlock(); m_access_is_prohibited = false;) }
 				auto assert_access_is_unlocked() const {
 #if !defined(NDEBUG)
 					if (m_access_is_prohibited) {
@@ -1915,14 +1915,18 @@ namespace mse {
 				}
 
 				/* The "mutability" of m_structure_change_mutex is not actually required or utilized by this class, and thus
-				doesn't compromise the safety of sharing this class among asynchronous thread. The mutability is utilized by
+				doesn't compromise the safety of sharing this class among asynchronous threads. The mutability is utilized by
 				derived (friend) classes (that will identify themselves as not safely shareable). */
 				mutable _TStateMutex m_structure_change_mutex;
 
+#if !defined(NDEBUG)
+				/* While a "structure lock" is used to prevent deallocation or relocation of any of the contents, an "access lock"
+				is used to prevent any access whatsoever. This is generally used to catch "use-while-borrowed" bugs (in debug builds). */
 				/* These shouldn't need to be atomic as any changes made to them should be done under the
 				protection of the m_structure_change_mutex, which may be atomic. */
 				bool m_access_is_prohibited = false;
 				mse::non_thread_safe_mutex m_access_mutex;
+#endif // !defined(NDEBUG)
 
 				MSE_IF_DEBUG(mutable _TStateMutex m_debug_access_mutex;)
 
@@ -5466,9 +5470,19 @@ namespace mse {
 				MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_shared_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(vec_ref));
 			}
 			//typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<base_class> xscope_shared_const_structure_lock_guard_t;
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<base_class, !(mse::impl::should_structure_lock_rather_than_move_on_borrow<_Myt>::value)> xscope_exclusive_structure_lock_guard_t;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			typedef mse::us::impl::Txscope_shared_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+			static auto s_make_xscope_exclusive_structure_lock_guard(_Myt& vec_ref) -> xscope_exclusive_structure_lock_guard_t {
+				MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_exclusive_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(vec_ref));
+			}
 
 			friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 			friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
+			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl;
+			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction_impl;
 			template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
 			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base2;
 			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_vector_base;
@@ -7677,6 +7691,7 @@ namespace mse {
 			friend class mse::us::ns_msevector::xscope_shared_const_structure_lock_guard<_Myt>;
 			friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 			friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
+			template<class TDynamicContainer, bool LockAccessToOriginal> friend class mse::us::impl::Txscope_exclusive_structure_lock_guard;
 #ifndef MSE_MSTDVECTOR_DISABLED
 			template<class _Ty2, class _A2/* = std::allocator<_Ty> */>
 			friend class mse::mstd::vector;
