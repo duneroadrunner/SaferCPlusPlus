@@ -894,10 +894,11 @@ namespace mse {
 				typedef typename std_vector::const_reverse_iterator const_reverse_iterator;
 
 			private:
-				const _MV& contained_vector() const& { return (*this).value(); }
-				//const _MV& contained_vector() const&& { return (*this).value(); }
-				_MV& contained_vector() & { return (*this).value(); }
+				const _MV& contained_vector() const& { assert_access_is_unlocked(); return (*this).value(); }
+				//const _MV& contained_vector() const&& { assert_access_is_unlocked(); return (*this).value(); }
+				_MV& contained_vector() & { assert_access_is_unlocked(); return (*this).value(); }
 				_MV&& contained_vector() && {
+					assert_access_is_unlocked();
 					/* We're making sure that the vector is not "structure locked", because in that case it might not be
 					safe to to allow the contained vector to be moved from (when made movable with std::move()). */
 					//structure_change_guard<decltype(m_structure_change_mutex)> lock1(m_structure_change_mutex);
@@ -923,11 +924,10 @@ namespace mse {
 				}
 				gnii_vector(std_vector&& _X) : base_class(MSE_FWD(_X)) { /*m_debug_size = size();*/ }
 				gnii_vector(const std_vector& _X) : base_class(_X) { /*m_debug_size = size();*/ }
-				gnii_vector(_Myt&& _X) : base_class((MSE_IF_DEBUG(mse::us::impl::CDebugSharedAccessGuard<_Myt>{ _X },) CWriteLockedSrc<_Myt>(MSE_FWD(_X)).ref().contained_vector())) {
+				gnii_vector(_Myt&& _X) : base_class((CWriteLockedSrc<_Myt>(MSE_FWD(_X)).ref().contained_vector())) {
 					/*m_debug_size = size();*/
 				}
 				gnii_vector(_Myt& _X) : base_class(CNoopOrReadLockedSrcRefHolder<typename std::is_trivially_copy_constructible<_Ty>::type, _Myt>(_X).ref().contained_vector()) {
-					MSE_IF_DEBUG(mse::us::impl::CDebugSharedAccessGuard<_Myt>{ _X }; /* for participating derived types, this will throw if _X is (exclusively) borrowed */)
 					/*m_debug_size = size();*/
 				}
 				gnii_vector(const _Myt& _X) : base_class(CNoopOrReadLockedSrcRefHolder<typename std::is_trivially_copy_constructible<_Ty>::type, _Myt>(_X).ref().contained_vector()) {
@@ -935,7 +935,6 @@ namespace mse {
 					"structure locking" the source vector, but some vector types (like nii_vector<>) do not support being locked through a
 					const reference, so this (const reference) copy constructor is not supported for those vectors. */
 					mse::impl::T_valid_if_true_type_pb<typename mse::impl::disjunction<std::is_trivially_copy_constructible<_Ty>, std::is_same<TConstLockableIndicator, gnii_vector_const_lockable_tag> >::type>(); /*m_debug_size = size();*/
-					MSE_IF_DEBUG(mse::us::impl::CDebugSharedAccessGuard<_Myt>{ _X }; /* for participating derived types, this will throw if _X is (exclusively) borrowed */)
 				}
 				typedef typename std_vector::const_iterator _It;
 				/* Note that safety cannot be guaranteed when using these constructors that take unsafe typename base_class::iterator and/or pointer parameters. */
@@ -1928,12 +1927,9 @@ namespace mse {
 				mse::non_thread_safe_mutex m_access_mutex;
 #endif // !defined(NDEBUG)
 
-				MSE_IF_DEBUG(mutable _TStateMutex m_debug_access_mutex;)
-
 				friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
 				friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
 				template<class TDynamicContainer, bool LockAccessToOriginal> friend class mse::us::impl::Txscope_exclusive_structure_lock_guard;
-				template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
 				template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base2;
 				template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_vector_base;
 				template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::impl::ns_xscope_accessing_fixed_nii_vector::xscope_accessing_fixed_nii_vector_base2;
@@ -2004,35 +2000,6 @@ namespace mse {
 					MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 				};
 			}
-
-#ifndef NDEBUG
-			/* template specialization for gnii_vector<> */
-			template<class _Ty, class _A/* = std::allocator<_Ty>*/, class _TStateMutex/* = mse::non_thread_safe_shared_mutex*/, template<typename> class _TTXScopeConstIterator/* = mse::impl::ns_gnii_vector::Tgnii_vector_xscope_ss_const_iterator_type*/, class TConstLockableIndicator/* = gnii_vector_not_const_lockable_tag*/, bool IsExclusive>
-			class CDebugAccessGuard<gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator, TConstLockableIndicator>, IsExclusive> {
-			public:
-				typedef gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator, TConstLockableIndicator> _TLender;
-
-				CDebugAccessGuard(gnii_vector<_Ty, _A, _TStateMutex, _TTXScopeConstIterator, TConstLockableIndicator> const& lender_cref) 
-					: m_src_xs_cptr(std::addressof(lender_cref)) {
-
-					MSE_IF_CONSTEXPR(IsExclusive) {
-						MSE_IF_DEBUG(lender_cref.m_debug_access_mutex.lock();)
-					} else {
-						MSE_IF_DEBUG(lender_cref.m_debug_access_mutex.lock_shared();)
-					}
-				}
-				~CDebugAccessGuard() {
-					MSE_IF_CONSTEXPR(IsExclusive) {
-						MSE_IF_DEBUG(m_src_xs_cptr->m_debug_access_mutex.unlock();)
-					} else {
-						MSE_IF_DEBUG(m_src_xs_cptr->m_debug_access_mutex.unlock_shared();)
-					}
-				}
-
-				_TLender const* m_src_xs_cptr = nullptr;
-			};
-#endif // !NDEBUG
-
 		}
 	}
 
@@ -2298,28 +2265,7 @@ namespace mse {
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
 
-		template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
 	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
-
-	namespace us {
-		namespace impl {
-#ifndef NDEBUG
-			/* template specialization for mse::nii_vector<> */
-			template<class _Ty, class _A/* = std::allocator<_Ty>*/, bool IsExclusive>
-			class CDebugAccessGuard<mse::nii_vector<_Ty, _A>, IsExclusive> {
-			public:
-				typedef mse::nii_vector<_Ty, _A> _TLender;
-				typedef typename _TLender::base_class base_vector;
-
-				CDebugAccessGuard(mse::nii_vector<_Ty, _A> const& lender_cref)
-					: m_base_debug_access_guard(lender_cref) {
-				}
-
-				CDebugAccessGuard<base_vector, IsExclusive> m_base_debug_access_guard;
-			};
-#endif // !NDEBUG
-		}
-	}
 
 
 	/* mtnii_vector<> is a vector that is eligible to be shared among threads and does not support implicit iterators. */
@@ -2376,28 +2322,31 @@ namespace mse {
 
 		MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
 
-		template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
-	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
-
-	namespace us {
-		namespace impl {
-#ifndef NDEBUG
-			/* template specialization for mse::mtnii_vector<> */
-			template<class _Ty, class _A/* = std::allocator<_Ty>*/, bool IsExclusive>
-			class CDebugAccessGuard<mse::mtnii_vector<_Ty, _A>, IsExclusive> {
-			public:
-				typedef mse::mtnii_vector<_Ty, _A> _TLender;
-				typedef typename _TLender::base_class base_vector;
-
-				CDebugAccessGuard(mse::mtnii_vector<_Ty, _A> const& lender_cref)
-					: m_base_debug_access_guard(lender_cref) {
-				}
-
-				CDebugAccessGuard<base_vector, IsExclusive> m_base_debug_access_guard;
-			};
-#endif // !NDEBUG
+	private:
+		typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<base_class> xscope_shared_structure_lock_guard_t;
+		static auto s_make_xscope_shared_structure_lock_guard(_Myt const& vec_ref) -> xscope_shared_structure_lock_guard_t {
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_shared_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(vec_ref));
 		}
-	}
+		//typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<base_class> xscope_shared_const_structure_lock_guard_t;
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		typedef mse::us::impl::Txscope_shared_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		static auto s_make_xscope_exclusive_structure_lock_guard(_Myt& vec_ref) -> xscope_exclusive_structure_lock_guard_t {
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_exclusive_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(vec_ref));
+		}
+
+		friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
+		friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
+		template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl;
+		template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction_impl;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base2;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_vector_base;
+		template<class _TLender, class _Ty2, class _A2> friend class xslta_borrowing_fixed_vector;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::impl::ns_xscope_accessing_fixed_nii_vector::xscope_accessing_fixed_nii_vector_base2;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::us::impl::xscope_accessing_fixed_nii_vector_base;
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
 
 	namespace impl {
 		namespace ns_mtnii_vector {
@@ -2531,28 +2480,32 @@ namespace mse {
 			return spaceship_operator_equivalent<base_class>(_Left_cref, _Right_cref);
 		}
 #endif // !MSE_HAS_CXX20
-		template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
-	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
 
-	namespace us {
-		namespace impl {
-#ifndef NDEBUG
-			/* template specialization for mse::stnii_vector<> */
-			template<class _Ty, class _A/* = std::allocator<_Ty>*/, bool IsExclusive>
-			class CDebugAccessGuard<mse::stnii_vector<_Ty, _A>, IsExclusive> {
-			public:
-				typedef mse::stnii_vector<_Ty, _A> _TLender;
-				typedef typename _TLender::base_class base_vector;
-
-				CDebugAccessGuard(mse::stnii_vector<_Ty, _A> const& lender_cref)
-					: m_base_debug_access_guard(lender_cref) {
-				}
-
-				CDebugAccessGuard<base_vector, IsExclusive> m_base_debug_access_guard;
-			};
-#endif // !NDEBUG
+	private:
+		typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<base_class> xscope_shared_structure_lock_guard_t;
+		static auto s_make_xscope_shared_structure_lock_guard(_Myt const& vec_ref) -> xscope_shared_structure_lock_guard_t {
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_shared_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(vec_ref));
 		}
-	}
+		//typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<base_class> xscope_shared_const_structure_lock_guard_t;
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		typedef mse::us::impl::Txscope_shared_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+		static auto s_make_xscope_exclusive_structure_lock_guard(_Myt& vec_ref) -> xscope_exclusive_structure_lock_guard_t {
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return xscope_exclusive_structure_lock_guard_t(mse::us::unsafe_make_xscope_pointer_to(vec_ref));
+		}
+
+		friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;
+		friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
+		template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl;
+		template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction_impl;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base2;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_vector_base;
+		template<class _TLender, class _Ty2, class _A2> friend class xslta_borrowing_fixed_vector;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::impl::ns_xscope_accessing_fixed_nii_vector::xscope_accessing_fixed_nii_vector_base2;
+		template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::us::impl::xscope_accessing_fixed_nii_vector_base;
+	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)");
 
 	namespace impl {
 		namespace ns_stnii_vector {
@@ -3447,13 +3400,11 @@ namespace mse {
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
 		xscope_borrowing_fixed_nii_vector(const mse::TXScopeFixedPointer<_TLender>& src_xs_ptr) : m_src_ref(*src_xs_ptr) 
-			MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) 
 		{
 			(*this).contained_vector() = std::move(m_src_ref);
 		}
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
 		xscope_borrowing_fixed_nii_vector(_TLender* src_xs_ptr) : m_src_ref(*src_xs_ptr) 
-			MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) 
 		{
 			(*this).contained_vector() = std::move(m_src_ref);
 		}
@@ -3468,7 +3419,6 @@ namespace mse {
 		xscope_borrowing_fixed_nii_vector(const xscope_borrowing_fixed_nii_vector&) = delete;
 
 		_TLender& m_src_ref;
-		MSE_IF_DEBUG(mse::us::impl::CDebugExclusiveAccessGuard<_TLender> m_debug_access_guard;)
 	};
 
 	template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
@@ -3731,12 +3681,10 @@ namespace mse {
 		xscope_accessing_fixed_nii_vector(xscope_accessing_fixed_nii_vector&&) = default;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
-		xscope_accessing_fixed_nii_vector(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr) 
-			MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) {}
+		xscope_accessing_fixed_nii_vector(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr) {}
 
 	private:
 		xscope_accessing_fixed_nii_vector(const xscope_accessing_fixed_nii_vector&) = delete;
-		MSE_IF_DEBUG(mse::us::impl::CDebugExclusiveAccessGuard<_TLender> m_debug_access_guard;)
 	} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 		MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
 		MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
@@ -4439,6 +4387,52 @@ namespace mse {
 			-> xslta_fixed_vector<typename std::iterator_traits<_Iter>::value_type, _Alloc>;
 #endif /* MSE_HAS_CXX17 */
 
+		namespace impl {
+			template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
+			class xslta_borrowing_fixed_vector_without_locking : public xslta_fixed_vector<_Ty, _A>
+				, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xslta_fixed_vector<_Ty, _A>, xslta_borrowing_fixed_vector_without_locking<_TLender, _Ty, _A> >
+			{
+			public:
+				typedef xslta_fixed_vector<_Ty, _A> base_class;
+
+				typedef typename base_class::std_vector std_vector;
+				typedef typename base_class::_MV _MV;
+				typedef xslta_borrowing_fixed_vector_without_locking _Myt;
+
+				MSE_INHERITED_RANDOM_ACCESS_MEMBER_TYPE_DECLARATIONS(base_class)
+					typedef typename base_class::allocator_type allocator_type;
+
+				typedef typename base_class::iterator iterator;
+				typedef typename base_class::const_iterator const_iterator;
+
+				typedef typename base_class::reverse_iterator reverse_iterator;
+				typedef typename base_class::const_reverse_iterator const_reverse_iterator;
+
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				xslta_borrowing_fixed_vector_without_locking(xslta_borrowing_fixed_vector_without_locking&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				xslta_borrowing_fixed_vector_without_locking(xslta_borrowing_fixed_vector_without_locking&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+
+				xslta_borrowing_fixed_vector_without_locking(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#if !defined(MSE_SLTAPOINTER_DISABLED)
+				xslta_borrowing_fixed_vector_without_locking(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr) {}
+#endif // !defined(MSE_SLTAPOINTER_DISABLED)
+				~xslta_borrowing_fixed_vector_without_locking() {
+					m_src_ref = std::move((*this).contained_vector());
+				}
+
+				MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
+
+			private:
+				xslta_borrowing_fixed_vector_without_locking(const xslta_borrowing_fixed_vector_without_locking&) = delete;
+
+				_TLender& m_src_ref;
+			} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
+					MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
+					MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
+		}
+
 		template<class _TLender, class _Ty = mse::impl::container_element_type<_TLender>, class _A = mse::impl::container_allocator_type_if_available<_TLender> >
 		class xslta_borrowing_fixed_vector : public xslta_fixed_vector<_Ty, _A>
 			, public mse::impl::first_or_placeholder_if_base_of_second<mse::us::impl::ContainsNonOwningScopeReferenceTagBase, xslta_fixed_vector<_Ty, _A>, xslta_borrowing_fixed_vector<_TLender, _Ty, _A> >
@@ -4465,23 +4459,54 @@ namespace mse {
 			xslta_borrowing_fixed_vector(xslta_borrowing_fixed_vector&&) = default;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
-			xslta_borrowing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr)
-				MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) {}
+			xslta_borrowing_fixed_vector(const mse::rsv::TXSLTAPointer<_TLender> src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_obj1(*src_xs_ptr, *this)
+				MSE_IF_DEBUG(, m_xs_structure_lock_guard(sl_make_xscope_exclusive_structure_lock_guard(*src_xs_ptr))) {}
 #if !defined(MSE_SLTAPOINTER_DISABLED)
-			xslta_borrowing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_src_ref(*src_xs_ptr)
-				MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) {}
+			xslta_borrowing_fixed_vector(_TLender* src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])")) : base_class(std::move(*src_xs_ptr)), m_obj1(*src_xs_ptr, *this)
+				MSE_IF_DEBUG(, m_xs_structure_lock_guard(sl_make_xscope_exclusive_structure_lock_guard(*src_xs_ptr))) {}
 #endif // !defined(MSE_SLTAPOINTER_DISABLED)
-			~xslta_borrowing_fixed_vector() {
-				m_src_ref = std::move((*this).contained_vector());
-			}
 
 			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
 
 		private:
 			xslta_borrowing_fixed_vector(const xslta_borrowing_fixed_vector&) = delete;
 
-			_TLender& m_src_ref;
-			MSE_IF_DEBUG(mse::us::impl::CDebugExclusiveAccessGuard<_TLender> m_debug_access_guard;)
+			/* We put everything into a "subobject" member because we need the destructor to execute after the (debug)
+			lock object member has been destroyed already. */
+			struct CObj1 {
+				CObj1(_TLender& src_ref, base_class& borrowed_ref) : m_src_ref(src_ref), m_borrowed_ref(borrowed_ref) {}
+#ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				CObj1(CObj1&&) = delete;
+#else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				CObj1(CObj1&&) = default;
+#endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
+				~CObj1() {
+					m_src_ref = std::move(m_borrowed_ref.contained_vector());
+				}
+				_TLender& m_src_ref;
+				base_class& m_borrowed_ref;
+			};
+			CObj1 m_obj1;
+
+#if !defined(NDEBUG)
+			/* In debug mode we will grab an exclusive lock on the lending pointer if the pointer provides such a lock. */
+			template<class _TLender2 = _TLender>
+			static auto sl_make_xscope_exclusive_structure_lock_guard_helper1(std::true_type, _TLender2& src) { return _TLender2::s_make_xscope_exclusive_structure_lock_guard(src); }
+
+			/* If the lending pointer doesn't support being locked then we'll just use a dummy lock guard. */
+			struct dummy_xscope_exclusive_structure_lock_guard_t {};
+			template<class _TLender2 = _TLender>
+			static auto sl_make_xscope_exclusive_structure_lock_guard_helper1(std::false_type, _TLender2& src) { return dummy_xscope_exclusive_structure_lock_guard_t{}; }
+
+			template<class _TLender2 = _TLender>
+			static auto sl_make_xscope_exclusive_structure_lock_guard(_TLender2& src) {
+				return sl_make_xscope_exclusive_structure_lock_guard_helper1(typename mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction<_TLender2>::type{}, src);
+			}
+
+			typedef decltype(sl_make_xscope_exclusive_structure_lock_guard(std::declval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
+			xscope_exclusive_structure_lock_guard_t m_xs_structure_lock_guard;
+
+#endif // !defined(NDEBUG)
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
@@ -4827,12 +4852,10 @@ namespace mse {
 			xslta_accessing_fixed_vector(xslta_accessing_fixed_vector&&) = default;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
-			xslta_accessing_fixed_vector(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr)
-				MSE_IF_DEBUG(, m_debug_access_guard(*src_xs_ptr)) {}
+			xslta_accessing_fixed_vector(const _TPointerToLender& src_xs_ptr MSE_ATTR_PARAM_STR("mse::lifetime_label(_[_[alias_11$]])")) : base_class(src_xs_ptr) {}
 
 		private:
 			xslta_accessing_fixed_vector(const xslta_accessing_fixed_vector&) = delete;
-			MSE_IF_DEBUG(mse::us::impl::CDebugSharedAccessGuard<_TLender> m_debug_access_guard;)
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)")
 			MSE_ATTR_STR("mse::lifetime_label_for_base_class(alias_11$)");
@@ -5471,7 +5494,7 @@ namespace mse {
 			}
 			//typedef mse::us::impl::Txscope_shared_const_structure_lock_guard<base_class> xscope_shared_const_structure_lock_guard_t;
 #ifndef MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
-			typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<base_class, !(mse::impl::should_structure_lock_rather_than_move_on_borrow<_Myt>::value)> xscope_exclusive_structure_lock_guard_t;
+			typedef mse::us::impl::Txscope_exclusive_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
 #else // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 			typedef mse::us::impl::Txscope_shared_structure_lock_guard<base_class> xscope_exclusive_structure_lock_guard_t;
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
@@ -5483,9 +5506,9 @@ namespace mse {
 			friend class mse::us::impl::Txscope_shared_const_structure_lock_guard<_Myt>;
 			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl;
 			template<class T2, class EqualTo2> friend struct mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction_impl;
-			template<typename _TLender, bool IsExclusive> friend class mse::us::impl::CDebugAccessGuard;
 			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::impl::ns_xslta_accessing_fixed_vector::xslta_accessing_fixed_vector_base2;
 			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::rsv::us::impl::xslta_accessing_fixed_vector_base;
+			template<class _TLender, class _Ty2, class _A2> friend class xslta_borrowing_fixed_vector;
 			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::impl::ns_xscope_accessing_fixed_nii_vector::xscope_accessing_fixed_nii_vector_base2;
 			template<class _TPointer2, class _TLender2, class _Ty2> friend class mse::us::impl::xscope_accessing_fixed_nii_vector_base;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
@@ -5502,24 +5525,6 @@ namespace mse {
 	namespace impl {
 		template<class _Ty, class _A/* = std::allocator<_Ty>*/>
 		struct can_be_structure_locked_as_const<mse::rsv::xslta_vector<_Ty, _A> > : std::true_type {};
-	}
-	namespace us {
-		namespace impl {
-#ifndef NDEBUG
-			/* template specialization for mse::rsv::xslta_vector<> */
-			template<class _Ty, class _A/* = std::allocator<_Ty>*/, bool IsExclusive>
-			class CDebugAccessGuard<mse::rsv::xslta_vector<_Ty, _A>, IsExclusive> {
-			public:
-				typedef mse::rsv::xslta_vector<_Ty, _A> _TLender;
-				typedef typename _TLender::base_class base_vector;
-
-				CDebugAccessGuard(mse::rsv::xslta_vector<_Ty, _A> const& lender_cref)
-					: m_base_debug_access_guard(lender_cref) {}
-
-				CDebugAccessGuard<base_vector, IsExclusive> m_base_debug_access_guard;
-			};
-#endif // !NDEBUG
-		}
 	}
 
 	namespace mstd {
@@ -8034,6 +8039,41 @@ namespace mse {
 						mse::rsv::TXSLTAPointer<int> int_xlptr1 = item_ref;
 						int q = 5;
 					}
+				}
+			}
+			{
+				auto vec1 = mse::make_xscope(mse::stnii_vector<int>({ 3 }));
+				{
+					auto bf_vec1 = mse::make_xscope_borrowing_fixed_nii_vector(&vec1);
+					int i2 = bf_vec1.at(0);
+				}
+				auto af_vec1 = mse::make_xscope_accessing_fixed_nii_vector(&vec1);
+				int i3 = af_vec1.at(0);
+			}
+			{
+				auto vec1 = mse::make_xscope(mse::mtnii_vector<int>({ 3 }));
+				{
+					auto bf_vec1 = mse::make_xscope_borrowing_fixed_nii_vector(&vec1);
+					int i2 = bf_vec1.at(0);
+				}
+				auto af_vec1 = mse::make_xscope_accessing_fixed_nii_vector(&vec1);
+				int i3 = af_vec1.at(0);
+			}
+			{
+				auto vec1 = mse::rsv::xslta_vector<int>({ 3 });
+				{
+					auto bf_vec1 = mse::rsv::make_xslta_borrowing_fixed_vector(&vec1);
+					int i2 = bf_vec1.at(0);
+				}
+				auto af_vec1 = mse::rsv::make_xslta_accessing_fixed_vector(&vec1);
+				int i3 = af_vec1.at(0);
+				auto vec2 = vec1;
+			}
+			{
+				auto vec1 = mse::make_xscope(std::vector<int>({ 3 }));
+				{
+					auto bf_vec1 = mse::make_xscope_borrowing_fixed_nii_vector(&vec1);
+					int i2 = bf_vec1.at(0);
 				}
 			}
 #endif // MSE_SELF_TESTS

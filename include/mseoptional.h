@@ -8806,6 +8806,7 @@ namespace mse {
 					}
 					auto af_opt1 = mse::rsv::make_xslta_accessing_fixed_optional(&opt1);
 					int i3 = *af_opt1;
+					auto opt2 = opt1;
 				}
 				{
 					struct Big {

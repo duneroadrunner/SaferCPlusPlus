@@ -1544,7 +1544,6 @@ namespace mse {
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 	}
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTARefCountingPointer);
-	MSE_IMPL_CDEBUGACCESSGUARD_SPECIALIZATION_WITH_ONE_TEMPLATE_ARG1(mse::rsv::TXSLTARefCountingPointer);
 
 	namespace rsv {
 		/* For now we're just defining xslta_accessing_fixed_owning_not_null_pointer<> to be an alias of
@@ -2135,7 +2134,6 @@ namespace mse {
 			MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 	}
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTASingleOwnerPointer);
-	MSE_IMPL_CDEBUGACCESSGUARD_SPECIALIZATION_WITH_ONE_TEMPLATE_ARG1(mse::rsv::TXSLTASingleOwnerPointer);
 
 	namespace rsv {
 		template<class _TPointer, class _TLender = mse::impl::target_type<_TPointer>, class _Ty = typename _TLender::element_type >
@@ -2643,7 +2641,6 @@ namespace mse {
 				}
 				{
 					auto ptr1 = mse::rsv::make_xslta_nullable_refcounting(int{ 3 });
-					auto b1 = mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction<decltype(ptr1)>::value;
 					{
 						auto bf_own_ptr1 = mse::rsv::make_xslta_borrowing_fixed_owning_not_null_pointer(&ptr1);
 					}
@@ -2652,7 +2649,6 @@ namespace mse {
 				}
 				{
 					auto ptr1 = mse::rsv::make_xslta_refcounting(int{ 3 });
-					auto b1 = mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction<decltype(ptr1)>::value;
 					{
 						auto bf_own_ptr1 = mse::rsv::make_xslta_borrowing_fixed_owning_not_null_pointer(&ptr1);
 					}
@@ -2839,7 +2835,6 @@ namespace mse {
 				}
 				{
 					auto ptr1 = mse::rsv::make_xslta_nullable_single_owner(int{ 3 });
-					auto b1 = mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction<decltype(ptr1)>::value;
 					{
 						auto bf_own_ptr1 = mse::rsv::make_xslta_borrowing_fixed_owning_not_null_pointer(&ptr1);
 					}
