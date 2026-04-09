@@ -3159,11 +3159,6 @@ namespace mse {
 		}
 
 		namespace impl {
-			template <typename T, typename = void>
-			struct HasOrInheritsSubscriptOperator : std::false_type {};
-			template <typename T>
-			struct HasOrInheritsSubscriptOperator<T, mse::impl::void_t<decltype(std::declval<T>()[0])> > : std::true_type {};
-
 			namespace us {
 
 				template<class _TPointer, class _TPointer2>
@@ -3317,14 +3312,14 @@ namespace mse {
 		template<class _TIter, class _TIter2>
 		_TIter memcpy(_TIter const& destination, _TIter2 const& source, size_t num_bytes) {
 			return impl::us::memcpy_helper1(typename std::integral_constant<bool
-					, impl::HasOrInheritsSubscriptOperator<_TIter>::value && impl::HasOrInheritsSubscriptOperator<_TIter2>::value >::type()
+					, mse::impl::HasOrInheritsSubscriptOperator<_TIter>::value && mse::impl::HasOrInheritsSubscriptOperator<_TIter2>::value >::type()
 				, destination, source, num_bytes);
 		}
 		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memcpy(). */
 		template<class _TElement, class _TIter2>
 		_TElement* memcpy(_TElement* destination, _TIter2 const& source, size_t num_bytes) {
 			return impl::us::memcpy_helper1(typename std::integral_constant<bool
-				, impl::HasOrInheritsSubscriptOperator<_TElement*>::value && impl::HasOrInheritsSubscriptOperator<_TIter2>::value >::type(), destination, source, num_bytes);
+				, mse::impl::HasOrInheritsSubscriptOperator<_TElement*>::value && mse::impl::HasOrInheritsSubscriptOperator<_TIter2>::value >::type(), destination, source, num_bytes);
 		}
 
 		/* Memory safe approximation of memcmp(). */
@@ -3602,13 +3597,13 @@ namespace mse {
 		template<class _TIter, class _TIter2>
 		int memcmp(_TIter const& source1, _TIter2 const& source2, size_t num_bytes) {
 			return impl::us::memcmp_helper1(typename std::integral_constant<bool
-				, impl::HasOrInheritsSubscriptOperator<_TIter>::value && impl::HasOrInheritsSubscriptOperator<_TIter2>::value >::type(), source1, source2, num_bytes);
+				, mse::impl::HasOrInheritsSubscriptOperator<_TIter>::value && mse::impl::HasOrInheritsSubscriptOperator<_TIter2>::value >::type(), source1, source2, num_bytes);
 		}
 		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memcpy(). */
 		template<class _TElement, class _TIter2>
 		int memcmp(_TElement* source1, _TIter2 const& source2, size_t num_bytes) {
 			return impl::us::memcmp_helper1(typename std::integral_constant<bool
-				, impl::HasOrInheritsSubscriptOperator<_TElement*>::value && impl::HasOrInheritsSubscriptOperator<_TIter2>::value >::type(), source1, source2, num_bytes);
+				, mse::impl::HasOrInheritsSubscriptOperator<_TElement*>::value && mse::impl::HasOrInheritsSubscriptOperator<_TIter2>::value >::type(), source1, source2, num_bytes);
 		}
 
 		namespace impl {
@@ -3678,12 +3673,12 @@ namespace mse {
 		/* Memory safe approximation of memset(). */
 		template<class _TIter>
 		_TIter memset(_TIter const& iter, int value, size_t num_bytes) {
-			return impl::us::memset_helper1(typename impl::HasOrInheritsSubscriptOperator<_TIter>::type(), iter, value, num_bytes);
+			return impl::us::memset_helper1(typename mse::impl::HasOrInheritsSubscriptOperator<_TIter>::type(), iter, value, num_bytes);
 		}
 		/* This overload is to allow native arrays to decay to a pointer iterator like they would with std::memset(). */
 		template<class _TElement>
 		_TElement* memset(_TElement* iter, int value, size_t num_bytes) {
-			return impl::us::memset_helper1(typename impl::HasOrInheritsSubscriptOperator<_TElement*>::type(), iter, value, num_bytes);
+			return impl::us::memset_helper1(typename mse::impl::HasOrInheritsSubscriptOperator<_TElement*>::type(), iter, value, num_bytes);
 		}
 		/* And similarly, his overload is to allow native array replacements to decay to a (safe) iterator. */
 		template<class _udTy, size_t _Size>
@@ -3764,7 +3759,7 @@ namespace mse {
 		namespace impl {
 			namespace ns_strtox {
 				template <typename T>
-				using iterator_smoke_test = std::integral_constant<bool, mse::impl::is_contiguous_sequence_iterator<T>::value || (mse::impl::SupportsSubtraction_poly<T>::value && mse::impl::IsDereferenceable_pb<T>::value && mse::lh::impl::HasOrInheritsSubscriptOperator<T>::value)>;
+				using iterator_smoke_test = std::integral_constant<bool, mse::impl::is_contiguous_sequence_iterator<T>::value || (mse::impl::SupportsSubtraction_poly<T>::value && mse::impl::IsDereferenceable_pb<T>::value && mse::impl::HasOrInheritsSubscriptOperator<T>::value)>;
 
 				template <class _TIter, class _TPointerToIter>
 				using strtox_tparams_smoke_test = std::integral_constant<bool,
@@ -3872,7 +3867,7 @@ namespace mse {
 		namespace impl {
 			namespace ns_strtok {
 				template <typename T>
-				using iterator_smoke_test = std::integral_constant<bool, mse::impl::is_contiguous_sequence_iterator<T>::value || (mse::impl::SupportsSubtraction_poly<T>::value && mse::impl::IsDereferenceable_pb<T>::value && mse::lh::impl::HasOrInheritsSubscriptOperator<T>::value)>;
+				using iterator_smoke_test = std::integral_constant<bool, mse::impl::is_contiguous_sequence_iterator<T>::value || (mse::impl::SupportsSubtraction_poly<T>::value && mse::impl::IsDereferenceable_pb<T>::value && mse::impl::HasOrInheritsSubscriptOperator<T>::value)>;
 
 				template <class _TIter, class _TConstCharIter2, class _TPointerToIter>
 				using strtok_r_tparams_smoke_test = std::integral_constant<bool,
@@ -5486,7 +5481,7 @@ namespace mse {
 
 				template<typename _Ty>
 				auto make_raw_pointer_from_helper1(std::false_type, _Ty const& ptr) {
-					return make_raw_pointer_from_helper3(typename std::integral_constant<bool, mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_Ty>::value && mse::lh::impl::HasOrInheritsSubscriptOperator<_Ty>::value>::type(), ptr);
+					return make_raw_pointer_from_helper3(typename std::integral_constant<bool, mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_Ty>::value && mse::impl::HasOrInheritsSubscriptOperator<_Ty>::value>::type(), ptr);
 				}
 				template<typename _Ty>
 				auto make_raw_pointer_from_helper1(std::true_type, _Ty const& ptr) {

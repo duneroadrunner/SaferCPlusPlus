@@ -166,6 +166,11 @@ namespace mse {
 				typename IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded<_InIt>::type(), _First, _Last);
 		}
 
+		template <typename _InIt, typename = void>
+		struct IsSupportedByMakeXScopeSpecializedFirstAndLast : std::false_type {};
+		template <typename _InIt>
+		struct IsSupportedByMakeXScopeSpecializedFirstAndLast<_InIt, mse::impl::void_t<decltype(make_xscope_specialized_first_and_last(std::declval<_InIt>(), std::declval<_InIt>()))> > : std::true_type {};
+
 		template<class _InIt>
 		using item_pointer_type_from_iterator = typename std::add_const<mse::impl::remove_reference_t<
 				decltype(make_xscope_specialized_first_and_last(std::declval<_InIt>(), std::declval<_InIt>()).first())
@@ -203,17 +208,36 @@ namespace mse {
 		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<T, mse::impl::void_t<decltype(make_xscope_specialized_range_iter_provider_overloaded(std::declval<T>()))> > : std::true_type {};
 
 		template<class _ContainerPointer>
-		auto make_xscope_range_iter_provider_helper1(std::true_type, const _ContainerPointer& ptr) {
-			MSE_SUPPRESS_CHECK_IN_XSCOPE return mse::impl::make_xscope_specialized_range_iter_provider_overloaded(*ptr);
+		void make_xscope_range_iter_provider_helper3(std::false_type, const _ContainerPointer&) {
+			/* We can't seem to obtain an iterator from given container pointer, so we can't produce a TXScopeRangeIterProvider<>. */
+		}
+		template<class _ContainerPointer>
+		auto make_xscope_range_iter_provider_helper3(std::true_type, const _ContainerPointer& ptr) {
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
+		}
+		template<class _ContainerPointer>
+		void make_xscope_range_iter_provider_helper4(std::false_type, const _ContainerPointer&) {
+			/* _ContainerPointer is not a supported parameter type */
+		}
+		template<class _ContainerPointer>
+		auto make_xscope_range_iter_provider_helper4(std::true_type, const _ContainerPointer& ptr) {
+			typedef decltype(mse::make_xscope_begin_iterator(mse::impl::decl_lval<_ContainerPointer>())) iter_t;
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_range_iter_provider_helper3(typename IsSupportedByMakeXScopeSpecializedFirstAndLast<iter_t>::type(), ptr);
+			//MSE_SUPPRESS_CHECK_IN_XSCOPE return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
 		}
 		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider_helper1(std::false_type, const _ContainerPointer& ptr) {
-			MSE_SUPPRESS_CHECK_IN_XSCOPE return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_range_iter_provider_helper4(typename mse::impl::IsSupportedByMakeXScopeBeginIterator<_ContainerPointer>::type(), ptr);
+		}
+		template<class _ContainerPointer>
+		auto make_xscope_range_iter_provider_helper1(std::true_type, const _ContainerPointer& ptr) {
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return mse::impl::make_xscope_specialized_range_iter_provider_overloaded(*ptr);
 		}
 
 		template<class _ContainerPointer>
 		auto make_xscope_range_iter_provider_helper2(const _ContainerPointer& ptr) {
-			MSE_SUPPRESS_CHECK_IN_XSCOPE return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
+			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_range_iter_provider_helper1(typename IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<mse::impl::target_or_void_type<_ContainerPointer> >::type(), ptr);
+			//MSE_SUPPRESS_CHECK_IN_XSCOPE return TXScopeRangeIterProvider<decltype(ptr)>(ptr);
 		}
 		template<class _Container>
 		auto make_xscope_range_iter_provider_helper2(const mse::TXScopeFixedConstPointer<_Container>& ptr) {
@@ -238,6 +262,11 @@ namespace mse {
 		auto make_xscope_range_iter_provider(const _ContainerPointer& ptr) {
 			MSE_SUPPRESS_CHECK_IN_XSCOPE return make_xscope_range_iter_provider_helper2(ptr);
 		}
+
+		template <typename _ContainerPointer, typename = void>
+		struct IsSupportedByMakeXScopeRangeIterProvider : std::false_type {};
+		template <typename _ContainerPointer>
+		struct IsSupportedByMakeXScopeRangeIterProvider<_ContainerPointer, mse::impl::void_t<decltype(mse::impl::T_valid_if_not_same_pb<void, decltype(make_xscope_range_iter_provider(mse::impl::decl_lval<_ContainerPointer>()))>) > > : std::true_type {};
 	}
 
 	/* find_if() */

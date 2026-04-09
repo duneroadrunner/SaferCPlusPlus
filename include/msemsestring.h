@@ -4104,7 +4104,7 @@ namespace mse {
 					/*m_debug_size = size();*/
 					return (*this);
 				}
-				template<class _TParam1>
+				template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::IsSupportedByMakeXScopeRangeIterProvider<_TParam1>::value> MSE_IMPL_EIS >
 				gnii_basic_string& assign_helper2(std::false_type, const _TParam1& _Right) {
 					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
 					return assign(xs_iters.begin(), xs_iters.end());
@@ -4117,8 +4117,10 @@ namespace mse {
 				gnii_basic_string& assign_helper1(std::false_type, const _TParam1& _Right) {
 					return assign_helper2(typename _is_string_view_ish<_TParam1>::type(), _Right);
 				}
+
 			public:
-				template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1> */>
+				template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<gnii_basic_string, _TParam1>::value 
+					|| _is_string_view_ish<_TParam1>::value || mse::impl::IsSupportedByMakeXScopeRangeIterProvider<_TParam1>::value> MSE_IMPL_EIS >
 				gnii_basic_string& assign(const _TParam1& _Right) {
 					return assign_helper1(typename std::is_base_of<gnii_basic_string, _TParam1>::type(), _Right);
 				}

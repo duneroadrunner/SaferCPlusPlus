@@ -404,6 +404,11 @@ namespace mse {
 	}
 
 	namespace impl {
+		template <typename T, typename = void>
+		struct HasOrInheritsSubscriptOperator : std::false_type {};
+		template <typename T>
+		struct HasOrInheritsSubscriptOperator<T, mse::impl::void_t<decltype(std::declval<T>()[0])> > : std::true_type {};
+
 		template <typename _TRAIterator>
 		class random_access_const_iterator_base_from_ra_iterator {
 		public:
@@ -6104,8 +6109,24 @@ namespace mse {
 				return begin_iter_from_xsptr_helper2(typename std::is_constructible<typename container_t::xscope_iterator, _TXSRAPointer, size_t>::type(), xsptr);
 			}
 			template <typename _TXSRAPointer>
-			auto begin_iter_from_xsptr_helper(std::false_type, const _TXSRAPointer& xsptr) {
+			void begin_iter_from_xsptr_helper4(std::false_type, const _TXSRAPointer& xsptr) {
+				/* The pointer doesn't seem to point to a random access container, so we can't make a random access iterator. */
+			}
+			template <typename _TXSRAPointer>
+			auto begin_iter_from_xsptr_helper4(std::true_type, const _TXSRAPointer& xsptr) {
 				return mse::TXScopeRAIterator<_TXSRAPointer>(xsptr, 0);
+			}
+			template <typename _TXSRAPointer>
+			auto begin_iter_from_xsptr_helper3(std::false_type, const _TXSRAPointer& xsptr) {
+				return begin_iter_from_xsptr_helper4(typename mse::impl::HasOrInheritsSubscriptOperator<mse::impl::target_type<_TXSRAPointer> >::type(), xsptr);
+			}
+			template<typename T, size_t N>
+			auto begin_iter_from_xsptr_helper3(std::true_type, T(&arr1)[N]) {
+				return (T*)arr1;
+			}
+			template <typename _TXSRAPointer>
+			auto begin_iter_from_xsptr_helper(std::false_type, const _TXSRAPointer& xsptr) {
+				return begin_iter_from_xsptr_helper3(typename mse::impl::IsNativeArray_msemsearray<_TXSRAPointer>::type(), xsptr);
 			}
 			template <typename _TXSRAPointer>
 			auto begin_iter_from_xscope_ptr_helper(std::true_type, const _TXSRAPointer& xsptr) {
@@ -6476,6 +6497,11 @@ namespace mse {
 	}
 
 	namespace impl {
+		template <typename T, typename = void>
+		struct IsSupportedByMakeXScopeBeginIterator : std::false_type {};
+		template <typename T>
+		struct IsSupportedByMakeXScopeBeginIterator<T, mse::impl::void_t<decltype(make_xscope_begin_iterator(mse::impl::decl_lval<T>()))> > : std::true_type {};
+
 		template<class _TContainerPointer>
 		auto make_xscope_end_const_iterator_helper1(std::true_type, const _TContainerPointer& param) {
 			typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_const_iterator(param))>::type difference_type;
@@ -6517,6 +6543,18 @@ namespace mse {
 		auto make_xscope_end_iterator_from_rvalue_helper01(_TContainerPointer&& param);
 
 		template<class _TContainerPointer>
+		auto make_xscope_end_iterator_helper2(std::false_type, const _TContainerPointer& param) {
+			return mse::make_xscope(std::end(*param));
+		}
+		template<typename T, size_t N>
+		auto make_xscope_end_iterator_helper2(std::true_type, T(&arr1)[N]) {
+			return ((T*)arr1) + N;
+		}
+		template<class _TContainerPointer>
+		auto make_xscope_end_iterator_helper1(std::false_type, const _TContainerPointer& param) {
+			return make_xscope_end_iterator_helper2(typename mse::impl::IsNativeArray_msemsearray<_TContainerPointer>::type(), param);
+		}
+		template<class _TContainerPointer>
 		auto make_xscope_end_iterator_helper1(std::true_type, const _TContainerPointer& param) {
 			typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_iterator(param))>::type difference_type;
 			return mse::make_xscope_begin_iterator(param) + difference_type(mse::container_size(param) - 0);
@@ -6525,10 +6563,6 @@ namespace mse {
 		auto make_xscope_end_iterator_helper1(std::true_type, _TContainerPointer&& param) {
 			typedef typename mse::difference_type_of_iterator<decltype(mse::make_xscope_begin_iterator(MSE_FWD(param)))>::type difference_type;
 			return mse::make_xscope_begin_iterator(MSE_FWD(param)) + difference_type(mse::container_size(param) - 0);
-		}
-		template<class _TContainerPointer>
-		auto make_xscope_end_iterator_helper1(std::false_type, const _TContainerPointer& param) {
-			return mse::make_xscope(std::end(*param));
 		}
 		template<class _TContainerPointer>
 		auto make_xscope_end_iterator_helper02(std::true_type, const _TContainerPointer& param) {

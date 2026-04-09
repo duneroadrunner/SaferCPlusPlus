@@ -343,8 +343,17 @@ namespace mse {
 		template <bool _Test, class _Ty1, class _Ty2> using conditional_t = typename std::conditional<_Test, _Ty1, _Ty2>::type;
 		template <class _Ty> using remove_const_t = typename std::remove_const<_Ty>::type;
 		template <class _Ty> using remove_reference_t = typename std::remove_reference<_Ty>::type;
+		template <class _Ty> using add_lvalue_reference_t = typename std::add_lvalue_reference<_Ty>::type;
 		template <class _Ty> using decay_t = typename std::decay<_Ty>::type;
 		template <typename...> using void_t = void;
+
+		template<typename _Ty>
+		_Ty& as_an_lvalue_ref(_Ty& x) { return x; }
+		template<typename _Ty>
+		_Ty& as_an_lvalue_ref(_Ty&& x) { return as_an_lvalue_ref(x); }
+
+		template<typename _Ty>
+		_Ty& decl_lval() { return as_an_lvalue_ref(std::declval<_Ty>()); }
 	}
 
 #if defined(_MSC_VER) && !defined(MSE_HAS_CXX17)
@@ -2062,6 +2071,8 @@ namespace mse {
 	namespace impl {
 		template<class _Ty, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_Ty, _Ty2>::value> MSE_IMPL_EIS >
 		static void T_valid_if_same_pb() {}
+		template<class _Ty, class _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<_Ty, _Ty2>::value> MSE_IMPL_EIS >
+		static void T_valid_if_not_same_pb() {}
 		template<class _Ty, class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_same<_Ty, std::true_type>::value> MSE_IMPL_EIS >
 		static void T_valid_if_true_type_pb() {}
 		template<class _TLeasePointer, class _TMemberObjectPointer>
