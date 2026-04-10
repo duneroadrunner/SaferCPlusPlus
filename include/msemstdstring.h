@@ -321,7 +321,6 @@ namespace mse {
 			basic_string(_Iter _First, _Iter _Last) : m_shptr(std::make_shared<_MBS>(_First, _Last)) {}
 			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
 			basic_string(_Iter _First, _Iter _Last, const _A& _Al) : m_shptr(std::make_shared<_MBS>(_First, _Last, _Al)) {}
-			basic_string(const _Ty* const _Ptr) : m_shptr(std::make_shared<_MBS>(_Ptr)) {}
 			basic_string(const _Ty* const _Ptr, const size_t _Count) : m_shptr(std::make_shared<_MBS>(_Ptr, _Count)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, npos, _Al)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, _Count, _Al)) {}
@@ -348,19 +347,24 @@ namespace mse {
 			basic_string(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(xs_ptr->msebasic_string(), _Roff, _Count, _Al)) {}
 
 #ifdef MSE_HAS_CXX17
-			template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t</*_Is_string_view_or_section_ish<_TParam1>::value && */
-				(!mse::impl::_mse_Is_iterator<_TParam1>::value) && (std::is_constructible<_MBS, _TParam1>::value)> MSE_IMPL_EIS >
-			basic_string(const _TParam1& _Right) : m_shptr(std::make_shared<_MBS>()) { assign(_Right); }
+			template<class _StringViewIsh>
+			using _is_string_view_or_section_ish = typename mse::us::impl::gnii_basic_string<_Ty>::template _is_string_view_or_section_ish<_StringViewIsh>;
+			template<class _StringViewIsh>
+			using _Is_string_view_or_section_ish = std::enable_if_t<_is_string_view_or_section_ish<_StringViewIsh>::value>;
 
-			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
+			template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t<(_is_string_view_or_section_ish<_TParam1>::value
+				|| mse::impl::IsNativeArray_msemsearray<_TParam1>::value) || std::is_same<const _Ty*, _TParam1>::value || std::is_same<_Ty*, _TParam1>::value > MSE_IMPL_EIS >
+			basic_string(const _TParam1& _Right) : m_shptr(std::make_shared<_MBS>()) { assign(_MBS{ _Right }); }
+
+			template<class _TParam1, class = _Is_string_view_or_section_ish<_TParam1> >
 			basic_string(const _TParam1& _Right, const size_type _Roff, const size_type _Count, const _A& _Al = _A())
 				: m_shptr(std::make_shared<_MBS>(_Al)) {
 				assign(_Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			/* construct from mse::string_view and "string sections". */
+			basic_string(const _Ty* const _Ptr) : m_shptr(std::make_shared<_MBS>(_Ptr)) {}
 			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
-			explicit basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) {}
+			explicit basic_string(const _TStringSection& _X) : m_shptr(std::make_shared<_MBS>(_X)) { /*m_debug_size = size();*/ }
 #endif /* MSE_HAS_CXX17 */
 
 			MSE_IMPL_DESTRUCTOR_PREFIX1 ~basic_string() {

@@ -3938,8 +3938,8 @@ namespace mse {
 					//, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS
 					, class = mse::impl::_mse_RequireInputIter<_Iter> >
 					//gnii_basic_string(const _Iter& _First, const _Iter& _Last, const typename std_basic_string::_Alloc& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
-					gnii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
-				gnii_basic_string(const _Ty* const _Ptr) : base_class(_Ptr) { /*m_debug_size = size();*/ }
+				gnii_basic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al) { /*m_debug_size = size();*/ }
+
 				gnii_basic_string(const _Ty* const _Ptr, const size_t _Count) : base_class(_Ptr, mse::msev_as_a_size_t(_Count)) { /*m_debug_size = size();*/ }
 				gnii_basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : base_class(_X.contained_basic_string(), _Roff, npos, _Al) { /*m_debug_size = size();*/ }
 				gnii_basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(_X.contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
@@ -3949,8 +3949,37 @@ namespace mse {
 				gnii_basic_string(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(xs_ptr->contained_basic_string(), _Roff, _Count, _Al) { /*m_debug_size = size();*/ }
 
 		#ifdef MSE_HAS_CXX17
-				template<class _TParam1, class = _Is_string_view_or_section_ish<_TParam1> >
-				gnii_basic_string(const _TParam1& _Right) { assign(_Right); }
+				private:
+					template<class _TParam1>
+					void construction_helper2(std::false_type, const _TParam1& _Right) {
+						assign(_Right);
+					}
+					/* Initialization with just a raw pointer is technically unsafe. We're holding off on deprecation for the moment due to prevalent string initialization from argv. */
+					/*MSE_DEPRECATED*/ void construction_helper2(std::true_type, const _Ty* const _Ptr) {
+						assign(std_basic_string{ _Ptr });
+					}
+					template<class _TParam1>
+					void construction_helper1(std::false_type, const _TParam1& _Right) {
+						construction_helper2(typename std::integral_constant<bool, std::is_same<const _Ty*, _TParam1>::value || std::is_same<_Ty*, _TParam1>::value>::type{}, _Right);
+					}
+					template<size_t N>
+					void construction_helper1(std::true_type, const _Ty(&arr1)[N]) {
+						bool null_terminator_found = false;
+						for (auto& ch : arr1) {
+							if ('\0' == ch) {
+								null_terminator_found = true;
+								break;
+							}
+						}
+						if (!null_terminator_found) {
+							MSE_THROW(gnii_basic_string_range_error("null terminator not found in initialization character array - gnii_basic_string() - gnii_basic_string"));
+						}
+						assign(std_basic_string{ arr1 });
+					}
+				public:
+				template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t<(_is_string_view_or_section_ish<_TParam1>::value
+					|| mse::impl::IsNativeArray_msemsearray<_TParam1>::value) || std::is_same<const _Ty*, _TParam1>::value || std::is_same<_Ty*, _TParam1>::value > MSE_IMPL_EIS >
+				gnii_basic_string(const _TParam1& _Right) { construction_helper1(typename mse::impl::IsNativeArray_msemsearray<_TParam1>::type{}, _Right); }
 
 				template<class _TParam1, class = _Is_string_view_or_section_ish<_TParam1> >
 				gnii_basic_string(const _TParam1& _Right, const size_type _Roff, const size_type _Count, const _A& _Al = _A())
@@ -3958,6 +3987,7 @@ namespace mse {
 					assign(_Right, _Roff, _Count);
 				}
 		#else /* MSE_HAS_CXX17 */
+				gnii_basic_string(const _Ty* const _Ptr) : base_class(_Ptr) { /*m_debug_size = size();*/ }
 				template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
 				explicit gnii_basic_string(const _TStringSection& _X) : base_class(_X.cbegin(), _X.cend()) { /*m_debug_size = size();*/ }
 		#endif /* MSE_HAS_CXX17 */
@@ -7798,11 +7828,9 @@ namespace mse {
 				, class = mse::impl::_mse_RequireInputIter<_Iter> >
 				//msebasic_string(const _Iter& _First, const _Iter& _Last, const typename base_class::_Alloc& _Al) : base_class(_First, _Last, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
 				msebasic_string(const _Iter& _First, const _Iter& _Last, const _A& _Al) : base_class(_First, _Last, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
-			msebasic_string(const _Ty* const _Ptr) : base_class(_Ptr), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			msebasic_string(const _Ty* const _Ptr, const size_t _Count) : base_class(_Ptr, _Count), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			msebasic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : base_class(_X, _Roff, npos, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			msebasic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(_X, _Roff, _Count, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
-
 
 			msebasic_string(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr) : base_class(*xs_ptr), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			msebasic_string(const mse::TXScopeFixedConstPointer<mse::us::impl::gnii_basic_string<_Ty, _Traits> >& xs_ptr) : base_class(*xs_ptr), m_mmitset(*this) { /*m_debug_size = size();*/ }
@@ -7811,19 +7839,24 @@ namespace mse {
 			msebasic_string(const mse::TXScopeFixedConstPointer<_Myt>& xs_ptr, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : base_class(*xs_ptr, _Roff, _Count, _Al), m_mmitset(*this) { /*m_debug_size = size();*/ }
 
 #ifdef MSE_HAS_CXX17
-			template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t</*_Is_string_view_or_section_ish<_TParam1>::value && */
-				(!mse::impl::_mse_Is_iterator<_TParam1>::value) && (std::is_constructible<base_class, _TParam1>::value)> MSE_IMPL_EIS >
-			msebasic_string(const _TParam1& _Right) : base_class(), m_mmitset(*this) { assign(_Right); }
+			template<class _StringViewIsh>
+			using _is_string_view_or_section_ish = typename mse::us::impl::gnii_basic_string<_Ty>::template _is_string_view_or_section_ish<_StringViewIsh>;
+			template<class _StringViewIsh>
+			using _Is_string_view_or_section_ish = std::enable_if_t<_is_string_view_or_section_ish<_StringViewIsh>::value>;
 
-			template<class _TParam1/*, class = _Is_string_view_or_section_ish<_TParam1>*/>
+			template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t<(_is_string_view_or_section_ish<_TParam1>::value
+				|| mse::impl::IsNativeArray_msemsearray<_TParam1>::value) || std::is_same<const _Ty*, _TParam1>::value || std::is_same<_Ty*, _TParam1>::value > MSE_IMPL_EIS >
+			msebasic_string(const _TParam1& _Right) : base_class(), m_mmitset(*this) { assign(base_class{ _Right }); }
+
+			template<class _TParam1, class = _Is_string_view_or_section_ish<_TParam1> >
 			msebasic_string(const _TParam1& _Right, const size_type _Roff, const size_type _Count, const _A& _Al = _A())
 				: base_class(_Al), m_mmitset(*this) {
 				assign(_Right, _Roff, _Count);
 			}
 #else /* MSE_HAS_CXX17 */
-			/* construct from mse::string_view and "string sections". */
+			msebasic_string(const _Ty* const _Ptr) : base_class(_Ptr), m_mmitset(*this) { /*m_debug_size = size();*/ }
 			template<typename _TStringSection, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_base_of<mse::us::impl::StringSectionTagBase, _TStringSection>::value)> MSE_IMPL_EIS >
-			explicit msebasic_string(const _TStringSection& _X) : base_class(_X), m_mmitset(*this) { /*m_debug_size = size();*/ }
+			explicit msebasic_string(const _TStringSection& _X) : base_class(_X.cbegin(), _X.cend()) { /*m_debug_size = size();*/ }
 #endif /* MSE_HAS_CXX17 */
 
 			_Myt& operator=(const base_class& _X) {
