@@ -86,7 +86,7 @@ namespace mse {
 		/* deduction guides */
 		/* just use the same template parameter that std::function would deduce */
 		template <class _Fx>
-		function(_Fx)->function<typename mse::impl::_std_function_template_param<decltype(std::function(std::declval<_Fx>()))>::type>;
+		function(_Fx)->function<typename mse::impl::_std_function_template_param<decltype(std::function(mse::impl::decl_lval<_Fx>()))>::type>;
 #endif /* MSE_HAS_CXX17 */
 	}
 
@@ -140,7 +140,7 @@ namespace mse {
 	/* deduction guides */
 	/* just use the same template parameter that std::function would deduce */
 	template <class _Fx>
-	xscope_function(_Fx)->xscope_function<typename mse::impl::_std_function_template_param<decltype(std::function(std::declval<_Fx>()))>::type>;
+	xscope_function(_Fx)->xscope_function<typename mse::impl::_std_function_template_param<decltype(std::function(mse::impl::decl_lval<_Fx>()))>::type>;
 #endif /* MSE_HAS_CXX17 */
 #endif // !MSE_FUNCTIONAL_NO_XSCOPE_DEPENDENCE
 }

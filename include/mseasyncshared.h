@@ -750,11 +750,11 @@ namespace mse {
 				}
 				typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
 				/* gcc5 crashes if you uncomment the explicit return type declaration (Nov 2017). */
-				auto& operator*() const/* -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type*/ {
+				auto& operator*() const/* -> typename std::add_lvalue_reference<decltype(*((*mse::impl::decl_lval<m_shptr_t>()).cref()))>::type*/ {
 					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointerBase")); }
 					return (*((*m_shptr).cref()));
 				}
-				auto operator->() const/* -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))*/ {
+				auto operator->() const/* -> decltype(std::addressof(*((*mse::impl::decl_lval<m_shptr_t>()).cref())))*/ {
 					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointerBase")); }
 					return std::addressof(*((*m_shptr).cref()));
 				}
@@ -860,11 +860,11 @@ namespace mse {
 					return bool(m_shptr);
 				}
 				typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-				const auto& operator*() const/* -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type*/ {
+				const auto& operator*() const/* -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*mse::impl::decl_lval<m_shptr_t>()).cref()))>::type>::type*/ {
 					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointerBase")); }
 					return (*((*m_shptr).cref()));
 				}
-				const auto operator->() const/* -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type*/ {
+				const auto operator->() const/* -> typename std::add_const<decltype(std::addressof(*((*mse::impl::decl_lval<m_shptr_t>()).cref())))>::type*/ {
 					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointerBase")); }
 					return std::addressof(*((*m_shptr).cref()));
 				}
@@ -968,11 +968,11 @@ namespace mse {
 					return bool(m_shptr);
 				}
 				typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-				auto& operator*() const/* -> typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type*/ {
+				auto& operator*() const/* -> typename std::add_lvalue_reference<decltype(*((*mse::impl::decl_lval<m_shptr_t>()).cref()))>::type*/ {
 					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointerBase")); }
 					return (*((*m_shptr).cref()));
 				}
-				auto operator->() const/* -> decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))*/ {
+				auto operator->() const/* -> decltype(std::addressof(*((*mse::impl::decl_lval<m_shptr_t>()).cref())))*/ {
 					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadWritePointerBase")); }
 					return std::addressof(*((*m_shptr).cref()));
 				}
@@ -1234,7 +1234,7 @@ namespace mse {
 	class TXScopeAsyncSharedV2XWPReadWriteAccessRequester : public mse::us::impl::TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease>, public mse::us::impl::XScopeTagBase {
 	public:
 		typedef mse::us::impl::TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease> base_class;
-		typedef mse::impl::remove_reference_t<decltype(*std::declval<_TAccessLease>())> target_type;
+		typedef mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TAccessLease>())> target_type;
 		TXScopeAsyncSharedV2XWPReadWriteAccessRequester(const TXScopeAsyncSharedV2XWPReadWriteAccessRequester& src_cref) = default;
 		TXScopeAsyncSharedV2XWPReadWriteAccessRequester(_TAccessLease&& exclusive_write_pointer) : base_class(MSE_FWD(exclusive_write_pointer)) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TXScopeAsyncSharedV2XWPReadWriteAccessRequester() {
@@ -1312,7 +1312,7 @@ namespace mse {
 	class TAsyncSharedV2XWPReadWriteAccessRequester : public mse::us::impl::TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease> {
 	public:
 		typedef mse::us::impl::TAsyncSharedV2XWPReadWriteAccessRequesterBase<_TAccessLease> base_class;
-		typedef mse::impl::remove_reference_t<decltype(*std::declval<_TAccessLease>())> target_type;
+		typedef mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TAccessLease>())> target_type;
 		TAsyncSharedV2XWPReadWriteAccessRequester(const TAsyncSharedV2XWPReadWriteAccessRequester& src_cref) = default;
 		TAsyncSharedV2XWPReadWriteAccessRequester(_TAccessLease&& exclusive_write_pointer) : base_class(MSE_FWD(exclusive_write_pointer)) {}
 		MSE_IMPL_DESTRUCTOR_PREFIX1 ~TAsyncSharedV2XWPReadWriteAccessRequester() {
@@ -1441,11 +1441,11 @@ namespace mse {
 					return bool(m_shptr);
 				}
 				typedef std::shared_ptr<TAsyncSharedXWPAccessLeaseObj<_TAccessLease>> m_shptr_t;
-				const auto& operator*() const/* -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*std::declval<m_shptr_t>()).cref()))>::type>::type*/ {
+				const auto& operator*() const/* -> typename std::add_const<typename std::add_lvalue_reference<decltype(*((*mse::impl::decl_lval<m_shptr_t>()).cref()))>::type>::type*/ {
 					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadOnlyPointerBase")); }
 					return (*((*m_shptr).cref()));
 				}
-				const auto operator->() const/* -> typename std::add_const<decltype(std::addressof(*((*std::declval<m_shptr_t>()).cref())))>::type*/ {
+				const auto operator->() const/* -> typename std::add_const<decltype(std::addressof(*((*mse::impl::decl_lval<m_shptr_t>()).cref())))>::type*/ {
 					assert(is_valid()); //{ MSE_THROW(asyncshared_use_of_invalid_pointer_error("attempt to use invalid pointer - mse::TAsyncSharedV2ReadOnlyPointerBase")); }
 					return std::addressof(*((*m_shptr).cref()));
 				}
@@ -1640,7 +1640,7 @@ namespace mse {
 	class TXScopeAsyncSharedV2XWPReadOnlyAccessRequester : public mse::us::impl::TAsyncSharedV2XWPReadOnlyAccessRequesterBase<_TAccessLease>, public mse::us::impl::XScopeTagBase {
 	public:
 		typedef mse::us::impl::TAsyncSharedV2XWPReadOnlyAccessRequesterBase<_TAccessLease> base_class;
-		typedef mse::impl::remove_reference_t<decltype(*std::declval<_TAccessLease>())> target_type;
+		typedef mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TAccessLease>())> target_type;
 		TXScopeAsyncSharedV2XWPReadOnlyAccessRequester(const TXScopeAsyncSharedV2XWPReadOnlyAccessRequester& src_cref) = default;
 		TXScopeAsyncSharedV2XWPReadOnlyAccessRequester(const TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>& src_cref) : base_class(src_cref) {}
 		TXScopeAsyncSharedV2XWPReadOnlyAccessRequester(_TAccessLease&& exclusive_write_pointer) : base_class(MSE_FWD(exclusive_write_pointer)) {}
@@ -1697,7 +1697,7 @@ namespace mse {
 	class TAsyncSharedV2XWPReadOnlyAccessRequester : public mse::us::impl::TAsyncSharedV2XWPReadOnlyAccessRequesterBase<_TAccessLease>, public mse::us::impl::XScopeTagBase {
 	public:
 		typedef mse::us::impl::TAsyncSharedV2XWPReadOnlyAccessRequesterBase<_TAccessLease> base_class;
-		typedef mse::impl::remove_reference_t<decltype(*std::declval<_TAccessLease>())> target_type;
+		typedef mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TAccessLease>())> target_type;
 		TAsyncSharedV2XWPReadOnlyAccessRequester(const TAsyncSharedV2XWPReadOnlyAccessRequester& src_cref) = default;
 		TAsyncSharedV2XWPReadOnlyAccessRequester(const TAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease>& src_cref) : base_class(src_cref) {}
 		TAsyncSharedV2XWPReadOnlyAccessRequester(_TAccessLease&& exclusive_write_pointer) : base_class(MSE_FWD(exclusive_write_pointer)) {}
@@ -1774,8 +1774,8 @@ namespace mse {
 	class TAsyncSharedV2ReadWriteAccessRequester : public TAsyncSharedV2XWPReadWriteAccessRequester<mse::us::impl::TTaggedUniquePtr<_Ty> > {
 	public:
 		typedef TAsyncSharedV2XWPReadWriteAccessRequester<mse::us::impl::TTaggedUniquePtr<_Ty> > base_class;
-		typedef decltype(std::declval<base_class>().writelock_ptr()) writelock_ptr_t;
-		typedef decltype(std::declval<base_class>().readlock_ptr()) readlock_ptr_t;
+		typedef decltype(mse::impl::decl_lval<base_class>().writelock_ptr()) writelock_ptr_t;
+		typedef decltype(mse::impl::decl_lval<base_class>().readlock_ptr()) readlock_ptr_t;
 
 		TAsyncSharedV2ReadWriteAccessRequester(const TAsyncSharedV2ReadWriteAccessRequester& src_cref) = default;
 
@@ -1831,7 +1831,7 @@ namespace mse {
 		void async_shareable_and_passable_tag() const {}
 
 	private:
-		mse::mstd::optional<TAsyncSharedV2ReadWriteAccessRequester<_Ty>> try_strong_access_requester_helper1(decltype(std::declval<base_class>().try_strong_access_requester())&& base_maybe_ar) const {
+		mse::mstd::optional<TAsyncSharedV2ReadWriteAccessRequester<_Ty>> try_strong_access_requester_helper1(decltype(mse::impl::decl_lval<base_class>().try_strong_access_requester())&& base_maybe_ar) const {
 			if (base_maybe_ar) {
 				return TAsyncSharedV2ReadWriteAccessRequester<_Ty>(MSE_FWD(base_maybe_ar.value()));
 			}
@@ -1851,7 +1851,7 @@ namespace mse {
 	class TAsyncSharedV2ReadOnlyAccessRequester : public TAsyncSharedV2XWPReadOnlyAccessRequester<mse::us::impl::TTaggedUniquePtr<_Ty> > {
 	public:
 		typedef TAsyncSharedV2XWPReadOnlyAccessRequester<mse::us::impl::TTaggedUniquePtr<_Ty> > base_class;
-		typedef decltype(std::declval<base_class>().readlock_ptr()) readlock_ptr_t;
+		typedef decltype(mse::impl::decl_lval<base_class>().readlock_ptr()) readlock_ptr_t;
 
 		TAsyncSharedV2ReadOnlyAccessRequester(const TAsyncSharedV2ReadOnlyAccessRequester& src_cref) = default;
 		TAsyncSharedV2ReadOnlyAccessRequester(const TAsyncSharedV2ReadWriteAccessRequester<_Ty>& src_cref) : base_class(src_cref) {}
@@ -1893,10 +1893,10 @@ namespace mse {
 
 	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	class TXScopeAsyncSharedV2ACOReadWriteAccessRequester
-		: public TXScopeAsyncSharedV2XWPReadWriteAccessRequester<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
+		: public TXScopeAsyncSharedV2XWPReadWriteAccessRequester<decltype(mse::impl::decl_lval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
 	public:
-		typedef TXScopeAsyncSharedV2XWPReadWriteAccessRequester<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
-		typedef decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer()) _TExclusiveWritePointer;
+		typedef TXScopeAsyncSharedV2XWPReadWriteAccessRequester<decltype(mse::impl::decl_lval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
+		typedef decltype(mse::impl::decl_lval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer()) _TExclusiveWritePointer;
 
 		TXScopeAsyncSharedV2ACOReadWriteAccessRequester(const TXScopeAsyncSharedV2ACOReadWriteAccessRequester& src_cref) = default;
 
@@ -2206,7 +2206,7 @@ namespace mse {
 	template <typename _TAccessLease>
 	class TXScopeAsyncSplitterRASectionReadWriteAccessRequester : public mse::us::impl::XScopeTagBase {
 	public:
-		typedef decltype(std::declval<_TAccessLease>()->size()) size_type;
+		typedef decltype(mse::impl::decl_lval<_TAccessLease>()->size()) size_type;
 
 		TXScopeAsyncSplitterRASectionReadWriteAccessRequester(const TXScopeAsyncSplitterRASectionReadWriteAccessRequester& src) = default;
 		TXScopeAsyncSplitterRASectionReadWriteAccessRequester(TXScopeAsyncSplitterRASectionReadWriteAccessRequester&& src) = default;
@@ -2214,7 +2214,7 @@ namespace mse {
 			mse::impl::is_valid_if_exclusive_pointer<_TAccessLease>::no_op();
 		}
 
-		typedef decltype(mse::make_xscope_random_access_section(mse::make_xscope_random_access_iterator(std::declval<mse::TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease> >().writelock_ptr()), std::declval<size_type>())) xscope_rw_ra_section_t;
+		typedef decltype(mse::make_xscope_random_access_section(mse::make_xscope_random_access_iterator(mse::impl::decl_lval<mse::TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease> >().writelock_ptr()), mse::impl::decl_lval<size_type>())) xscope_rw_ra_section_t;
 		xscope_rw_ra_section_t xscope_writelock_ra_section() {
 			return mse::make_xscope_random_access_section(mse::make_xscope_random_access_iterator(m_splitter_ra_section_access_requester.writelock_ptr()), m_count);
 		}
@@ -2241,7 +2241,7 @@ namespace mse {
 			return mse::xscope_optional<xscope_rw_ra_section_t>(mse::make_xscope_random_access_section(mse::make_xscope_random_access_iterator(wl_ptr), m_count));
 		}
 
-		typedef decltype(mse::make_xscope_random_access_const_section(mse::make_xscope_random_access_const_iterator(std::declval<mse::TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease> >().readlock_ptr()), std::declval<size_type>())) xscope_rwc_ra_section_t;
+		typedef decltype(mse::make_xscope_random_access_const_section(mse::make_xscope_random_access_const_iterator(mse::impl::decl_lval<mse::TXScopeAsyncSharedV2XWPReadWriteAccessRequester<_TAccessLease> >().readlock_ptr()), mse::impl::decl_lval<size_type>())) xscope_rwc_ra_section_t;
 		xscope_rwc_ra_section_t xscope_readlock_ra_section() {
 			return mse::make_xscope_random_access_const_section(mse::make_xscope_random_access_const_iterator(m_splitter_ra_section_access_requester.readlock_ptr()), m_count);
 		}
@@ -2329,11 +2329,11 @@ namespace mse {
 	class TAsyncSplitterRASectionReadWriteAccessRequester {
 	public:
 		typedef mse::TAsyncSplitterRandomAccessSection<_TRAIterator> splitter_ra_section_t;
-		typedef decltype(std::declval<splitter_ra_section_t>().size()) size_type;
+		typedef decltype(mse::impl::decl_lval<splitter_ra_section_t>().size()) size_type;
 
 		TAsyncSplitterRASectionReadWriteAccessRequester(const TAsyncSplitterRASectionReadWriteAccessRequester& src_cref) = default;
 
-		typedef TRandomAccessSection<TRAIterator<decltype(std::declval<mse::TAsyncSharedV2ReadWriteAccessRequester<splitter_ra_section_t> >().writelock_ptr())> > rw_ra_section_t;
+		typedef TRandomAccessSection<TRAIterator<decltype(mse::impl::decl_lval<mse::TAsyncSharedV2ReadWriteAccessRequester<splitter_ra_section_t> >().writelock_ptr())> > rw_ra_section_t;
 		rw_ra_section_t writelock_ra_section() {
 			return rw_ra_section_t(TRAIterator<decltype(m_splitter_ra_section_access_requester.writelock_ptr())>(m_splitter_ra_section_access_requester.writelock_ptr(), 0), m_count);
 		}
@@ -2415,14 +2415,14 @@ namespace mse {
 	class TXScopeAsyncRASectionSplitterXWP : public mse::us::impl::XScopeTagBase {
 	public:
 		typedef _TExclusiveWritelockPtr exclusive_writelock_ptr_t;
-		typedef mse::impl::remove_reference_t<decltype(*(std::declval<exclusive_writelock_ptr_t>()))> _TContainer;
-		typedef mse::impl::remove_reference_t<decltype(std::declval<_TContainer>()[0])> element_t;
+		typedef mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<exclusive_writelock_ptr_t>()))> _TContainer;
+		typedef mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TContainer>()[0])> element_t;
 		typedef mse::TRAIterator<mse::us::impl::TPointer<_TContainer> > ra_iterator_t;
-		typedef decltype(mse::us::impl::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
+		typedef decltype(mse::us::impl::make_strong_iterator(mse::impl::decl_lval<ra_iterator_t>(), mse::impl::decl_lval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
 		typedef mse::TXScopeAsyncSplitterRandomAccessSection<strong_ra_iterator_t> xscope_splitter_ra_section_t;
-		typedef decltype(std::declval<xscope_splitter_ra_section_t>().size()) size_type;
+		typedef decltype(mse::impl::decl_lval<xscope_splitter_ra_section_t>().size()) size_type;
 		typedef mse::TXScopeAccessControlledObj<xscope_splitter_ra_section_t> xscope_aco_splitter_ra_section_t;
-		typedef decltype(std::declval<xscope_aco_splitter_ra_section_t>().exclusive_pointer()) aco_exclusive_pointer_t;
+		typedef decltype(mse::impl::decl_lval<xscope_aco_splitter_ra_section_t>().exclusive_pointer()) aco_exclusive_pointer_t;
 		typedef mse::TXScopeAsyncSplitterRASectionReadWriteAccessRequester<aco_exclusive_pointer_t> xscope_ras_ar_t;
 
 		template<typename _TList>
@@ -2499,10 +2499,10 @@ namespace mse {
 	class TAsyncRASectionSplitterXWP {
 	public:
 		typedef _TExclusiveWritelockPtr exclusive_writelock_ptr_t;
-		typedef mse::impl::remove_reference_t<decltype(*(std::declval<exclusive_writelock_ptr_t>()))> _TContainer;
-		typedef mse::impl::remove_reference_t<decltype(std::declval<_TContainer>()[0])> element_t;
+		typedef mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<exclusive_writelock_ptr_t>()))> _TContainer;
+		typedef mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TContainer>()[0])> element_t;
 		typedef mse::TRAIterator<mse::us::impl::TPointer<_TContainer> > ra_iterator_t;
-		typedef decltype(mse::us::impl::make_strong_iterator(std::declval<ra_iterator_t>(), std::declval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
+		typedef decltype(mse::us::impl::make_strong_iterator(mse::impl::decl_lval<ra_iterator_t>(), mse::impl::decl_lval<std::shared_ptr<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > >())) strong_ra_iterator_t;
 		typedef TAsyncSplitterRASectionReadWriteAccessRequester<strong_ra_iterator_t> ras_ar_t;
 
 		template<typename _TList>
@@ -2562,9 +2562,9 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 
 	template <typename _TAccessRequester>
-	class TXScopeAsyncRASectionSplitter : public TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_pointer())> {
+	class TXScopeAsyncRASectionSplitter : public TXScopeAsyncRASectionSplitterXWP<decltype(mse::impl::decl_lval<_TAccessRequester>().exclusive_pointer())> {
 	public:
-		typedef TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_pointer())> base_class;
+		typedef TXScopeAsyncRASectionSplitterXWP<decltype(mse::impl::decl_lval<_TAccessRequester>().exclusive_pointer())> base_class;
 
 		template<typename _TList>
 		TXScopeAsyncRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_pointer(), section_sizes) {}
@@ -2586,9 +2586,9 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 
 	template <typename _TAccessRequester>
-	class TAsyncRASectionSplitter : public TAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_pointer())> {
+	class TAsyncRASectionSplitter : public TAsyncRASectionSplitterXWP<decltype(mse::impl::decl_lval<_TAccessRequester>().exclusive_pointer())> {
 	public:
-		typedef TAsyncRASectionSplitterXWP<decltype(std::declval<_TAccessRequester>().exclusive_pointer())> base_class;
+		typedef TAsyncRASectionSplitterXWP<decltype(mse::impl::decl_lval<_TAccessRequester>().exclusive_pointer())> base_class;
 
 		template<typename _TList>
 		TAsyncRASectionSplitter(_TAccessRequester& ar, const _TList& section_sizes) : base_class(ar.exclusive_pointer(), section_sizes) {}
@@ -2608,9 +2608,9 @@ namespace mse {
 #endif /* MSE_HAS_CXX17 */
 
 	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
-	class TXScopeAsyncACORASectionSplitter : public TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
+	class TXScopeAsyncACORASectionSplitter : public TXScopeAsyncRASectionSplitterXWP<decltype(mse::impl::decl_lval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
 	public:
-		typedef TXScopeAsyncRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
+		typedef TXScopeAsyncRASectionSplitterXWP<decltype(mse::impl::decl_lval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
 		typedef mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
 		typedef mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
 

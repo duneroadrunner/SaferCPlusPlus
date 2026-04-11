@@ -227,10 +227,10 @@ namespace mse {
 		};
 
 		template<class _Ty, class _A = std::allocator<_Ty> >
-		class Tvector_xscope_iterator : public mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeVectorPointer<_Ty, _A>, mse::mstd::ns_vector::xscope_shared_structure_lock_guard<_Ty, _A>/*decltype(mse::make_xscope_shared_structure_lock_guard(std::declval<TXScopeVectorPointer<_Ty, _A> >()))*/> >
+		class Tvector_xscope_iterator : public mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeVectorPointer<_Ty, _A>, mse::mstd::ns_vector::xscope_shared_structure_lock_guard<_Ty, _A>/*decltype(mse::make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<TXScopeVectorPointer<_Ty, _A> >()))*/> >
 			/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 		public:
-			typedef mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeVectorPointer<_Ty, _A>, mse::mstd::ns_vector::xscope_shared_structure_lock_guard<_Ty, _A>/*decltype(mse::make_xscope_shared_structure_lock_guard(std::declval<TXScopeVectorPointer<_Ty, _A> >()))*/> > base_class;
+			typedef mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeVectorPointer<_Ty, _A>, mse::mstd::ns_vector::xscope_shared_structure_lock_guard<_Ty, _A>/*decltype(mse::make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<TXScopeVectorPointer<_Ty, _A> >()))*/> > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tvector_xscope_iterator, base_class);

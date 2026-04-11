@@ -218,7 +218,7 @@ namespace mse {
 				std::is_convertible<TPtr, mse::rsv::TXSLTAPointer<TTarget>>::value || std::is_convertible<TPtr, mse::rsv::TXSLTAConstPointer<TTarget>>::value> {};
 			template<typename TPtr>
 			struct is_convertible_to_nonowning_slta_pointer : is_convertible_to_nonowning_slta_pointer_helper1<TPtr
-				, mse::impl::remove_reference_t<decltype(*std::declval<TPtr>())> > {};
+				, mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<TPtr>())> > {};
 
 			template<typename TPtr, typename TTarget>
 			struct is_convertible_to_nonowning_slta_or_indeterminate_pointer_helper1 : std::integral_constant<bool,
@@ -226,7 +226,7 @@ namespace mse {
 			> {};
 			template<typename TPtr>
 			struct is_convertible_to_nonowning_slta_or_indeterminate_pointer : is_convertible_to_nonowning_slta_or_indeterminate_pointer_helper1
-				<TPtr, mse::impl::remove_reference_t<decltype(*std::declval<TPtr>())> > {};
+				<TPtr, mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<TPtr>())> > {};
 		}
 	}
 

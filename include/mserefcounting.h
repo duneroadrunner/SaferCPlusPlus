@@ -972,7 +972,7 @@ namespace mse {
 		template <typename T, typename = void>
 		struct HasOrInheritsGetMethod_mserefcounting : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsGetMethod_mserefcounting<T, mse::impl::void_t<decltype((std::declval<T>()).get())> > : std::true_type {};
+		struct HasOrInheritsGetMethod_mserefcounting<T, mse::impl::void_t<decltype((mse::impl::decl_lval<T>()).get())> > : std::true_type {};
 	}
 
 #ifdef MSESLTA_H_
@@ -1161,7 +1161,7 @@ namespace mse {
 				return sl_make_xscope_shared_structure_lock_guard_helper1(typename mse::impl::Has_s_make_xscope_shared_structure_lock_guard_MemberFunction<_TLender2>::type{}, src);
 			}
 
-			typedef decltype(sl_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
+			typedef decltype(sl_make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_shared_structure_lock_guard_t;
 			xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
 
 #endif // !defined(NDEBUG)
@@ -1254,7 +1254,7 @@ namespace mse {
 				return sl_make_xscope_exclusive_structure_lock_guard_helper1(typename mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction<_TLender2>::type{}, src);
 			}
 
-			typedef decltype(sl_make_xscope_exclusive_structure_lock_guard(std::declval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
+			typedef decltype(sl_make_xscope_exclusive_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
 			xscope_exclusive_structure_lock_guard_t m_xs_structure_lock_guard;
 
 #endif // !defined(NDEBUG)
@@ -1407,7 +1407,7 @@ namespace mse {
 			auto operator->() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				if (!m_ref_with_target_obj_ptr) { MSE_THROW(refcounting_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTARefCountingPointer")); }
-				typedef TXSLTARefCountingPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, X> TProxyRef;
+				typedef TXSLTARefCountingPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(mse::impl::decl_lval<_Myt>())), _Myt, X> TProxyRef;
 				typedef TXSLTARefCountingPointerElementProxyPtr<TProxyRef, typename TProxyRef::lender_type, typename TProxyRef::element_type> TElementProxyPtr;
 				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*this));
 				//X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());
@@ -2033,7 +2033,7 @@ namespace mse {
 			MSE_CONSTEXPR23 auto operator->() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
 				MSE_IF_DEBUG(assert_access_is_unlocked();)
 				if (!m_uq_ptr) { MSE_THROW(single_owner_null_dereference_error("attempt to dereference null pointer - mse::rsv::TXSLTASingleOwnerPointer")); }
-				typedef TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, X> TProxyRef;
+				typedef TXSLTASingleOwnerPointerElementProxyRef<decltype(mse::rsv::xslta_ptr_to(mse::impl::decl_lval<_Myt>())), _Myt, X> TProxyRef;
 				typedef TXSLTASingleOwnerPointerElementProxyPtr<TProxyRef, typename TProxyRef::lender_type, typename TProxyRef::element_type> TElementProxyPtr;
 				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*this));
 				//X* x_ptr = static_cast<X*>(m_ref_with_target_obj_ptr->target_obj_address());

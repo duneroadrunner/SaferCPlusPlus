@@ -393,12 +393,12 @@ namespace mse {
 		template <typename T, typename = void>
 		struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray<T, mse::impl::void_t<decltype(std::declval<T>().nonrecursive_unlock())> > : std::true_type {};
+		struct HasOrInheritsNonrecursiveUnlockMethod_msemsearray<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>().nonrecursive_unlock())> > : std::true_type {};
 
 		template <typename T, typename = void>
 		struct HasOrInheritsUnlockSharedMethod_msemsearray : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsUnlockSharedMethod_msemsearray<T, mse::impl::void_t<decltype(std::declval<T>().unlock_shared())> > : std::true_type {};
+		struct HasOrInheritsUnlockSharedMethod_msemsearray<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>().unlock_shared())> > : std::true_type {};
 	}
 
 	template<class _Mutex>
@@ -1122,7 +1122,7 @@ namespace mse {
 	namespace impl {
 		template<class _TContainer>
 		using container_element_type = typename mse::impl::remove_reference_t<_TContainer>::value_type;
-		//using container_element_type = mse::impl::remove_reference_t<decltype(*mse::make_xscope_begin_iterator(std::declval<mse::TXScopeFixedPointer<_TContainer> >()))>;
+		//using container_element_type = mse::impl::remove_reference_t<decltype(*mse::make_xscope_begin_iterator(mse::impl::decl_lval<mse::TXScopeFixedPointer<_TContainer> >()))>;
 	}
 }
 
@@ -1269,7 +1269,7 @@ namespace mse {
 				template <class X, class Y>
 				constexpr static bool has_assign(...) { return false; }
 
-				template <class X, class Y, size_t S = sizeof((std::declval<X>() = std::declval<Y>(), true)) >
+				template <class X, class Y, size_t S = sizeof((mse::impl::decl_lval<X>() = mse::impl::decl_lval<Y>(), true)) >
 				// the comma operator is necessary for the cases where operator= returns void
 				constexpr static bool has_assign(bool) { return true; }
 
@@ -1287,7 +1287,7 @@ namespace mse {
 
 				template <class X>
 				struct has_nothrow_move_assign<X, true> {
-					constexpr static bool value = noexcept(std::declval<X&>() = std::declval<X&&>());
+					constexpr static bool value = noexcept(mse::impl::decl_lval<X&>() = mse::impl::decl_lval<X&&>());
 				};
 
 				constexpr static bool value = has_nothrow_move_assign<T, is_assignable<T&, T&&>::value>::value;
@@ -1343,7 +1343,7 @@ namespace mse {
 					template <class X>
 					constexpr static bool has_overload(...) { return false; }
 
-					template <class X, size_t S = sizeof(std::declval<X&>().operator&()) >
+					template <class X, size_t S = sizeof(mse::impl::decl_lval<X&>().operator&()) >
 					constexpr static bool has_overload(bool) { return true; }
 
 					constexpr static bool value = has_overload<T>(true);
@@ -1618,7 +1618,7 @@ namespace mse {
 				}
 
 				// 20.5.4.4, Swap
-				void swap(optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>())))
+				void swap(optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(mse::impl::decl_lval<T&>(), mse::impl::decl_lval<T&>())))
 				{
 					if (initialized() == true && rhs.initialized() == false) { rhs.initialize(std::move(**this)); clear(); }
 					else if (initialized() == false && rhs.initialized() == true) { initialize(std::move(*rhs)); rhs.clear(); }
@@ -2177,7 +2177,7 @@ namespace mse {
 		struct Has_s_make_xscope_shared_structure_lock_guard_MemberFunction_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>().s_make_xscope_shared_structure_lock_guard(*std::declval<U*>()), std::declval<V>().s_make_xscope_shared_structure_lock_guard(*std::declval<V*>()), bool(true));
+			static auto test(U*) -> decltype(mse::impl::decl_lval<U>().s_make_xscope_shared_structure_lock_guard(*mse::impl::decl_lval<U*>()), mse::impl::decl_lval<V>().s_make_xscope_shared_structure_lock_guard(*mse::impl::decl_lval<V*>()), bool(true));
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
 
@@ -2193,7 +2193,7 @@ namespace mse {
 		struct Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<U>().s_make_xscope_exclusive_structure_lock_guard(*std::declval<U*>()), std::declval<V>().s_make_xscope_exclusive_structure_lock_guard(*std::declval<V*>()), bool(true));
+			static auto test(U*) -> decltype(mse::impl::decl_lval<U>().s_make_xscope_exclusive_structure_lock_guard(*mse::impl::decl_lval<U*>()), mse::impl::decl_lval<V>().s_make_xscope_exclusive_structure_lock_guard(*mse::impl::decl_lval<V*>()), bool(true));
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
 
@@ -3290,7 +3290,7 @@ namespace mse {
 		template<class T2 = T, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<T2, T>::value)
 			&& (mse::impl::potentially_does_not_contain_non_owning_scope_reference<T2>::value)
 			&& (mse::impl::is_potentially_not_referenceable_by_scope_pointer<T2>::value)> MSE_IMPL_EIS >
-		void swap(xscope_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
+		void swap(xscope_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(mse::impl::decl_lval<T&>(), mse::impl::decl_lval<T&>()))) {
 			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_addressof_operator<T>();
 			base_class::swap(rhs);
@@ -3452,7 +3452,7 @@ namespace mse {
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_addressof_operator<T>();
 			base_class::reset();
 		}
-		void swap(xscope_mt_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
+		void swap(xscope_mt_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(mse::impl::decl_lval<T&>(), mse::impl::decl_lval<T&>()))) {
 			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_addressof_operator<T>();
 			base_class::swap(rhs);
@@ -3589,7 +3589,7 @@ namespace mse {
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_addressof_operator<T>();
 			base_class::reset();
 		}
-		void swap(xscope_st_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(std::declval<T&>(), std::declval<T&>()))) {
+		void swap(xscope_st_optional<T>& rhs) noexcept(std::is_nothrow_move_constructible<T>::value && noexcept(std::swap(mse::impl::decl_lval<T&>(), mse::impl::decl_lval<T&>()))) {
 			valid_if_T_is_not_marked_as_containing_a_scope_reference<T>();
 			valid_if_T_is_not_marked_as_containing_an_accessible_scope_addressof_operator<T>();
 			base_class::swap(rhs);
@@ -4863,7 +4863,7 @@ namespace mse {
 				template <typename T, typename = void>
 				struct HasUncheckedContainedOptional : std::false_type {};
 				template <typename T>
-				struct HasUncheckedContainedOptional<T, mse::impl::void_t<decltype(std::declval<T>().unchecked_contained_optional())> > : std::true_type {};
+				struct HasUncheckedContainedOptional<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>().unchecked_contained_optional())> > : std::true_type {};
 
 				/*
 				template<class HasUncheckedContainedOptional_t>
@@ -4968,7 +4968,7 @@ namespace mse {
 				struct IsSupportedLenderType_impl
 				{
 					template<class U, class V>
-					static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+					static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<U&>()), mse::impl::decl_lval<V>(), bool(true));
 					template<typename, typename>
 					static auto test(...) -> std::false_type;
 
@@ -4985,7 +4985,7 @@ namespace mse {
 				template<class _TPointerToLender2 = _TPointerToLender, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_strong_ptr<_TPointerToLender>::value> MSE_IMPL_EIS >
 				void valid_if_is_strong_ptr() const {}
 
-				typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
+				typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_shared_structure_lock_guard_t;
 
 				xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
 
@@ -5000,7 +5000,7 @@ namespace mse {
 			template <typename T, typename = void>
 			struct IsTXScopeAccessControlledConstPointer : std::false_type {};
 			template <typename T>
-			struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(std::declval<T>()))> > : std::true_type {};
+			struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 			/* xscope_accessing_fixed_optional_base2<> requires that the lending optional support a specific API
 			for locking the structure of its contents, while mse::us::impl::xscope_accessing_fixed_optional_base
@@ -5135,7 +5135,7 @@ namespace mse {
 		MSE_DEFAULT_OPERATOR_AMPERSAND_DECLARATION;
 
 	private:
-		typedef decltype(_TLender::s_make_xscope_exclusive_structure_lock_guard(std::declval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
+		typedef decltype(_TLender::s_make_xscope_exclusive_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
 
 		xscope_exclusive_structure_lock_guard_t m_xs_structure_lock_guard;
 	};
@@ -5144,7 +5144,7 @@ namespace mse {
 		template <typename T, typename = void>
 		struct SupportsXScopeAccessingFixedOptional : std::false_type {};
 		template <typename T>
-		struct SupportsXScopeAccessingFixedOptional<T, mse::impl::void_t<decltype(mse::make_xscope_accessing_fixed_optional(std::addressof((T const&)std::declval<T>())))> > : std::true_type {};
+		struct SupportsXScopeAccessingFixedOptional<T, mse::impl::void_t<decltype(mse::make_xscope_accessing_fixed_optional(std::addressof((T const&)mse::impl::decl_lval<T>())))> > : std::true_type {};
 
 		/* If the "lending" type is large and supports it, then xscope_borrowing_fixed_optional<> will "lock" the lending object for exclusive
 		access during its "borrow". Otherwise it will instead move the contents from the lending object and return them at the end of the borrow. 
@@ -5178,7 +5178,7 @@ namespace mse {
 		private:
 			xscope_borrowing_fixed_optional_base(const xscope_borrowing_fixed_optional_base&) = delete;
 
-			typedef decltype(_TLender::s_make_xscope_exclusive_structure_lock_guard(std::declval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
+			typedef decltype(_TLender::s_make_xscope_exclusive_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
 
 			xscope_exclusive_structure_lock_guard_t m_xs_structure_lock_guard;
 
@@ -5473,7 +5473,7 @@ namespace mse {
 					template <typename T, typename = void>
 					struct HasUncheckedContainedOptional : std::false_type {};
 					template <typename T>
-					struct HasUncheckedContainedOptional<T, mse::impl::void_t<decltype(std::declval<T>().unchecked_contained_optional())> > : std::true_type {};
+					struct HasUncheckedContainedOptional<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>().unchecked_contained_optional())> > : std::true_type {};
 
 					/*
 					template<class HasUncheckedContainedOptional_t>
@@ -5584,7 +5584,7 @@ namespace mse {
 					struct IsSupportedLenderType_impl
 					{
 						template<class U, class V>
-						static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+						static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<U&>()), mse::impl::decl_lval<V>(), bool(true));
 						template<typename, typename>
 						static auto test(...) -> std::false_type;
 
@@ -5601,7 +5601,7 @@ namespace mse {
 					template<class _TPointerToLender2 = _TPointerToLender, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_strong_ptr<_TPointerToLender>::value> MSE_IMPL_EIS >
 					void valid_if_is_strong_ptr() const {}
 
-					typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
+					typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_shared_structure_lock_guard_t;
 
 					xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
 
@@ -5618,7 +5618,7 @@ namespace mse {
 				template <typename T, typename = void>
 				struct IsTXScopeAccessControlledConstPointer : std::false_type {};
 				template <typename T>
-				struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(std::declval<T>()))> > : std::true_type {};
+				struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 				/* xslta_accessing_fixed_optional_base2<> requires that the lending optional support a specific API
 				for locking the structure of its contents, while mse::rsv::us::impl::xslta_accessing_fixed_optional_base
@@ -5796,7 +5796,7 @@ namespace mse {
 			MSE_INHERIT_XSCOPE_ASYNC_SHAREABILITY_OF(base_class);
 
 		private:
-			typedef decltype(_TLender::s_make_xscope_exclusive_structure_lock_guard(std::declval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
+			typedef decltype(_TLender::s_make_xscope_exclusive_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
 
 			xscope_exclusive_structure_lock_guard_t m_xs_structure_lock_guard;
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Ty, alias_11$)")
@@ -5808,7 +5808,7 @@ namespace mse {
 			template <typename T, typename = void>
 			struct SupportsXSLTAAccessingFixedOptional : std::false_type {};
 			template <typename T>
-			struct SupportsXSLTAAccessingFixedOptional<T, mse::impl::void_t<decltype(mse::rsv::make_xslta_accessing_fixed_optional(std::addressof((T const&)std::declval<T>())))> > : std::true_type {};
+			struct SupportsXSLTAAccessingFixedOptional<T, mse::impl::void_t<decltype(mse::rsv::make_xslta_accessing_fixed_optional(std::addressof((T const&)mse::impl::decl_lval<T>())))> > : std::true_type {};
 
 			/* If the "lending" type is large and supports it, then xslta_borrowing_fixed_optional<> will "lock" the lending object for exclusive
 			access during its "borrow". Otherwise it will instead move the contents from the lending object and return them at the end of the borrow. */
@@ -5842,7 +5842,7 @@ namespace mse {
 			private:
 				xslta_borrowing_fixed_optional_base(const xslta_borrowing_fixed_optional_base&) = delete;
 
-				typedef decltype(_TLender::s_make_xscope_exclusive_structure_lock_guard(std::declval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
+				typedef decltype(_TLender::s_make_xscope_exclusive_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
 
 				xscope_exclusive_structure_lock_guard_t m_xs_structure_lock_guard;
 
@@ -6044,7 +6044,7 @@ namespace mse {
 			void reset() noexcept {
 				base_class::reset();
 			}
-			void swap(xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])")) noexcept(std::is_nothrow_move_constructible<_Ty>::value && noexcept(std::swap(std::declval<_Ty&>(), std::declval<_Ty&>())))
+			void swap(xslta_optional& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])")) noexcept(std::is_nothrow_move_constructible<_Ty>::value && noexcept(std::swap(mse::impl::decl_lval<_Ty&>(), mse::impl::decl_lval<_Ty&>())))
 				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }")
 			{
 				base_class::swap(rhs);
@@ -6082,14 +6082,14 @@ namespace mse {
 			}
 
 			_NODISCARD constexpr auto operator->()& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
-				typedef TXSLTAOptionalElementProxyRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, _Ty> TProxyRef;
+				typedef TXSLTAOptionalElementProxyRef<decltype(mse::rsv::xslta_ptr_to(mse::impl::decl_lval<_Myt>())), _Myt, _Ty> TProxyRef;
 				typedef TXSLTAOptionalElementProxyPtr<TProxyRef, typename TProxyRef::lender_type, typename TProxyRef::element_type> TElementProxyPtr;
 				return TElementProxyPtr(mse::rsv::xslta_ptr_to(*this));
 				//return std::addressof((*this).value());
 			}
 			_NODISCARD constexpr const _Ty* operator->() && = delete;
 			_NODISCARD constexpr auto operator->() const& MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }") {
-				typedef TXSLTAOptionalElementProxyConstPtr<TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, _Ty>, typename TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, _Ty>::lender_type, typename TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(std::declval<_Myt>())), _Myt, _Ty>::element_type> TElementProxyConstPtr;
+				typedef TXSLTAOptionalElementProxyConstPtr<TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(mse::impl::decl_lval<_Myt>())), _Myt, _Ty>, typename TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(mse::impl::decl_lval<_Myt>())), _Myt, _Ty>::lender_type, typename TXSLTAOptionalElementProxyConstRef<decltype(mse::rsv::xslta_ptr_to(mse::impl::decl_lval<_Myt>())), _Myt, _Ty>::element_type> TElementProxyConstPtr;
 				return TElementProxyConstPtr(mse::rsv::xslta_ptr_to(*this));
 				//return std::addressof((*this).value());
 			}
@@ -6822,7 +6822,7 @@ namespace mse {
 			namespace ns_aco {
 				/* The purpose of the CReadLockedSrcRefHolder class is to obtain (and hold) read
 				access to the source object. Used in the copy constructor. */
-				template<class _Ty, class _TWrappedAccessMutex = decltype(std::declval<_Ty>().m_mutex1)>
+				template<class _Ty, class _TWrappedAccessMutex = decltype(mse::impl::decl_lval<_Ty>().m_mutex1)>
 				class CReadLockedSrcRefHolder : private std::shared_lock<_TWrappedAccessMutex> {
 				public:
 					CReadLockedSrcRefHolder(const _Ty& src) : std::shared_lock<_TWrappedAccessMutex>(src.m_mutex1), m_ptr(&src) {}
@@ -6832,7 +6832,7 @@ namespace mse {
 				};
 				/* The purpose of the CWriteLockedSrc class is to obtain (and hold) write
 				access to a source object about to be moved from. Used in the move constructor. */
-				template<class _Ty, class _TWrappedAccessMutex = decltype(std::declval<_Ty>().m_mutex1)>
+				template<class _Ty, class _TWrappedAccessMutex = decltype(mse::impl::decl_lval<_Ty>().m_mutex1)>
 				class CWriteLockedSrc : private std::unique_lock<_TWrappedAccessMutex> {
 				public:
 					CWriteLockedSrc(_Ty&& src) : std::unique_lock<_TWrappedAccessMutex>(src.m_mutex1), m_ref(MSE_FWD(src)) {}
@@ -8021,8 +8021,8 @@ namespace mse {
 				reference to a type of optional<> that does not support it, such as mse::optional<> or mse::xscope_optional<>. You might
 				consider using another type of optional<>, such as mse::xscope_st_optional<> or mse::xscope_mt_optional<>, that does
 				support it. */
-				typedef mse::impl::remove_reference_t<decltype(mse::make_xscope_optional_structure_lock_guard(std::declval<TPointerToOptional>()))> structure_lock_guard_t;
-				typedef typename mse::impl::remove_reference_t<decltype(*std::declval<structure_lock_guard_t>())>::value_type value_t;
+				typedef mse::impl::remove_reference_t<decltype(mse::make_xscope_optional_structure_lock_guard(mse::impl::decl_lval<TPointerToOptional>()))> structure_lock_guard_t;
+				typedef typename mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<structure_lock_guard_t>())>::value_type value_t;
 			};
 		}
 	}
@@ -8134,7 +8134,7 @@ namespace mse {
 	template<typename TOptionalPointer>
 	class TOptionalElementFixedPointer {
 	public:
-		typedef typename mse::impl::remove_reference_t<decltype(*std::declval<TOptionalPointer>())>::value_type value_t;
+		typedef typename mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<TOptionalPointer>())>::value_type value_t;
 
 		TOptionalElementFixedPointer(const TOptionalElementFixedPointer&) = default;
 		TOptionalElementFixedPointer(TOptionalElementFixedPointer&&) = default;
@@ -8173,7 +8173,7 @@ namespace mse {
 	template<typename TOptionalPointer>
 	class TOptionalElementFixedConstPointer {
 	public:
-		typedef typename mse::impl::remove_reference_t<decltype(*std::declval<TOptionalPointer>())>::value_type value_t;
+		typedef typename mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<TOptionalPointer>())>::value_type value_t;
 
 		TOptionalElementFixedConstPointer(const TOptionalElementFixedConstPointer&) = default;
 		TOptionalElementFixedConstPointer(TOptionalElementFixedConstPointer&&) = default;
@@ -8371,7 +8371,7 @@ namespace mse {
 		template<typename _Tz, typename _TPointer, typename _TTarget>
 		struct target_can_be_referenced_as_helper1 : std::false_type {};
 		template<typename _TPointer, typename _TTarget>
-		struct target_can_be_referenced_as_helper1<std::true_type, _TPointer, _TTarget> : std::is_convertible<mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())>*, _TTarget*> {};
+		struct target_can_be_referenced_as_helper1<std::true_type, _TPointer, _TTarget> : std::is_convertible<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TPointer>())>*, _TTarget*> {};
 
 		template<typename _TPointer, typename _TTarget>
 		struct target_can_be_referenced_as : target_can_be_referenced_as_helper1<typename mse::impl::IsDereferenceable_pb<_TPointer>::type, _TPointer, _TTarget> {};
@@ -8379,12 +8379,12 @@ namespace mse {
 		template<typename _Tz, typename _TPointer, typename _TTarget>
 		struct target_can_be_commonized_referenced_as_helper2 : std::true_type {};
 		template<typename _TPointer, typename _TTarget>
-		struct target_can_be_commonized_referenced_as_helper2<std::false_type, _TPointer, _TTarget> : std::is_convertible<mse::us::impl::base_type_t<mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())> >*, _TTarget*> {};
+		struct target_can_be_commonized_referenced_as_helper2<std::false_type, _TPointer, _TTarget> : std::is_convertible<mse::us::impl::base_type_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TPointer>())> >*, _TTarget*> {};
 
 		template<typename _Tz, typename _TPointer, typename _TTarget>
 		struct target_can_be_commonized_referenced_as_helper1 : std::false_type {};
 		template<typename _TPointer, typename _TTarget>
-		struct target_can_be_commonized_referenced_as_helper1<std::true_type, _TPointer, _TTarget> : target_can_be_commonized_referenced_as_helper2<typename std::is_convertible<mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())>*, _TTarget*>::type, _TPointer, _TTarget> {};
+		struct target_can_be_commonized_referenced_as_helper1<std::true_type, _TPointer, _TTarget> : target_can_be_commonized_referenced_as_helper2<typename std::is_convertible<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TPointer>())>*, _TTarget*>::type, _TPointer, _TTarget> {};
 
 		template<typename _TPointer, typename _TTarget>
 		struct target_can_be_commonized_referenced_as : target_can_be_commonized_referenced_as_helper1<typename mse::impl::IsDereferenceable_pb<_TPointer>::type, _TPointer, _TTarget> {};

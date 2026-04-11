@@ -464,12 +464,12 @@ namespace mse {
 		template <typename T, typename = void>
 		struct HasOrInheritsAssignmentOperator_pb : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsAssignmentOperator_pb<T, mse::impl::void_t<decltype(std::declval<T>() = std::declval<T>())> > : std::true_type {};
+		struct HasOrInheritsAssignmentOperator_pb<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>() = mse::impl::decl_lval<T>())> > : std::true_type {};
 
 		template <typename T, typename = void>
 		struct IsExplicitlyCastableToBool_pb : std::false_type {};
 		template <typename T>
-		struct IsExplicitlyCastableToBool_pb<T, mse::impl::void_t<decltype(bool(std::declval<T>()))> > : std::true_type {};
+		struct IsExplicitlyCastableToBool_pb<T, mse::impl::void_t<decltype(bool(mse::impl::decl_lval<T>()))> > : std::true_type {};
 	}
 
 #define MSE_USING_ASSIGNMENT_OPERATOR(Base) \
@@ -677,7 +677,7 @@ namespace mse {
 	namespace impl {
 		template<typename _TPointer>
 		struct target_type_impl {
-			typedef mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())> type;
+			typedef mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TPointer>())> type;
 		};
 		template<>
 		struct target_type_impl<void*> {
@@ -693,7 +693,7 @@ namespace mse {
 		template <typename T, typename = void>
 		struct IsDereferenceable_pb : std::false_type {};
 		template <typename T>
-		struct IsDereferenceable_pb<T, mse::impl::void_t<decltype(*std::declval<T>())> > : std::true_type {};
+		struct IsDereferenceable_pb<T, mse::impl::void_t<decltype(*mse::impl::decl_lval<T>())> > : std::true_type {};
 
 		template<typename _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(IsDereferenceable_pb<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_dereferenceable() {}
@@ -949,7 +949,7 @@ namespace mse {
 		template<typename _Tz, typename _Ty>
 		struct is_nonfunction_pointer_helper1 : std::false_type {};
 		template<typename _Ty>
-		struct is_nonfunction_pointer_helper1<std::true_type, _Ty> : mse::impl::negation<std::is_function<mse::impl::remove_reference_t<decltype(*std::declval<_Ty>())> > > {};
+		struct is_nonfunction_pointer_helper1<std::true_type, _Ty> : mse::impl::negation<std::is_function<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_Ty>())> > > {};
 
 		template<typename _Ty>
 		struct is_nonfunction_pointer : is_nonfunction_pointer_helper1<typename std::is_pointer<_Ty>::type, _Ty> {};
@@ -1146,7 +1146,7 @@ namespace mse {
 			template <typename T, typename = void>
 			struct HasOrInheritsFunctionCallOperator : std::false_type {};
 			template <typename T>
-			struct HasOrInheritsFunctionCallOperator<T, mse::impl::void_t<decltype((std::declval<T>()).operator())> > : std::true_type {};
+			struct HasOrInheritsFunctionCallOperator<T, mse::impl::void_t<decltype((mse::impl::decl_lval<T>()).operator())> > : std::true_type {};
 
 			template<typename T> struct remove_class { };
 			template<typename C, typename R, typename... A>
@@ -1490,7 +1490,7 @@ namespace mse {
 	}
 	namespace impl {
 		template<typename _Ty>
-		using without_outer_transparent_wrappers_if_any_t = mse::impl::remove_reference_t<decltype(mse::us::impl::ref_without_outer_transparent_wrappers_if_any(std::declval<_Ty>()))>;
+		using without_outer_transparent_wrappers_if_any_t = mse::impl::remove_reference_t<decltype(mse::us::impl::ref_without_outer_transparent_wrappers_if_any(mse::impl::decl_lval<_Ty>()))>;
 	}
 
 	namespace us {
@@ -1998,7 +1998,7 @@ namespace mse {
 			TSyncWeakFixedPointer(_TTargetType& target/* often a struct member */, _TLeasePointerType lease_pointer/* usually a registered pointer */)
 				: m_target_pointer(std::addressof(target)), m_lease_pointer(lease_pointer) {}
 			TSyncWeakFixedPointer& operator=(const TSyncWeakFixedPointer& _Right_cref) = delete;
-			static void dummy_foo(const decltype(*std::declval<_TLeasePointerType>())&) {}
+			static void dummy_foo(const decltype(*mse::impl::decl_lval<_TLeasePointerType>())&) {}
 
 			_TTargetType* m_target_pointer;
 			_TLeasePointerType m_lease_pointer;

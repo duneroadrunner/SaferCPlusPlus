@@ -483,7 +483,7 @@ namespace mse {
 	namespace impl {
 		/* This template type alias is only used because msvc2017(v15.9.0) crashes if the type expression is used directly. */
 		template<class _Ty2, class _TMemberObjectPointer>
-		using make_xscope_atomic_pointer_to_member_v2_return_type1 = TXScopeAtomicItemFixedPointer<mse::impl::remove_reference_t<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())> >;
+		using make_xscope_atomic_pointer_to_member_v2_return_type1 = TXScopeAtomicItemFixedPointer<mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_Ty2>().*mse::impl::decl_lval<_TMemberObjectPointer>())> >;
 	}
 
 	/* While TXScopeAtomicFixedPointer<> points to a TXScopeAtomicObj<>, TXScopeAtomicItemFixedPointer<> is intended to be able to point to a

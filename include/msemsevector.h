@@ -169,7 +169,7 @@ namespace mse {
 		template <typename T, typename = void>
 		struct SupportsPreIncrement_msemsevector : std::false_type {};
 		template <typename T>
-		struct SupportsPreIncrement_msemsevector<T, mse::impl::void_t<decltype(++std::declval<T>())> > : std::true_type {};
+		struct SupportsPreIncrement_msemsevector<T, mse::impl::void_t<decltype(++mse::impl::decl_lval<T>())> > : std::true_type {};
 
 		template<class _Iter>
 		using _mse_Iter_cat_t = typename std::iterator_traits<_Iter>::iterator_category;
@@ -196,7 +196,7 @@ namespace mse {
 
 		template<class _Ty>
 		struct _mse_Is_allocator < _Ty, std::void_t<typename _Ty::value_type,
-			decltype(std::declval<_Ty&>().deallocate(std::declval<_Ty&>().allocate(size_t{ 1 }), size_t{ 1 }))
+			decltype(mse::impl::decl_lval<_Ty&>().deallocate(mse::impl::decl_lval<_Ty&>().allocate(size_t{ 1 }), size_t{ 1 }))
 		> > : std::true_type {};
 
 		template<class _Alloc>
@@ -209,7 +209,7 @@ namespace mse {
 		template <typename T, typename = void>
 		struct HasOrInheritsLessThanOperator_msemsevector : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsLessThanOperator_msemsevector<T, mse::impl::void_t<decltype(std::declval<T>() < std::declval<T>())> > : std::true_type {};
+		struct HasOrInheritsLessThanOperator_msemsevector<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>() < mse::impl::decl_lval<T>())> > : std::true_type {};
 	}
 
 
@@ -321,7 +321,7 @@ namespace mse {
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 				MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSLSStrongRAIterator);
 
-				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> > _TRAContainer;
+				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > _TRAContainer;
 				TXScopeCSSSXSRAIterator<_TRAContainer> xscope_csssxsra_iterator() const & {
 					auto xs_strong_pointer_store = mse::make_xscope_strong_pointer_store((*this).target_container_ptr());
 					return mse::us::unsafe_make_xscope_csss_strong_ra_iterator<mse::TXScopeFixedPointer<_TRAContainer> >(xs_strong_pointer_store.xscope_ptr(), (*this).position());
@@ -380,7 +380,7 @@ namespace mse {
 				MSE_USING_ASSIGNMENT_OPERATOR(base_class);
 				MSE_INHERIT_ITERATOR_ARITHMETIC_OPERATORS_FROM(base_class, TXScopeCSLSStrongRAConstIterator);
 
-				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> > _TRAContainer;
+				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > _TRAContainer;
 				TXScopeCSSSXSRAConstIterator<_TRAContainer> xscope_csssxsra_iterator() const & {
 					auto xs_strong_pointer_store = mse::make_xscope_strong_const_pointer_store((*this).target_container_ptr());
 					return mse::us::unsafe_make_xscope_csss_strong_ra_const_iterator<mse::TXScopeFixedConstPointer<_TRAContainer> >(xs_strong_pointer_store.xscope_ptr(), (*this).position());
@@ -414,9 +414,9 @@ namespace mse {
 		when it's safe to do so. In this case mse::us::impl::TXScopeCSLSStrongRA(Const)Iterator<>s. */
 		template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 		class TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> >
-			: public TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAConstIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> > > > {
+			: public TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAConstIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > {
 		public:
-			typedef TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAConstIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> > > > base_class;
+			typedef TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAConstIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > base_class;
 			typedef mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> iter_t;
 			TXScopeSpecializedFirstAndLast(iter_t first, const iter_t& last) : base_class(first, last), m_first(std::move(first)) {}
 
@@ -433,9 +433,9 @@ namespace mse {
 
 		template <typename _TRAContainerPointer, typename _TStructureLockPointer>
 		class TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> >
-			: public TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> > > > {
+			: public TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > {
 		public:
-			typedef TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> > > > base_class;
+			typedef TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > base_class;
 			typedef mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> iter_t;
 			TXScopeSpecializedFirstAndLast(iter_t first, const iter_t& last) : base_class(first, last), m_first(std::move(first)) {}
 
@@ -530,7 +530,7 @@ namespace mse {
 				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TVectorConstPointer> > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-				typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<decltype(*std::declval<_TVectorConstPointer>())> > _TVector;
+				typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<decltype(*mse::impl::decl_lval<_TVectorConstPointer>())> > _TVector;
 
 				template<class _TVectorConstPointer2 = _TVectorConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TVectorConstPointer2, _TVectorConstPointer>::value) && (std::is_default_constructible<_TVectorConstPointer>::value)> MSE_IMPL_EIS >
 				Tgnii_vector_ss_const_iterator_type() {}
@@ -584,7 +584,7 @@ namespace mse {
 				typedef mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TVectorPointer> > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-				typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<decltype(*std::declval<_TVectorPointer>())> > _TVector;
+				typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<decltype(*mse::impl::decl_lval<_TVectorPointer>())> > _TVector;
 
 				template<class _TVectorPointer2 = _TVectorPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TVectorPointer2, _TVectorPointer>::value) && (std::is_default_constructible<_TVectorPointer>::value)> MSE_IMPL_EIS >
 				Tgnii_vector_ss_iterator_type() {}
@@ -1881,7 +1881,7 @@ namespace mse {
 				};
 				/* The purpose of the CNoopOrReadLockedSrcRefHolder class is to either do essentially nothing (aka "no-op"), or obtain (and
 				hold) a "structure" lock on the source object. Used in the copy constructor. */
-				template<class TNoopIndicator, class _Ty2, class _TWrappedAccessMutex = decltype(std::declval<_Ty2>().m_structure_change_mutex)>
+				template<class TNoopIndicator, class _Ty2, class _TWrappedAccessMutex = decltype(mse::impl::decl_lval<_Ty2>().m_structure_change_mutex)>
 				class CNoopOrReadLockedSrcRefHolder : private noop_or_structure_no_change_guard<TNoopIndicator, _TWrappedAccessMutex> {
 				public:
 					CNoopOrReadLockedSrcRefHolder(const _Ty2& src) : noop_or_structure_no_change_guard<TNoopIndicator, _TWrappedAccessMutex>(src.m_structure_change_mutex), m_ptr(&src) {}
@@ -1891,7 +1891,7 @@ namespace mse {
 				};
 				/* The purpose of the CWriteLockedSrc class is to obtain (and hold) a "structure" lock to a source object about to be
 				moved from. Used in the move constructor. */
-				template<class _Ty2, class _TWrappedAccessMutex = decltype(std::declval<_Ty2>().m_structure_change_mutex)>
+				template<class _Ty2, class _TWrappedAccessMutex = decltype(mse::impl::decl_lval<_Ty2>().m_structure_change_mutex)>
 				class CWriteLockedSrc : private structure_change_guard<_TWrappedAccessMutex> {
 				public:
 					CWriteLockedSrc(_Ty2&& src) : structure_change_guard<_TWrappedAccessMutex>(src.m_structure_change_mutex), m_ref(MSE_FWD(src)) {}
@@ -2132,7 +2132,7 @@ namespace mse {
 		struct HasOrInheritsStatic##function_name##Method_impl \
 		{ \
 			template<class U, class V> \
-			static auto test(U* u) -> decltype(U::function_name(std::declval<_Valty>()...), std::declval<V*>(), bool(true)); \
+			static auto test(U* u) -> decltype(U::function_name(mse::impl::decl_lval<_Valty>()...), mse::impl::decl_lval<V*>(), bool(true)); \
 			template<typename, typename> \
 			static auto test(...)->std::false_type; \
 			using type = typename std::is_same<bool, decltype(test<T, EqualTo>(0))>::type; \
@@ -2557,7 +2557,7 @@ namespace mse {
 		struct HasAllocatorMemberType_vc_impl
 		{
 			template<class U, class V>
-			static auto test(U* u) -> decltype(std::declval<typename U::allocator_type>(), std::declval<V>(), bool(true));
+			static auto test(U* u) -> decltype(mse::impl::decl_lval<typename U::allocator_type>(), mse::impl::decl_lval<V>(), bool(true));
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
 
@@ -3539,7 +3539,7 @@ namespace mse {
 				template <typename T, typename = void>
 				struct HasUncheckedContainedVector : std::false_type {};
 				template <typename T>
-				struct HasUncheckedContainedVector<T, mse::impl::void_t<decltype(std::declval<T>().unchecked_contained_vector())> > : std::true_type {};
+				struct HasUncheckedContainedVector<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>().unchecked_contained_vector())> > : std::true_type {};
 
 				/*
 				template<class HasUncheckedContainedVector_t>
@@ -3613,7 +3613,7 @@ namespace mse {
 				struct IsSupportedLenderType_impl
 				{
 					template<class U, class V>
-					static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+					static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<U&>()), mse::impl::decl_lval<V>(), bool(true));
 					template<typename, typename>
 					static auto test(...) -> std::false_type;
 
@@ -3633,7 +3633,7 @@ namespace mse {
 					"pointer to vector argument. This may be due to the pointer not being recognized as a 'strong' "
 					"pointer.");
 
-				typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
+				typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_shared_structure_lock_guard_t;
 
 				xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
 
@@ -3647,7 +3647,7 @@ namespace mse {
 			template <typename T, typename = void>
 			struct IsTXScopeAccessControlledConstPointer : std::false_type {};
 			template <typename T>
-			struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(std::declval<T>()))> > : std::true_type {};
+			struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 			/* xscope_accessing_fixed_nii_vector_base2<> requires that the lending vector support a specific API
 			for locking the structure of its contents, while mse::us::impl::xscope_accessing_fixed_nii_vector_base
@@ -4503,7 +4503,7 @@ namespace mse {
 				return sl_make_xscope_exclusive_structure_lock_guard_helper1(typename mse::impl::Has_s_make_xscope_exclusive_structure_lock_guard_MemberFunction<_TLender2>::type{}, src);
 			}
 
-			typedef decltype(sl_make_xscope_exclusive_structure_lock_guard(std::declval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
+			typedef decltype(sl_make_xscope_exclusive_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_exclusive_structure_lock_guard_t;
 			xscope_exclusive_structure_lock_guard_t m_xs_structure_lock_guard;
 
 #endif // !defined(NDEBUG)
@@ -4564,10 +4564,10 @@ namespace mse {
 					template <typename T, typename = void>
 					struct HasUncheckedContainedVector : std::false_type {};
 					template <typename T>
-					struct HasUncheckedContainedVector<T, mse::impl::void_t<decltype(std::declval<T>().unchecked_contained_vector())> > : std::true_type {};
+					struct HasUncheckedContainedVector<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>().unchecked_contained_vector())> > : std::true_type {};
 
 					typedef mse::impl::conditional_t<HasUncheckedContainedVector<_TLender>::value
-						, mse::impl::remove_reference_t<decltype(std::declval<_TLender>().unchecked_contained_vector())>
+						, mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TLender>().unchecked_contained_vector())>
 						, _TLender> unchecked_contained_vector_t;
 
 					//typedef typename unchecked_contained_vector_t::allocator_type allocator_type;
@@ -4784,7 +4784,7 @@ namespace mse {
 					struct IsSupportedLenderType_impl
 					{
 						template<class U, class V>
-						static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(std::declval<U&>()), std::declval<V>(), bool(true));
+						static auto test(U* u) -> decltype(U::s_make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<U&>()), mse::impl::decl_lval<V>(), bool(true));
 						template<typename, typename>
 						static auto test(...) -> std::false_type;
 
@@ -4804,7 +4804,7 @@ namespace mse {
 						"pointer to vector argument. This may be due to the pointer not being recognized as a 'strong' "
 						"pointer.");
 
-					typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(std::declval<_TLender&>())) xscope_shared_structure_lock_guard_t;
+					typedef decltype(_TLender::s_make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<_TLender&>())) xscope_shared_structure_lock_guard_t;
 
 					xscope_shared_structure_lock_guard_t m_xs_structure_lock_guard;
 
@@ -4818,7 +4818,7 @@ namespace mse {
 				template <typename T, typename = void>
 				struct IsTXScopeAccessControlledConstPointer : std::false_type {};
 				template <typename T>
-				struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(std::declval<T>()))> > : std::true_type {};
+				struct IsTXScopeAccessControlledConstPointer<T, mse::impl::void_t<decltype(takes_aco_const_pointer(mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 				/* xslta_accessing_fixed_vector_base2<> requires that the lending vector support a specific API 
 				for locking the structure of its contents, while mse::rsv::us::impl::xslta_accessing_fixed_vector_base 
@@ -5238,7 +5238,7 @@ namespace mse {
 				base_class::assign(_N, _X);
 			}
 
-			void swap(xslta_vector& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])")) noexcept(std::is_nothrow_move_constructible<_Ty>::value && noexcept(std::swap(std::declval<_Ty&>(), std::declval<_Ty&>())))
+			void swap(xslta_vector& rhs MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_12$])")) noexcept(std::is_nothrow_move_constructible<_Ty>::value && noexcept(std::swap(mse::impl::decl_lval<_Ty&>(), mse::impl::decl_lval<_Ty&>())))
 				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ set_alias_from_template_parameter_by_name(_Ty, alias_12$); labels(alias_12$); encompasses(alias_11$, alias_12$); encompasses(alias_12$, alias_11$) }")
 			{
 				base_class::swap(rhs);

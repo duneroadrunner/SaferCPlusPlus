@@ -2963,7 +2963,7 @@ namespace mse {
 			struct IsSupportedByAllocateOverloaded_impl
 			{
 				template<class U, class V>
-				static auto test(U* u) -> decltype(allocate_overloaded(*u, 5), std::declval<V>(), bool(true));
+				static auto test(U* u) -> decltype(allocate_overloaded(*u, 5), mse::impl::decl_lval<V>(), bool(true));
 				template<typename, typename>
 				static auto test(...)->std::false_type;
 
@@ -6448,11 +6448,11 @@ namespace mse {
 					auto b3 = (lhnaptr1 == vsr1);
 					auto b4 = (NULL == vsr1);
 					MSE_TRY{
-						auto tint2_regptr = (decltype(&std::declval<mse::TRegisteredObj<int> >()))(vsr1);
-						typedef decltype(&std::declval<mse::TRegisteredObj<int> >())& type1;
+						auto tint2_regptr = (decltype(&mse::impl::decl_lval<mse::TRegisteredObj<int> >()))(vsr1);
+						typedef decltype(&mse::impl::decl_lval<mse::TRegisteredObj<int> >())& type1;
 						auto tint3_regptr = type1(vsr1);
-						auto tint4_regptr = (decltype(&std::declval<mse::TRegisteredObj<int> >())&)(vsr1);
-						auto ctint5_regptr = (decltype(&std::declval<mse::TRegisteredObj<const int> >()))(vsr1);
+						auto tint4_regptr = (decltype(&mse::impl::decl_lval<mse::TRegisteredObj<int> >())&)(vsr1);
+						auto ctint5_regptr = (decltype(&mse::impl::decl_lval<mse::TRegisteredObj<const int> >()))(vsr1);
 					} MSE_CATCH_ANY{
 						int q = 5;
 					}

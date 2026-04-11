@@ -370,7 +370,7 @@ namespace mse {
 					template <typename T, typename = void>
 					struct SupportsStdSwap : std::false_type {};
 					template <typename T>
-					struct SupportsStdSwap<T, mse::impl::void_t<decltype(std::swap(std::declval<T>(), std::declval<T>()))> > : std::true_type {};
+					struct SupportsStdSwap<T, mse::impl::void_t<decltype(std::swap(mse::impl::decl_lval<T>(), mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 					/// Whether the type T must be dynamically allocated or can be stored on the stack.
 					template<typename T>
@@ -590,7 +590,7 @@ namespace mse
 			template<typename _Tz, typename _TTarget, typename _TPointer>
 			struct points_to_helper1 : std::false_type {};
 			template<typename _TTarget, typename _TPointer>
-			struct points_to_helper1<std::true_type, _TTarget, _TPointer> : std::is_convertible<mse::impl::remove_reference_t<decltype(*std::declval<_TPointer>())>*, _TTarget*> {};
+			struct points_to_helper1<std::true_type, _TTarget, _TPointer> : std::is_convertible<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TPointer>())>*, _TTarget*> {};
 
 			template<typename _TTarget, typename _TPointer>
 			struct points_to : points_to_helper1<typename mse::impl::IsDereferenceable_pb<_TPointer>::type, _TTarget, _TPointer> {};
@@ -1017,12 +1017,12 @@ namespace mse
 			template <typename T, typename = void>
 			struct IsSupportedByContainedAny_any : std::false_type {};
 			template <typename T>
-			struct IsSupportedByContainedAny_any<T, mse::impl::void_t<decltype(mse::us::impl::ns_any::contained_any(std::declval<T>()))> > : std::true_type {};
+			struct IsSupportedByContainedAny_any<T, mse::impl::void_t<decltype(mse::us::impl::ns_any::contained_any(mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 			template <typename T, typename = void>
 			struct IsSupportedByMaybeAnyCastPtrHelper1_any : std::false_type {};
 			template <typename T>
-			struct IsSupportedByMaybeAnyCastPtrHelper1_any<T, mse::impl::void_t<decltype(maybe_any_cast_ptr_test1<int>(std::declval<T>()))> > : std::true_type {};
+			struct IsSupportedByMaybeAnyCastPtrHelper1_any<T, mse::impl::void_t<decltype(maybe_any_cast_ptr_test1<int>(mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 			template<class T, class U>
 			struct IsSupportedByMaybeAnyCastPtrHelper2_any : std::false_type {};
@@ -1032,7 +1032,7 @@ namespace mse
 			template<class T, class U>
 			struct IsSupportedByMaybeAnyCastPtrHelper3_any : std::false_type {};
 			template<class T>
-			struct IsSupportedByMaybeAnyCastPtrHelper3_any<T, std::true_type> : IsSupportedByMaybeAnyCastPtrHelper2_any<T, typename IsSupportedByContainedAny_any<mse::impl::remove_reference_t<decltype(*std::declval<T>())> >::type> {};
+			struct IsSupportedByMaybeAnyCastPtrHelper3_any<T, std::true_type> : IsSupportedByMaybeAnyCastPtrHelper2_any<T, typename IsSupportedByContainedAny_any<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<T>())> >::type> {};
 
 			template<class T>
 			struct IsSupportedByMaybeAnyCastPtr_any : IsSupportedByMaybeAnyCastPtrHelper3_any<T, typename mse::impl::IsDereferenceable_pb<T>::type> {};
@@ -2148,7 +2148,7 @@ namespace mse
 		auto& src_ref() { assert(m_src_ptr); return *m_src_ptr; }
 #endif // !MSE_IMPL_MOVE_ENABLED_FOR_BORROWING_FIXED
 
-		typedef decltype(mse::us::impl::ns_any::contained_any(std::declval<_TLender>())) contained_any_t;
+		typedef decltype(mse::us::impl::ns_any::contained_any(mse::impl::decl_lval<_TLender>())) contained_any_t;
 		const contained_any_t& contained_any() const& { return mse::us::impl::ns_any::contained_any(src_ref()); }
 		const contained_any_t& contained_any() const&& { return mse::us::impl::ns_any::contained_any(src_ref()); }
 		contained_any_t& contained_any()& { return mse::us::impl::ns_any::contained_any(src_ref()); }
@@ -2815,8 +2815,8 @@ namespace mse {
 				reference to a type of any<> that does not support it, such as mse::any<> or mse::xscope_any<>. You might
 				consider using another type of any<>, such as mse::xscope_st_any<> or mse::xscope_mt_any<>, that does
 				support it. */
-				typedef mse::impl::remove_reference_t<decltype(mse::make_xscope_any_structure_lock_guard(std::declval<TPointerToAny>()))> structure_lock_guard_t;
-				//typedef typename mse::impl::remove_reference_t<decltype(*std::declval<structure_lock_guard_t>())>::value_type value_t;
+				typedef mse::impl::remove_reference_t<decltype(mse::make_xscope_any_structure_lock_guard(mse::impl::decl_lval<TPointerToAny>()))> structure_lock_guard_t;
+				//typedef typename mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<structure_lock_guard_t>())>::value_type value_t;
 			};
 		}
 	}
@@ -3271,8 +3271,8 @@ namespace mse {
 		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype((std::declval<U>() == std::declval<test_pointer<mse::impl::remove_reference_t<decltype(*std::declval<U>())>, TID> >())
-				, (std::declval<V>() == std::declval<test_pointer<mse::impl::remove_reference_t<decltype(*std::declval<V>())>, TID> >()), bool(true));
+			static auto test(U*) -> decltype((mse::impl::decl_lval<U>() == mse::impl::decl_lval<test_pointer<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<U>())>, TID> >())
+				, (mse::impl::decl_lval<V>() == mse::impl::decl_lval<test_pointer<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<V>())>, TID> >()), bool(true));
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
 
@@ -3306,9 +3306,9 @@ namespace mse {
 		template <typename T, class TID = void, typename = void>
 		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any : std::false_type {};
 		template <typename T, class TID>
-		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<T, TID, mse::impl::void_t<decltype((std::declval<T>() == std::declval<test_pointer<mse::impl::remove_reference_t<decltype(*std::declval<T>())>, TID> >()))> > : std::true_type {};
+		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<T, TID, mse::impl::void_t<decltype((mse::impl::decl_lval<T>() == mse::impl::decl_lval<test_pointer<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<T>())>, TID> >()))> > : std::true_type {};
 		template <typename T>
-		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<T, void, mse::impl::void_t<decltype((std::declval<T>() == std::declval<test_pointer<mse::impl::remove_reference_t<decltype(*std::declval<T>())>, void> >()))> > : std::true_type {};
+		struct SeemsToSupportEqualityComparisonWithArbitraryPointerTypes_any<T, void, mse::impl::void_t<decltype((mse::impl::decl_lval<T>() == mse::impl::decl_lval<test_pointer<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<T>())>, void> >()))> > : std::true_type {};
 #endif // 1
 
 	}

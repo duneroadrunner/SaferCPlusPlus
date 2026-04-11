@@ -492,7 +492,7 @@ namespace mse {
 		namespace ns_tuple {
 			template<size_t Index, typename TPointerToTuple>
 			struct ByIndexTypeInfoFromPointerToTuple1 {
-				typedef mse::impl::remove_reference_t<decltype(std::get<Index>(*std::declval<TPointerToTuple>()))> value_t;
+				typedef mse::impl::remove_reference_t<decltype(std::get<Index>(*mse::impl::decl_lval<TPointerToTuple>()))> value_t;
 			};
 		}
 	}
@@ -690,7 +690,7 @@ namespace mse {
 		namespace ns_tuple {
 			template<class TIndex, typename TPointerToTuple>
 			struct TypeInfoFromPointerToTuple1 {
-				typedef mse::impl::remove_reference_t<decltype(std::get<TIndex>(*std::declval<TPointerToTuple>()))> value_t;
+				typedef mse::impl::remove_reference_t<decltype(std::get<TIndex>(*mse::impl::decl_lval<TPointerToTuple>()))> value_t;
 			};
 		}
 	}

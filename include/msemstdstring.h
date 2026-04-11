@@ -243,10 +243,10 @@ namespace mse {
 		};
 
 		template<class _Ty, class _Traits = std::char_traits<_Ty>, class _A = std::allocator<_Ty> >
-		class Tbasic_string_xscope_iterator : public mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>/*decltype(mse::make_xscope_shared_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A> >()))*/> >
+		class Tbasic_string_xscope_iterator : public mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>/*decltype(mse::make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<TXScopeBasicStringPointer<_Ty, _Traits, _A> >()))*/> >
 			/*, public mse::us::impl::XScopeContainsNonOwningScopeReferenceTagBase, public mse::us::impl::AsyncNotShareableAndNotPassableTagBase*/ {
 		public:
-			typedef mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>/*decltype(mse::make_xscope_shared_structure_lock_guard(std::declval<TXScopeBasicStringPointer<_Ty, _Traits, _A> >()))*/> > base_class;
+			typedef mse::TFriendlyAugmentedRAIterator<mse::us::impl::TXScopeCSLSStrongRAIterator<TXScopeBasicStringPointer<_Ty, _Traits, _A>, mse::mstd::ns_basic_string::xscope_shared_structure_lock_guard<_Ty, _Traits, _A>/*decltype(mse::make_xscope_shared_structure_lock_guard(mse::impl::decl_lval<TXScopeBasicStringPointer<_Ty, _Traits, _A> >()))*/> > base_class;
 			MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
 			MSE_USING_AND_DEFAULT_COPY_AND_MOVE_CONSTRUCTOR_DECLARATIONS(Tbasic_string_xscope_iterator, base_class);
@@ -325,7 +325,7 @@ namespace mse {
 			basic_string(const _Myt& _X, const size_type _Roff, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, npos, _Al)) {}
 			basic_string(const _Myt& _X, const size_type _Roff, const size_type _Count, const _A& _Al = _A()) : m_shptr(std::make_shared<_MBS>(_X.msebasic_string(), _Roff, _Count, _Al)) {}
 
-			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
+			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value && (!std::is_pointer<_Iter>::value)> MSE_IMPL_EIS >
 			basic_string(_Iter iter_of_null_terminated) : basic_string(string_from_iter_of_null_terminated(iter_of_null_terminated)) {}
 			template<class _Iter, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::_mse_Is_iterator<_Iter>::value> MSE_IMPL_EIS >
 			static auto string_from_iter_of_null_terminated(_Iter iter_of_null_terminated) {

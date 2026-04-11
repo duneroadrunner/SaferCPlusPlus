@@ -110,39 +110,39 @@ namespace mse {
 	template <typename _TRASection, typename _TRAConstSection, class _Traits = std::char_traits<typename _TRASection::value_type> >
 	class TStringSectionBase;
 
-	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	class TXScopeStringSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	class TXScopeStringConstSection;
-	//template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	//template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	//class TXScopeCagedStringSectionToRValue;
-	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	class TXScopeCagedStringConstSectionToRValue;
-	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	class TStringSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	class TStringConstSection;
 	namespace rsv {
-		//template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+		//template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 		//class TXScopeStringSectionFParam;
-		template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+		template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 		class TXScopeStringConstSectionFParam;
 	}
 
 	/* "NRP" string sections are just versions of the regular string sections that don't support raw pointers or
 	std::basic_string_view<> iterators (for extra safety). */
-	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	class TXScopeNRPStringSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	class TXScopeNRPStringConstSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	class TXScopeCagedNRPStringConstSectionToRValue;
-	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	class TNRPStringSection;
-	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+	template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 	class TNRPStringConstSection;
 	namespace rsv {
-		template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(std::declval<_TRAIterator>()))> > > >
+		template <typename _TRAIterator, class _Traits = std::char_traits<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_TRAIterator>()))> > > >
 		class TXScopeNRPStringConstSectionFParam;
 	}
 
@@ -214,7 +214,7 @@ namespace mse {
 #define _VSTD std
 #define z_throw_out_of_range(x) MSE_THROW(x)
 
-			typedef decltype(std::declval<int*>() - std::declval<int*>()) ptrdiff_t;
+			typedef decltype(mse::impl::decl_lval<int*>() - mse::impl::decl_lval<int*>()) ptrdiff_t;
 
 			// z_str_find
 			template<class _CharT, class _SizeT, class _Traits, _SizeT z_npos>
@@ -1169,7 +1169,7 @@ namespace mse {
 
 	namespace impl {
 		namespace ra_section {
-			template <typename _Ty> using mkxsscsh1_TRAIterator = mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<char *>::s_xscope_iter_from_lone_param(std::declval<mse::TXScopeFixedConstPointer<_Ty> >()))>;
+			template <typename _Ty> using mkxsscsh1_TRAIterator = mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<char *>::s_xscope_iter_from_lone_param(mse::impl::decl_lval<mse::TXScopeFixedConstPointer<_Ty> >()))>;
 			template <typename _Ty> using mkxsscsh1_ReturnType = mse::TXScopeCagedStringConstSectionToRValue<mkxsscsh1_TRAIterator<_Ty> >;
 
 			template <typename _Ty> auto make_xscope_string_const_section_helper1(std::true_type, const TXScopeCagedItemFixedConstPointerToRValue<_Ty>& param)
@@ -1915,7 +1915,7 @@ namespace mse {
 	auto make_string_const_section(const _TRAIterator& start_iter, typename TStringConstSection<_TRAIterator>::size_type count) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TStringConstSection<_TRAIterator>(start_iter, count);
 	}
-	template <typename _TRALoneParam, typename _TRAIterator = mse::impl::remove_reference_t<decltype(mse::impl::ra_const_section_helpers::s_iter_from_lone_param(std::declval< _TRALoneParam>()))> >
+	template <typename _TRALoneParam, typename _TRAIterator = mse::impl::remove_reference_t<decltype(mse::impl::ra_const_section_helpers::s_iter_from_lone_param(mse::impl::decl_lval< _TRALoneParam>()))> >
 	auto make_string_const_section(const _TRALoneParam& param) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TStringConstSection<_TRAIterator>(param);
 	}
@@ -1966,7 +1966,7 @@ namespace mse {
 	auto make_string_section(const _TRAIterator& start_iter, typename TStringSection<_TRAIterator>::size_type count) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TStringSection<_TRAIterator>(start_iter, count);
 	}
-	template <typename _TRALoneParam, typename _TRAIterator = mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessSectionBase<char*>::s_iter_from_lone_param(std::declval< _TRALoneParam>()))> >
+	template <typename _TRALoneParam, typename _TRAIterator = mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessSectionBase<char*>::s_iter_from_lone_param(mse::impl::decl_lval< _TRALoneParam>()))> >
 	auto make_string_section(const _TRALoneParam& param) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TStringSection<_TRAIterator>(param);
 	}
@@ -1978,28 +1978,28 @@ namespace mse {
 		->TStringSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TStringSection(_TRALoneParam)
-		->TStringSection<typename decltype(make_string_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TStringSection<typename decltype(make_string_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 
 	template<class _TRAIterator>
 	TStringConstSection(_TRAIterator, typename TStringConstSection<_TRAIterator>::size_type)
 		->TStringConstSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TStringConstSection(_TRALoneParam)
-		->TStringConstSection<typename decltype(make_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TStringConstSection<typename decltype(make_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 
 	template<class _TRAIterator>
 	TXScopeStringSection(_TRAIterator, typename TXScopeStringSection<_TRAIterator>::size_type)
 		->TXScopeStringSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TXScopeStringSection(_TRALoneParam)
-		->TXScopeStringSection<typename decltype(make_xscope_string_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TXScopeStringSection<typename decltype(make_xscope_string_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 
 	template<class _TRAIterator>
 	TXScopeStringConstSection(_TRAIterator, typename TXScopeStringConstSection<_TRAIterator>::size_type)
 		->TXScopeStringConstSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TXScopeStringConstSection(_TRALoneParam)
-		->TXScopeStringConstSection<typename decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TXScopeStringConstSection<typename decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 #endif /* MSE_HAS_CXX17 */
 
 	//template <typename _TElement, class _Traits = std::char_traits<_TElement> >
@@ -2355,9 +2355,9 @@ namespace mse {
 	TXScopeCagedStringConstSectionToRValue<>). */
 
 	template <typename _TRAIterator>
-	using make_xscope_nrp_string_const_section_helper_type1 = decltype(make_xscope_string_const_section(std::declval<_TRAIterator>(), std::declval<typename TXScopeNRPStringConstSection<_TRAIterator>::size_type>()));
+	using make_xscope_nrp_string_const_section_helper_type1 = decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRAIterator>(), mse::impl::decl_lval<typename TXScopeNRPStringConstSection<_TRAIterator>::size_type>()));
 	template <typename _TRALoneParam>
-	using make_xscope_nrp_string_const_section_helper_type2 = decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()));
+	using make_xscope_nrp_string_const_section_helper_type2 = decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRALoneParam>()));
 
 	template <typename _TRAIterator>
 	auto make_xscope_nrp_string_const_section(const _TRAIterator& start_iter, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type count)
@@ -2381,10 +2381,10 @@ namespace mse {
 	}
 	template <typename _TRALoneParam>
 	auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
-		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), param));
+		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))>::type(), param));
 	template <typename _TRALoneParam>
 	auto make_xscope_nrp_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
-		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), MSE_FWD(param)));
+		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))>::type(), MSE_FWD(param)));
 
 	/* TXScopeCagedStringConstSectionToRValue<> represents a "string const section" that refers to a temporary string object.
 	The "string const section" is inaccessible ("caged") by default because it is, in general, unsafe. Its copyability and 
@@ -2430,10 +2430,10 @@ namespace mse {
 		friend auto impl::ra_section::make_xscope_nrp_string_const_section_helper1(std::true_type, _Ty&& param) -> decltype(make_xscope_string_const_section(MSE_FWD(param)));
 		template <typename _TRALoneParam>
 		friend auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
-			typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), param));
+			typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))>::type(), param));
 		template <typename _TRALoneParam>
 		friend auto make_xscope_nrp_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
-			typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), MSE_FWD(param)));
+			typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))>::type(), MSE_FWD(param)));
 	};
 
 	namespace rsv {
@@ -2743,7 +2743,7 @@ namespace mse {
 
 		template<class _TRAIterator>
 		struct std_basic_string_from_iterator {
-			typedef std::basic_string<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(std::declval<_TRAIterator>()[0])> > > type;
+			typedef std::basic_string<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TRAIterator>()[0])> > > type;
 			typedef typename type::iterator iterator;
 			typedef typename type::const_iterator const_iterator;
 		};
@@ -2761,12 +2761,12 @@ namespace mse {
 
 		template<class _TRAIterator>
 		struct is_not_an_std_basic_string_xscope_iterator_msemsestring : std::integral_constant<bool,
-			(!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
-			&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
-			&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeFixedConstPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
-			&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeObjFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
-			&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeObjFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
-			&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeObjFixedConstPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
+			(!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_iterator(mse::impl::decl_lval<mse::TXScopeFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
+			&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(mse::impl::decl_lval<mse::TXScopeFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
+			&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(mse::impl::decl_lval<mse::TXScopeFixedConstPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
+			&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_iterator(mse::impl::decl_lval<mse::TXScopeObjFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
+			&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(mse::impl::decl_lval<mse::TXScopeObjFixedPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
+			&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(mse::impl::decl_lval<mse::TXScopeObjFixedConstPointer<typename std_basic_string_from_iterator<_TRAIterator>::type> >()))> >::value)
 		> {};
 		/* The following template function will instantiate iff the given iterator is not an xscope iterator of an
 		std::basic_string<>. */
@@ -2776,7 +2776,7 @@ namespace mse {
 		template<class _TRAIterator>
 		struct std_basic_string_view_from_iterator {
 #ifdef MSE_HAS_CXX17
-			typedef std::basic_string_view<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(std::declval<_TRAIterator>()[0])> > > type;
+			typedef std::basic_string_view<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TRAIterator>()[0])> > > type;
 			typedef typename type::iterator iterator;
 			typedef typename type::const_iterator const_iterator;
 #else /* MSE_HAS_CXX17 */
@@ -2798,12 +2798,12 @@ namespace mse {
 
 		template<class _TRAIterator>
 		struct is_not_an_std_basic_string_view_xscope_iterator_msemsestring : std::integral_constant<bool, 
-				(!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
-				&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
-				&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeFixedConstPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
-				//&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_iterator(std::declval<mse::TXScopeObjFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
-				//&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeObjFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
-				//&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(std::declval<mse::TXScopeObjFixedConstPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
+				(!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_iterator(mse::impl::decl_lval<mse::TXScopeFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
+				&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(mse::impl::decl_lval<mse::TXScopeFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
+				&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(mse::impl::decl_lval<mse::TXScopeFixedConstPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
+				//&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_iterator(mse::impl::decl_lval<mse::TXScopeObjFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
+				//&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(mse::impl::decl_lval<mse::TXScopeObjFixedPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
+				//&& (!std::is_same<_TRAIterator, mse::impl::remove_reference_t<decltype(mse::make_xscope_begin_const_iterator(mse::impl::decl_lval<mse::TXScopeObjFixedConstPointer<typename std_basic_string_view_from_iterator<_TRAIterator>::type> >()))> >::value)
 			> {};
 		/* The following template function will instantiate iff the given iterator is not an xscope iterator of an
 		std::basic_string_view<>. */
@@ -2934,7 +2934,7 @@ namespace mse {
 		auto string_section = make_string_section(start_iter, count);
 		return TNRPStringSection<typename decltype(string_section)::iterator_type>(string_section);
 	}
-	template <typename _TRALoneParam, typename _TRAIterator = typename decltype(make_string_section(std::declval<_TRALoneParam>()))::iterator_type>
+	template <typename _TRALoneParam, typename _TRAIterator = typename decltype(make_string_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>
 	auto make_nrp_string_section(const _TRALoneParam& param) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		auto string_section = make_string_section(param);
 		return TNRPStringSection<_TRAIterator>(string_section);
@@ -3050,18 +3050,18 @@ namespace mse {
 	}
 	template <typename _TRALoneParam>
 	auto make_xscope_nrp_string_const_section(const _TRALoneParam& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
-		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), param)) {
+		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))>::type(), param)) {
 
 		return mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase,
-			decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type()
+			decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))>::type()
 			, param);
 	}
 	template <typename _TRALoneParam>
 	auto make_xscope_nrp_string_const_section(_TRALoneParam&& param) -> decltype(mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(
-		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type(), MSE_FWD(param))) {
+		typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase, decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))>::type(), MSE_FWD(param))) {
 
 		return mse::impl::ra_section::make_xscope_nrp_string_const_section_helper1(typename std::is_base_of<mse::us::impl::CagedStringSectionTagBase,
-			decltype(make_xscope_string_const_section(std::declval<_TRALoneParam>()))>::type()
+			decltype(make_xscope_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))>::type()
 			, MSE_FWD(param));
 	}
 
@@ -3139,7 +3139,7 @@ namespace mse {
 	auto make_nrp_string_const_section(const _Ty(&presumed_string_literal)[Tn]) {
 		return TNRPStringConstSection<const _Ty*>(presumed_string_literal);
 	}
-	template <typename _TRALoneParam, typename _TRAIterator = typename decltype(make_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>
+	template <typename _TRALoneParam, typename _TRAIterator = typename decltype(make_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>
 	auto make_nrp_string_const_section(const _TRALoneParam& param) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		auto string_const_section = make_string_const_section(param);
 		return TNRPStringConstSection<_TRAIterator>(string_const_section);
@@ -3152,28 +3152,28 @@ namespace mse {
 		->TNRPStringSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TNRPStringSection(_TRALoneParam)
-		->TNRPStringSection<typename decltype(make_nrp_string_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TNRPStringSection<typename decltype(make_nrp_string_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 
 	template<class _TRAIterator>
 	TNRPStringConstSection(_TRAIterator, typename TNRPStringConstSection<_TRAIterator>::size_type)
 		->TNRPStringConstSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TNRPStringConstSection(_TRALoneParam)
-		->TNRPStringConstSection<typename decltype(make_nrp_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TNRPStringConstSection<typename decltype(make_nrp_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 
 	template<class _TRAIterator>
 	TXScopeNRPStringSection(_TRAIterator, typename TXScopeNRPStringSection<_TRAIterator>::size_type)
 		->TXScopeNRPStringSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TXScopeNRPStringSection(_TRALoneParam)
-		->TXScopeNRPStringSection<typename decltype(make_xscope_nrp_string_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TXScopeNRPStringSection<typename decltype(make_xscope_nrp_string_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 
 	template<class _TRAIterator>
 	TXScopeNRPStringConstSection(_TRAIterator, typename TXScopeNRPStringConstSection<_TRAIterator>::size_type)
 		->TXScopeNRPStringConstSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TXScopeNRPStringConstSection(_TRALoneParam)
-		->TXScopeNRPStringConstSection<typename decltype(make_xscope_nrp_string_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TXScopeNRPStringConstSection<typename decltype(make_xscope_nrp_string_const_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 #endif /* MSE_HAS_CXX17 */
 
 	namespace rsv {
@@ -3496,7 +3496,7 @@ namespace mse {
 				typedef mse::TFriendlyAugmentedRAConstIterator<mse::TRAConstIterator<_TBasicStringConstPointer> > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-				typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<decltype(*std::declval<_TBasicStringConstPointer>())> > _TBasicString;
+				typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<decltype(*mse::impl::decl_lval<_TBasicStringConstPointer>())> > _TBasicString;
 
 				template<class _TBasicStringConstPointer2 = _TBasicStringConstPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TBasicStringConstPointer2, _TBasicStringConstPointer>::value) && (std::is_default_constructible<_TBasicStringConstPointer>::value)> MSE_IMPL_EIS >
 				Tgnii_basic_string_ss_const_iterator_type() {}
@@ -3549,7 +3549,7 @@ namespace mse {
 				typedef mse::TFriendlyAugmentedRAIterator<mse::TRAIterator<_TBasicStringPointer> > base_class;
 				MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 
-				typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<decltype(*std::declval<_TBasicStringPointer>())> > _TBasicString;
+				typedef mse::impl::remove_reference_t<mse::impl::remove_const_t<decltype(*mse::impl::decl_lval<_TBasicStringPointer>())> > _TBasicString;
 
 				template<class _TBasicStringPointer2 = _TBasicStringPointer, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_TBasicStringPointer2, _TBasicStringPointer>::value) && (std::is_default_constructible<_TBasicStringPointer>::value)> MSE_IMPL_EIS >
 				Tgnii_basic_string_ss_iterator_type() {}
@@ -3862,9 +3862,9 @@ namespace mse {
 				struct IsStringViewOrSectionish1 : std::false_type {};
 				template <typename T>
 				struct IsStringViewOrSectionish1<T, mse::impl::void_t<decltype(
-					IsStringViewOrSectionish1_foo1(std::addressof(*std::begin(std::declval<T>())))
-					, IsStringViewOrSectionish1_foo1(std::addressof(*std::end(std::declval<T>())))
-					, IsStringViewOrSectionish1_foo1(std::addressof(std::declval<T>()[0]))
+					IsStringViewOrSectionish1_foo1(std::addressof(*std::begin(mse::impl::decl_lval<T>())))
+					, IsStringViewOrSectionish1_foo1(std::addressof(*std::end(mse::impl::decl_lval<T>())))
+					, IsStringViewOrSectionish1_foo1(std::addressof(mse::impl::decl_lval<T>()[0]))
 					)> > : std::true_type {};
 
 			public:

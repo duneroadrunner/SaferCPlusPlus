@@ -161,7 +161,7 @@ namespace mse {
 			return (*this);
 		}
 
-		typedef mse::impl::remove_reference_t<decltype(*(*std::declval<_MP>()))> target_obj_t;
+		typedef mse::impl::remove_reference_t<decltype(*(*mse::impl::decl_lval<_MP>()))> target_obj_t;
 		target_obj_t& operator*() const {
 			return (*(*contained_pointer()));
 		}
@@ -233,7 +233,7 @@ namespace mse {
 			return (*this);
 		}
 
-		typedef mse::impl::remove_reference_t<decltype(*(*std::declval<_MP>()))> target_obj_t;
+		typedef mse::impl::remove_reference_t<decltype(*(*mse::impl::decl_lval<_MP>()))> target_obj_t;
 		target_obj_t& operator*() const {
 			return (*(*contained_pointer()));
 		}

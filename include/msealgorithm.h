@@ -108,7 +108,7 @@ namespace mse {
 				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
 			{
 				MSE_SUPPRESS_CHECK_IN_XSCOPE {
-					typedef basic_raw_ptr_iterator1_t<mse::impl::remove_reference_t<decltype(*(std::declval<_InIt>()))> > unchecked_iterator_type;
+					typedef basic_raw_ptr_iterator1_t<mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<_InIt>()))> > unchecked_iterator_type;
 					typedef lta_basic_pair_of_same<unchecked_iterator_type> return_type;
 					auto distance = last - first; /* Safe iterators will ensure that both iterators point into the same container. */
 					if (1 <= distance) {
@@ -142,7 +142,7 @@ namespace mse {
 		template <typename T, typename = void>
 		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded : std::false_type {};
 		template <typename T>
-		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded<T, mse::impl::void_t<decltype(make_xscope_specialized_first_and_last_overloaded(std::declval<T>(), std::declval<T>()))> > : std::true_type {};
+		struct IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded<T, mse::impl::void_t<decltype(make_xscope_specialized_first_and_last_overloaded(mse::impl::decl_lval<T>(), mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 		template<class _InIt>
 		auto make_xscope_specialized_first_and_last_helper1(std::true_type, const _InIt& _First, const _InIt& _Last) {
@@ -155,7 +155,7 @@ namespace mse {
 
 		template<class _InIt>
 		using make_xscope_specialized_first_and_last_return_type = decltype(make_xscope_specialized_first_and_last_helper1(
-			typename IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded<_InIt>::type(), std::declval<_InIt>(), std::declval<_InIt>()));
+			typename IsSupportedByMakeXScopeSpecializedFirstAndLastOverloaded<_InIt>::type(), mse::impl::decl_lval<_InIt>(), mse::impl::decl_lval<_InIt>()));
 
 		template<class _InIt, typename _TReturn = make_xscope_specialized_first_and_last_return_type<_InIt> >
 		auto make_xscope_specialized_first_and_last(const _InIt& _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"), const _InIt& _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
@@ -169,19 +169,19 @@ namespace mse {
 		template <typename _InIt, typename = void>
 		struct IsSupportedByMakeXScopeSpecializedFirstAndLast : std::false_type {};
 		template <typename _InIt>
-		struct IsSupportedByMakeXScopeSpecializedFirstAndLast<_InIt, mse::impl::void_t<decltype(make_xscope_specialized_first_and_last(std::declval<_InIt>(), std::declval<_InIt>()))> > : std::true_type {};
+		struct IsSupportedByMakeXScopeSpecializedFirstAndLast<_InIt, mse::impl::void_t<decltype(make_xscope_specialized_first_and_last(mse::impl::decl_lval<_InIt>(), mse::impl::decl_lval<_InIt>()))> > : std::true_type {};
 
 		template<class _InIt>
 		using item_pointer_type_from_iterator = typename std::add_const<mse::impl::remove_reference_t<
-				decltype(make_xscope_specialized_first_and_last(std::declval<_InIt>(), std::declval<_InIt>()).first())
+				decltype(make_xscope_specialized_first_and_last(mse::impl::decl_lval<_InIt>(), mse::impl::decl_lval<_InIt>()).first())
 			> >::type;
 
 
 		template<class _ContainerPointer>
 		class TXScopeRangeIterProvider {
 		public:
-			typedef decltype(mse::make_xscope_begin_iterator(std::declval<_ContainerPointer>())) iter_t;
-			typedef decltype(make_xscope_specialized_first_and_last(std::declval<iter_t>(), std::declval<iter_t>())) specialized_first_and_last_t;
+			typedef decltype(mse::make_xscope_begin_iterator(mse::impl::decl_lval<_ContainerPointer>())) iter_t;
+			typedef decltype(make_xscope_specialized_first_and_last(mse::impl::decl_lval<iter_t>(), mse::impl::decl_lval<iter_t>())) specialized_first_and_last_t;
 
 			TXScopeRangeIterProvider(const _ContainerPointer& _XscpPtr)
 				: m_specialized_first_and_last(mse::make_xscope_begin_iterator(_XscpPtr), mse::make_xscope_end_iterator(_XscpPtr)) {}
@@ -199,13 +199,13 @@ namespace mse {
 		template<class _ContainerPointer>
 		using item_pointer_type_from_container_pointer = item_pointer_type_from_iterator<
 			mse::impl::remove_const_t<mse::impl::remove_reference_t<
-				decltype(make_xscope_range_iter_provider(std::declval<_ContainerPointer>()).begin())
+				decltype(make_xscope_range_iter_provider(mse::impl::decl_lval<_ContainerPointer>()).begin())
 			> > >;
 
 		template <typename T, typename = void>
 		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded : std::false_type {};
 		template <typename T>
-		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<T, mse::impl::void_t<decltype(make_xscope_specialized_range_iter_provider_overloaded(std::declval<T>()))> > : std::true_type {};
+		struct IsSupportedByMakeXScopeSpecializedRangeIterProviderOverloaded<T, mse::impl::void_t<decltype(make_xscope_specialized_range_iter_provider_overloaded(mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 		template<class _ContainerPointer>
 		void make_xscope_range_iter_provider_helper3(std::false_type, const _ContainerPointer&) {
@@ -301,7 +301,7 @@ namespace mse {
 		class xscope_c_range_get_ref_if_ptr {
 		public:
 			typedef item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
-			typedef mse::xscope_optional<decltype(mse::us::unsafe_make_xscope_pointer_to(*std::declval<item_pointer_type>()))> result_type;
+			typedef mse::xscope_optional<decltype(mse::us::unsafe_make_xscope_pointer_to(*mse::impl::decl_lval<item_pointer_type>()))> result_type;
 			result_type result;
 			xscope_c_range_get_ref_if_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
 				: result(eval(_XscpPtr, _Pred, args...)) {}
@@ -324,7 +324,7 @@ namespace mse {
 		class xscope_c_range_get_ref_to_element_known_to_be_present_ptr {
 		public:
 			typedef item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
-			typedef decltype(mse::us::unsafe_make_xscope_pointer_to(*std::declval<item_pointer_type>())) result_type;
+			typedef decltype(mse::us::unsafe_make_xscope_pointer_to(*mse::impl::decl_lval<item_pointer_type>())) result_type;
 			result_type result;
 			xscope_c_range_get_ref_to_element_known_to_be_present_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
 				: result(eval(_XscpPtr, _Pred, args...)) {}
@@ -426,7 +426,7 @@ namespace mse {
 			class xslta_c_range_get_ref_if_ptr {
 			public:
 				//typedef item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
-				typedef mse::rsv::xslta_optional<decltype(mse::rsv::us::unsafe_make_xslta_pointer_to(*std::declval<item_pointer_type>()))> result_type;
+				typedef mse::rsv::xslta_optional<decltype(mse::rsv::us::unsafe_make_xslta_pointer_to(*mse::impl::decl_lval<item_pointer_type>()))> result_type;
 				result_type result;
 				xslta_c_range_get_ref_if_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
 					: result(eval(_XscpPtr, _Pred, args...)) {}
@@ -449,7 +449,7 @@ namespace mse {
 			class xslta_c_range_get_ref_to_element_known_to_be_present_ptr {
 			public:
 				typedef item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
-				typedef decltype(mse::rsv::us::unsafe_make_xslta_pointer_to(*std::declval<item_pointer_type>())) result_type;
+				typedef decltype(mse::rsv::us::unsafe_make_xslta_pointer_to(*mse::impl::decl_lval<item_pointer_type>())) result_type;
 				result_type result;
 				xslta_c_range_get_ref_to_element_known_to_be_present_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
 					: result(eval(_XscpPtr, _Pred, args...)) {}
@@ -645,7 +645,7 @@ namespace mse {
 		template<class _InIt1, class _InIt2>
 		class c_equal {
 		public:
-			typedef decltype(m_equal(std::declval<_InIt1>(), std::declval<_InIt1>(), std::declval<_InIt2>())) result_type;
+			typedef decltype(m_equal(mse::impl::decl_lval<_InIt1>(), mse::impl::decl_lval<_InIt1>(), mse::impl::decl_lval<_InIt2>())) result_type;
 			result_type result;
 			c_equal(const _InIt1& _First1, const _InIt1& _Last1, _InIt2 _First2) : result(m_equal(_First1, _Last1, _First2)) {}
 		};

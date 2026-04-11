@@ -307,22 +307,22 @@ namespace mse {
 		template <typename T, typename = void>
 		struct HasOrInheritsEqualityOperator_msemsearray : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsEqualityOperator_msemsearray<T, mse::impl::void_t<decltype(std::declval<T>() == std::declval<T>())> > : std::true_type {};
+		struct HasOrInheritsEqualityOperator_msemsearray<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>() == mse::impl::decl_lval<T>())> > : std::true_type {};
 
 		template <typename T, typename = void>
 		struct HasOrInheritsTargetContainerPtrMethod_msemsearray : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsTargetContainerPtrMethod_msemsearray<T, mse::impl::void_t<decltype((std::declval<T>()).target_container_ptr())> > : std::true_type {};
+		struct HasOrInheritsTargetContainerPtrMethod_msemsearray<T, mse::impl::void_t<decltype((mse::impl::decl_lval<T>()).target_container_ptr())> > : std::true_type {};
 
 		template <typename T, typename = void>
 		struct HasOrInheritsSizeMethod_msemsearray : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsSizeMethod_msemsearray<T, mse::impl::void_t<decltype((std::declval<T>()).size())> > : std::true_type {};
+		struct HasOrInheritsSizeMethod_msemsearray<T, mse::impl::void_t<decltype((mse::impl::decl_lval<T>()).size())> > : std::true_type {};
 
 		template <typename T, typename = void>
 		struct HasOrInheritsPlusEqualsOperator_msemsearray : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsPlusEqualsOperator_msemsearray<T, mse::impl::void_t<decltype((std::declval<T>()) += 1)> > : std::true_type {};
+		struct HasOrInheritsPlusEqualsOperator_msemsearray<T, mse::impl::void_t<decltype((mse::impl::decl_lval<T>()) += 1)> > : std::true_type {};
 	}
 
 
@@ -407,17 +407,17 @@ namespace mse {
 		template <typename T, typename = void>
 		struct HasOrInheritsSubscriptOperator : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsSubscriptOperator<T, mse::impl::void_t<decltype(std::declval<T>()[0])> > : std::true_type {};
+		struct HasOrInheritsSubscriptOperator<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>()[0])> > : std::true_type {};
 
 		template <typename _TRAIterator>
 		class random_access_const_iterator_base_from_ra_iterator {
 		public:
 			using iterator_category = std::random_access_iterator_tag;
-			using value_type = mse::impl::remove_reference_t<decltype(*std::declval<_TRAIterator>())>;
-			using difference_type = decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>());
+			using value_type = mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAIterator>())>;
+			using difference_type = decltype(mse::impl::decl_lval<_TRAIterator>() - mse::impl::decl_lval<_TRAIterator>());
 			using size_type = typename std::array<int, 0>::size_type;
-			using const_pointer = typename std::add_pointer<typename std::add_const<decltype(*std::declval<_TRAIterator>())>::type>::type;
-			using const_reference = typename std::add_const<decltype(*std::declval<_TRAIterator>())>::type;
+			using const_pointer = typename std::add_pointer<typename std::add_const<decltype(*mse::impl::decl_lval<_TRAIterator>())>::type>::type;
+			using const_reference = typename std::add_const<decltype(*mse::impl::decl_lval<_TRAIterator>())>::type;
 			using pointer = const_pointer;
 			using reference = const_reference;
 		};
@@ -425,11 +425,11 @@ namespace mse {
 		class random_access_iterator_base_from_ra_iterator {
 		public:
 			using iterator_category = std::random_access_iterator_tag;
-			using value_type = mse::impl::remove_reference_t<decltype(*std::declval<_TRAIterator>())>;
-			using difference_type = decltype(std::declval<_TRAIterator>() - std::declval<_TRAIterator>());
+			using value_type = mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAIterator>())>;
+			using difference_type = decltype(mse::impl::decl_lval<_TRAIterator>() - mse::impl::decl_lval<_TRAIterator>());
 			using size_type = typename std::array<int, 0>::size_type;
-			using pointer = typename std::add_pointer<decltype(*std::declval<_TRAIterator>())>::type;
-			using reference = decltype(*std::declval<_TRAIterator>());
+			using pointer = typename std::add_pointer<decltype(*mse::impl::decl_lval<_TRAIterator>())>::type;
+			using reference = decltype(*mse::impl::decl_lval<_TRAIterator>());
 			using const_pointer = const pointer;
 			using const_reference = const reference;
 		};
@@ -438,11 +438,11 @@ namespace mse {
 		class random_access_const_iterator_base_from_ra_container {
 		public:
 			using iterator_category = std::random_access_iterator_tag;
-			using value_type = mse::impl::remove_reference_t<decltype(std::declval<_TRAContainer>()[0])>;
+			using value_type = mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TRAContainer>()[0])>;
 			using difference_type = typename std::array<int, 0>::difference_type;
 			using size_type = typename std::array<int, 0>::size_type;
-			using const_pointer = typename std::add_pointer<typename std::add_const<decltype(std::declval<_TRAContainer>()[0])>::type>::type;
-			using const_reference = typename std::add_const<decltype(std::declval<_TRAContainer>()[0])>::type;
+			using const_pointer = typename std::add_pointer<typename std::add_const<decltype(mse::impl::decl_lval<_TRAContainer>()[0])>::type>::type;
+			using const_reference = typename std::add_const<decltype(mse::impl::decl_lval<_TRAContainer>()[0])>::type;
 			using pointer = const_pointer;
 			using reference = const_reference;
 		};
@@ -450,11 +450,11 @@ namespace mse {
 		class random_access_iterator_base_from_ra_container {
 		public:
 			using iterator_category = std::random_access_iterator_tag;
-			using value_type = mse::impl::remove_reference_t<decltype(std::declval<_TRAContainer>()[0])>;
+			using value_type = mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TRAContainer>()[0])>;
 			using difference_type = typename std::array<int, 0>::difference_type;
 			using size_type = typename std::array<int, 0>::size_type;
-			using pointer = typename std::add_pointer<decltype(std::declval<_TRAContainer>()[0])>::type;
-			using reference = decltype(std::declval<_TRAContainer>()[0]);
+			using pointer = typename std::add_pointer<decltype(mse::impl::decl_lval<_TRAContainer>()[0])>::type;
+			using reference = decltype(mse::impl::decl_lval<_TRAContainer>()[0]);
 			using const_pointer = const pointer;
 			using const_reference = const reference;
 		};
@@ -526,7 +526,7 @@ namespace mse {
 		template <typename T, typename = void>
 		struct IsNullable_msemsearray : std::false_type {};
 		template <typename T>
-		struct IsNullable_msemsearray<T, mse::impl::void_t<decltype(std::declval<T>() == nullptr)> > : std::true_type {};
+		struct IsNullable_msemsearray<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>() == nullptr)> > : std::true_type {};
 
 		template<typename T, size_t n>
 		size_t native_array_size_msemsearray(const T(&)[n]) {
@@ -536,7 +536,7 @@ namespace mse {
 		template <typename T, typename = void>
 		struct IsNativeArray_msemsearray : std::false_type {};
 		template <typename T>
-		struct IsNativeArray_msemsearray<T, mse::impl::void_t<decltype(native_array_size_msemsearray(std::declval<T>()))> > : std::true_type {};
+		struct IsNativeArray_msemsearray<T, mse::impl::void_t<decltype(native_array_size_msemsearray(mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 		template<typename T>
 		struct is_std_array_strict : std::integral_constant<bool, false> {};
@@ -560,24 +560,24 @@ namespace mse {
 		template<class _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(is_lockable_structure_container<_Ty>::value)> MSE_IMPL_EIS >
 		void T_valid_if_is_lockable_structure_container() {}
 
-		template <typename _Tx, typename _Ty> struct is_pointer_to_lockable_structure_container_helper1 : is_lockable_structure_container<mse::impl::remove_reference_t<decltype(*std::declval<_Ty>())> > {};
+		template <typename _Tx, typename _Ty> struct is_pointer_to_lockable_structure_container_helper1 : is_lockable_structure_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_Ty>())> > {};
 		template <typename _Ty> struct is_pointer_to_lockable_structure_container_helper1<std::false_type, _Ty> : std::false_type {};
 		template <typename _Ty> struct is_pointer_to_lockable_structure_container : is_pointer_to_lockable_structure_container_helper1<typename mse::impl::IsDereferenceable_pb<_Ty>::type, _Ty> {};
 
 		template <typename T, typename = void>
 		struct IsSupportedByStdBegin : std::false_type {};
 		template <typename T>
-		struct IsSupportedByStdBegin<T, mse::impl::void_t<decltype(std::begin(std::declval<T>()))> > : std::true_type {};
+		struct IsSupportedByStdBegin<T, mse::impl::void_t<decltype(std::begin(mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 		template <typename _Tx, typename _Ty> struct has_random_access_implicit_iterators_helper2 : std::false_type {};
 		template <typename _Ty> struct has_random_access_implicit_iterators_helper2<std::true_type, _Ty> : std::integral_constant<bool,
-			(std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<decltype(std::begin(std::declval<_Ty>()))>::iterator_category>::value)> {};
+			(std::is_same<std::random_access_iterator_tag, typename std::iterator_traits<decltype(std::begin(mse::impl::decl_lval<_Ty>()))>::iterator_category>::value)> {};
 		template <typename _Ty> struct has_random_access_implicit_iterators : has_random_access_implicit_iterators_helper2<typename IsSupportedByStdBegin<_Ty>::type, _Ty> {};
 
 		template <typename T, typename = void>
 		struct HasOrInheritsDataMemberFunction : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsDataMemberFunction<T, mse::impl::void_t<decltype((std::declval<T>()).data())> > : std::true_type {};
+		struct HasOrInheritsDataMemberFunction<T, mse::impl::void_t<decltype((mse::impl::decl_lval<T>()).data())> > : std::true_type {};
 
 		template <typename _Tx, typename _Ty> struct is_contiguous_sequence_container_helper1 : std::integral_constant<bool,
 			(has_random_access_implicit_iterators<_Ty>::value && HasOrInheritsDataMemberFunction<_Ty>::value)> {};
@@ -794,21 +794,21 @@ namespace mse {
 				template <typename _TRAContainerPointer> class TRAConstIteratorBase;
 
 				template <typename _TRAContainerPointer>
-				class TRAIteratorBase : public mse::impl::random_access_iterator_base_from_ra_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> >
+				class TRAIteratorBase : public mse::impl::random_access_iterator_base_from_ra_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> >
 					, std::conditional<mse::impl::is_strong_ptr<mse::impl::remove_reference_t<_TRAContainerPointer> >::value, mse::us::impl::StrongContainerReferenceHoldingIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::StrongContainerReferenceHoldingIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
-					, std::conditional<mse::impl::is_static_structure_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> >::value, mse::us::impl::StaticStructureIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::StaticStructureIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
-					, std::conditional<mse::impl::is_contiguous_sequence_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> >::value, mse::us::impl::ContiguousSequenceIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::ContiguousSequenceIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
+					, std::conditional<mse::impl::is_static_structure_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> >::value, mse::us::impl::StaticStructureIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::StaticStructureIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
+					, std::conditional<mse::impl::is_contiguous_sequence_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> >::value, mse::us::impl::ContiguousSequenceIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::ContiguousSequenceIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
 					, std::conditional<mse::impl::is_structure_lock_msemsearray<mse::impl::remove_reference_t<_TRAContainerPointer> >::value, mse::us::impl::StructureLockingIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::StructureLockingIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > > ::type
 					/* pointer tags (as iterators can be used as pointers )*/
 					, std::conditional<mse::impl::is_strong_ptr<mse::impl::remove_reference_t<_TRAContainerPointer> >::value
-					&& ((mse::impl::is_static_structure_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> >::value)
+					&& ((mse::impl::is_static_structure_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> >::value)
 						|| (mse::impl::is_structure_lock_msemsearray<mse::impl::remove_reference_t<_TRAContainerPointer> >::value))
 					, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<mse::us::impl::StrongPointerTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
 					, public mse::us::impl::NeverNullTagBase
 					, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ExclusivePointerTagBase, _TRAContainerPointer, TRAIteratorBase<_TRAContainerPointer> >
 				{
 				public:
-					typedef mse::impl::random_access_iterator_base_from_ra_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> > historical_base_class;
+					typedef mse::impl::random_access_iterator_base_from_ra_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > historical_base_class;
 					MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(historical_base_class);
 					typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
 
@@ -836,7 +836,7 @@ namespace mse {
 						template<class U, class V>
 						static auto test(U* u) -> decltype(
 							_TRAContainerPointerRR(ra_container_pointer_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<U>::type(), *u))
-							, std::declval<V>(), bool(true));
+							, mse::impl::decl_lval<V>(), bool(true));
 						template<typename, typename>
 						static auto test(...)->std::false_type;
 
@@ -1105,21 +1105,21 @@ namespace mse {
 		namespace impl {
 			namespace ns_ra_iter {
 				template <typename _TRAContainerPointer>
-				class TRAConstIteratorBase : public mse::impl::random_access_const_iterator_base_from_ra_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> >
+				class TRAConstIteratorBase : public mse::impl::random_access_const_iterator_base_from_ra_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> >
 					, std::conditional<mse::impl::is_strong_ptr<mse::impl::remove_reference_t<_TRAContainerPointer> >::value, mse::us::impl::StrongContainerReferenceHoldingIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::StrongContainerReferenceHoldingIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
-					, std::conditional<mse::impl::is_static_structure_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> >::value, mse::us::impl::StaticStructureIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::StaticStructureIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
-					, std::conditional<mse::impl::is_contiguous_sequence_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> >::value, mse::us::impl::ContiguousSequenceIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::ContiguousSequenceIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
+					, std::conditional<mse::impl::is_static_structure_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> >::value, mse::us::impl::StaticStructureIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::StaticStructureIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
+					, std::conditional<mse::impl::is_contiguous_sequence_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> >::value, mse::us::impl::ContiguousSequenceIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::ContiguousSequenceIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
 					, std::conditional<mse::impl::is_structure_lock_msemsearray<mse::impl::remove_reference_t<_TRAContainerPointer> >::value, mse::us::impl::StructureLockingIteratorTagBase, mse::impl::TPlaceHolder<mse::us::impl::StructureLockingIteratorTagBase, TRAIteratorBase<_TRAContainerPointer> > > ::type
 					/* pointer tags (as iterators can be used as pointers )*/
 					, std::conditional<mse::impl::is_strong_ptr<mse::impl::remove_reference_t<_TRAContainerPointer> >::value
-					&& ((mse::impl::is_static_structure_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> >::value)
+					&& ((mse::impl::is_static_structure_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> >::value)
 						|| (mse::impl::is_structure_lock_msemsearray<mse::impl::remove_reference_t<_TRAContainerPointer> >::value))
 					, mse::us::impl::StrongPointerTagBase, mse::impl::TPlaceHolder<mse::us::impl::StrongPointerTagBase, TRAIteratorBase<_TRAContainerPointer> > >::type
 					, public mse::us::impl::NeverNullTagBase
 					, public mse::impl::first_or_placeholder_if_not_base_of_second<mse::us::impl::ExclusivePointerTagBase, _TRAContainerPointer, TRAIteratorBase<_TRAContainerPointer> >
 				{
 				public:
-					typedef mse::impl::random_access_const_iterator_base_from_ra_container<mse::impl::remove_reference_t<decltype(*std::declval<_TRAContainerPointer>())> > base_class;
+					typedef mse::impl::random_access_const_iterator_base_from_ra_container<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > base_class;
 					MSE_INHERITED_RANDOM_ACCESS_ITERATOR_MEMBER_TYPE_DECLARATIONS(base_class);
 					typedef mse::impl::remove_reference_t<_TRAContainerPointer> _TRAContainerPointerRR;
 
@@ -1147,7 +1147,7 @@ namespace mse {
 						template<class U, class V>
 						static auto test(U* u) -> decltype(
 							_TRAContainerPointerRR(ra_container_pointer_from_lone_param(typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<U>::type(), *u))
-							, std::declval<V>(), bool(true));
+							, mse::impl::decl_lval<V>(), bool(true));
 						template<typename, typename>
 						static auto test(...)->std::false_type;
 
@@ -1824,7 +1824,7 @@ namespace mse {
 		template <typename T, typename = void>
 		struct HasDifferenceTypeMember_msemsearray : std::false_type {};
 		template <typename T>
-		struct HasDifferenceTypeMember_msemsearray<T, mse::impl::void_t<decltype((std::declval<typename T::difference_type>()))> > : std::true_type {};
+		struct HasDifferenceTypeMember_msemsearray<T, mse::impl::void_t<decltype((mse::impl::decl_lval<typename T::difference_type>()))> > : std::true_type {};
 
 		template<bool, class TIter>
 		struct difference_type_of_iterator_helper;
@@ -2041,7 +2041,7 @@ namespace mse {
 		template<class _InIt>
 		class TXScopeRawPointerRAFirstAndLast {
 		public:
-			typedef decltype(us::iterator_pair_to_raw_pointers_checked(std::declval<_InIt>(), std::declval<_InIt>())) raw_pair_t;
+			typedef decltype(us::iterator_pair_to_raw_pointers_checked(mse::impl::decl_lval<_InIt>(), mse::impl::decl_lval<_InIt>())) raw_pair_t;
 			TXScopeRawPointerRAFirstAndLast(const _InIt& _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"), const _InIt& _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
 				: m_raw_pair(us::iterator_pair_to_raw_pointers_checked(_First, _Last)) {}
 			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
@@ -2059,7 +2059,7 @@ namespace mse {
 		template<class _ContainerPointer>
 		class TXScopeRARangeRawPointerIterProvider {
 		public:
-			typedef decltype(std::addressof((*std::declval<_ContainerPointer>())[0])) iter_t;
+			typedef decltype(std::addressof((*mse::impl::decl_lval<_ContainerPointer>())[0])) iter_t;
 			TXScopeRARangeRawPointerIterProvider(const _ContainerPointer& _XscpPtr) : m_begin(std::addressof((*_XscpPtr)[0]))
 				, m_end(std::addressof((*_XscpPtr)[0]) + mse::as_a_size_t((*_XscpPtr).size())) {}
 			const auto& begin() const { return m_begin; }
@@ -2354,7 +2354,7 @@ namespace mse {
 		struct CDummy {};
 		template<typename _Ty2, typename _TRAIterator2>
 		struct container_pointer_type_from_iterator_type {
-			typedef decltype(std::declval<_TRAIterator2>().target_container_ptr()) type;
+			typedef decltype(mse::impl::decl_lval<_TRAIterator2>().target_container_ptr()) type;
 		};
 		template<typename _TRAIterator2>
 		struct container_pointer_type_from_iterator_type<std::false_type, _TRAIterator2> {
@@ -2363,7 +2363,7 @@ namespace mse {
 		template<typename _TRAIterator2>
 		struct container_type_from_iterator_type {
 			typedef typename container_pointer_type_from_iterator_type<typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRAIterator2>::type, _TRAIterator2>::type TRAContainerPointer;
-			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*std::declval<TRAContainerPointer>())> > TRAContainer;
+			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<TRAContainerPointer>())> > TRAContainer;
 			typedef TRAContainer type;
 		};
 
@@ -2518,7 +2518,7 @@ namespace mse {
 		struct CDummy {};
 		template<typename _Ty2, typename _TRAIterator2>
 		struct container_pointer_type_from_iterator_type {
-			typedef decltype(std::declval<_TRAIterator2>().target_container_ptr()) type;
+			typedef decltype(mse::impl::decl_lval<_TRAIterator2>().target_container_ptr()) type;
 		};
 		template<typename _TRAIterator2>
 		struct container_pointer_type_from_iterator_type<std::false_type, _TRAIterator2> {
@@ -2527,7 +2527,7 @@ namespace mse {
 		template<typename _TRAIterator2>
 		struct container_type_from_iterator_type {
 			typedef typename container_pointer_type_from_iterator_type<typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRAIterator2>::type, _TRAIterator2>::type TRAContainerPointer;
-			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*std::declval<TRAContainerPointer>())> > TRAContainer;
+			typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<TRAContainerPointer>())> > TRAContainer;
 			typedef TRAContainer type;
 		};
 
@@ -2838,14 +2838,14 @@ namespace mse {
 	auto make_random_access_const_iterator(const rsv::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef typename rsv::TReturnableFParam<_Ty>::base_class ra_container_pointer_base_class;
 		ra_container_pointer_base_class const * ra_container_pointer_base_pointer = std::addressof(ra_container_pointer);
-		typedef decltype(make_random_access_const_iterator(std::declval<ra_container_pointer_base_class>(), count)) base_return_type;
+		typedef decltype(make_random_access_const_iterator(mse::impl::decl_lval<ra_container_pointer_base_class>(), count)) base_return_type;
 		return rsv::TReturnableFParam<base_return_type>(make_random_access_const_iterator(*ra_container_pointer_base_pointer, count));
 	}
 	template <typename _Ty, typename _TSize = size_t>
 	auto make_random_access_iterator(const rsv::TReturnableFParam<_Ty>& ra_container_pointer, _TSize count = 0) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_Ty)") {
 		typedef typename rsv::TReturnableFParam<_Ty>::base_class ra_container_pointer_base_class;
 		ra_container_pointer_base_class const * ra_container_pointer_base_pointer = std::addressof(ra_container_pointer);
-		typedef decltype(make_random_access_iterator(std::declval<ra_container_pointer_base_class>(), count)) base_return_type;
+		typedef decltype(make_random_access_iterator(mse::impl::decl_lval<ra_container_pointer_base_class>(), count)) base_return_type;
 		return rsv::TReturnableFParam<base_return_type>(make_random_access_iterator(*ra_container_pointer_base_pointer, count));
 	}
 
@@ -3569,8 +3569,8 @@ namespace mse {
 		template<class _Container>
 		class TXScopeRangeRawPointerIterProvider {
 		public:
-			typedef decltype(std::addressof(std::declval<_Container>()[0])) raw_pointer_iter_t;
-			typedef decltype(std::declval<raw_pointer_iter_t>() - std::declval<raw_pointer_iter_t>()) difference_type;
+			typedef decltype(std::addressof(mse::impl::decl_lval<_Container>()[0])) raw_pointer_iter_t;
+			typedef decltype(mse::impl::decl_lval<raw_pointer_iter_t>() - mse::impl::decl_lval<raw_pointer_iter_t>()) difference_type;
 
 			TXScopeRangeRawPointerIterProvider(_Container& container) {
 				const auto size = mse::container_size(container);
@@ -4530,7 +4530,7 @@ namespace mse {
 			struct CDummy {};
 			template<typename _Ty2, typename _TRAIterator2>
 			struct container_pointer_type_from_iterator_type {
-				typedef decltype(std::declval<_TRAIterator2>().target_container_ptr()) type;
+				typedef decltype(mse::impl::decl_lval<_TRAIterator2>().target_container_ptr()) type;
 			};
 			template<typename _TRAIterator2>
 			struct container_pointer_type_from_iterator_type<std::false_type, _TRAIterator2> {
@@ -4539,7 +4539,7 @@ namespace mse {
 			template<typename _TRAIterator2>
 			struct container_type_from_iterator_type {
 				typedef typename container_pointer_type_from_iterator_type<typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRAIterator2>::type, _TRAIterator2>::type TRAContainerPointer;
-				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*std::declval<TRAContainerPointer>())> > TRAContainer;
+				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<TRAContainerPointer>())> > TRAContainer;
 				typedef TRAContainer type;
 			};
 
@@ -4688,7 +4688,7 @@ namespace mse {
 			struct CDummy {};
 			template<typename _Ty2, typename _TRAIterator2>
 			struct container_pointer_type_from_iterator_type {
-				typedef decltype(std::declval<_TRAIterator2>().target_container_ptr()) type;
+				typedef decltype(mse::impl::decl_lval<_TRAIterator2>().target_container_ptr()) type;
 			};
 			template<typename _TRAIterator2>
 			struct container_pointer_type_from_iterator_type<std::false_type, _TRAIterator2> {
@@ -4697,7 +4697,7 @@ namespace mse {
 			template<typename _TRAIterator2>
 			struct container_type_from_iterator_type {
 				typedef typename container_pointer_type_from_iterator_type<typename mse::impl::HasOrInheritsTargetContainerPtrMethod_msemsearray<_TRAIterator2>::type, _TRAIterator2>::type TRAContainerPointer;
-				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*std::declval<TRAContainerPointer>())> > TRAContainer;
+				typedef mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<TRAContainerPointer>())> > TRAContainer;
 				typedef TRAContainer type;
 			};
 
@@ -5986,13 +5986,13 @@ namespace mse {
 		template <typename T, typename = void>
 		struct SupportsStdBegin_msemsearray : std::false_type {};
 		template <typename T>
-		struct SupportsStdBegin_msemsearray<T, mse::impl::void_t<decltype(std::begin(std::declval<T>()))> > : std::true_type {};
+		struct SupportsStdBegin_msemsearray<T, mse::impl::void_t<decltype(std::begin(mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 		template<class T, class EqualTo>
 		struct HasOrInheritsStaticSSBeginMethod_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U* u) -> decltype(U::ss_begin(std::declval<mse::us::impl::TPointer<U> >()), std::declval<V*>(), bool(true));
+			static auto test(U* u) -> decltype(U::ss_begin(mse::impl::decl_lval<mse::us::impl::TPointer<U> >()), mse::impl::decl_lval<V*>(), bool(true));
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
 
@@ -6007,7 +6007,7 @@ namespace mse {
 		struct HasOrInheritsStaticXScopeSSBeginMethod_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U* u) -> decltype(U::xscope_ss_begin(std::declval<mse::TXScopeFixedPointer<U> >()), std::declval<V>(), bool(true));
+			static auto test(U* u) -> decltype(U::xscope_ss_begin(mse::impl::decl_lval<mse::TXScopeFixedPointer<U> >()), mse::impl::decl_lval<V>(), bool(true));
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
 
@@ -6022,7 +6022,7 @@ namespace mse {
 		struct HasOrInheritsXScopeIteratorMemberType_msemsearray_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<typename U::xscope_const_iterator>(), std::declval<typename V::xscope_const_iterator>(), bool(true));
+			static auto test(U*) -> decltype(mse::impl::decl_lval<typename U::xscope_const_iterator>(), mse::impl::decl_lval<typename V::xscope_const_iterator>(), bool(true));
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
 
@@ -6036,7 +6036,7 @@ namespace mse {
 		template <typename T, typename = void>
 		struct HasOrInheritsBeginMethod_msemsearray : std::false_type {};
 		template <typename T>
-		struct HasOrInheritsBeginMethod_msemsearray<T, mse::impl::void_t<decltype((std::declval<T>()).begin())> > : std::true_type {};
+		struct HasOrInheritsBeginMethod_msemsearray<T, mse::impl::void_t<decltype((mse::impl::decl_lval<T>()).begin())> > : std::true_type {};
 
 		namespace iterator {
 			template <typename _TRALoneParam>
@@ -6462,36 +6462,36 @@ namespace mse {
 		}
 	}
 
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_const_iterator(const _TContainerPointer& param) {
 		return mse::impl::iterator::xscope_begin_const_iter_from_lone_param(param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_const_iterator(_TContainerPointer&& param) {
 		return mse::impl::iterator::xscope_begin_const_iter_from_lone_param(MSE_FWD(param));
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_iterator(const _TContainerPointer& param) {
 		return mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_iterator(_TContainerPointer&& param) {
 		return mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(MSE_FWD(param));
 	}
 
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_begin_const_iterator(const _TContainerPointer& param) {
 		return mse::impl::iterator::xscope_begin_const_iter_from_lone_param(param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_begin_const_iterator(_TContainerPointer&& param) {
 		return mse::impl::iterator::xscope_begin_const_iter_from_lone_param(MSE_FWD(param));
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_begin_iterator(const _TContainerPointer& param) {
 		return mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_begin_iterator(_TContainerPointer&& param) {
 		return mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(MSE_FWD(param));
 	}
@@ -6591,19 +6591,19 @@ namespace mse {
 			return mse::impl::make_xscope_end_iterator_helper02(typename mse::impl::IsDereferenceable_pb<_TContainerPointer>::type(), MSE_FWD(param));
 		}
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_end_const_iterator(const _TContainerPointer& param) {
 		return mse::impl::make_xscope_end_const_iterator_helper01(param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_end_const_iterator(_TContainerPointer&& param) {
 		return mse::impl::make_xscope_end_const_iterator_helper01(MSE_FWD(param));
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_lvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_end_iterator(const _TContainerPointer& param) {
 		return mse::impl::make_xscope_end_iterator_from_lvalue_helper01(param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::xscope_begin_iter_from_rvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_xscope_end_iterator(_TContainerPointer&& param) {
 		return mse::impl::make_xscope_end_iterator_from_rvalue_helper01(MSE_FWD(param));
 	}
@@ -6658,36 +6658,36 @@ namespace mse {
 	}
 
 
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_const_iterator(const _TContainerPointer& param) {
 		return mse::impl::iterator::begin_const_iter_from_lone_param(param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_const_iterator(_TContainerPointer&& param) {
 		return mse::impl::iterator::begin_const_iter_from_lone_param(MSE_FWD(param));
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_iterator(const _TContainerPointer& param) {
 		return mse::impl::iterator::begin_iter_from_lone_param(param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_iterator(_TContainerPointer&& param) {
 		return mse::impl::iterator::begin_iter_from_lone_param(MSE_FWD(param));
 	}
 
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_begin_const_iterator(const _TContainerPointer& param) {
 		return mse::impl::iterator::begin_const_iter_from_lone_param(param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_begin_const_iterator(_TContainerPointer&& param) {
 		return mse::impl::iterator::begin_const_iter_from_lone_param(MSE_FWD(param));
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_begin_iterator(const _TContainerPointer& param) {
 		return mse::impl::iterator::begin_iter_from_lone_param(param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_begin_iterator(_TContainerPointer&& param) {
 		return mse::impl::iterator::begin_iter_from_lone_param(MSE_FWD(param));
 	}
@@ -6723,22 +6723,22 @@ namespace mse {
 			return std::end(*param);
 		}
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_end_const_iterator(const _TContainerPointer& param) {
 		typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
 		return mse::impl::make_end_const_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_end_const_iterator(_TContainerPointer&& param) {
 		typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
 		return mse::impl::make_end_const_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), MSE_FWD(param));
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_end_iterator(_TContainerPointer& param) {
 		typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
 		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), param);
 	}
-	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+	template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::impl::iterator::begin_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 	auto make_end_iterator(_TContainerPointer&& param) {
 		typedef mse::impl::remove_reference_t<decltype(*param)> container_t;
 		return mse::impl::make_end_iterator_helper1(typename mse::impl::is_random_access_container<container_t>::type(), MSE_FWD(param));
@@ -6750,7 +6750,7 @@ namespace mse {
 			struct HasOrInheritsStaticXSLTASSBeginMethod_msemsearray_impl
 			{
 				template<class U, class V>
-				static auto test(U* u) -> decltype(U::xslta_ss_begin(std::declval<mse::rsv::TXSLTAPointer<U> >()), std::declval<V>(), bool(true));
+				static auto test(U* u) -> decltype(U::xslta_ss_begin(mse::impl::decl_lval<mse::rsv::TXSLTAPointer<U> >()), mse::impl::decl_lval<V>(), bool(true));
 				template<typename, typename>
 				static auto test(...) -> std::false_type;
 
@@ -6764,7 +6764,7 @@ namespace mse {
 			struct HasOrInheritsXSLTAIteratorMemberType_msemsearray_impl
 			{
 				template<class U, class V>
-				static auto test(U*) -> decltype(std::declval<typename U::xslta_const_iterator>(), std::declval<typename V::xslta_const_iterator>(), bool(true));
+				static auto test(U*) -> decltype(mse::impl::decl_lval<typename U::xslta_const_iterator>(), mse::impl::decl_lval<typename V::xslta_const_iterator>(), bool(true));
 				template<typename, typename>
 				static auto test(...) -> std::false_type;
 
@@ -6927,82 +6927,82 @@ namespace mse {
 			}
 		}
 
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_const_iterator(const _TContainerPointer& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(param);
 		}
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_const_iterator(_TContainerPointer&& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(MSE_FWD(param));
 		}
-		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::addressof(std::declval<_TContainer>())))>::value> MSE_IMPL_EIS >
+		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::addressof(mse::impl::decl_lval<_TContainer>())))>::value> MSE_IMPL_EIS >
 		auto make_xslta_const_iterator(const _TContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(param);
 		}
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_iterator(const _TContainerPointer& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(param);
 		}
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_rvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_rvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_iterator(_TContainerPointer&& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_iter_from_rvalue_lone_param(MSE_FWD(param));
 		}
-		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(std::declval<typename std::add_pointer<_TContainer>::type>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(mse::impl::decl_lval<typename std::add_pointer<_TContainer>::type>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_iterator(_TContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(param);
 		}
 
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_begin_const_iterator(const _TContainerPointer& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(param);
 		}
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_begin_const_iterator(_TContainerPointer&& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(MSE_FWD(param));
 		}
-		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::addressof(std::declval<_TContainer>())))>::value> MSE_IMPL_EIS >
+		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::addressof(mse::impl::decl_lval<_TContainer>())))>::value> MSE_IMPL_EIS >
 		auto make_xslta_begin_const_iterator(const _TContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(param);
 		}
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_begin_iterator(const _TContainerPointer& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(param);
 		}
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_rvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_rvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_begin_iterator(_TContainerPointer&& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::iterator::xslta_begin_iter_from_rvalue_lone_param(MSE_FWD(param));
 		}
-		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(std::declval<_TContainer*>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(mse::impl::decl_lval<_TContainer*>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_begin_iterator(_TContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
 		{
@@ -7094,41 +7094,41 @@ namespace mse {
 				return mse::rsv::impl::make_xslta_end_iterator_helper02(typename mse::impl::IsDereferenceable_pb<_TContainerPointer>::type(), MSE_FWD(param));
 			}
 		}
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_end_const_iterator(const _TContainerPointer& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::make_xslta_end_const_iterator_helper01(param);
 		}
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_end_const_iterator(_TContainerPointer&& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::make_xslta_end_const_iterator_helper01(MSE_FWD(param));
 		}
-		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::addressof(std::declval<_TContainer>())))>::value> MSE_IMPL_EIS >
+		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_const_iter_from_lone_param(std::addressof(mse::impl::decl_lval<_TContainer>())))>::value> MSE_IMPL_EIS >
 		auto make_xslta_end_const_iterator(_TContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
 		{
 			return mse::rsv::impl::make_xslta_end_const_iterator_helper01(param);
 		}
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_end_iterator(const _TContainerPointer& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::make_xslta_end_iterator_from_lvalue_helper01(param);
 		}
-		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_rvalue_lone_param(std::declval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainerPointer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_rvalue_lone_param(mse::impl::decl_lval<_TContainerPointer>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_end_iterator(_TContainerPointer&& param MSE_ATTR_PARAM_STR("mse::lifetime_label(_[alias_11$])"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_TContainerPointer, alias_11$)")
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(alias_11$); return_value(alias_11$) }")
 		{
 			return mse::rsv::impl::make_xslta_end_iterator_from_rvalue_helper01(MSE_FWD(param));
 		}
-		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(std::declval<_TContainer*>()))>::value> MSE_IMPL_EIS >
+		template<class _TContainer, MSE_IMPL_EIP mse::impl::enable_if_t<!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::iterator::xslta_begin_iter_from_lvalue_lone_param(mse::impl::decl_lval<_TContainer*>()))>::value> MSE_IMPL_EIS >
 		auto make_xslta_end_iterator(_TContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }")
 		{
@@ -7704,7 +7704,7 @@ namespace mse {
 		struct ra_const_section_helpers {
 			template <typename _TRALoneParam>
 			/* "const auto&" doesn't work as a return type here with msvc2017. Compiler bug presumably. */
-			static const decltype(std::declval<_TRALoneParam>().m_start_iter)& s_xscope_iter_from_lone_param3(std::false_type, const _TRALoneParam& ra_section) {
+			static const decltype(mse::impl::decl_lval<_TRALoneParam>().m_start_iter)& s_xscope_iter_from_lone_param3(std::false_type, const _TRALoneParam& ra_section) {
 				/* The "random access section" is an lvalue, so we should return its iterator as an lvalue reference (in
 				this case it can be a const reference) as some iterators have different behavior depending on whether they
 				are lvalues or rvalues. */
@@ -7767,7 +7767,7 @@ namespace mse {
 				return s_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
-			static const decltype(std::declval<_TRALoneParam>().m_start_iter)& s_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
+			static const decltype(mse::impl::decl_lval<_TRALoneParam>().m_start_iter)& s_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
 				/* The parameter is another "random access section". */
 				return ra_section.m_start_iter;
 			}
@@ -7872,7 +7872,7 @@ namespace mse {
 			/* construction helper functions */
 			template <typename _TRALoneParam>
 			/* "const auto&" doesn't work as a return type here with msvc2017. Compiler bug presumably. */
-			static const decltype(std::declval<_TRALoneParam>().m_start_iter)& s_xscope_iter_from_lone_param3(std::false_type, const _TRALoneParam& ra_section) {
+			static const decltype(mse::impl::decl_lval<_TRALoneParam>().m_start_iter)& s_xscope_iter_from_lone_param3(std::false_type, const _TRALoneParam& ra_section) {
 				/* The "random access section" is an lvalue, so we should return its iterator as an lvalue reference (in
 				this case it can be a const reference) as some iterators have different behavior depending on whether they
 				are lvalues or rvalues. */
@@ -7897,7 +7897,7 @@ namespace mse {
 				return s_xscope_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 			}
 			template <typename _TRALoneParam>
-			static const decltype(std::declval<_TRALoneParam>().m_start_iter)& s_xscope_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
+			static const decltype(mse::impl::decl_lval<_TRALoneParam>().m_start_iter)& s_xscope_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section) {
 				/* The parameter is another "random access section". */
 				return ra_section.m_start_iter;
 			}
@@ -7960,7 +7960,7 @@ namespace mse {
 		};
 
 		namespace ra_section {
-			template <typename _Ty> using mkxsracsh1_TRAIterator = mse::impl::remove_reference_t<decltype(mse::impl::ra_const_section_helpers::s_xscope_iter_from_lone_param(std::declval<mse::TXScopeFixedConstPointer<_Ty> >()))>;
+			template <typename _Ty> using mkxsracsh1_TRAIterator = mse::impl::remove_reference_t<decltype(mse::impl::ra_const_section_helpers::s_xscope_iter_from_lone_param(mse::impl::decl_lval<mse::TXScopeFixedConstPointer<_Ty> >()))>;
 			template <typename _Ty> using mkxsracsh1_ReturnType = mse::TXScopeCagedRandomAccessConstSectionToRValue<mkxsracsh1_TRAIterator<_Ty> >;
 
 			template <typename _Ty>
@@ -8004,7 +8004,7 @@ namespace mse {
 					typedef _TRAIterator iterator_type;
 					typedef _TRAIterator ra_iterator_type;
 					MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
-						mse::impl::random_access_const_iterator_base<mse::impl::remove_reference_t<decltype(std::declval<_TRAIterator>()[0])> >);
+						mse::impl::random_access_const_iterator_base<mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TRAIterator>()[0])> >);
 
 					//TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) = default;
 					TRandomAccessConstSectionBase(const TRandomAccessConstSectionBase& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
@@ -8016,7 +8016,7 @@ namespace mse {
 					template <typename _TRAIterator2, bool IsFixed2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<_TRAIterator, _TRAIterator2>::value)> MSE_IMPL_EIS>
 					TRandomAccessConstSectionBase(const TRandomAccessSectionBase<_TRAIterator2, IsFixed2>& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
 
-					template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::impl::ra_const_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+					template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::impl::ra_const_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam>()))>::value)
 						&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
 						&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
 					explicit TRandomAccessConstSectionBase(const _TRALoneParam& param)
@@ -8024,7 +8024,7 @@ namespace mse {
 						supported. Different initialization implementations are required for each of the two cases. */
 						: m_count(s_count_from_lone_param(param))
 						, m_start_iter(s_xscope_iter_from_lone_param(param)) {}
-					template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::impl::ra_const_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+					template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::impl::ra_const_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam>()))>::value)
 						&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
 						&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
 					explicit TRandomAccessConstSectionBase(_TRALoneParam&& param)
@@ -8189,7 +8189,7 @@ namespace mse {
 					}
 
 					template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TRandomAccessConstSectionBase, _Ty2>::value&& mse::impl::HasOrInheritsAssignmentOperator_pb<_TRAIterator>::value> MSE_IMPL_EIS >
-					void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TRandomAccessConstSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
+					void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TRandomAccessConstSectionBase(_Other)) && _NOEXCEPT_OP(mse::impl::decl_lval<_TRAIterator>().operator=(mse::impl::decl_lval<_TRAIterator>()))) {
 						TRandomAccessConstSectionBase& _Other2 = _Other;
 						std::swap((*this), _Other2);
 					}
@@ -8621,7 +8621,7 @@ namespace mse {
 					typedef _TRAIterator iterator_type;
 					typedef _TRAIterator ra_iterator_type;
 					MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
-						mse::impl::random_access_iterator_base<mse::impl::remove_reference_t<decltype(std::declval<_TRAIterator>()[0])> >);
+						mse::impl::random_access_iterator_base<mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TRAIterator>()[0])> >);
 
 					//TRandomAccessSectionBase(const TRandomAccessSectionBase& src) = default;
 					TRandomAccessSectionBase(const TRandomAccessSectionBase& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
@@ -8630,12 +8630,12 @@ namespace mse {
 					template <typename _TRAIterator2, bool IsFixed2, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<_TRAIterator, _TRAIterator2>::value)> MSE_IMPL_EIS>
 					TRandomAccessSectionBase(const TRandomAccessSectionBase<_TRAIterator2, IsFixed2>& src) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
 
-					template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+					template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam>()))>::value)
 						&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
 						&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
 					explicit TRandomAccessSectionBase(const _TRALoneParam& param)
 						: m_count(s_count_from_lone_param(param)), m_start_iter(s_xscope_iter_from_lone_param(param)) {}
-					template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+					template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam>()))>::value)
 						&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
 						&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
 					explicit TRandomAccessSectionBase(_TRALoneParam&& param)
@@ -8830,7 +8830,7 @@ namespace mse {
 					}
 
 					template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TRandomAccessSectionBase, _Ty2>::value&& mse::impl::HasOrInheritsAssignmentOperator_pb<_TRAIterator>::value> MSE_IMPL_EIS >
-					void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TRandomAccessSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
+					void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TRandomAccessSectionBase(_Other)) && _NOEXCEPT_OP(mse::impl::decl_lval<_TRAIterator>().operator=(mse::impl::decl_lval<_TRAIterator>()))) {
 						TRandomAccessSectionBase& _Other2 = _Other;
 						std::swap((*this), _Other2);
 					}
@@ -9333,7 +9333,7 @@ namespace mse {
 	auto make_random_access_const_section(const _TRAIterator& start_iter, typename TRandomAccessConstSection<_TRAIterator>::size_type count) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TRandomAccessConstSection<_TRAIterator>(start_iter, count);
 	}
-	template <typename _TRALoneParam, typename _TRAIterator = mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<char*>::s_iter_from_lone_param(std::declval<_TRALoneParam>()))>>
+	template <typename _TRALoneParam, typename _TRAIterator = mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessConstSectionBase<char*>::s_iter_from_lone_param(mse::impl::decl_lval<_TRALoneParam>()))>>
 	auto make_random_access_const_section(const _TRALoneParam& param) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TRandomAccessConstSection<_TRAIterator>(param);
 	}
@@ -9387,7 +9387,7 @@ namespace mse {
 	auto make_random_access_section(const _TRAIterator& start_iter, typename TRandomAccessSection<_TRAIterator>::size_type count) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TRandomAccessSection<_TRAIterator>(start_iter, count);
 	}
-	template <typename _TRALoneParam, typename _TRAIterator = mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessSectionBase<char*>::s_iter_from_lone_param(std::declval< _TRALoneParam>()))>>
+	template <typename _TRALoneParam, typename _TRAIterator = mse::impl::remove_reference_t<decltype(mse::us::impl::ns_ra_section::TRandomAccessSectionBase<char*>::s_iter_from_lone_param(mse::impl::decl_lval< _TRALoneParam>()))>>
 	auto make_random_access_section(const _TRALoneParam& param) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRAIterator)") {
 		return TRandomAccessSection<_TRAIterator>(param);
 	}
@@ -9399,28 +9399,28 @@ namespace mse {
 		->TRandomAccessSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TRandomAccessSection(_TRALoneParam)
-		->TRandomAccessSection<typename decltype(make_random_access_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TRandomAccessSection<typename decltype(make_random_access_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 
 	template<class _TRAIterator>
 	TRandomAccessConstSection(_TRAIterator, typename TRandomAccessConstSection<_TRAIterator>::size_type)
 		->TRandomAccessConstSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TRandomAccessConstSection(_TRALoneParam)
-		->TRandomAccessConstSection<typename decltype(make_random_access_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TRandomAccessConstSection<typename decltype(make_random_access_const_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 
 	template<class _TRAIterator>
 	TXScopeRandomAccessSection(_TRAIterator, typename TXScopeRandomAccessSection<_TRAIterator>::size_type)
 		->TXScopeRandomAccessSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TXScopeRandomAccessSection(_TRALoneParam)
-		->TXScopeRandomAccessSection<typename decltype(make_xscope_random_access_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TXScopeRandomAccessSection<typename decltype(make_xscope_random_access_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 
 	template<class _TRAIterator>
 	TXScopeRandomAccessConstSection(_TRAIterator, typename TXScopeRandomAccessConstSection<_TRAIterator>::size_type)
 		->TXScopeRandomAccessConstSection<_TRAIterator>;
 	template<class _TRALoneParam>
 	TXScopeRandomAccessConstSection(_TRALoneParam)
-		->TXScopeRandomAccessConstSection<typename decltype(make_xscope_random_access_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+		->TXScopeRandomAccessConstSection<typename decltype(make_xscope_random_access_const_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 #endif /* MSE_HAS_CXX17 */
 
 	/* TXScopeCagedRandomAccessConstSectionToRValue<> represents a "random access const section" that refers to a temporary
@@ -10360,7 +10360,7 @@ namespace mse {
 
 		/* These are some free functions to obtain a subsection of a given section. */
 		template <typename _TSection>
-		decltype(std::declval<_TSection>().xslta_subsection_pv(0, 0)) make_xslta_subsection(const _TSection& xs_section MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), typename _TSection::size_type pos = 0, typename _TSection::size_type n = _TSection::npos)
+		decltype(mse::impl::decl_lval<_TSection>().xslta_subsection_pv(0, 0)) make_xslta_subsection(const _TSection& xs_section MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"), typename _TSection::size_type pos = 0, typename _TSection::size_type n = _TSection::npos)
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }") {
 
 			return xs_section.xslta_subsection_pv(pos, n);
@@ -10378,7 +10378,7 @@ namespace mse {
 			struct ra_const_section_helpers {
 				template <typename _TRALoneParam>
 				/* "const auto&" doesn't work as a return type here with msvc2017. Compiler bug presumably. */
-				static const decltype(std::declval<_TRALoneParam>().m_start_iter)& s_xslta_iter_from_lone_param3(std::false_type, const _TRALoneParam& ra_section MSE_ATTR_PARAM_STR("mse::lifetime_labels(98)"))
+				static const decltype(mse::impl::decl_lval<_TRALoneParam>().m_start_iter)& s_xslta_iter_from_lone_param3(std::false_type, const _TRALoneParam& ra_section MSE_ATTR_PARAM_STR("mse::lifetime_labels(98)"))
 					MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(98); return_value(98) }") {
 
 					/* The "random access section" is an lvalue, so we should return its iterator as an lvalue reference (in
@@ -10462,7 +10462,7 @@ namespace mse {
 					return s_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 				}
 				template <typename _TRALoneParam>
-				static const decltype(std::declval<_TRALoneParam>().m_start_iter)&
+				static const decltype(mse::impl::decl_lval<_TRALoneParam>().m_start_iter)&
 					s_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section MSE_ATTR_PARAM_STR("mse::lifetime_labels(98)"))
 					MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(98); return_value(98) }") {
 
@@ -10571,7 +10571,7 @@ namespace mse {
 				/* construction helper functions */
 				template <typename _TRALoneParam>
 				/* "const auto&" doesn't work as a return type here with msvc2017. Compiler bug presumably. */
-				static const decltype(std::declval<_TRALoneParam>().m_start_iter)&
+				static const decltype(mse::impl::decl_lval<_TRALoneParam>().m_start_iter)&
 					s_xslta_iter_from_lone_param3(std::false_type, const _TRALoneParam& ra_section MSE_ATTR_PARAM_STR("mse::lifetime_labels(98)"))
 					MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(98); return_value(98) }") {
 
@@ -10607,7 +10607,7 @@ namespace mse {
 					return s_xslta_iter_from_lone_param2(typename mse::impl::IsNativeArray_msemsearray<_TRALoneParam>::type(), ptr);
 				}
 				template <typename _TRALoneParam>
-				static const decltype(std::declval<_TRALoneParam>().m_start_iter)& s_xslta_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section MSE_ATTR_PARAM_STR("mse::lifetime_labels(98)"))
+				static const decltype(mse::impl::decl_lval<_TRALoneParam>().m_start_iter)& s_xslta_iter_from_lone_param1(std::true_type, const _TRALoneParam& ra_section MSE_ATTR_PARAM_STR("mse::lifetime_labels(98)"))
 					MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(98); return_value(98) }") {
 					/* The parameter is another "random access section". */
 					return ra_section.m_start_iter;
@@ -10648,7 +10648,7 @@ namespace mse {
 				}
 
 				template <typename _TRALoneParam>
-				static decltype(s_xslta_iter_from_lone_param1(typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::type(), std::declval< _TRALoneParam>()))
+				static decltype(s_xslta_iter_from_lone_param1(typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::type(), mse::impl::decl_lval< _TRALoneParam>()))
 					s_xslta_iter_from_lone_param(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
 					MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); return_value(99) }") {
 
@@ -10697,7 +10697,7 @@ namespace mse {
 
 		/* We're forward declaring this function here because it is used by the TXSLTARandomAccessConstSectionBase<> class that follows.
 		Note that this function has other overloads and bretheren that do not need to be forward declared. */
-		template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam const *>()))>::value)
+		template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam const *>()))>::value)
 			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
 		auto make_xslta_random_access_const_section(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
@@ -10719,7 +10719,7 @@ namespace mse {
 						typedef _TRAIterator iterator_type;
 						typedef _TRAIterator ra_iterator_type;
 						MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
-							mse::impl::random_access_const_iterator_base<mse::impl::remove_reference_t<decltype(std::declval<_TRAIterator>()[0])> >);
+							mse::impl::random_access_const_iterator_base<mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TRAIterator>()[0])> >);
 
 						//TXSLTARandomAccessConstSectionBase(const TXSLTARandomAccessConstSectionBase& src) = default;
 						TXSLTARandomAccessConstSectionBase(const TXSLTARandomAccessConstSectionBase& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
@@ -10732,25 +10732,25 @@ namespace mse {
 						TXSLTARandomAccessConstSectionBase(const TXSLTARandomAccessSectionBase<_TRAIterator2, IsFixed2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
 
 						/*
-						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<mse::rsv::TXSLTAConstPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<mse::rsv::TXSLTAConstPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
 						TXSLTARandomAccessConstSectionBase(const mse::rsv::TXSLTAConstPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 							: m_count(s_count_from_lone_param(param))
 							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
-						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<mse::rsv::TXSLTAPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<mse::rsv::TXSLTAPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
 						explicit TXSLTARandomAccessConstSectionBase(const mse::rsv::TXSLTAPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 							: m_count(s_count_from_lone_param(param))
 							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
-						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRAContainer const*>()))>::value)> MSE_IMPL_EIS>
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRAContainer const*>()))>::value)> MSE_IMPL_EIS>
 						TXSLTARandomAccessConstSectionBase(_TRAContainer const * param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 							: m_count(s_count_from_lone_param(param))
 							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
-						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRAContainer*>()))>::value)> MSE_IMPL_EIS>
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRAContainer*>()))>::value)> MSE_IMPL_EIS>
 						explicit TXSLTARandomAccessConstSectionBase(_TRAContainer * param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 							: m_count(s_count_from_lone_param(param))
 							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
 						*/
 						/* This _TRALoneParam constructor might need a stricter filter, but it is intended to match a pointer to a container. */
-						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_const_section_helpers::s_count_from_lone_param(std::declval<const _TRALoneParam>()))>::value)
+						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_const_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<const _TRALoneParam>()))>::value)
 							&& (mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
 							&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
 							&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
@@ -10759,20 +10759,20 @@ namespace mse {
 							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
 
 #if 0
-						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam>()))>::value)
 							&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
 						explicit TXSLTARandomAccessConstSectionBase(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
 							/* _TRALoneParam being a pointer to "random access" container is supported. */
 							: m_count(s_count_from_lone_param(param))
 							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
-						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)
+						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam>()))>::value)
 							&& (!typename std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
 						explicit TXSLTARandomAccessConstSectionBase(_TRALoneParam&& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
 							: m_count(s_count_from_lone_param(param))
 							, m_start_iter(s_xslta_iter_from_lone_param(MSE_FWD(param))) {}
 #endif // 0
 
-						typedef decltype(std::declval<_TRAIterator>()[0]) deref_return_type;
+						typedef decltype(mse::impl::decl_lval<_TRAIterator>()[0]) deref_return_type;
 						deref_return_type operator[](size_type _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TXSLTARandomAccessConstSectionBase")); }
 							return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
@@ -10931,7 +10931,7 @@ namespace mse {
 						}
 
 						template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TXSLTARandomAccessConstSectionBase, _Ty2>::value&& mse::impl::HasOrInheritsAssignmentOperator_pb<_TRAIterator>::value> MSE_IMPL_EIS >
-						void swap(_Ty2& _Other MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) _NOEXCEPT_OP(_NOEXCEPT_OP(TXSLTARandomAccessConstSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
+						void swap(_Ty2& _Other MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) _NOEXCEPT_OP(_NOEXCEPT_OP(TXSLTARandomAccessConstSectionBase(_Other)) && _NOEXCEPT_OP(mse::impl::decl_lval<_TRAIterator>().operator=(mse::impl::decl_lval<_TRAIterator>()))) {
 							TXSLTARandomAccessConstSectionBase& _Other2 = _Other;
 							std::swap((*this), _Other2);
 						}
@@ -11141,7 +11141,7 @@ namespace mse {
 						}
 
 						template <typename _TRALoneParam>
-						static decltype(mse::rsv::impl::ra_const_section_helpers::s_xslta_iter_from_lone_param(std::declval< _TRALoneParam>()))
+						static decltype(mse::rsv::impl::ra_const_section_helpers::s_xslta_iter_from_lone_param(mse::impl::decl_lval< _TRALoneParam>()))
 							s_xslta_iter_from_lone_param(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)")) MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							
 							return mse::rsv::impl::ra_const_section_helpers::s_xslta_iter_from_lone_param(param);
@@ -11314,7 +11314,7 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 			template <typename _TSection>
-			friend decltype(std::declval<_TSection>().xslta_subsection_pv(0, 0)) make_xslta_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/);
+			friend decltype(mse::impl::decl_lval<_TSection>().xslta_subsection_pv(0, 0)) make_xslta_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/);
 			//template <typename _TSection>
 			//friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/) -> decltype(section.subsection_pv(pos, n));
 		} MSE_ATTR_STR("mse::lifetime_labels(99)") MSE_ATTR_STR("mse::lifetime_label_for_base_class(99)");
@@ -11332,7 +11332,7 @@ namespace mse {
 						typedef _TRAIterator iterator_type;
 						typedef _TRAIterator ra_iterator_type;
 						MSE_INHERITED_RANDOM_ACCESS_SECTION_MEMBER_TYPE_AND_NPOS_DECLARATIONS(
-							mse::impl::random_access_iterator_base<mse::impl::remove_reference_t<decltype(std::declval<_TRAIterator>()[0])> >);
+							mse::impl::random_access_iterator_base<mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TRAIterator>()[0])> >);
 
 						//TXSLTARandomAccessSectionBase(const TXSLTARandomAccessSectionBase& src) = default;
 						TXSLTARandomAccessSectionBase(const TXSLTARandomAccessSectionBase& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
@@ -11342,17 +11342,17 @@ namespace mse {
 						TXSLTARandomAccessSectionBase(const TXSLTARandomAccessSectionBase<_TRAIterator2, IsFixed2>& src MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])")) : m_count(src.m_count), m_start_iter(src.m_start_iter) {}
 
 						/*
-						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<mse::rsv::TXSLTAPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<mse::rsv::TXSLTAPointer<_TRAContainer> >()))>::value)> MSE_IMPL_EIS>
 						explicit TXSLTARandomAccessSectionBase(const mse::rsv::TXSLTAPointer<_TRAContainer> param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 							: m_count(s_count_from_lone_param(param))
 							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
-						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRAContainer*>()))>::value)> MSE_IMPL_EIS>
+						template <typename _TRAContainer, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRAContainer*>()))>::value)> MSE_IMPL_EIS>
 						explicit TXSLTARandomAccessSectionBase(_TRAContainer* param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 							: m_count(s_count_from_lone_param(param))
 							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
 						*/
 						/* This _TRALoneParam constructor might need a stricter filter, but it is intended to match a pointer to a container. */
-						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<const _TRALoneParam>()))>::value)
+						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<const _TRALoneParam>()))>::value)
 							&& (mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
 							&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
 							&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessConstSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
@@ -11361,10 +11361,10 @@ namespace mse {
 							, m_start_iter(s_xslta_iter_from_lone_param(param)) {}
 
 						/*
-						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
+						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
 						explicit TXSLTARandomAccessSectionBase(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
 							: m_count(s_count_from_lone_param(param)), m_start_iter(s_xslta_iter_from_lone_param(param)) {}
-						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
+						template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam>()))>::value)> MSE_IMPL_EIS>
 						explicit TXSLTARandomAccessSectionBase(_TRALoneParam&& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(_[99])"))
 							: m_count(s_count_from_lone_param(param)), m_start_iter(s_xslta_iter_from_lone_param(MSE_FWD(param))) {}
 						*/
@@ -11373,7 +11373,7 @@ namespace mse {
 						template<size_t Tn>
 						TXSLTARandomAccessSectionBase(value_type(&native_array)[Tn]) : m_count(Tn), m_start_iter(native_array) {}
 
-						typedef decltype(std::declval<_TRAIterator>()[0]) deref_return_type;
+						typedef decltype(mse::impl::decl_lval<_TRAIterator>()[0]) deref_return_type;
 						deref_return_type operator[](size_type _P) const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(99) }") {
 							if (m_count <= _P) { MSE_THROW(msearray_range_error("out of bounds index - reference operator[](size_type _P) - TXSLTARandomAccessSectionBase")); }
 							return m_start_iter[difference_type(mse::msear_as_a_size_t(_P))];
@@ -11560,7 +11560,7 @@ namespace mse {
 						}
 
 						template<typename _Ty2, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<TXSLTARandomAccessSectionBase, _Ty2>::value&& mse::impl::HasOrInheritsAssignmentOperator_pb<_TRAIterator>::value> MSE_IMPL_EIS >
-						void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TXSLTARandomAccessSectionBase(_Other)) && _NOEXCEPT_OP(std::declval<_TRAIterator>().operator=(std::declval<_TRAIterator>()))) {
+						void swap(_Ty2& _Other) _NOEXCEPT_OP(_NOEXCEPT_OP(TXSLTARandomAccessSectionBase(_Other)) && _NOEXCEPT_OP(mse::impl::decl_lval<_TRAIterator>().operator=(mse::impl::decl_lval<_TRAIterator>()))) {
 							TXSLTARandomAccessSectionBase& _Other2 = _Other;
 							std::swap((*this), _Other2);
 						}
@@ -11961,7 +11961,7 @@ namespace mse {
 			MSE_DEFAULT_OPERATOR_NEW_AND_AMPERSAND_DECLARATION;
 
 			template <typename _TSection>
-			friend decltype(std::declval<_TSection>().xslta_subsection_pv(0, 0)) make_xslta_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/);
+			friend decltype(mse::impl::decl_lval<_TSection>().xslta_subsection_pv(0, 0)) make_xslta_subsection(const _TSection& xs_section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/);
 			template <typename _TSection>
 			friend auto make_subsection(const _TSection& section, typename _TSection::size_type pos/* = 0*/, typename _TSection::size_type n/* = _TSection::npos*/)
 				-> decltype(section.subsection_pv(pos, n));
@@ -12008,7 +12008,7 @@ namespace mse {
 #if 0
 		/* This one was moved to before the definition of TXSLTARandomAccessConstSectionBase<> because it depends on 
 		this function. */
-		template <typename _TRALoneParam, typename/*MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam const*>()))>::value)
+		template <typename _TRALoneParam, typename/*MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam const*>()))>::value)
 			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS*/>
 		auto make_xslta_random_access_const_section(const _TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
@@ -12016,7 +12016,7 @@ namespace mse {
 			return make_xslta_random_access_const_section(std::addressof(param));
 		}
 #endif // 0
-		template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(std::declval<_TRALoneParam*>()))>::value)
+		template <typename _TRALoneParam, MSE_IMPL_EIP mse::impl::enable_if_t<(!std::is_same<std::nullptr_t, decltype(mse::rsv::impl::ra_section_helpers::s_count_from_lone_param(mse::impl::decl_lval<_TRALoneParam*>()))>::value)
 			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)> MSE_IMPL_EIS>
 		auto make_xslta_random_access_const_section(_TRALoneParam& param MSE_ATTR_PARAM_STR("mse::lifetime_labels(99)"))
 			MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99) return_value(99) }") {
@@ -12069,7 +12069,7 @@ namespace mse {
 		/*
 		template<class _TRALoneParam>
 		TXSLTARandomAccessSection(_TRALoneParam)
-			-> TXSLTARandomAccessSection<typename decltype(make_xslta_random_access_section(std::declval<_TRALoneParam>()))::iterator_type>;
+			-> TXSLTARandomAccessSection<typename decltype(make_xslta_random_access_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 		*/
 
 		template<class _TRAIterator>
@@ -12078,7 +12078,7 @@ namespace mse {
 		/*
 		template<class _TRALoneParam>
 		TXSLTARandomAccessConstSection(_TRALoneParam)
-			-> TXSLTARandomAccessConstSection<typename decltype(make_xslta_random_access_const_section(std::declval<_TRALoneParam>()))::iterator_type>;
+			-> TXSLTARandomAccessConstSection<typename decltype(make_xslta_random_access_const_section(mse::impl::decl_lval<_TRALoneParam>()))::iterator_type>;
 		*/
 #endif /* MSE_HAS_CXX17 */
 
@@ -12486,7 +12486,7 @@ namespace mse {
 		}
 
 		/* This _TRALoneParam constructor might need a stricter filter, but it is intended to match a pointer to a container. */
-		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_const_section(std::declval< _TRALoneParam>())[0])> >
+		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_const_section(mse::impl::decl_lval< _TRALoneParam>())[0])> >
 			, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<TXSLTACSSSXSTERandomAccessConstSection<_TElement>, const _TRALoneParam>::value)
 			&& (mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
 			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
@@ -12497,7 +12497,7 @@ namespace mse {
 			return TXSLTACSSSXSTERandomAccessConstSection<_TElement>(make_xslta_random_access_const_section(param));
 		}
 		/* provisional shorter alias */
-		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_const_section(std::declval< _TRALoneParam>())[0])> >
+		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_const_section(mse::impl::decl_lval< _TRALoneParam>())[0])> >
 		, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<TXSLTACSSSXSTERandomAccessConstSection<_TElement>, const _TRALoneParam>::value)
 			&& (mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
 			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
@@ -12524,7 +12524,7 @@ namespace mse {
 		}
 
 		/* This _TRALoneParam function might need a stricter filter, but it is intended to match a pointer to a container. */
-		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_section(std::declval< _TRALoneParam>())[0])> >
+		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_section(mse::impl::decl_lval< _TRALoneParam>())[0])> >
 			, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<TXSLTACSSSXSTERandomAccessSection<_TElement>, const _TRALoneParam>::value)
 			&& (mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
 			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
@@ -12535,7 +12535,7 @@ namespace mse {
 			return TXSLTACSSSXSTERandomAccessSection<_TElement>(make_xslta_random_access_section(param));
 		}
 		/* provisional shorter alias */
-		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_section(std::declval< _TRALoneParam>())[0])> >
+		template <typename _TRALoneParam, typename _TElement = mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(make_xslta_random_access_section(mse::impl::decl_lval< _TRALoneParam>())[0])> >
 			, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_constructible<TXSLTACSSSXSTERandomAccessSection<_TElement>, const _TRALoneParam>::value)
 			&& (mse::impl::IsDereferenceable_pb<mse::impl::remove_reference_t<_TRALoneParam> >::value)
 			&& (!std::is_base_of<mse::us::impl::ns_ra_section::RandomAccessSectionTagBase, mse::impl::remove_reference_t<_TRALoneParam> >::value)
@@ -12909,7 +12909,7 @@ namespace mse {
 			: m_stored_ptr(MSE_FWD(src).m_stored_ptr) {}
 #endif // MSE_HAS_CXX17
 
-		typedef mse::impl::remove_reference_t<decltype(*std::declval<_TExclusiveStrongPointer>())> target_type;
+		typedef mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TExclusiveStrongPointer>())> target_type;
 		TXScopeExclusiveStrongPointerStoreForAccessControl(_TExclusiveStrongPointer&& stored_ptr) : m_stored_ptr(MSE_FWD(stored_ptr)) {
 			mse::impl::dummy_foo(*m_stored_ptr); /* Just verifying that stored_ptr points to a valid target. */
 		}
@@ -13109,7 +13109,7 @@ namespace mse {
 		TXScopeExclusiveStrongPointerStoreForSharing(TXScopeExclusiveStrongPointerStoreForSharing&& src)
 			: m_stored_ptr(MSE_FWD(src).m_stored_ptr) {}
 
-		typedef mse::impl::remove_reference_t<decltype(*std::declval<_TExclusiveStrongPointer>())> target_type;
+		typedef mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TExclusiveStrongPointer>())> target_type;
 		TXScopeExclusiveStrongPointerStoreForSharing(_TExclusiveStrongPointer&& stored_ptr) : m_stored_ptr(MSE_FWD(stored_ptr)) {
 			mse::impl::dummy_foo(*m_stored_ptr); /* Just verifying that stored_ptr points to a valid target. */
 		}
@@ -13157,10 +13157,10 @@ namespace mse {
 
 	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
 	class TXScopeACOLockerForSharing
-		: public TXScopeExclusiveStrongPointerStoreForSharing<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
+		: public TXScopeExclusiveStrongPointerStoreForSharing<decltype(mse::impl::decl_lval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
 	public:
-		typedef TXScopeExclusiveStrongPointerStoreForSharing<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
-		typedef decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer()) _TExclusiveWritePointer;
+		typedef TXScopeExclusiveStrongPointerStoreForSharing<decltype(mse::impl::decl_lval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
+		typedef decltype(mse::impl::decl_lval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer()) _TExclusiveWritePointer;
 		typedef mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
 		typedef mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
 
@@ -13392,9 +13392,9 @@ namespace mse {
 	using TExclusiveWriterObjPointer = TAccessControlledExclusivePointer<_Ty, _TAccessMutex>;
 
 	template<typename _Ty, class _TAccessMutex = non_thread_safe_shared_mutex>
-	class TXScopeExclusiveWriterObjPointerStoreForSharing : public TXScopeExclusiveStrongPointerStoreForSharing<decltype(std::declval<TExclusiveWriterObj<_Ty, _TAccessMutex> >().pointer())> {
+	class TXScopeExclusiveWriterObjPointerStoreForSharing : public TXScopeExclusiveStrongPointerStoreForSharing<decltype(mse::impl::decl_lval<TExclusiveWriterObj<_Ty, _TAccessMutex> >().pointer())> {
 	public:
-		MSE_USING(TXScopeExclusiveWriterObjPointerStoreForSharing, TXScopeExclusiveStrongPointerStoreForSharing<decltype(std::declval<TExclusiveWriterObj<_Ty, _TAccessMutex> >().pointer())>);
+		MSE_USING(TXScopeExclusiveWriterObjPointerStoreForSharing, TXScopeExclusiveStrongPointerStoreForSharing<decltype(mse::impl::decl_lval<TExclusiveWriterObj<_Ty, _TAccessMutex> >().pointer())>);
 	};
 
 	/* TXScopeExclusiveWriterObjPointerStoreForSharing<> is a data type that stores a (non-const, exclusive) pointer
@@ -13631,13 +13631,13 @@ namespace mse {
 	class TXScopeRASectionSplitterXWP : public mse::us::impl::XScopeTagBase {
 	public:
 		typedef _TExclusiveWritelockPtr exclusive_writelock_ptr_t;
-		typedef mse::impl::remove_reference_t<decltype(*(std::declval<exclusive_writelock_ptr_t>()))> _TContainer;
-		typedef mse::impl::remove_reference_t<decltype(std::declval<_TContainer>()[0])> element_t;
+		typedef mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<exclusive_writelock_ptr_t>()))> _TContainer;
+		typedef mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TContainer>()[0])> element_t;
 		typedef mse::TXScopeStrongPointerStore<exclusive_writelock_ptr_t> xscope_exclusive_writelock_ptr_store_t;
 		typedef mse::TXScopeFixedPointer<_TContainer> container_xsptr_t;
 		typedef mse::TXScopeRAIterator<container_xsptr_t> ra_iterator_t;
 		typedef mse::impl::TXScopeSplitterRandomAccessSection<ra_iterator_t> xscope_splitter_ra_section_t;
-		typedef decltype(std::declval<xscope_splitter_ra_section_t>().size()) size_type;
+		typedef decltype(mse::impl::decl_lval<xscope_splitter_ra_section_t>().size()) size_type;
 		typedef mse::TXScopeAccessControlledObj<xscope_splitter_ra_section_t> xscope_aco_splitter_ra_section_t;
 
 		template<typename _TList>
@@ -13694,8 +13694,8 @@ namespace mse {
 	class TRASectionSplitterXWP {
 	public:
 		typedef _TExclusiveWritelockPtr exclusive_writelock_ptr_t;
-		typedef mse::impl::remove_reference_t<decltype(*(std::declval<exclusive_writelock_ptr_t>()))> _TContainer;
-		typedef mse::impl::remove_reference_t<decltype(std::declval<_TContainer>()[0])> element_t;
+		typedef mse::impl::remove_reference_t<decltype(*(mse::impl::decl_lval<exclusive_writelock_ptr_t>()))> _TContainer;
+		typedef mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_TContainer>()[0])> element_t;
 		typedef mse::TRAIterator<_TContainer*> ra_iterator_t;
 
 #ifdef NDEBUG
@@ -13708,11 +13708,11 @@ namespace mse {
 #else // MSE_TRASECTIONSPLITTERXWP_NDEBUG
 		typedef mse::TNDNoradObj<TSplitterAccessLeaseObj<exclusive_writelock_ptr_t> > access_lease_t;
 #endif // MSE_TRASECTIONSPLITTERXWP_NDEBUG
-		typedef mse::impl::remove_reference_t<decltype(&std::declval<access_lease_t>())> access_lease_ptr_t;
+		typedef mse::impl::remove_reference_t<decltype(&mse::impl::decl_lval<access_lease_t>())> access_lease_ptr_t;
 
-		typedef decltype(adjusted_ra_iterator(std::declval<ra_iterator_t>(), std::declval<access_lease_ptr_t>())) adjusted_ra_iterator_t;
+		typedef decltype(adjusted_ra_iterator(mse::impl::decl_lval<ra_iterator_t>(), mse::impl::decl_lval<access_lease_ptr_t>())) adjusted_ra_iterator_t;
 		typedef mse::impl::TSplitterRandomAccessSection<adjusted_ra_iterator_t> splitter_ra_section_t;
-		typedef decltype(std::declval<splitter_ra_section_t>().size()) size_type;
+		typedef decltype(mse::impl::decl_lval<splitter_ra_section_t>().size()) size_type;
 		typedef mse::TAccessControlledObj<splitter_ra_section_t> aco_splitter_ra_section_t;
 
 		template<typename _TList>
@@ -13777,9 +13777,9 @@ namespace mse {
 	} MSE_ATTR_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TExclusiveWritelockPtr)");
 
 	template <typename _Ty, class _TAccessMutex = non_thread_safe_recursive_shared_timed_mutex>
-	class TXScopeACORASectionSplitter : public TXScopeRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
+	class TXScopeACORASectionSplitter : public TXScopeRASectionSplitterXWP<decltype(mse::impl::decl_lval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> {
 	public:
-		typedef TXScopeRASectionSplitterXWP<decltype(std::declval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
+		typedef TXScopeRASectionSplitterXWP<decltype(mse::impl::decl_lval<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> >().exclusive_pointer())> base_class;
 		typedef mse::TXScopeFixedPointer<mse::TXScopeAccessControlledObj<_Ty, _TAccessMutex> > xsac_obj_xscpptr_t;
 		typedef mse::TXScopeFixedPointer<mse::TAccessControlledObj<_Ty, _TAccessMutex> > ac_obj_xscpptr_t;
 

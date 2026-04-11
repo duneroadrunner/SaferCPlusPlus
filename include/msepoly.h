@@ -614,7 +614,7 @@ namespace mse {
 			class TPolyPointerBase {
 			public:
 				typedef TPolyPointerBase _Myt;
-				template<typename _Ty2> using writelock_ptr_t = decltype(std::declval<mse::TAsyncSharedV2ReadWriteAccessRequester<_Ty2> >().writelock_ptr());
+				template<typename _Ty2> using writelock_ptr_t = decltype(mse::impl::decl_lval<mse::TAsyncSharedV2ReadWriteAccessRequester<_Ty2> >().writelock_ptr());
 
 				using poly_variant = tdp_pointer_variant <
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -874,8 +874,8 @@ namespace mse {
 			class TPolyConstPointerBase {
 			public:
 				typedef TPolyConstPointerBase _Myt;
-				template<typename _Ty2> using writelock_ptr_t = decltype(std::declval<mse::TAsyncSharedV2ReadWriteAccessRequester<_Ty2> >().writelock_ptr());
-				template<typename _Ty2> using readlock_ptr_t = decltype(std::declval<mse::TAsyncSharedV2ReadWriteAccessRequester<_Ty2> >().readlock_ptr());
+				template<typename _Ty2> using writelock_ptr_t = decltype(mse::impl::decl_lval<mse::TAsyncSharedV2ReadWriteAccessRequester<_Ty2> >().writelock_ptr());
+				template<typename _Ty2> using readlock_ptr_t = decltype(mse::impl::decl_lval<mse::TAsyncSharedV2ReadWriteAccessRequester<_Ty2> >().readlock_ptr());
 
 				using poly_variant = tdp_pointer_variant <
 #if !defined(MSE_SCOPEPOINTER_DISABLED)
@@ -1262,13 +1262,13 @@ namespace mse {
 		template <typename T, typename = void>
 		struct SupportsSubtraction_poly : std::false_type {};
 		template <typename T>
-		struct SupportsSubtraction_poly<T, mse::impl::void_t<decltype(std::declval<T>() - std::declval<T>())> > : std::true_type {};
+		struct SupportsSubtraction_poly<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>() - mse::impl::decl_lval<T>())> > : std::true_type {};
 
 		template <typename TToBeSubtracted, typename TToBeSubtractedFrom, typename = void>
 		struct SupportsSubtractionFrom_poly : std::false_type {};
 		template <typename TToBeSubtracted, typename TToBeSubtractedFrom>
 		struct SupportsSubtractionFrom_poly<TToBeSubtracted, TToBeSubtractedFrom,
-			mse::impl::void_t<decltype(std::declval<TToBeSubtractedFrom>() - std::declval<TToBeSubtracted>())>>
+			mse::impl::void_t<decltype(mse::impl::decl_lval<TToBeSubtractedFrom>() - mse::impl::decl_lval<TToBeSubtracted>())>>
 			: std::true_type {};
 
 
@@ -1319,8 +1319,8 @@ namespace mse {
 		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype((std::declval<U>() == std::declval<test_iterator<mse::impl::remove_reference_t<decltype(*std::declval<U>())>, TID> >())
-				, (std::declval<V>() == std::declval<test_iterator<mse::impl::remove_reference_t<decltype(*std::declval<V>())>, TID> >()), bool(true));
+			static auto test(U*) -> decltype((mse::impl::decl_lval<U>() == mse::impl::decl_lval<test_iterator<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<U>())>, TID> >())
+				, (mse::impl::decl_lval<V>() == mse::impl::decl_lval<test_iterator<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<V>())>, TID> >()), bool(true));
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
 
@@ -1352,9 +1352,9 @@ namespace mse {
 		template <typename T, class TID = void, typename = void>
 		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly : std::false_type {};
 		template <typename T, class TID>
-		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<T, TID, mse::impl::void_t<decltype((std::declval<T>() == std::declval<test_iterator<mse::impl::remove_reference_t<decltype(*std::declval<T>())>, TID> >()))> > : std::true_type {};
+		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<T, TID, mse::impl::void_t<decltype((mse::impl::decl_lval<T>() == mse::impl::decl_lval<test_iterator<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<T>())>, TID> >()))> > : std::true_type {};
 		template <typename T>
-		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<T, void, mse::impl::void_t<decltype((std::declval<T>() == std::declval<test_iterator<mse::impl::remove_reference_t<decltype(*std::declval<T>())>, void> >()))> > : std::true_type {};
+		struct SeemsToSupportEqualityComparisonWithArbitraryIteratorTypes_poly<T, void, mse::impl::void_t<decltype((mse::impl::decl_lval<T>() == mse::impl::decl_lval<test_iterator<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<T>())>, void> >()))> > : std::true_type {};
 #endif // 1
 	}
 
@@ -1363,7 +1363,7 @@ namespace mse {
 			template <typename T, typename = void>
 			struct HasMemberArrowOperator : std::false_type {};
 			template <typename T>
-			struct HasMemberArrowOperator<T, mse::impl::void_t<decltype(std::declval<T>().operator->())> > : std::true_type {};
+			struct HasMemberArrowOperator<T, mse::impl::void_t<decltype(mse::impl::decl_lval<T>().operator->())> > : std::true_type {};
 
 			template<typename T>
 			auto effective_operator_arrow_helper1(std::false_type, T& ptr) {
@@ -1650,7 +1650,7 @@ namespace mse {
 				template <typename T, typename = void>
 				struct IsDynamicCastable : std::false_type {};
 				template <typename T>
-				struct IsDynamicCastable<T, mse::impl::void_t<decltype(dynamic_cast<const TCommonizedRandomAccessIterator<mse::impl::remove_const_t<_Ty>, T>*>(&std::declval<const TCommonRandomAccessIteratorInterface<_Ty>&>()))> > : std::true_type {};
+				struct IsDynamicCastable<T, mse::impl::void_t<decltype(dynamic_cast<const TCommonizedRandomAccessIterator<mse::impl::remove_const_t<_Ty>, T>*>(&mse::impl::decl_lval<const TCommonRandomAccessIteratorInterface<_Ty>&>()))> > : std::true_type {};
 			};
 
 			/* Note: This class needs to be maintained as structurally identical to its non-const counterpart (above) as there may 
@@ -1905,7 +1905,7 @@ namespace mse {
 				template <typename T, typename = void>
 				struct IsDynamicCastable : std::false_type {};
 				template <typename T>
-				struct IsDynamicCastable<T, mse::impl::void_t<decltype(dynamic_cast<const TCommonizedRandomAccessConstIterator<mse::impl::remove_const_t<_Ty>, T>*>(&std::declval<const TCommonRandomAccessConstIteratorInterface<_Ty>&>()))> > : std::true_type {};
+				struct IsDynamicCastable<T, mse::impl::void_t<decltype(dynamic_cast<const TCommonizedRandomAccessConstIterator<mse::impl::remove_const_t<_Ty>, T>*>(&mse::impl::decl_lval<const TCommonRandomAccessConstIteratorInterface<_Ty>&>()))> > : std::true_type {};
 			};
 
 			template <typename _Ty, typename _TRandomAccessIterator1>
@@ -2671,7 +2671,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
-	template <class... _Args, typename _TRASection = decltype(make_random_access_section(std::forward<_Args>(std::declval<_Args>())...))>
+	template <class... _Args, typename _TRASection = decltype(make_random_access_section(std::forward<_Args>(mse::impl::decl_lval<_Args>())...))>
 	auto make_any_random_access_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRASection)") {
 		return TAnyRandomAccessSection<typename _TRASection::value_type>(make_random_access_section(std::forward<_Args>(_Ax)...));
 	}
@@ -2707,7 +2707,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
-	template <class... _Args, typename _TRASection = decltype(make_random_access_const_section(std::forward<_Args>(std::declval<_Args>())...))>
+	template <class... _Args, typename _TRASection = decltype(make_random_access_const_section(std::forward<_Args>(mse::impl::decl_lval<_Args>())...))>
 	auto make_any_random_access_const_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TRASection)") {
 		return TAnyRandomAccessConstSection<typename _TRASection::value_type>(make_random_access_const_section(std::forward<_Args>(_Ax)...));
 	}
@@ -2773,7 +2773,7 @@ namespace mse {
 	template <typename _Ty = char, class _Traits = std::char_traits<_Ty> >
 	using TAnyStringSection = TStringSection<TAnyRandomAccessIterator<_Ty>, _Traits>;
 
-	template <class... _Args, typename _TStrSection = decltype(make_string_section(std::forward<_Args>(std::declval<_Args>())...))>
+	template <class... _Args, typename _TStrSection = decltype(make_string_section(std::forward<_Args>(mse::impl::decl_lval<_Args>())...))>
 	auto make_any_string_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TStrSection)") {
 		return TAnyStringSection<typename _TStrSection::value_type, typename _TStrSection::traits_type>(make_string_section(std::forward<_Args>(_Ax)...));
 	}
@@ -2821,7 +2821,7 @@ namespace mse {
 		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
 
-	template <class... _Args, typename _TStrSection = decltype(make_string_const_section(std::forward<_Args>(std::declval<_Args>())...))>
+	template <class... _Args, typename _TStrSection = decltype(make_string_const_section(std::forward<_Args>(mse::impl::decl_lval<_Args>())...))>
 	auto make_any_string_const_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TStrSection)") {
 		return TAnyStringConstSection<typename _TStrSection::value_type, typename _TStrSection::traits_type>(make_string_const_section(std::forward<_Args>(_Ax)...));
 	}
@@ -2878,7 +2878,7 @@ namespace mse {
 
 		template<typename _Ty, typename _TPtr>
 		void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper(std::true_type) {
-			T_valid_if_not_an_std_basic_string_msepoly<_Ty, mse::impl::remove_reference_t<decltype(*std::declval<_TPtr>())> >();
+			T_valid_if_not_an_std_basic_string_msepoly<_Ty, mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TPtr>())> >();
 		}
 		template<typename _Ty, typename _TRALoneParam>
 		void T_valid_if_not_a_pointer_to_an_std_basic_string_msepoly_helper(std::false_type) {}
@@ -2964,7 +2964,7 @@ namespace mse {
 		void async_not_shareable_and_not_passable_tag() const {}
 	};
 
-	template <class... _Args, typename _TStrSection = decltype(make_nrp_string_section(std::forward<_Args>(std::declval<_Args>())...))>
+	template <class... _Args, typename _TStrSection = decltype(make_nrp_string_section(std::forward<_Args>(mse::impl::decl_lval<_Args>())...))>
 	auto make_any_nrp_string_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TStrSection)") {
 		return TAnyNRPStringSection<typename _TStrSection::value_type, typename _TStrSection::traits_type>(make_nrp_string_section(std::forward<_Args>(_Ax)...));
 	}
@@ -3056,7 +3056,7 @@ namespace mse {
 		static auto s_default_string_siptr() { typedef mse::nii_basic_string<nonconst_value_type, _Traits> str_t; MSE_DECLARE_STATIC_IMMUTABLE(str_t) s_default_string; return &s_default_string; }
 	};
 
-	template <class... _Args, typename _TStrSection = decltype(make_nrp_string_const_section(std::forward<_Args>(std::declval<_Args>())...))>
+	template <class... _Args, typename _TStrSection = decltype(make_nrp_string_const_section(std::forward<_Args>(mse::impl::decl_lval<_Args>())...))>
 	auto make_any_nrp_string_const_section(_Args&& ... _Ax) MSE_ATTR_FUNC_STR("mse::lifetime_scope_types_prohibited_for_template_parameter_by_name(_TStrSection)") {
 		return TAnyNRPStringConstSection<typename _TStrSection::value_type, typename _TStrSection::traits_type>(make_nrp_string_const_section(std::forward<_Args>(_Ax)...));
 	}

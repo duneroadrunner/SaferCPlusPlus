@@ -501,7 +501,7 @@ namespace mse {
 					template <typename T, typename = void>
 					struct SupportsStdSwap : std::false_type {};
 					template <typename T>
-					struct SupportsStdSwap<T, mse::impl::void_t<decltype(std::swap(std::declval<T>(), std::declval<T>()))> > : std::true_type {};
+					struct SupportsStdSwap<T, mse::impl::void_t<decltype(std::swap(mse::impl::decl_lval<T>(), mse::impl::decl_lval<T>()))> > : std::true_type {};
 
 					/// Whether the type T must be dynamically allocated or can be stored on the stack.
 					template<typename T>
@@ -1002,7 +1002,7 @@ namespace mse {
 			std::is_convertible<TPtr, mse::TXScopeFixedPointer<TTarget>>::value || std::is_convertible<TPtr, mse::TXScopeFixedConstPointer<TTarget>>::value> {};
 		template<typename TPtr>
 		struct is_convertible_to_nonowning_scope_pointer : is_convertible_to_nonowning_scope_pointer_helper1<TPtr
-			, mse::impl::remove_reference_t<decltype(*std::declval<TPtr>())> > {};
+			, mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<TPtr>())> > {};
 
 		template<typename TPtr, typename TTarget>
 		struct is_convertible_to_nonowning_scope_or_indeterminate_pointer_helper1 : std::integral_constant<bool,
@@ -1013,7 +1013,7 @@ namespace mse {
 		> {};
 		template<typename TPtr>
 		struct is_convertible_to_nonowning_scope_or_indeterminate_pointer : is_convertible_to_nonowning_scope_or_indeterminate_pointer_helper1
-			<TPtr, mse::impl::remove_reference_t<decltype(*std::declval<TPtr>())> > {};
+			<TPtr, mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<TPtr>())> > {};
 	}
 	namespace rsv {
 		namespace impl {
@@ -1301,7 +1301,7 @@ namespace mse {
 		namespace impl {
 			/* This template type alias is only used because msvc2017(v15.9.0) crashes if the type expression is used directly. */
 			template<class _Ty2, class _TMemberObjectPointer>
-			using make_xscope_pointer_to_member_v2_return_type1 = TXScopeFixedPointer<mse::impl::remove_reference_t<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())> >;
+			using make_xscope_pointer_to_member_v2_return_type1 = TXScopeFixedPointer<mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_Ty2>().*mse::impl::decl_lval<_TMemberObjectPointer>())> >;
 		}
 	}
 	namespace impl {
@@ -1827,7 +1827,7 @@ namespace mse {
 		struct HasOrInheritsIteratorCategoryMemberType_impl
 		{
 			template<class U, class V>
-			static auto test(U*) -> decltype(std::declval<typename U::iterator_category>(), std::declval<typename V::iterator_category>(), bool(true));
+			static auto test(U*) -> decltype(mse::impl::decl_lval<typename U::iterator_category>(), mse::impl::decl_lval<typename V::iterator_category>(), bool(true));
 			template<typename, typename>
 			static auto test(...) -> std::false_type;
 
@@ -2724,13 +2724,13 @@ namespace std {
 
 	template <typename _Tx, typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS >
 	auto get(const mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
-		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Tx>(std::declval<const _Ty&>(), std::forward<_Args>(_Ax)...))) {
+		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Tx>(mse::impl::decl_lval<const _Ty&>(), std::forward<_Args>(_Ax)...))) {
 		const auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
 		return mse::rsv::as_a_returnable_fparam(get<_Tx>(param_base_ref, std::forward<_Args>(_Ax)...));
 	}
 	template <typename _Tx, typename _Ty, class... _Args, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_potentially_xscope<_Ty>::value> MSE_IMPL_EIS >
 	auto get(mse::rsv::TReturnableFParam<_Ty>& param, _Args&&... _Ax)
-		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Tx>(std::declval<_Ty&>(), std::forward<_Args>(_Ax)...))) {
+		-> decltype(mse::rsv::as_a_returnable_fparam(get<_Tx>(mse::impl::decl_lval<_Ty&>(), std::forward<_Args>(_Ax)...))) {
 		auto& param_base_ref = mse::us::impl::raw_reference_to<_Ty>(param);
 		return mse::rsv::as_a_returnable_fparam(get<_Tx>(param_base_ref, std::forward<_Args>(_Ax)...));
 	}
@@ -3177,7 +3177,7 @@ namespace mse {
 	namespace impl {
 		/* This template type alias is only used because msvc2017(v15.9.0) crashes if the type expression is used directly. */
 		template<class _Ty2, class _TMemberObjectPointer>
-		using make_xscope_pointer_to_member_v2_return_type1 = rsv::TXScopeFixedPointer<mse::impl::remove_reference_t<decltype(std::declval<_Ty2>().*std::declval<_TMemberObjectPointer>())> >;
+		using make_xscope_pointer_to_member_v2_return_type1 = rsv::TXScopeFixedPointer<mse::impl::remove_reference_t<decltype(mse::impl::decl_lval<_Ty2>().*mse::impl::decl_lval<_TMemberObjectPointer>())> >;
 	}
 #endif // MSE_SCOPEPOINTER_DISABLED
 
