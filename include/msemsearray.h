@@ -2023,116 +2023,120 @@ namespace mse {
 
 		namespace us {
 			template<class _InIt> auto iterator_pair_to_raw_pointers_checked(const _InIt& first, const _InIt& last);
+			template<class _InIt> class TXScopeSpecializedFirstAndLast;
+			template<class _ContainerPointer> class TXScopeRangeIterProvider;
+			template<class _ContainerPointer> class TRangeIterProvider;
+			template<class _ContainerPointer> auto make_xscope_range_iter_provider(const _ContainerPointer& ptr);
 		}
-		template<class _InIt> class TXScopeSpecializedFirstAndLast;
-		template<class _ContainerPointer> class TXScopeRangeIterProvider;
-		template<class _ContainerPointer> class TRangeIterProvider;
-		template<class _ContainerPointer> auto make_xscope_range_iter_provider(const _ContainerPointer& ptr);
 	}
 	template<class _InIt, class _Pr, class... Args> inline _InIt find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args);
 	template<class _InIt, class _Fn, class... Args> inline auto for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func, const Args&... args);
 	template<class _RanIt> inline void sort(const _RanIt& _First, const _RanIt& _Last);
 
 	namespace impl {
+		namespace us {
 
-		/* Some algorithm implementation specializations for TXScopeCSSSStrongRA(Const)Iterator<>s.  */
+			/* Some algorithm implementation specializations for TXScopeCSSSStrongRA(Const)Iterator<>s.  */
 
-		/* Provides raw pointer iterators from the given iterators of a "random access" container. */
-		template<class _InIt>
-		class TXScopeRawPointerRAFirstAndLast {
-		public:
-			typedef decltype(us::iterator_pair_to_raw_pointers_checked(mse::impl::decl_lval<_InIt>(), mse::impl::decl_lval<_InIt>())) raw_pair_t;
-			TXScopeRawPointerRAFirstAndLast(const _InIt& _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"), const _InIt& _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
-				: m_raw_pair(us::iterator_pair_to_raw_pointers_checked(_First, _Last)) {}
-			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return m_raw_pair.first;
+			/* Provides raw pointer iterators from the given iterators of a "random access" container. */
+			template<class _InIt>
+			class TXScopeRawPointerRAFirstAndLast {
+			public:
+				typedef decltype(us::iterator_pair_to_raw_pointers_checked(mse::impl::decl_lval<_InIt>(), mse::impl::decl_lval<_InIt>())) raw_pair_t;
+				TXScopeRawPointerRAFirstAndLast(const _InIt& _First MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"), const _InIt& _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(_[99])"))
+					: m_raw_pair(us::iterator_pair_to_raw_pointers_checked(_First, _Last)) {
+				}
+				const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return m_raw_pair.first;
+				}
+				const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return m_raw_pair.second;
+				}
+
+			private:
+				raw_pair_t m_raw_pair MSE_ATTR_STR("mse::lifetime_label(99)");
+			} MSE_ATTR_STR("mse::lifetime_label(99)");
+
+			/* Provides raw pointer iterators for the given "random access" container. */
+			template<class _ContainerPointer>
+			class TXScopeRARangeRawPointerIterProvider {
+			public:
+				typedef decltype(std::addressof((*mse::impl::decl_lval<_ContainerPointer>())[0])) iter_t;
+				TXScopeRARangeRawPointerIterProvider(const _ContainerPointer& _XscpPtr) : m_begin(std::addressof((*_XscpPtr)[0]))
+					, m_end(std::addressof((*_XscpPtr)[0]) + mse::as_a_size_t((*_XscpPtr).size())) {
+				}
+				const auto& begin() const { return m_begin; }
+				const auto& end() const { return m_end; }
+
+			private:
+				iter_t m_begin;
+				iter_t m_end;
+			};
+
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case TXScopeCSSSStrongRA(Const)Iterator<>s. */
+			template <typename _TRAContainerPointer>
+			class TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> >
+				: public TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> > base_class;
+				MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			};
+
+			template <typename _TRAContainerPointer>
+			auto make_xscope_specialized_first_and_last_overloaded(const TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>& _First, const TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>& _Last) {
+				return TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> >(_First, _Last);
 			}
-			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return m_raw_pair.second;
+
+			template <typename _TRAContainerPointer>
+			class TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> >
+				: public TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> > base_class;
+				MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			};
+
+			template <typename _TRAContainerPointer>
+			auto make_xscope_specialized_first_and_last_overloaded(const TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _First, const TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _Last) {
+				return TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> >(_First, _Last);
 			}
 
-		private:
-			raw_pair_t m_raw_pair MSE_ATTR_STR("mse::lifetime_label(99)");
-		} MSE_ATTR_STR("mse::lifetime_label(99)");
+			/* Provides raw pointer iterators for the given "random access" container while holding on to one of the iterators (or a copy of it). */
+			template <typename iter_t>
+			class TXScopeStrongRawPointerRAFirstAndLast : public TXScopeRawPointerRAFirstAndLast<iter_t> {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<iter_t> base_class;
+				TXScopeStrongRawPointerRAFirstAndLast(iter_t first, const iter_t& last) : base_class(first, last), m_first(std::move(first)) {}
 
-		/* Provides raw pointer iterators for the given "random access" container. */
-		template<class _ContainerPointer>
-		class TXScopeRARangeRawPointerIterProvider {
-		public:
-			typedef decltype(std::addressof((*mse::impl::decl_lval<_ContainerPointer>())[0])) iter_t;
-			TXScopeRARangeRawPointerIterProvider(const _ContainerPointer& _XscpPtr) : m_begin(std::addressof((*_XscpPtr)[0]))
-				, m_end(std::addressof((*_XscpPtr)[0]) + mse::as_a_size_t((*_XscpPtr).size())) {}
-			const auto& begin() const { return m_begin; }
-			const auto& end() const { return m_end; }
+			private:
+				/* We need to store one of the given iterators (or a copy of it) as it holds, while it exists, (safe) access rights to the range. */
+				iter_t m_first;
+			};
 
-		private:
-			iter_t m_begin;
-			iter_t m_end;
-		};
+			/* Overloads that replace certain iterators with fast (raw pointer) iterators when it's safe to do so. In this case
+			lvalue (but not rvalue) mse::TXScopeRA(Const)Iterator<mse::TXScopeAccessControlledConstPointer<> >s of "exclusive writer" objects. */
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
+				return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
+			}
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
+				return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
+			}
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& _First, const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) = delete;
 
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case TXScopeCSSSStrongRA(Const)Iterator<>s. */
-		template <typename _TRAContainerPointer>
-		class TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> >
-			: public TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
-
-		template <typename _TRAContainerPointer>
-		auto make_xscope_specialized_first_and_last_overloaded(const TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>& _First, const TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer>& _Last) {
-			return TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAConstIterator<_TRAContainerPointer> >(_First, _Last);
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
+				return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
+			}
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
+				return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
+			}
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& _First, const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) = delete;
 		}
-
-		template <typename _TRAContainerPointer>
-		class TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> >
-			: public TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
-
-		template <typename _TRAContainerPointer>
-		auto make_xscope_specialized_first_and_last_overloaded(const TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _First, const TXScopeCSSSStrongRAIterator<_TRAContainerPointer>& _Last) {
-			return TXScopeSpecializedFirstAndLast<TXScopeCSSSStrongRAIterator<_TRAContainerPointer> >(_First, _Last);
-		}
-
-		/* Provides raw pointer iterators for the given "random access" container while holding on to one of the iterators (or a copy of it). */
-		template <typename iter_t>
-		class TXScopeStrongRawPointerRAFirstAndLast : public TXScopeRawPointerRAFirstAndLast<iter_t> {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<iter_t> base_class;
-			TXScopeStrongRawPointerRAFirstAndLast(iter_t first, const iter_t& last) : base_class(first, last), m_first(std::move(first)) {}
-
-		private:
-			/* We need to store one of the given iterators (or a copy of it) as it holds, while it exists, (safe) access rights to the range. */
-			iter_t m_first;
-		};
-
-		/* Overloads that replace certain iterators with fast (raw pointer) iterators when it's safe to do so. In this case
-		lvalue (but not rvalue) mse::TXScopeRA(Const)Iterator<mse::TXScopeAccessControlledConstPointer<> >s of "exclusive writer" objects. */
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
-			return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
-		}
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
-			return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
-		}
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& _First, const mse::TXScopeRAConstIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) = delete;
-
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
-			return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
-		}
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
-			return TXScopeStrongRawPointerRAFirstAndLast<mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
-		}
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& _First, const mse::TXScopeRAIterator<mse::TXScopeAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) = delete;
 	}
 }
 
@@ -4388,78 +4392,80 @@ namespace mse {
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::rsv::TXSLTACSSSStrongRAIterator, mse::rsv::TXSLTACSSSStrongRAConstIterator);
 
 	namespace impl {
+		namespace us {
 
-		/* Some algorithm implementation specializations for mse::rsv::TXSLTACSSSStrongRA(Const)Iterator<>s.  */
+			/* Some algorithm implementation specializations for mse::rsv::TXSLTACSSSStrongRA(Const)Iterator<>s.  */
 
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case mse::rsv::TXSLTACSSSStrongRA(Const)Iterator<>s. */
-		template <typename _TRAContainerPointer>
-		class TXScopeSpecializedFirstAndLast<mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> >
-			: public TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> > base_class;
-			typedef mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> _InIt;
-			//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-			TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
-			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return base_class::first();
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case mse::rsv::TXSLTACSSSStrongRA(Const)Iterator<>s. */
+			template <typename _TRAContainerPointer>
+			class TXScopeSpecializedFirstAndLast<mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> >
+				: public TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> > base_class;
+				typedef mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> _InIt;
+				//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+				TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
+				const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return base_class::first();
+				}
+				const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return base_class::last();
+				}
+			} MSE_ATTR_STR("mse::lifetime_labels(99)");
+
+			template <typename _TRAContainerPointer>
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>& _First, const mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>& _Last) {
+				return TXScopeSpecializedFirstAndLast<mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> >(_First, _Last);
 			}
-			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return base_class::last();
+
+			template <typename _TRAContainerPointer>
+			class TXScopeSpecializedFirstAndLast<mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> >
+				: public TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> > base_class;
+				typedef mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> _InIt;
+				//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+				TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
+				const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return base_class::first();
+				}
+				const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return base_class::last();
+				}
+			} MSE_ATTR_STR("mse::lifetime_labels(99)");
+
+			template <typename _TRAContainerPointer>
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer>& _First, const mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer>& _Last) {
+				return TXScopeSpecializedFirstAndLast<mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> >(_First, _Last);
 			}
-		} MSE_ATTR_STR("mse::lifetime_labels(99)");
 
-		template <typename _TRAContainerPointer>
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>& _First, const mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer>& _Last) {
-			return TXScopeSpecializedFirstAndLast<mse::rsv::TXSLTACSSSStrongRAConstIterator<_TRAContainerPointer> >(_First, _Last);
-		}
-
-		template <typename _TRAContainerPointer>
-		class TXScopeSpecializedFirstAndLast<mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> >
-			: public TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> > base_class;
-			typedef mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> _InIt;
-			//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-			TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
-			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return base_class::first();
+			/* Overloads that replace certain iterators with fast (raw pointer) iterators when it's safe to do so. In this case
+			lvalue (but not rvalue) mse::rsv::TXSLTARA(Const)Iterator<mse::rsv::TXSLTAAccessControlledConstPointer<> >s of "exclusive writer" objects. */
+			/*
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
+				return TXScopeStrongRawPointerRAFirstAndLast<mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
 			}
-			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return base_class::last();
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
+				return TXScopeStrongRawPointerRAFirstAndLast<mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
 			}
-		} MSE_ATTR_STR("mse::lifetime_labels(99)");
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& _First, const mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) = delete;
 
-		template <typename _TRAContainerPointer>
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer>& _First, const mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer>& _Last) {
-			return TXScopeSpecializedFirstAndLast<mse::rsv::TXSLTACSSSStrongRAIterator<_TRAContainerPointer> >(_First, _Last);
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
+				return TXScopeStrongRawPointerRAFirstAndLast<mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
+			}
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
+				return TXScopeStrongRawPointerRAFirstAndLast<mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
+			}
+			template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
+			auto make_xscope_specialized_first_and_last_overloaded(mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& _First, const mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) = delete;
+			*/
 		}
-
-		/* Overloads that replace certain iterators with fast (raw pointer) iterators when it's safe to do so. In this case
-		lvalue (but not rvalue) mse::rsv::TXSLTARA(Const)Iterator<mse::rsv::TXSLTAAccessControlledConstPointer<> >s of "exclusive writer" objects. */
-		/*
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
-			return TXScopeStrongRawPointerRAFirstAndLast<mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
-		}
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
-			return TXScopeStrongRawPointerRAFirstAndLast<mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
-		}
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& _First, const mse::rsv::TXSLTARAConstIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) = delete;
-
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
-			return TXScopeStrongRawPointerRAFirstAndLast<mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
-		}
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _First, const mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) {
-			return TXScopeStrongRawPointerRAFirstAndLast<mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> > >(_First, _Last);
-		}
-		template <typename _TRAContainer, class _TAccessMutex, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::is_exclusive_writer_enforcing_mutex_msemsearray<_TAccessMutex>::value> MSE_IMPL_EIS >
-		auto make_xscope_specialized_first_and_last_overloaded(mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >&& _First, const mse::rsv::TXSLTARAIterator<mse::rsv::TXSLTAAccessControlledConstPointer<_TRAContainer, _TAccessMutex> >& _Last) = delete;
-		*/
 	}
 }
 
@@ -9717,19 +9723,21 @@ namespace mse {
 			};
 		}
 
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case TXScopeCSSSXSTERandomAccess(Const)SectionIterator<>s. */
-		template <typename _TElement>
-		class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement> >
-			: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+		namespace us {
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case TXScopeCSSSXSTERandomAccess(Const)SectionIterator<>s. */
+			template <typename _TElement>
+			class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement> >
+				: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement> > base_class;
+				MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			};
 
-		template <typename _TElement>
-		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement>& _Last) {
-			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement> >(_First, _Last);
+			template <typename _TElement>
+			auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement>& _Last) {
+				return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_const_section::TXScopeCSSSXSTERandomAccessConstSectionConstIterator<_TElement> >(_First, _Last);
+			}
 		}
 	}
 
@@ -9872,34 +9880,36 @@ namespace mse {
 			};
 		}
 
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case TXScopeCSSSXSTERandomAccess(Const)SectionIterator<>s. */
-		template <typename _TElement>
-		class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> >
-			: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+		namespace us {
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case TXScopeCSSSXSTERandomAccess(Const)SectionIterator<>s. */
+			template <typename _TElement>
+			class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> >
+				: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> > base_class;
+				MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			};
 
-		template <typename _TElement>
-		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement>& _First, const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement>& _Last) {
-			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> >(_First, _Last);
-		}
+			template <typename _TElement>
+			auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement>& _First, const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement>& _Last) {
+				return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionIterator<_TElement> >(_First, _Last);
+			}
 
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case TXScopeCSSSXSTERandomAccess(Const)SectionIterator<>s. */
-		template <typename _TElement>
-		class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> >
-			: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case TXScopeCSSSXSTERandomAccess(Const)SectionIterator<>s. */
+			template <typename _TElement>
+			class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> >
+				: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> > base_class;
+				MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			};
 
-		template <typename _TElement>
-		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement>& _Last) {
-			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> >(_First, _Last);
+			template <typename _TElement>
+			auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement>& _Last) {
+				return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_ra_section::TXScopeCSSSXSTERandomAccessSectionConstIterator<_TElement> >(_First, _Last);
+			}
 		}
 	}
 
@@ -12123,27 +12133,29 @@ namespace mse {
 	}
 
 	namespace impl {
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case TXSLTACSSSXSTERandomAccess(Const)SectionIterator<>s. */
-		template <typename _TElement>
-		class TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> >
-			: public TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> > base_class;
-			typedef mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> _InIt;
-			//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-			TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
-			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return base_class::first();
-			}
-			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return base_class::last();
-			}
-		} MSE_ATTR_STR("mse::lifetime_labels(99)");
+		namespace us {
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case TXSLTACSSSXSTERandomAccess(Const)SectionIterator<>s. */
+			template <typename _TElement>
+			class TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> >
+				: public TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> > base_class;
+				typedef mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> _InIt;
+				//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+				TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
+				const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return base_class::first();
+				}
+				const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return base_class::last();
+				}
+			} MSE_ATTR_STR("mse::lifetime_labels(99)");
 
-		template <typename _TElement>
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement>& _First, const mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement>& _Last) {
-			return TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> >(_First, _Last);
+			template <typename _TElement>
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement>& _First, const mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement>& _Last) {
+				return TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_const_section::TXSLTACSSSXSTERandomAccessConstSectionConstIterator<_TElement> >(_First, _Last);
+			}
 		}
 	}
 
@@ -12321,42 +12333,44 @@ namespace mse {
 	}
 
 	namespace impl {
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case TXSLTACSSSXSTERandomAccess(Const)SectionIterator<>s. */
-		template <typename _TElement>
-		class TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> >
-			: public TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> > base_class;
-			typedef mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> _InIt;
-			//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-			TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
-			const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return base_class::first();
+		namespace us {
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case TXSLTACSSSXSTERandomAccess(Const)SectionIterator<>s. */
+			template <typename _TElement>
+			class TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> >
+				: public TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> > base_class;
+				typedef mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> _InIt;
+				//MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+				TXScopeSpecializedFirstAndLast(_InIt _First MSE_ATTR_PARAM_STR("mse::lifetime_label(99)"), _InIt _Last MSE_ATTR_PARAM_STR("mse::lifetime_label(99)")) : base_class(std::move(_First), std::move(_Last)) {}
+				const auto& first() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return base_class::first();
+				}
+				const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
+					return base_class::last();
+				}
+			} MSE_ATTR_STR("mse::lifetime_labels(99)");
+
+			template <typename _TElement>
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement>& _First, const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement>& _Last) {
+				return TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> >(_First, _Last);
 			}
-			const auto& last() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(42); this(42); return_value(42) }") {
-				return base_class::last();
+
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case TXSLTACSSSXSTERandomAccess(Const)SectionIterator<>s. */
+			template <typename _TElement>
+			class TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> >
+				: public TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> > base_class;
+				MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			};
+
+			template <typename _TElement>
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement>& _First, const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement>& _Last) {
+				return TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> >(_First, _Last);
 			}
-		} MSE_ATTR_STR("mse::lifetime_labels(99)");
-
-		template <typename _TElement>
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement>& _First, const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement>& _Last) {
-			return TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionIterator<_TElement> >(_First, _Last);
-		}
-
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case TXSLTACSSSXSTERandomAccess(Const)SectionIterator<>s. */
-		template <typename _TElement>
-		class TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> >
-			: public TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
-
-		template <typename _TElement>
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement>& _First, const mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement>& _Last) {
-			return TXScopeSpecializedFirstAndLast<mse::rsv::impl::ns_xs_csssxste_ra_section::TXSLTACSSSXSTERandomAccessSectionConstIterator<_TElement> >(_First, _Last);
 		}
 	}
 

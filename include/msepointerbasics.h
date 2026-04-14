@@ -333,7 +333,17 @@ namespace mse {
 #endif // !MSE_CHECK_USE_BEFORE_SET
 #endif // !MSE_SUPPRESS_CHECK_USE_BEFORE_SET
 
+	namespace us {
+		namespace impl {
+			template<typename _Ty>
+			_Ty& as_an_lvalue_ref(_Ty& x) { return x; }
+			template<typename _Ty>
+			_Ty& as_an_lvalue_ref(_Ty&& x) { return as_an_lvalue_ref(x); }
+		}
+	}
 	namespace impl {
+		template<typename _Ty>
+		_Ty& decl_lval() { return mse::us::impl::as_an_lvalue_ref(std::declval<_Ty>()); }
 
 		template<class... Bases>
 		struct options_t : Bases... { };
@@ -346,14 +356,6 @@ namespace mse {
 		template <class _Ty> using add_lvalue_reference_t = typename std::add_lvalue_reference<_Ty>::type;
 		template <class _Ty> using decay_t = typename std::decay<_Ty>::type;
 		template <typename...> using void_t = void;
-
-		template<typename _Ty>
-		_Ty& as_an_lvalue_ref(_Ty& x) { return x; }
-		template<typename _Ty>
-		_Ty& as_an_lvalue_ref(_Ty&& x) { return as_an_lvalue_ref(x); }
-
-		template<typename _Ty>
-		_Ty& decl_lval() { return as_an_lvalue_ref(std::declval<_Ty>()); }
 	}
 
 #if defined(_MSC_VER) && !defined(MSE_HAS_CXX17)

@@ -2037,19 +2037,21 @@ namespace mse {
 			};
 		}
 
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case TXScopeCSSSXSTEString(Const)SectionIterator<>s. */
-		template <typename _TElement>
-		class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> >
-			: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+		namespace us {
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case TXScopeCSSSXSTEString(Const)SectionIterator<>s. */
+			template <typename _TElement>
+			class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> >
+				: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> > base_class;
+				MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			};
 
-		template <typename _TElement>
-		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement>& _Last) {
-			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> >(_First, _Last);
+			template <typename _TElement>
+			auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement>& _Last) {
+				return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_const_section::TXScopeCSSSXSTEStringConstSectionConstIterator<_TElement> >(_First, _Last);
+			}
 		}
 	}
 
@@ -2197,34 +2199,36 @@ namespace mse {
 			};
 		}
 
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case TXScopeCSSSXSTEString(Const)SectionIterator<>s. */
-		template <typename _TElement>
-		class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> >
-			: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+		namespace us {
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case TXScopeCSSSXSTEString(Const)SectionIterator<>s. */
+			template <typename _TElement>
+			class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> >
+				: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> > base_class;
+				MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			};
 
-		template <typename _TElement>
-		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement>& _First, const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement>& _Last) {
-			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> >(_First, _Last);
-		}
+			template <typename _TElement>
+			auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement>& _First, const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement>& _Last) {
+				return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionIterator<_TElement> >(_First, _Last);
+			}
 
-		/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case TXScopeCSSSXSTEString(Const)SectionIterator<>s. */
-		template <typename _TElement>
-		class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> >
-			: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> > {
-		public:
-			typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> > base_class;
-			MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
-		};
+			/* Specializations of TXScopeSpecializedFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case TXScopeCSSSXSTEString(Const)SectionIterator<>s. */
+			template <typename _TElement>
+			class TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> >
+				: public TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> > {
+			public:
+				typedef TXScopeRawPointerRAFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> > base_class;
+				MSE_USING(TXScopeSpecializedFirstAndLast, base_class);
+			};
 
-		template <typename _TElement>
-		auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement>& _Last) {
-			return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> >(_First, _Last);
+			template <typename _TElement>
+			auto make_xscope_specialized_first_and_last_overloaded(const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement>& _First, const ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement>& _Last) {
+				return TXScopeSpecializedFirstAndLast<ns_xs_csssxste_string_section::TXScopeCSSSXSTEStringSectionConstIterator<_TElement> >(_First, _Last);
+			}
 		}
 	}
 
@@ -4134,9 +4138,9 @@ namespace mse {
 					/*m_debug_size = size();*/
 					return (*this);
 				}
-				template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::IsSupportedByMakeXScopeRangeIterProvider<_TParam1>::value> MSE_IMPL_EIS >
+				template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t<mse::impl::us::IsSupportedByMakeXScopeRangeIterProvider<_TParam1>::value> MSE_IMPL_EIS >
 				gnii_basic_string& assign_helper2(std::false_type, const _TParam1& _Right) {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return assign(xs_iters.begin(), xs_iters.end());
 				}
 				gnii_basic_string& assign_helper1(std::true_type, const gnii_basic_string& _Right) {
@@ -4150,7 +4154,7 @@ namespace mse {
 
 			public:
 				template<class _TParam1, MSE_IMPL_EIP mse::impl::enable_if_t<std::is_base_of<gnii_basic_string, _TParam1>::value 
-					|| _is_string_view_ish<_TParam1>::value || mse::impl::IsSupportedByMakeXScopeRangeIterProvider<_TParam1>::value> MSE_IMPL_EIS >
+					|| _is_string_view_ish<_TParam1>::value || mse::impl::us::IsSupportedByMakeXScopeRangeIterProvider<_TParam1>::value> MSE_IMPL_EIS >
 				gnii_basic_string& assign(const _TParam1& _Right) {
 					return assign_helper1(typename std::is_base_of<gnii_basic_string, _TParam1>::type(), _Right);
 				}
@@ -4169,7 +4173,7 @@ namespace mse {
 					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 						: difference_type(_Count);
 					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" gnii_basic_string::assign() ")); }
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return assign(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
 				}
 				gnii_basic_string& assign_helper1(std::true_type, const gnii_basic_string& _Right, const size_type _Roff, const size_type _Count) {
@@ -4959,7 +4963,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				gnii_basic_string& append_helper2(std::false_type, const _TParam1& _Right) {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return (append(xs_iters.begin(), xs_iters.end()));
 				}
 				gnii_basic_string& append_helper1(std::true_type, const gnii_basic_string& _Right) {
@@ -4990,7 +4994,7 @@ namespace mse {
 					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 						: difference_type(_Count);
 					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" gnii_basic_string::append() ")); }
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return append(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
 				}
 				gnii_basic_string& append_helper1(std::true_type, const gnii_basic_string& _Right, const size_type _Roff, const size_type _Count) {
@@ -5081,7 +5085,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				gnii_basic_string& replace_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return replace(_Off, _N0, xs_iters.begin(), xs_iters.end());
 				}
 				gnii_basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const gnii_basic_string& _Right) {
@@ -5111,7 +5115,7 @@ namespace mse {
 					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 						: difference_type(_Count);
 					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" gnii_basic_string::replace() ")); }
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return replace(_Off, _N0, xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
 				}
 				gnii_basic_string& replace_helper1(std::true_type, const size_type _Off, const size_type _N0, const gnii_basic_string& _Right, const size_type _Roff, const size_type _Count) {
@@ -5240,7 +5244,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				int compare_helper2(std::false_type, const _TParam1& _Right) const {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return std::lexicographical_compare(contained_basic_string().cbegin(), contained_basic_string().cend(), xs_iters.begin(), xs_iters.end());
 					//return compare(gnii_basic_string(xs_iters.begin(), xs_iters.end()));
 				}
@@ -5265,7 +5269,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				int compare_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return compare(_Off, _N0, gnii_basic_string(xs_iters.begin(), xs_iters.end()));
 				}
 				int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const gnii_basic_string& _Right) const {
@@ -5292,7 +5296,7 @@ namespace mse {
 					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 						: difference_type(_Count);
 					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" gnii_basic_string::compare() ")); }
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return compare(_Off, _N0, gnii_basic_string(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count)));
 				}
 				int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const gnii_basic_string& _Right, const size_type _Roff, const size_type _Count) const {
@@ -5323,7 +5327,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				size_type find_helper2(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return find(gnii_basic_string(xs_iters.begin(), xs_iters.end()), _Off);
 				}
 				size_type find_helper1(std::true_type, const gnii_basic_string& _Right, const size_type _Off = npos) const {
@@ -5370,7 +5374,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				size_type rfind_helper2(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return rfind(gnii_basic_string(xs_iters.begin(), xs_iters.end()), _Off);
 				}
 				size_type rfind_helper1(std::true_type, const gnii_basic_string& _Right, const size_type _Off = npos) const {
@@ -6585,7 +6589,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				_Myt& assign_helper2(std::false_type, const _TParam1& _Right) {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return assign(xs_iters.begin(), xs_iters.end());
 				}
 				_Myt& assign_helper1(std::true_type, const _Myt& _Right) {
@@ -6616,7 +6620,7 @@ namespace mse {
 					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 						: difference_type(_Count);
 					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" _Myt::assign() ")); }
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return assign(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count));
 				}
 				_Myt& assign_helper1(std::true_type, const _Myt& _Right, const size_type _Roff, const size_type _Count) {
@@ -6876,7 +6880,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				int compare_helper2(std::false_type, const _TParam1& _Right) const {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return std::lexicographical_compare(contained_basic_string().cbegin(), contained_basic_string().cend(), xs_iters.begin(), xs_iters.end());
 					//return compare(fixed_nii_basic_string_base(xs_iters.begin(), xs_iters.end()));
 				}
@@ -6901,7 +6905,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				int compare_helper2(std::false_type, const size_type _Off, const size_type _N0, const _TParam1& _Right) const {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return compare(_Off, _N0, fixed_nii_basic_string_base(xs_iters.begin(), xs_iters.end()));
 				}
 				int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const fixed_nii_basic_string_base& _Right) const {
@@ -6928,7 +6932,7 @@ namespace mse {
 					auto adjusted_count = (npos == _Count) ? (difference_type(mse::container_size(_Right)) - difference_type(_Roff))
 						: difference_type(_Count);
 					if (0 > adjusted_count) { MSE_THROW(std::out_of_range(" fixed_nii_basic_string_base::compare() ")); }
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return compare(_Off, _N0, fixed_nii_basic_string_base(xs_iters.begin() + difference_type(_Roff), xs_iters.begin() + difference_type(_Roff + adjusted_count)));
 				}
 				int compare_helper1(std::true_type, const size_type _Off, const size_type _N0, const fixed_nii_basic_string_base& _Right, const size_type _Roff, const size_type _Count) const {
@@ -6959,7 +6963,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				size_type find_helper2(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return find(fixed_nii_basic_string_base(xs_iters.begin(), xs_iters.end()), _Off);
 				}
 				size_type find_helper1(std::true_type, const fixed_nii_basic_string_base& _Right, const size_type _Off = npos) const {
@@ -7006,7 +7010,7 @@ namespace mse {
 				}
 				template<class _TParam1>
 				size_type rfind_helper2(std::false_type, const _TParam1& _Right, const size_type _Off = npos) const {
-					const auto xs_iters = mse::impl::make_xscope_range_iter_provider(_Right);
+					const auto xs_iters = mse::impl::us::make_xscope_range_iter_provider(_Right);
 					return rfind(fixed_nii_basic_string_base(xs_iters.begin(), xs_iters.end()), _Off);
 				}
 				size_type rfind_helper1(std::true_type, const fixed_nii_basic_string_base& _Right, const size_type _Off = npos) const {

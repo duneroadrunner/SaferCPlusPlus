@@ -409,45 +409,47 @@ namespace mse {
 	MSE_IMPL_CORRESPONDING_TYPE_WITH_CONST_TARGET_ITERATOR_TWO_TPARAM_SPECIALIZATION_IN_IMPL_NAMESPACE(mse::us::impl::TXScopeCSLSStrongRAIterator, mse::us::impl::TXScopeCSLSStrongRAConstIterator);
 
 	namespace impl {
+		namespace us {
 
-		/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
-		when it's safe to do so. In this case mse::us::impl::TXScopeCSLSStrongRA(Const)Iterator<>s. */
-		template <typename _TRAContainerPointer, typename _TStructureLockPointer>
-		class TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> >
-			: public TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAConstIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > {
-		public:
-			typedef TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAConstIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > base_class;
-			typedef mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> iter_t;
-			TXScopeSpecializedFirstAndLast(iter_t first, const iter_t& last) : base_class(first, last), m_first(std::move(first)) {}
+			/* Specializations of TXScopeRawPointerRAFirstAndLast<> that replace certain iterators with fast (raw pointer) iterators
+			when it's safe to do so. In this case mse::us::impl::TXScopeCSLSStrongRA(Const)Iterator<>s. */
+			template <typename _TRAContainerPointer, typename _TStructureLockPointer>
+			class TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> >
+				: public TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAConstIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > {
+			public:
+				typedef TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAConstIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > base_class;
+				typedef mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> iter_t;
+				TXScopeSpecializedFirstAndLast(iter_t first, const iter_t& last) : base_class(first, last), m_first(std::move(first)) {}
 
-		private:
-			/* We need to store one of the given iterators (or a copy of it) as it holds, while it exists, a "structure lock"
-			on the container (ensuring that it is not resized). */
-			iter_t m_first;
-		};
+			private:
+				/* We need to store one of the given iterators (or a copy of it) as it holds, while it exists, a "structure lock"
+				on the container (ensuring that it is not resized). */
+				iter_t m_first;
+			};
 
-		template <typename _TRAContainerPointer, typename _TStructureLockPointer>
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last) {
-			return TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> >(_First, _Last);
-		}
+			template <typename _TRAContainerPointer, typename _TStructureLockPointer>
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last) {
+				return TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAConstIterator<_TRAContainerPointer, _TStructureLockPointer> >(_First, _Last);
+			}
 
-		template <typename _TRAContainerPointer, typename _TStructureLockPointer>
-		class TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> >
-			: public TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > {
-		public:
-			typedef TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > base_class;
-			typedef mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> iter_t;
-			TXScopeSpecializedFirstAndLast(iter_t first, const iter_t& last) : base_class(first, last), m_first(std::move(first)) {}
+			template <typename _TRAContainerPointer, typename _TStructureLockPointer>
+			class TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> >
+				: public TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > {
+			public:
+				typedef TXScopeSpecializedFirstAndLast<TXScopeCSSSXSRAIterator<mse::impl::remove_const_t<mse::impl::remove_reference_t<decltype(*mse::impl::decl_lval<_TRAContainerPointer>())> > > > base_class;
+				typedef mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> iter_t;
+				TXScopeSpecializedFirstAndLast(iter_t first, const iter_t& last) : base_class(first, last), m_first(std::move(first)) {}
 
-		private:
-			/* We need to store one of the given iterators (or a copy of it) as it holds, while it exists, a "structure lock"
-			on the container (ensuring that it is not resized). */
-			iter_t m_first;
-		};
+			private:
+				/* We need to store one of the given iterators (or a copy of it) as it holds, while it exists, a "structure lock"
+				on the container (ensuring that it is not resized). */
+				iter_t m_first;
+			};
 
-		template <typename _TRAContainerPointer, typename _TStructureLockPointer>
-		auto make_xscope_specialized_first_and_last_overloaded(const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last) {
-			return TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> >(_First, _Last);
+			template <typename _TRAContainerPointer, typename _TStructureLockPointer>
+			auto make_xscope_specialized_first_and_last_overloaded(const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _First, const mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer>& _Last) {
+				return TXScopeSpecializedFirstAndLast<mse::us::impl::TXScopeCSLSStrongRAIterator<_TRAContainerPointer, _TStructureLockPointer> >(_First, _Last);
+			}
 		}
 	}
 }
