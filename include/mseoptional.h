@@ -3657,7 +3657,7 @@ namespace mse {
 				template <class T>
 				class fixed_optional_base2
 #ifdef MSE_HAS_CXX17
-					: private mse::impl::TOpaqueWrapper<optional_base1<T> >, private container_adjusted_default_state_mutex<T>{
+					: private mse::impl::TOpaqueWrapper<optional_base1<T> >, private container_adjusted_default_state_mutex<T>, public mse::us::impl::StaticStructureContainerTagBase {
 				public:
 					typedef mse::impl::TOpaqueWrapper<optional_base1<T> > base_class;
 					typedef optional_base1<T> _MO;
@@ -3702,7 +3702,7 @@ namespace mse {
 					//fixed_optional_base2(_MO&& src) : base_class(src) {}
 
 #else // MSE_HAS_CXX17
-					: public optional_base1<T>, private container_adjusted_default_state_mutex<T> {
+					: public optional_base1<T>, private container_adjusted_default_state_mutex<T>, public mse::us::impl::StaticStructureContainerTagBase {
 				public:
 					typedef optional_base1<T> base_class;
 					typedef base_class _MO;
@@ -4269,7 +4269,7 @@ namespace mse {
 
 					template <class T>
 					class xslta_fixed_optional_base
-						: private mse::impl::TOpaqueWrapper<mse::us::impl::ns_optional::optional_base1<T> >, private container_adjusted_default_state_mutex<T>{
+						: private mse::impl::TOpaqueWrapper<mse::us::impl::ns_optional::optional_base1<T> >, private container_adjusted_default_state_mutex<T>, public mse::us::impl::StaticStructureContainerTagBase  {
 					public:
 						typedef mse::impl::TOpaqueWrapper<mse::us::impl::ns_optional::optional_base1<T> > base_class;
 						typedef mse::us::impl::ns_optional::optional_base1<T> std_optional;
@@ -4795,7 +4795,7 @@ namespace mse {
 	namespace us {
 		namespace impl {
 			template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
-			class xscope_accessing_fixed_optional_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+			class xscope_accessing_fixed_optional_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StaticStructureContainerTagBase {
 			public:
 				typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
 				typedef mse::impl::target_type<_TPointerToLender> unchecked_contained_optional_t;
@@ -5401,7 +5401,7 @@ namespace mse {
 		namespace us {
 			namespace impl {
 				template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
-				class xslta_accessing_fixed_optional_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+				class xslta_accessing_fixed_optional_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::StaticStructureContainerTagBase {
 				public:
 					typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
 					typedef mse::impl::target_type<_TPointerToLender> unchecked_contained_optional_t;

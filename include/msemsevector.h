@@ -3457,7 +3457,7 @@ namespace mse {
 	namespace us {
 		namespace impl {
 			template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
-			class xscope_accessing_fixed_nii_vector_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+			class xscope_accessing_fixed_nii_vector_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
 			public:
 				typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
 				typedef mse::impl::target_type<_TPointerToLender> unchecked_contained_vector_t;
@@ -4558,7 +4558,7 @@ namespace mse {
 		namespace us {
 			namespace impl {
 				template<class _TPointerToLender, class _TLender = mse::impl::target_type<_TPointerToLender>, class _Ty = mse::impl::container_element_type<_TLender> >
-				class xslta_accessing_fixed_vector_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase {
+				class xslta_accessing_fixed_vector_base : public mse::us::impl::ContainsNonOwningScopeReferenceTagBase, public mse::us::impl::ContiguousSequenceStaticStructureContainerTagBase {
 				public:
 					typedef typename std::conditional<std::is_const<_TLender>::value, const _Ty, _Ty>::type const_adjusted_Ty;
 					typedef xslta_accessing_fixed_vector_base _Myt;
