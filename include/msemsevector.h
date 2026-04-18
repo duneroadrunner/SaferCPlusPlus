@@ -4633,30 +4633,30 @@ namespace mse {
 						return contained_vector().max_size();
 					}
 
-					typedef TXSLTACSSSXSRAConstIterator<unchecked_contained_vector_t> xslta_const_iterator;
-					typedef TXSLTACSSSXSRAIterator<unchecked_contained_vector_t> xslta_iterator;
+					typedef TXSLTACSSSXSRAConstIterator<_Myt> xslta_const_iterator;
+					typedef TXSLTACSSSXSRAIterator<_Myt> xslta_iterator;
 					typedef xslta_const_iterator const_iterator;
 					typedef xslta_iterator iterator;
 					typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 					typedef std::reverse_iterator<iterator> reverse_iterator;
 
 					iterator begin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
-						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<unchecked_contained_vector_t>(std::addressof(unchecked_contained_vector())), 0/*index*/);
+						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/);
 					}
 					const_iterator begin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 						return cbegin();
 					}
 					const_iterator cbegin() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
-						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<unchecked_contained_vector_t>(std::addressof(unchecked_contained_vector())), 0/*index*/);
+						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/);
 					}
 					iterator end() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
-						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<unchecked_contained_vector_t>(std::addressof(unchecked_contained_vector())), 0/*index*/) + (*this).size();
+						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_iterator(mse::rsv::TXSLTAPointer<_Myt>(this), 0/*index*/) + (*this).size();
 					}
 					const_iterator end() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
 						return cend();
 					}
 					const_iterator cend() const MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
-						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<unchecked_contained_vector_t>(std::addressof(unchecked_contained_vector())), 0/*index*/) + (*this).size();
+						return mse::rsv::us::unsafe_make_xslta_csss_strong_ra_const_iterator(mse::rsv::TXSLTAConstPointer<_Myt>(this), 0/*index*/) + (*this).size();
 					}
 
 					reverse_iterator rbegin() MSE_ATTR_FUNC_STR("mse::lifetime_notes{ label(99); this(99); return_value(99) }") {
