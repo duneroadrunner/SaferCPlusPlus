@@ -2481,7 +2481,7 @@ namespace mse {
 					auto assert_access_is_unlocked() const {
 #if !defined(NDEBUG)
 						if (m_access_is_prohibited) {
-							MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+							MSE_THROW(std::logic_error("attempt to access an optional while borrowed? - mse::us::impl::ns_optional::optional_base2"));
 						}
 #endif // !defined(NDEBUG)
 					}

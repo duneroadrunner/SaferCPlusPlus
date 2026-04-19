@@ -1910,7 +1910,7 @@ namespace mse {
 				auto assert_access_is_unlocked() const {
 #if !defined(NDEBUG)
 					if (m_access_is_prohibited) {
-						MSE_THROW(std::system_error(std::make_error_code(std::errc::resource_deadlock_would_occur)));
+						MSE_THROW(std::logic_error("attempt to access a vector while borrowed? - mse::us::impl::gnii_vector"));
 					}
 #endif // !defined(NDEBUG)
 				}
