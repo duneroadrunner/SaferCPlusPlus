@@ -2540,7 +2540,13 @@ namespace mse {
 
 					//typedef void* CFS1Object;
 					typedef std::unordered_map<void*, CAllocInfo1> pointer_to_alloc_info_map_t;
-					typedef std::pair<void*, CAllocInfo1> CFS1Object;
+					//typedef std::pair<void*, CAllocInfo1> CFS1Object;
+					struct CFS1Object : std::pair<void*, CAllocInfo1> {
+						typedef std::pair<void*, CAllocInfo1> base_class;
+						CFS1Object() : base_class({ nullptr, CAllocInfo1{} }) {}
+						CFS1Object(void* ptr1, CAllocInfo1 const& alloc_info1) : base_class({ ptr1, alloc_info1}) {}
+						CFS1Object(void* ptr1, CAllocInfo1&& alloc_info1) : base_class({ ptr1, MSE_FWD(alloc_info1) }) {}
+					};
 
 #ifndef MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS
 #define MSE_SALLOC_REGISTRY_FS1_MAX_OBJECTS 8/* Arbitrary. The optimal number depends on how slow "slow storage" is. */
@@ -6449,9 +6455,9 @@ namespace mse {
 					auto b4 = (NULL == vsr1);
 					MSE_TRY{
 						auto tint2_regptr = (decltype(&mse::impl::decl_lval<mse::TRegisteredObj<int> >()))(vsr1);
-						typedef decltype(&mse::impl::decl_lval<mse::TRegisteredObj<int> >())& type1;
-						auto tint3_regptr = type1(vsr1);
-						auto tint4_regptr = (decltype(&mse::impl::decl_lval<mse::TRegisteredObj<int> >())&)(vsr1);
+						//typedef decltype(&mse::impl::decl_lval<mse::TRegisteredObj<int> >())& type1;
+						//auto tint3_regptr = type1(vsr1);
+						//auto tint4_regptr = (decltype(&mse::impl::decl_lval<mse::TRegisteredObj<int> >())&)(vsr1);
 						auto ctint5_regptr = (decltype(&mse::impl::decl_lval<mse::TRegisteredObj<const int> >()))(vsr1);
 					} MSE_CATCH_ANY{
 						int q = 5;
