@@ -25,7 +25,7 @@ To see the library in action, you can check out some [benchmark code](https://gi
 Elements in this library are currently based on the C++17 version of their counterpart APIs. (C++14 is still supported.)
 
 #### Supported platforms
-Tested with the microsoft compiler (v.19.50.35718), g++13.3.0 and clang++18.1.3 (Ubuntu 24.04.1). Versions of g++ prior to version 5 are not supported. Apple clang++ is not currently a regular test target. With the microsoft compiler, compiling in "conformance" mode (/permissive-) (which is not the default when using C++17 or lower) is recommended.
+Tested with the microsoft compiler (v.19.51.36260), g++15.2.0 and clang++21.1.8 (Ubuntu 26.04.1). Versions of g++ prior to version 5 are not supported. Apple clang++ is not currently a regular test target. With the microsoft compiler, compiling in "conformance" mode (/permissive-) (which is not the default when using C++17 or lower) is recommended.
 
 ### Table of contents
 1. [Overview](#overview)
