@@ -3528,7 +3528,7 @@ namespace mse {
 				Tgnii_basic_string_ss_const_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
 				Tgnii_basic_string_ss_const_iterator_type operator+(difference_type n) const {
 					Tgnii_basic_string_ss_const_iterator_type retval(*this);
-					retval.advance(n);
+					retval += (n);
 					return retval;
 				}
 				Tgnii_basic_string_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -3580,7 +3580,7 @@ namespace mse {
 				Tgnii_basic_string_ss_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
 				Tgnii_basic_string_ss_iterator_type operator+(difference_type n) const {
 					Tgnii_basic_string_ss_iterator_type retval(*this);
-					retval.advance(n);
+					retval += (n);
 					return retval;
 				}
 				Tgnii_basic_string_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -4732,7 +4732,7 @@ namespace mse {
 					(*this_ptr).erase(_F, _L);
 
 					auto retval = mse::make_begin_iterator(this_ptr);
-					retval.advance(msev_int(pos_index));
+					retval += (msev_int(pos_index));
 					return retval;
 				}
 
@@ -5561,6 +5561,30 @@ namespace mse {
 					return std::getline(_Istr, _Myt_ref(*this_ptr).contained_basic_string());
 				}
 
+#ifdef MSE_HAS_CXX20
+				template <typename _TThisPointer, class _Uty>
+				static constexpr _Myt::size_type erase(_TThisPointer this_ptr, const _Uty& _Val) {
+					return std::erase(_Myt_ref(*this_ptr).contained_basic_string(), _Val);
+				}
+
+				template <typename _TThisPointer, class _Pr>
+				static constexpr _Myt::size_type erase_if(_TThisPointer this_ptr, _Pr _Pred) {
+					// erase each element satisfying _Pred
+					const auto _Old_size = this_ptr->size();
+					_Myt::difference_type result_pos = 0;
+					{
+						auto _First = mse::make_xscope_begin_iterator(this_ptr);
+						const auto _Last = mse::make_xscope_end_iterator(this_ptr);
+						auto res_iter = mse::remove_if(_First, _Last, _Pred);
+						result_pos = res_iter - _First;
+					}
+					this_ptr->erase(this_ptr, result_pos, this_ptr->size());
+					return static_cast<typename _Myt::size_type>(_Old_size - this_ptr->size());
+					/* _Pred can theoretically be dangerously mischievious, so we can't just use std::erase_if() on the contained std::basic_string<>. */
+					//return std::erase_if(_Myt_ref(*this_ptr).contained_basic_string(), _Pred);
+				}
+#endif // MSE_HAS_CXX20
+
 				MSE_INHERIT_ASYNC_SHAREABILITY_AND_PASSABILITY_OF(_Ty);
 
 			private:
@@ -6023,6 +6047,25 @@ namespace std {
 		mse::us::impl::gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex, _TTXScopeConstIterator>& _Str) {	// get characters into string, discard newline
 		return _Str.getline(_Istr, &_Str);
 	}
+
+#ifdef MSE_HAS_CXX20
+	template <class _Elem, class _Traits, class _Alloc, class _TStateMutex, template<typename> class _TTXScopeConstIterator, class _Uty>
+	constexpr mse::us::impl::gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex, _TTXScopeConstIterator>::size_type erase(
+		mse::us::impl::gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex, _TTXScopeConstIterator>& _Cont, const _Uty& _Val) {
+
+		return _Cont.erase(&_Cont, _Val);
+	}
+
+	template <class _Elem, class _Traits, class _Alloc, class _TStateMutex, template<typename> class _TTXScopeConstIterator, class _Pr>
+	constexpr mse::us::impl::gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex, _TTXScopeConstIterator>::size_type erase_if(
+		mse::us::impl::gnii_basic_string<_Elem, _Traits, _Alloc, _TStateMutex, _TTXScopeConstIterator>& _Cont, _Pr _Pred) {
+		static_assert(false, "With this interface we are currently unable to verify in the general case that predicate won't misbehave and "
+			"mess with the validity of the string during the call. This function is available via an alternative interface that takes a (safe) "
+			"pointer to the string (rather than a raw reference) and would be invoked like so: `safe_pointer_to_string->erase_if(safe_pointer_to_string, predicate)` ");
+
+		return _Cont.erase_if(&_Cont, _Pred);
+	}
+#endif // MSE_HAS_CXX20
 
 	template<class _Ty, class _Traits, class _A, class _TStateMutex, template<typename> class _TTXScopeConstIterator>
 	void swap(mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Left, mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex, _TTXScopeConstIterator>& _Right) _NOEXCEPT_OP(_NOEXCEPT_OP(_Left.swap(_Right)))
@@ -9847,6 +9890,15 @@ namespace mse {
 				(*this).erase(_P);
 			}
 
+			template<typename _TBasicStringPointer1>
+			static auto erase(_TBasicStringPointer1 this_ptr, size_type pos) {
+				return base_class::erase(this_ptr, pos);
+			}
+			template<typename _TBasicStringPointer1>
+			static auto erase(_TBasicStringPointer1 this_ptr, size_type start, size_type end) {
+				return base_class::erase(this_ptr, start, end);
+			}
+
 			template<typename _TMseArrayPointer> using Tss_iterator_type = typename base_class::template Tss_iterator_type<_TMseArrayPointer>;
 			template<typename _TMseArrayPointer> using Tss_const_iterator_type = typename base_class::template Tss_const_iterator_type<_TMseArrayPointer>;
 			template<typename _TMseArrayPointer> using Tss_reverse_iterator_type = typename base_class::template Tss_reverse_iterator_type<_TMseArrayPointer>;
@@ -10082,6 +10134,7 @@ namespace mse {
 			auto contained_basic_string() const -> decltype(base_class::contained_basic_string()) { return base_class::contained_basic_string(); }
 			auto contained_basic_string() -> decltype(base_class::contained_basic_string()) { return base_class::contained_basic_string(); }
 
+			friend class mse::us::impl::gnii_basic_string<_Ty, _Traits, _A, _TStateMutex>/* aka base_class */;
 			friend class mse::us::ns_msebasic_string::xscope_shared_structure_lock_guard<_Myt>;
 			friend class mse::us::ns_msebasic_string::xscope_shared_const_structure_lock_guard<_Myt>;
 			friend class mse::us::impl::Txscope_shared_structure_lock_guard<_Myt>;

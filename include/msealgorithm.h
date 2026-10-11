@@ -295,7 +295,15 @@ namespace mse {
 						break;
 					}
 				}
-				MSE_SUPPRESS_CHECK_IN_XSCOPE return _First + (current - xs_iters.first());
+
+				auto retval = _First;
+				auto _UIter1 = xs_iters.first();
+				while (_UIter1 != current) {
+					++retval;
+					++_UIter1;
+				}
+				return retval;
+				//MSE_SUPPRESS_CHECK_IN_XSCOPE return _First + (current - xs_iters.first());
 			}
 		};
 
@@ -624,6 +632,49 @@ namespace mse {
 		auto tmp_vexing_parse = impl::xscope_c_range_sort<_XScopeContainerPointer>(_XscpPtr);
 	}
 
+	namespace impl {
+		template<class _RanIt, class _Pr>
+		class c_sort_pr {
+		public:
+			c_sort_pr(const _RanIt& _First, const _RanIt& _Last, _Pr _Pred) { eval(_First, _Last, _Pred); }
+		private:
+			static void eval(const _RanIt& _First, const _RanIt& _Last, _Pr _Pred) {
+				const auto xs_iters = us::TXScopeSpecializedFirstAndLast<_RanIt>(_First, _Last);
+				/* The following otherwise useless line is so that the scpptool static analyzer can assess whether such a _Pred() call (a number of which 
+				will presumaably be made by the following std::sort() call) is lifetime valid. Note we're relying on the implicit/elided default lifetime 
+				annotation of the parameters. */
+				if (false && _Pred(*_First, *_First)) {}
+
+				MSE_SUPPRESS_CHECK_IN_XSCOPE std::sort(xs_iters.first(), xs_iters.first(), _Pred);
+			}
+		};
+
+		template<class _ContainerPointer, class _Pr>
+		class xscope_c_range_sort_pr {
+		public:
+			xscope_c_range_sort_pr(const _ContainerPointer& _XscpPtr, _Pr _Pred) { eval(_XscpPtr, _Pred); }
+		private:
+			static void eval(const _ContainerPointer& _XscpPtr, _Pr _Pred) {
+				const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
+				/* The following otherwise useless line is so that the scpptool static analyzer can assess whether such a _Pred() call (a number of which
+				will presumaably be made by the following std::sort() call) is lifetime valid. Note we're relying on the implicit/elided default lifetime 
+				annotation of the parameters. */
+				if (false && _Pred(*mse::rsv::make_xslta_begin_iterator(_XscpPtr), *mse::rsv::make_xslta_begin_iterator(_XscpPtr))) {}
+
+				MSE_SUPPRESS_CHECK_IN_XSCOPE std::sort(xs_iters.begin(), xs_iters.end(), _Pred);
+			}
+		};
+	}
+	template <class _RanIt, class _Pr>
+	inline void sort(const _RanIt& _First, const _RanIt& _Last, _Pr _Pred) {
+		impl::c_sort_pr<_RanIt, _Pr>(_First, _Last, _Pred);
+	}
+
+	template<class _XScopeContainerPointer, class _Pr>
+	inline void xscope_range_sort(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred) {
+		auto tmp_vexing_parse = impl::xscope_c_range_sort_pr<_XScopeContainerPointer, _Pr>(_XscpPtr);
+	}
+
 
 	/* equal() */
 
@@ -675,6 +726,157 @@ namespace mse {
 	inline auto xscope_range_equal(const _XScopeContainerPointer& _XscpPtr, _InIt2 _First2) {
 		MSE_SUPPRESS_CHECK_IN_XSCOPE return impl::xscope_c_range_equal<_XScopeContainerPointer, _InIt2>(_XscpPtr, _First2).result;
 	}
+
+
+	/* remove_if() */
+
+	namespace impl {
+		inline auto remove_if_ptr_placeholder_predicate() {
+			auto retval = [](auto) { return true; };
+			return retval;
+		};
+		template<class _InIt, class _Pr, class... Args>
+		class c_remove_if_ptr {
+		public:
+			typedef us::item_pointer_type_from_iterator<_InIt> item_pointer_type;
+			typedef mse::impl::remove_reference_t<_InIt> result_type;
+			result_type result;
+			c_remove_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) : result(eval(_First, _Last, _Pred, args...)) {}
+		private:
+			static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
+				const auto xs_iters = us::make_xscope_specialized_first_and_last(_First, _Last);
+				/* In situations where we know that the iterators will remain valid for the entire call, `xs_iters` may contain raw pointers as an 
+				optimization. But incrementing a raw pointer will be flagged as unsafe by the static analyzer, so we need a wrapper for the increment 
+				operation that suppresses the analyzer checks. */
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto unsafe_preincrement = [](auto& x) -> auto& { ++x; return x; };
+
+				auto _UFirst = xs_iters.first();
+				const auto _ULast = xs_iters.last();
+				_UFirst = mse::find_if_ptr(_UFirst, _ULast, _Pred);
+				auto _UNext = _UFirst;
+				if (_UFirst != _ULast) {
+					while (unsafe_preincrement(_UFirst) != _ULast) {
+						if (!_Pred(_UFirst)) {
+							*_UNext = std::move(*_UFirst);
+							unsafe_preincrement(_UNext);
+						}
+					}
+				}
+
+				auto retval = _First;
+				auto _UIter1 = xs_iters.first();
+				while (_UIter1 != _UNext) {
+					++retval;
+					++_UIter1;
+				}
+				return retval;
+				//MSE_SUPPRESS_CHECK_IN_XSCOPE return _First + (_UNext - xs_iters.first());
+			}
+		};
+	}
+	template<class _InIt> using remove_if_ptr_type = typename impl::c_remove_if_ptr<_InIt, decltype(impl::remove_if_ptr_placeholder_predicate())>::item_pointer_type;
+	template<class _InIt, class _Pr, class... Args>
+	inline _InIt remove_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
+		return impl::c_remove_if_ptr<_InIt, _Pr, Args...>(_First, _Last, _Pred, args...).result;
+	}
+
+	template<class _InIt, class _Pr, class... Args>
+	inline _InIt remove_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
+		auto retval = remove_if_ptr(_First, _Last, pred2);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
+	}
+
+
+	/* transform() */
+
+	namespace impl {
+		inline auto transform_ptr_placeholder_predicate() {
+			auto retval = [](auto) { return true; };
+			return retval;
+		};
+		template<class _InIt, class _OutIt, class _Fn, class... Args>
+		class c_transform_ptr {
+		public:
+			typedef us::item_pointer_type_from_iterator<_InIt> item_pointer_type;
+			typedef mse::impl::remove_reference_t<_OutIt> result_type;
+			result_type result;
+			c_transform_ptr(const _InIt& _First, const _InIt& _Last, const _OutIt& _Dest, _Fn _Func, const Args&... args) : result(eval(_First, _Last, _Dest, _Func, args...)) {}
+		private:
+			static result_type eval(const _InIt& _First, const _InIt& _Last, const _OutIt& _Dest, _Fn _Func, const Args&... args) {
+				const auto xs_iters = us::make_xscope_specialized_first_and_last(_First, _Last);
+				/* In situations where we know that the iterators will remain valid for the entire call, `xs_iters` may contain raw pointers as an
+				optimization. But incrementing a raw pointer will be flagged as unsafe by the static analyzer, so we need a wrapper for the increment
+				operation that suppresses the analyzer checks. */
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto unsafe_preincrement = [](auto& x) -> auto& { ++x; return x; };
+
+				auto _UFirst = xs_iters.first();
+				const auto _ULast = xs_iters.last();
+				auto _UDest = _Dest;
+
+				for (; _UFirst != _ULast; unsafe_preincrement(_UFirst), (void) unsafe_preincrement(_UDest)) {
+					*_UDest = _Func(*_UFirst);
+				}
+
+				return _UDest;
+			}
+		};
+		template <class _InIt1, class _InIt2, class _OutIt, class _Fn, class... Args>
+		class c_binary_transform_ptr {
+		public:
+			typedef us::item_pointer_type_from_iterator<_InIt1> item_pointer_type;
+			typedef mse::impl::remove_reference_t<_OutIt> result_type;
+			result_type result;
+			c_binary_transform_ptr(const _InIt1& _First1, const _InIt1& _Last1, const _InIt2& _First2, const _OutIt& _Dest, _Fn _Func, const Args&... args) : result(eval(_First1, _Last1, _First2, _Dest, _Func, args...)) {}
+		private:
+			static result_type eval(const _InIt1& _First1, const _InIt1& _Last1, const _InIt2& _First2, const _OutIt& _Dest, _Fn _Func, const Args&... args) {
+				const auto xs_iters = us::make_xscope_specialized_first_and_last(_First1, _Last1);
+				/* In situations where we know that the iterators will remain valid for the entire call, `xs_iters` may contain raw pointers as an
+				optimization. But incrementing a raw pointer will be flagged as unsafe by the static analyzer, so we need a wrapper for the increment
+				operation that suppresses the analyzer checks. */
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto unsafe_preincrement = [](auto& x) -> auto& { ++x; return x; };
+
+				auto _UFirst1 = xs_iters.first();
+				const auto _ULast1 = xs_iters.last();
+				auto _UFirst2 = _First2;
+				auto _UDest = _Dest;
+
+				for (; _UFirst1 != _ULast1; unsafe_preincrement(_UFirst1), (void) unsafe_preincrement(_UFirst2), unsafe_preincrement(_UDest)) {
+					*_UDest = _Func(*_UFirst1, *_UFirst2);
+				}
+
+				return _UDest;
+			}
+		};
+	}
+	template<class _InIt, class _OutIt, class _Fn, class... Args> using transform_ptr_type = typename impl::c_transform_ptr<_InIt, _OutIt, decltype(impl::transform_ptr_placeholder_predicate())>::item_pointer_type;
+	template <class _InIt, class _OutIt, class _Fn, class... Args>
+	MSE_CONSTEXPR20 _OutIt transform(const _InIt& _First, const _InIt& _Last, const _OutIt& _Dest, _Fn _Func, const Args&... args) {
+		return impl::c_transform_ptr<_InIt, _OutIt, _Fn, Args...>(_First, _Last, _Dest, _Func, args...).result;
+	}
+
+#if _HAS_CXX17
+	template <class _ExPo, class _FwdIt1, class _FwdIt2, class _Fn/*, _Enable_if_execution_policy_t<_ExPo> = 0*/>
+	_FwdIt2 transform(_ExPo&& _Exec, _FwdIt1 _First, _FwdIt1 _Last, _FwdIt2 _Dest, _Fn _Func) noexcept {
+		/* We're just gonna ignore the execution policy for now. */
+		return transform(_First, _Last, _Dest, _Func);
+	}
+#endif // _HAS_CXX17
+
+	template<class _InIt, class _InIt2, class _OutIt, class _Fn, class... Args> using binary_transform_ptr_type = typename impl::c_transform_ptr<_InIt, _InIt2, _OutIt, decltype(impl::transform_ptr_placeholder_predicate())>::item_pointer_type;
+	template <class _InIt1, class _InIt2, class _OutIt, class _Fn, class... Args>
+	MSE_CONSTEXPR20 _OutIt transform(const _InIt1& _First1, const _InIt1& _Last1, const _InIt2& _First2, const _OutIt& _Dest, _Fn _Func, const Args&... args) {
+		// transform [_First1, _Last1) and [_First2, ...) with _Func
+		return impl::c_transform_ptr<_InIt1, _InIt2, _OutIt, _Fn, Args...>(_First1, _Last1, _First2, _Dest, _Func, args...).result;
+	}
+
+#if _HAS_CXX17
+	template <class _ExPo, class _FwdIt1, class _FwdIt2, class _FwdIt3, class _Fn/*, _Enable_if_execution_policy_t<_ExPo> = 0*/>
+	_FwdIt3 transform(_ExPo&& _Exec, _FwdIt1 _First1, _FwdIt1 _Last1, _FwdIt2 _First2, _FwdIt3 _Dest, _Fn _Func) noexcept {
+		/* We're just gonna ignore the execution policy for now. */
+		return transform(_First1, _Last1, _First2, _Dest, _Func);
+	}
+#endif // _HAS_CXX17
 }
 
 #ifndef MSE_PUSH_MACRO_NOT_SUPPORTED

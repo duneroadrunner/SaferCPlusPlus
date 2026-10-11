@@ -1342,6 +1342,18 @@ namespace mse {
 				return std::getline(_Istr, _Myt_ref(*this_ptr).msebasic_string());
 			}
 
+#ifdef MSE_HAS_CXX20
+			template <typename _TThisPointer, class _Uty>
+			static constexpr _Myt::size_type erase(_TThisPointer this_ptr, const _Uty& _Val) {
+				return this_ptr->m_shptr->erase(this_ptr->m_shptr, _Val);
+			}
+
+			template <typename _TThisPointer, class _Pr>
+			static constexpr _Myt::size_type erase_if(_TThisPointer this_ptr, _Pr _Pred) {
+				return this_ptr->m_shptr->erase_if(this_ptr->m_shptr, _Pred);
+			}
+#endif // MSE_HAS_CXX20
+
 			void async_not_shareable_tag() const {}
 			/* this array should be safely passable iff the element type is safely passable */
 			template<class _Ty2 = _Ty, MSE_IMPL_EIP mse::impl::enable_if_t<(std::is_same<_Ty2, _Ty>::value)
@@ -1672,6 +1684,22 @@ namespace std {
 		mse::mstd::basic_string<_Elem, _Traits, _Alloc>& _Str) {	// get characters into string, discard newline
 		return _Str.getline(_Istr, &_Str);
 	}
+
+#ifdef MSE_HAS_CXX20
+	template <class _Elem, class _Traits, class _Alloc, class _Uty>
+	constexpr mse::mstd::basic_string<_Elem, _Traits, _Alloc>::size_type erase(
+		mse::mstd::basic_string<_Elem, _Traits, _Alloc>& _Cont, const _Uty& _Val) {
+
+		return _Cont.erase(&_Cont, _Val);
+	}
+
+	template <class _Elem, class _Traits, class _Alloc, class _Pr>
+	constexpr mse::mstd::basic_string<_Elem, _Traits, _Alloc>::size_type erase_if(
+		mse::mstd::basic_string<_Elem, _Traits, _Alloc>& _Cont, _Pr _Pred) {
+
+		return _Cont.erase_if(&_Cont, _Pred);
+	}
+#endif // MSE_HAS_CXX20
 
 
 	template<class _Ty, class _Traits, class _A>

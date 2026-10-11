@@ -68,11 +68,19 @@
 
 #ifndef _CONSTEXPR17
 #ifdef MSE_HAS_CXX17
-#define _CONSTEXPR17 constexpr
+#define MSE_CONSTEXPR17 constexpr
 #else // MSE_HAS_CXX17
-#define _CONSTEXPR17
+#define MSE_CONSTEXPR17
 #endif // MSE_HAS_CXX17
 #endif // !_NODISCARD
+
+#ifndef MSE_CONSTEXPR20
+#ifdef MSE_HAS_CXX20
+#define MSE_CONSTEXPR20 constexpr
+#else // MSE_HAS_CXX20
+#define MSE_CONSTEXPR20
+#endif // MSE_HAS_CXX20
+#endif // !MSE_CONSTEXPR20
 
 #ifdef MSE_HAS_CXX17
 #define MSE_MAYBE_UNUSED [[maybe_unused]]

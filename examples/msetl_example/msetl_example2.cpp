@@ -1282,7 +1282,7 @@ void msetl_example2() {
 			mse::us::msestring msestr2 = "some text";
 			mse::mstd::string mstdstr2 = "some text";
 
-			std::string stringvalues = "125 320 512 750 333, 125 \n320, 512 \n750, 333 \n125, 320 \n512, 750 \n333, \n";
+			std::string stringvalues = "125 320 512 750 333, 125a \n320, 512 \n750, c333 \n125, 32d0 \n512, 750 \n333, \n";
 			std::istringstream iss(stringvalues);
 			iss >> mstdstr2;
 			iss >> msestr2;
@@ -1295,6 +1295,20 @@ void msetl_example2() {
 			std::getline(iss, nii_str2, ',');
 			std::getline(iss, nii_str2);
 			std::getline(iss, str2);
+
+#ifdef MSE_HAS_CXX17
+			std::transform(mstdstr2.begin(), mstdstr2.end(), mstdstr2.begin(), [](char c) { return (char)std::toupper(c); });
+			std::transform(mse::make_begin_iterator(&msestr2), mse::make_end_iterator(&msestr2), mse::make_begin_iterator(&msestr2), [](char c) { return (char)std::toupper(c); });
+			std::transform(mse::make_begin_iterator(&nii_str2), mse::make_end_iterator(&nii_str2), mse::make_begin_iterator(&nii_str2), [](char c) { return (char)std::toupper(c); });
+			std::transform(str2.begin(), str2.end(), str2.begin(), [](char c) { return (char)std::toupper(c); });
+#endif // MSE_HAS_CXX17
+
+#ifdef MSE_HAS_CXX20
+			std::erase_if(mstdstr2, [](unsigned char c) { return std::isalpha(c); });
+			msestr2.erase_if(&msestr2, [](unsigned char c) { return std::isalpha(c); });
+			nii_str2.erase_if(&nii_str2, [](unsigned char c) { return std::isalpha(c); });
+			std::erase_if(str2, [](unsigned char c) { return std::isalpha(c); });
+#endif // MSE_HAS_CXX20
 		}
 
 		auto str2 = str1 + str1;

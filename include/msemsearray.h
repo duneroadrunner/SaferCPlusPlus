@@ -2899,7 +2899,7 @@ namespace mse {
 				Tarray_ss_const_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
 				Tarray_ss_const_iterator_type operator+(difference_type n) const {
 					Tarray_ss_const_iterator_type retval(*this);
-					retval.advance(n);
+					retval += (n);
 					return retval;
 				}
 				Tarray_ss_const_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
@@ -2948,7 +2948,7 @@ namespace mse {
 				Tarray_ss_iterator_type& operator -=(difference_type n) { (*this).regress(n); return (*this); }
 				Tarray_ss_iterator_type operator+(difference_type n) const {
 					Tarray_ss_iterator_type retval(*this);
-					retval.advance(n);
+					retval += (n);
 					return retval;
 				}
 				Tarray_ss_iterator_type operator-(difference_type n) const { return ((*this) + (-n)); }
