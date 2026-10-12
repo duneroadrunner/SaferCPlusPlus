@@ -283,12 +283,12 @@ namespace mse {
 		public:
 			typedef us::item_pointer_type_from_iterator<_InIt> item_pointer_type;
 			typedef mse::impl::remove_reference_t<_InIt> result_type;
-			result_type result;
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result;
 			c_find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) : result(eval(_First, _Last, _Pred, args...)) {}
 		private:
 			static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
-				const auto xs_iters = us::make_xscope_specialized_first_and_last(_First, _Last);
-				auto current = xs_iters.first();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::make_xscope_specialized_first_and_last(_First, _Last);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto current = xs_iters.first();
 				MSE_SUPPRESS_CHECK_IN_XSCOPE auto unsafe_increment = [](auto& x) { ++x; };
 				for (; current != xs_iters.last(); unsafe_increment(current)) {
 					if (_Pred(current, args...)) {
@@ -296,11 +296,11 @@ namespace mse {
 					}
 				}
 
-				auto retval = _First;
-				auto _UIter1 = xs_iters.first();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = _First;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto _UIter1 = xs_iters.first();
 				while (_UIter1 != current) {
-					++retval;
-					++_UIter1;
+					unsafe_increment(retval);
+					unsafe_increment(_UIter1);
 				}
 				return retval;
 				//MSE_SUPPRESS_CHECK_IN_XSCOPE return _First + (current - xs_iters.first());
@@ -312,15 +312,15 @@ namespace mse {
 		public:
 			typedef us::item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
 			typedef mse::xscope_optional<decltype(mse::us::unsafe_make_xscope_pointer_to(*mse::impl::decl_lval<item_pointer_type>()))> result_type;
-			result_type result;
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result;
 			xscope_c_range_get_ref_if_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
 				: result(eval(_XscpPtr, _Pred, args...)) {}
 		private:
 			static result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 				/* Note that since we're returning a (wrapped const) reference, we need to be careful that it refers to an
 				element in the original container, not an (ephemeral) copy. */
-				const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
-				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr, Args...>(xs_iters.begin(), xs_iters.end(), _Pred, args...).result;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr, Args...>(xs_iters.begin(), xs_iters.end(), _Pred, args...).result;
 				if (xs_iters.end() == res_it) {
 					MSE_SUPPRESS_CHECK_IN_XSCOPE return result_type{};
 				}
@@ -335,14 +335,14 @@ namespace mse {
 		public:
 			typedef us::item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
 			typedef decltype(mse::us::unsafe_make_xscope_pointer_to(*mse::impl::decl_lval<item_pointer_type>())) result_type;
-			result_type result;
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result;
 			xscope_c_range_get_ref_to_element_known_to_be_present_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
 				: result(eval(_XscpPtr, _Pred, args...)) {}
 		private:
 			static result_type eval(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 				/* Note that since we're returning a (const) reference, we need to be careful that it refers to an
 				element in the original container, not an (ephemeral) copy. */
-				const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
 				auto res_it = c_find_if_ptr<decltype(xs_iters.begin()), _Pr, Args...>(xs_iters.begin(), xs_iters.end(), _Pred, args...).result;
 				if (xs_iters.end() == res_it) {
 					MSE_SUPPRESS_CHECK_IN_XSCOPE MSE_THROW(std::logic_error("element not found - xscope_c_range_get_ref_to_element_known_to_be_present"));
@@ -362,7 +362,7 @@ namespace mse {
 	template<class _InIt, class _Pr, class... Args>
 	inline _InIt find_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
 		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
-		auto retval = find_if_ptr(_First, _Last, pred2);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = find_if_ptr(_First, _Last, pred2);
 		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
@@ -370,7 +370,7 @@ namespace mse {
 	/* This function returns a (scope) optional that contains a scope pointer to the found element. */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_if_ptr(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
-		auto retval = impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = impl::xscope_c_range_get_ref_if_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
 		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
@@ -378,7 +378,7 @@ namespace mse {
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
-		auto retval = xscope_range_get_ref_if_ptr(_XscpPtr, pred2);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = xscope_range_get_ref_if_ptr(_XscpPtr, pred2);
 		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
@@ -386,7 +386,7 @@ namespace mse {
 	/* This function returns a scope pointer to the element. (Or throws an exception if it a suitable element isn't found.) */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_to_element_known_to_be_present_ptr(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
-		auto retval = impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = impl::xscope_c_range_get_ref_to_element_known_to_be_present_ptr<_XScopeContainerPointer, _Pr, Args...>(_XscpPtr, _Pred, args...).result;
 		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
@@ -394,14 +394,14 @@ namespace mse {
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	inline auto xscope_range_get_ref_to_element_known_to_be_present(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
 		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
-		auto retval = xscope_range_get_ref_to_element_known_to_be_present_ptr(_XscpPtr, pred2);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = xscope_range_get_ref_to_element_known_to_be_present_ptr(_XscpPtr, pred2);
 		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
 	/* deprecated alias */
 	template<class _XScopeContainerPointer, class _Pr, class... Args>
 	MSE_DEPRECATED inline auto xscope_ra_const_find_if(const _XScopeContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args) {
-		auto retval = xscope_range_get_ref_if(_XscpPtr, _Pred, args...);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = xscope_range_get_ref_if(_XscpPtr, _Pred, args...);
 		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
@@ -417,12 +417,12 @@ namespace mse {
 			public:
 				//typedef us::item_pointer_type_from_iterator<_InIt> item_pointer_type;
 				typedef mse::impl::remove_reference_t<_InIt> result_type;
-				result_type result;
+				MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result;
 				c_find_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) : result(eval(_First, _Last, _Pred, args...)) {}
 			private:
 				static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
 					const auto xs_iters = make_xslta_specialized_first_and_last(_First, _Last);
-					auto current = xs_iters.first();
+					MSE_SUPPRESS_CHECK_IN_XSCOPE auto current = xs_iters.first();
 					for (; current != xs_iters.last(); ++current) {
 						if (_Pred(current, args...)) {
 							break;
@@ -437,7 +437,7 @@ namespace mse {
 			public:
 				//typedef us::item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
 				typedef mse::rsv::xslta_optional<decltype(mse::rsv::us::unsafe_make_xslta_pointer_to(*mse::impl::decl_lval<item_pointer_type>()))> result_type;
-				result_type result;
+				MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result;
 				xslta_c_range_get_ref_if_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
 					: result(eval(_XscpPtr, _Pred, args...)) {}
 			private:
@@ -460,7 +460,7 @@ namespace mse {
 			public:
 				typedef us::item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
 				typedef decltype(mse::rsv::us::unsafe_make_xslta_pointer_to(*mse::impl::decl_lval<item_pointer_type>())) result_type;
-				result_type result;
+				MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result;
 				xslta_c_range_get_ref_to_element_known_to_be_present_ptr(const _ContainerPointer& _XscpPtr, _Pr _Pred, const Args&... args)
 					: result(eval(_XscpPtr, _Pred, args...)) {}
 			private:
@@ -522,14 +522,14 @@ namespace mse {
 		public:
 			typedef us::item_pointer_type_from_iterator<_InIt> item_pointer_type;
 			typedef _Fn result_type;
-			result_type result MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 			c_for_each_ptr(const _InIt& _First, const _InIt& _Last, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args) : result(eval(_First, _Last, _Func, args...)) {}
 		private:
 			static result_type eval(const _InIt& _First, const _InIt& _Last, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args)
 				MSE_ATTR_FUNC_STR("mse::lifetime_notes{ return_value(alias_11$) }")
 			{
-				const auto xs_iters = us::make_xscope_specialized_first_and_last(_First, _Last);
-				auto current = xs_iters.first();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::make_xscope_specialized_first_and_last(_First, _Last);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto current = xs_iters.first();
 				/* Note that `current` could be a raw pointer iterator here. */
 				MSE_SUPPRESS_CHECK_IN_XSCOPE auto unsafe_increment = [](auto& x) { ++x; };
 				for (; current != xs_iters.last(); unsafe_increment(current)) {
@@ -545,13 +545,13 @@ namespace mse {
 		public:
 			typedef us::item_pointer_type_from_container_pointer<_ContainerPointer> item_pointer_type;
 			typedef _Fn result_type;
-			result_type result MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result MSE_ATTR_STR("mse::lifetime_labels(alias_11$)");
 			xscope_c_range_for_each_ptr(const _ContainerPointer& _XscpPtr, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args)
 				: result(eval(_XscpPtr, _Func, args...)) {}
 		private:
 			static result_type eval(const _ContainerPointer& _XscpPtr, _Fn _Func MSE_ATTR_PARAM_STR("mse::lifetime_labels(alias_11$)"), const Args&... args) {
-				const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
-				auto retval = c_for_each_ptr<decltype(xs_iters.begin()), _Fn>(xs_iters.begin(), xs_iters.end(), _Func, args...).result;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = c_for_each_ptr<decltype(xs_iters.begin()), _Fn>(xs_iters.begin(), xs_iters.end(), _Func, args...).result;
 				MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 			}
 		} MSE_ATTR_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
@@ -563,7 +563,7 @@ namespace mse {
 		MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
 		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 	{
-		auto retval = impl::c_for_each_ptr<_InIt, _Fn, Args...>(_First, _Last, _Func, args...).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = impl::c_for_each_ptr<_InIt, _Fn, Args...>(_First, _Last, _Func, args...).result;
 		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
@@ -583,7 +583,7 @@ namespace mse {
 		MSE_ATTR_FUNC_STR("mse::lifetime_set_alias_from_template_parameter_by_name(_Fn, alias_11$)")
 		MSE_ATTR_FUNC_STR("mse::lifetime_notes{ labels(alias_11$); return_value(alias_11$) }")
 	{
-		auto retval = impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer, _Fn>(_XscpPtr, _Func, args...).result;
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = impl::xscope_c_range_for_each_ptr<_XScopeContainerPointer, _Fn>(_XscpPtr, _Func, args...).result;
 		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
@@ -606,7 +606,7 @@ namespace mse {
 			c_sort(const _RanIt& _First, const _RanIt& _Last) { eval(_First, _Last); }
 		private:
 			static void eval(const _RanIt& _First, const _RanIt& _Last) {
-				const auto xs_iters = us::TXScopeSpecializedFirstAndLast<_RanIt>(_First, _Last);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::TXScopeSpecializedFirstAndLast<_RanIt>(_First, _Last);
 				MSE_SUPPRESS_CHECK_IN_XSCOPE std::sort(xs_iters.first(), xs_iters.first());
 			}
 		};
@@ -617,7 +617,7 @@ namespace mse {
 			xscope_c_range_sort(const _ContainerPointer& _XscpPtr) { eval(_XscpPtr); }
 		private:
 			static void eval(const _ContainerPointer& _XscpPtr) {
-				const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
 				MSE_SUPPRESS_CHECK_IN_XSCOPE std::sort(xs_iters.begin(), xs_iters.end());
 			}
 		};
@@ -639,7 +639,7 @@ namespace mse {
 			c_sort_pr(const _RanIt& _First, const _RanIt& _Last, _Pr _Pred) { eval(_First, _Last, _Pred); }
 		private:
 			static void eval(const _RanIt& _First, const _RanIt& _Last, _Pr _Pred) {
-				const auto xs_iters = us::TXScopeSpecializedFirstAndLast<_RanIt>(_First, _Last);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::TXScopeSpecializedFirstAndLast<_RanIt>(_First, _Last);
 				/* The following otherwise useless line is so that the scpptool static analyzer can assess whether such a _Pred() call (a number of which 
 				will presumaably be made by the following std::sort() call) is lifetime valid. Note we're relying on the implicit/elided default lifetime 
 				annotation of the parameters. */
@@ -655,7 +655,7 @@ namespace mse {
 			xscope_c_range_sort_pr(const _ContainerPointer& _XscpPtr, _Pr _Pred) { eval(_XscpPtr, _Pred); }
 		private:
 			static void eval(const _ContainerPointer& _XscpPtr, _Pr _Pred) {
-				const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
 				/* The following otherwise useless line is so that the scpptool static analyzer can assess whether such a _Pred() call (a number of which
 				will presumaably be made by the following std::sort() call) is lifetime valid. Note we're relying on the implicit/elided default lifetime 
 				annotation of the parameters. */
@@ -680,6 +680,7 @@ namespace mse {
 
 	namespace impl {
 		/* This is just because msvc complains about std::equal() being unsafe. */
+		MSE_SUPPRESS_CHECK_IN_DECLSCOPE 
 		template<class _InIt1, class _InIt2>
 		bool m_equal(_InIt1 _First1, const _InIt1& _Last1, _InIt2 _First2) {
 #ifdef _MSC_VER
@@ -699,7 +700,7 @@ namespace mse {
 		class c_equal {
 		public:
 			typedef decltype(m_equal(mse::impl::decl_lval<_InIt1>(), mse::impl::decl_lval<_InIt1>(), mse::impl::decl_lval<_InIt2>())) result_type;
-			result_type result;
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result;
 			c_equal(const _InIt1& _First1, const _InIt1& _Last1, _InIt2 _First2) : result(m_equal(_First1, _Last1, _First2)) {}
 		};
 
@@ -707,12 +708,12 @@ namespace mse {
 		class xscope_c_range_equal {
 		public:
 			typedef bool result_type;
-			result_type result = false;
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result = false;
 			xscope_c_range_equal(const _ContainerPointer& _XscpPtr, _InIt2 _First2)
 				: result(eval(_XscpPtr, _First2)) {}
 		private:
 			static result_type eval(const _ContainerPointer& _XscpPtr, _InIt2 _First2) {
-				auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto xs_iters = us::make_xscope_range_iter_provider(_XscpPtr);
 				MSE_SUPPRESS_CHECK_IN_XSCOPE return m_equal(xs_iters.begin(), xs_iters.end(), _First2);
 			}
 		};
@@ -740,20 +741,20 @@ namespace mse {
 		public:
 			typedef us::item_pointer_type_from_iterator<_InIt> item_pointer_type;
 			typedef mse::impl::remove_reference_t<_InIt> result_type;
-			result_type result;
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result;
 			c_remove_if_ptr(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) : result(eval(_First, _Last, _Pred, args...)) {}
 		private:
 			static result_type eval(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
-				const auto xs_iters = us::make_xscope_specialized_first_and_last(_First, _Last);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::make_xscope_specialized_first_and_last(_First, _Last);
 				/* In situations where we know that the iterators will remain valid for the entire call, `xs_iters` may contain raw pointers as an 
 				optimization. But incrementing a raw pointer will be flagged as unsafe by the static analyzer, so we need a wrapper for the increment 
 				operation that suppresses the analyzer checks. */
 				MSE_SUPPRESS_CHECK_IN_XSCOPE auto unsafe_preincrement = [](auto& x) -> auto& { ++x; return x; };
 
-				auto _UFirst = xs_iters.first();
-				const auto _ULast = xs_iters.last();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto _UFirst = xs_iters.first();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto _ULast = xs_iters.last();
 				_UFirst = mse::find_if_ptr(_UFirst, _ULast, _Pred);
-				auto _UNext = _UFirst;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto _UNext = _UFirst;
 				if (_UFirst != _ULast) {
 					while (unsafe_preincrement(_UFirst) != _ULast) {
 						if (!_Pred(_UFirst)) {
@@ -763,11 +764,11 @@ namespace mse {
 					}
 				}
 
-				auto retval = _First;
-				auto _UIter1 = xs_iters.first();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = _First;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto _UIter1 = xs_iters.first();
 				while (_UIter1 != _UNext) {
-					++retval;
-					++_UIter1;
+					unsafe_preincrement(retval);
+					unsafe_preincrement(_UIter1);
 				}
 				return retval;
 				//MSE_SUPPRESS_CHECK_IN_XSCOPE return _First + (_UNext - xs_iters.first());
@@ -783,7 +784,7 @@ namespace mse {
 	template<class _InIt, class _Pr, class... Args>
 	inline _InIt remove_if(const _InIt& _First, const _InIt& _Last, _Pr _Pred, const Args&... args) {
 		MSE_SUPPRESS_CHECK_IN_XSCOPE auto pred2 = mse::rsv::make_xscope_reference_or_pointer_capture_lambda([&_Pred](auto ptr) { return _Pred(*ptr); });
-		auto retval = remove_if_ptr(_First, _Last, pred2);
+		MSE_SUPPRESS_CHECK_IN_XSCOPE auto retval = remove_if_ptr(_First, _Last, pred2);
 		MSE_SUPPRESS_CHECK_IN_XSCOPE return std::move(retval);
 	}
 
@@ -800,19 +801,19 @@ namespace mse {
 		public:
 			typedef us::item_pointer_type_from_iterator<_InIt> item_pointer_type;
 			typedef mse::impl::remove_reference_t<_OutIt> result_type;
-			result_type result;
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result;
 			c_transform_ptr(const _InIt& _First, const _InIt& _Last, const _OutIt& _Dest, _Fn _Func, const Args&... args) : result(eval(_First, _Last, _Dest, _Func, args...)) {}
 		private:
 			static result_type eval(const _InIt& _First, const _InIt& _Last, const _OutIt& _Dest, _Fn _Func, const Args&... args) {
-				const auto xs_iters = us::make_xscope_specialized_first_and_last(_First, _Last);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::make_xscope_specialized_first_and_last(_First, _Last);
 				/* In situations where we know that the iterators will remain valid for the entire call, `xs_iters` may contain raw pointers as an
 				optimization. But incrementing a raw pointer will be flagged as unsafe by the static analyzer, so we need a wrapper for the increment
 				operation that suppresses the analyzer checks. */
 				MSE_SUPPRESS_CHECK_IN_XSCOPE auto unsafe_preincrement = [](auto& x) -> auto& { ++x; return x; };
 
-				auto _UFirst = xs_iters.first();
-				const auto _ULast = xs_iters.last();
-				auto _UDest = _Dest;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto _UFirst = xs_iters.first();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto _ULast = xs_iters.last();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto _UDest = _Dest;
 
 				for (; _UFirst != _ULast; unsafe_preincrement(_UFirst), (void) unsafe_preincrement(_UDest)) {
 					*_UDest = _Func(*_UFirst);
@@ -826,20 +827,20 @@ namespace mse {
 		public:
 			typedef us::item_pointer_type_from_iterator<_InIt1> item_pointer_type;
 			typedef mse::impl::remove_reference_t<_OutIt> result_type;
-			result_type result;
+			MSE_SUPPRESS_CHECK_IN_DECLSCOPE result_type result;
 			c_binary_transform_ptr(const _InIt1& _First1, const _InIt1& _Last1, const _InIt2& _First2, const _OutIt& _Dest, _Fn _Func, const Args&... args) : result(eval(_First1, _Last1, _First2, _Dest, _Func, args...)) {}
 		private:
 			static result_type eval(const _InIt1& _First1, const _InIt1& _Last1, const _InIt2& _First2, const _OutIt& _Dest, _Fn _Func, const Args&... args) {
-				const auto xs_iters = us::make_xscope_specialized_first_and_last(_First1, _Last1);
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto xs_iters = us::make_xscope_specialized_first_and_last(_First1, _Last1);
 				/* In situations where we know that the iterators will remain valid for the entire call, `xs_iters` may contain raw pointers as an
 				optimization. But incrementing a raw pointer will be flagged as unsafe by the static analyzer, so we need a wrapper for the increment
 				operation that suppresses the analyzer checks. */
 				MSE_SUPPRESS_CHECK_IN_XSCOPE auto unsafe_preincrement = [](auto& x) -> auto& { ++x; return x; };
 
-				auto _UFirst1 = xs_iters.first();
-				const auto _ULast1 = xs_iters.last();
-				auto _UFirst2 = _First2;
-				auto _UDest = _Dest;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto _UFirst1 = xs_iters.first();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE const auto _ULast1 = xs_iters.last();
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto _UFirst2 = _First2;
+				MSE_SUPPRESS_CHECK_IN_XSCOPE auto _UDest = _Dest;
 
 				for (; _UFirst1 != _ULast1; unsafe_preincrement(_UFirst1), (void) unsafe_preincrement(_UFirst2), unsafe_preincrement(_UDest)) {
 					*_UDest = _Func(*_UFirst1, *_UFirst2);
